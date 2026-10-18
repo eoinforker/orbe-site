@@ -1,0 +1,13 @@
+/* Shared overrides: every specimen sets only tokens. Figures and display faces are routed by role. */
+:root { --disp: var(--sans); --disp-w: 400; --h1-tr: -0.042em; --h1-lh: 0.94; --h2-tr: -0.038em; --h2-lh: 0.98;
+  --ital: var(--serif); --it-w: 400; --it-tr: -0.03em; --it-scale: 1;
+  --fig-big: var(--sans); --fig-big-w: 400; --fig-big-tr: -0.03em; --fig: var(--mono); --text-serif: var(--serif); --plain-fs: 21px; --plain-lh: 1.4; --ui-w: 500; }
+.h1 { font-family: var(--disp); font-weight: var(--disp-w); letter-spacing: var(--h1-tr); line-height: var(--h1-lh); }
+.h1-b { font-family: var(--ital); font-weight: var(--it-w); letter-spacing: var(--it-tr); font-size: calc(var(--it-scale) * 1em); }
+.h2 { font-family: var(--disp); font-weight: var(--disp-w); letter-spacing: var(--h2-tr); line-height: var(--h2-lh); }
+.s-you-num, .rd-num, .val-range { font-family: var(--fig-big); font-weight: var(--fig-big-w); letter-spacing: var(--fig-big-tr); font-feature-settings: "pnum" 1, "lnum" 1; font-variant-numeric: proportional-nums lining-nums; }
+.s-you-band, .rd-band, .maths-note, .s-top1-n, .val-to { font-family: var(--ital); }
+.plain-t { font-family: var(--text-serif); font-size: var(--plain-fs); line-height: var(--plain-lh); }
+.s-lab, .rd-parts .v, .rd-parts .pr-l, .weights .w span, .w-list .wt, .sources .d, .slide-ends, .slide-top output { font-family: var(--fig); font-feature-settings: "tnum" 1; }
+.rd-size, .s-you-handle, .f-pre, .f-handle input, .rec-url { font-family: var(--mono); }
+.rd-name, .s-you-name, .maths-k { font-weight: var(--ui-w); }

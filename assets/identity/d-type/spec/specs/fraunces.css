@@ -1,0 +1,10 @@
+@import "_base.css";
+@font-face { font-family: "C Fraunces"; src: url("../../fonts/fraunces/fraunces-latin-full-normal.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "C Fraunces"; src: url("../../fonts/fraunces/fraunces-latin-full-italic.woff2") format("woff2"); font-weight: 100 900; font-style: italic; font-display: block; }
+@font-face { font-family: "C Hanken"; src: url("../../fonts/hanken-grotesk/hanken-grotesk-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "C Martian"; src: url("../../fonts/martian-mono/martian-mono-latin-standard-normal.woff2") format("woff2"); font-weight: 100 800; font-stretch: 75% 112%; font-display: block; }
+:root { --sans: "C Hanken", sans-serif; --serif: "C Fraunces", serif; --mono: "C Martian", monospace;
+  --disp: "C Fraunces", serif; --disp-w: 330; --h1-tr: -0.03em; --h1-lh: 0.98; --h2-tr: -0.026em; --it-tr: -0.02em; --it-w: 330;
+  --fig-big: "C Fraunces", serif; --fig-big-w: 330; --fig-big-tr: -0.02em; --fig: "C Martian", monospace; --plain-fs: 20px; }
+.h1, .h2, .h1-b, .s-you-num, .rd-num, .val-range, .plain-t, .maths-note, .rd-band, .s-you-band { font-variation-settings: "SOFT" 0, "WONK" 0; }
+.s-lab, .rd-parts .v, .rd-parts .pr-l, .weights .w span, .w-list .wt, .rd-size, .s-you-handle, .f-pre, .f-handle input { font-stretch: 87.5%; font-size: 0.82em; }

@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="../../fonts.css">
+<style>body{margin:20px;background:#f4f2ec;color:#131211}svg{display:block;overflow:visible}.ghost{font-family:'Timeless Serif';font-weight:500;fill:#e0592a;opacity:.35}</style>
+<svg id=s width="1300" height="600" viewBox="-40 -20 2200 1000"></svg>
+<script type=module>
+import {O_plain,r,b,e,B} from './letters.mjs';
+const o=O_plain(0); const rr=r(o.adv+44); const bb=b(rr.adv+12); const ee=e(bb.adv+52);
+s.innerHTML=`<text class=ghost x="0" y="${B}" font-size="${700/0.735}">Orbe</text><path fill="currentColor" d="${o.d+rr.d+bb.d+ee.d}"/>
+<line x1=-40 x2=2200 y1=${B} y2=${B} stroke=#09f stroke-width=1 /><line x1=-40 x2=2200 y1=${B-492} y2=${B-492} stroke=#09f stroke-width=1 />`;
+</script>

@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="../../fonts.css">
+<style>body{margin:0;font:12px "Timeless Sans";}.band{display:flex;gap:26px;align-items:flex-end;padding:14px 18px}.p{background:#f4f2ec;color:#131211}.k{background:#131211;color:#f4f2ec}.sky{background:#a9dcf4;color:#141311}svg{display:block}span{opacity:.6}</style>
+<div id=root></div>
+<script type=module>
+const q=new URLSearchParams(location.search); const set=q.get("set")||"round4"; const ids=(q.get("ids")||"r1,a2").split(",");
+const {candidates}=await import(`./${set}.mjs`);
+const hs=[14,16,18,20,24,28,32,40];
+root.innerHTML=ids.map(id=>{const c=candidates.find(x=>x.id===id);return ["p","k","sky"].map(t=>`<div class="band ${t}"><span>${id}</span>${hs.map(h=>`<svg height=${h}><path fill=currentColor d="${c.d}"/></svg>`).join("")}</div>`).join("")}).join("");
+document.querySelectorAll("svg").forEach(s=>{const b=s.firstChild.getBBox();s.setAttribute("viewBox",`${b.x} ${b.y} ${b.width} ${b.height}`);s.setAttribute("width",(s.getAttribute("height")*b.width/b.height).toFixed(1));});
+</script>

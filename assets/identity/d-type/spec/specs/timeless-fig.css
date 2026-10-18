@@ -1,0 +1,3 @@
+@import "_base.css";
+/* Keep Timeless; route every figure to Timeless Sans tabular; Paper Mono only for handles and addresses. */
+:root { --fig: "Timeless Sans", sans-serif; --fig-big-w: 350; --fig-big-tr: -0.035em; --it-tr: -0.025em; }

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbe wordmark board</title>
+<link rel="icon" href="../favicon.svg">
+<link rel="stylesheet" href="../../fonts.css">
+<style>
+:root { --paper: #f4f2ec; --ink: #131211; --soft: #5d584f; --line: rgba(19, 18, 17, 0.14); --sky: #a9dcf4; --red: #bf3d17;
+  --sans: "Timeless Sans", "Helvetica Neue", Arial, sans-serif; --serif: "Timeless Serif", Georgia, serif; --mono: "Paper Mono", ui-monospace, monospace; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 24px 0; border-bottom: 1px solid var(--line); font: 400 13px/1.4 var(--mono); color: var(--soft); }
+h1 { font: 400 clamp(34px, 4.6vw, 60px)/1.02 var(--serif); letter-spacing: -0.03em; margin: 56px 0 18px; max-width: 16em; }
+h2 { font: 400 28px/1.1 var(--serif); letter-spacing: -0.02em; margin: 0 0 12px; }
+.lede { font-size: 19px; color: #3c3933; max-width: 40em; margin: 0 0 40px; }
+section { padding: 56px 0; border-top: 1px solid var(--line); }
+.label { font: 500 12px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--soft); margin-bottom: 16px; display: block; }
+.stage { border-radius: 14px; padding: clamp(28px, 5vw, 64px); position: relative; }
+.stage.paper { background: #fbfaf6; border: 1px solid var(--line); }
+.stage.ink { background: var(--ink); color: var(--paper); }
+.stage.sky { background: var(--sky); }
+.stage .hero { --wm-h: clamp(56px, 10.5vw, 150px); line-height: 0; }
+.pair > * { min-width: 0; }
+.pair .stage { padding: clamp(24px, 4vw, 48px); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .pair { grid-template-columns: 1fr; } }
+button.replay { position: absolute; right: 16px; top: 16px; font: 500 13px/1 var(--sans); padding: 9px 12px; border-radius: 99px; border: 1px solid currentColor; background: none; color: inherit; cursor: pointer; opacity: 0.75; }
+button.replay:hover { opacity: 1; }
+.navmock { display: flex; align-items: center; gap: 26px; padding: 16px 22px; border-radius: 12px; font-size: 15px; flex-wrap: wrap; }
+.navmock .wm { text-decoration: none; color: inherit; line-height: 0; }
+.navmock .go { margin-left: auto; font: 500 14px/1 var(--sans); padding: 10px 14px; border-radius: 99px; background: currentColor; }
+.navmock .go span { color: var(--paper); }
+.ink .navmock .go span, .navmock.ink .go span { color: var(--ink); }
+.navs { display: grid; gap: 10px; }
+.navmock.paper { background: #fbfaf6; border: 1px solid var(--line); } .navmock.ink { background: var(--ink); color: var(--paper); } .navmock.sky { background: var(--sky); }
+.sizes { display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+.sizes figure { margin: 0; }
+.sizes figcaption { font: 400 11px/1 var(--mono); color: var(--soft); margin-top: 8px; }
+.ink .sizes figcaption { color: #aaa49a; }
+.why { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px 40px; margin-top: 28px; }
+.why h3 { font: 500 15px/1.3 var(--sans); margin: 0 0 6px; }
+.why p { margin: 0; color: #3c3933; font-size: 15px; }
+.construct svg { width: 100%; height: auto; display: block; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.card { background: #fbfaf6; border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.card svg { height: 64px; width: auto; max-width: 100%; display: block; margin-bottom: 14px; }
+.card b { font: 500 14px/1.3 var(--sans); display: block; }
+.card p { margin: 4px 0 0; font-size: 13.5px; color: #4b4740; }
+.card .v { font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 10px; display: inline-block; color: var(--red); }
+.card.win .v { color: #087044; }
+.fav { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+.fav img { image-rendering: auto; }
+code { font: 400 13px var(--mono); background: rgba(19,18,17,.06); padding: 2px 5px; border-radius: 4px; }
+footer { padding: 40px 0 64px; color: var(--soft); font-size: 13px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span>Orbe wordmark, round 5</span><span>Final and runner-up</span></header>
+
+  <h1>The lap</h1>
+  <p class="lede">The O of Orbe is one stroke that goes round twice: once as the letter, the world, then a second, finer lap inside it that comes to rest on a small ball just short of where it began. It is an orb and its orbit in a single movement of the pen, and every lap is measured against your own last one, which is what Orbe does for creators.</p>
+
+  <div class="pair">
+    <div class="stage paper"><button class="replay" type="button">Replay</button><span class="label">Paper</span><div class="hero" data-mount></div></div>
+    <div class="stage ink"><button class="replay" type="button">Replay</button><span class="label" style="color:#aaa49a">Ink</span><div class="hero" data-mount></div></div>
+  </div>
+
+  <section>
+    <span class="label">In use, nav size</span>
+    <div class="navs">
+      <div class="navmock paper" style="--wm-h:18px"><a class="wm" href="#" aria-label="Orbe, home" data-mount></a><span>How it works</span><span>Sell</span><span>For buyers</span><a class="go"><span>Get your rating</span></a></div>
+      <div class="navmock sky" style="--wm-h:21px"><a class="wm" href="#" aria-label="Orbe, home" data-mount></a><span>How it works</span><span>Sell</span><span>For buyers</span><a class="go"><span>Get your rating</span></a></div>
+      <div class="navmock ink" style="--wm-h:18px"><a class="wm" href="#" aria-label="Orbe, home" data-mount></a><span>How it works</span><span>Sell</span><span>For buyers</span><a class="go"><span>Get your rating</span></a></div>
+    </div>
+    <div class="pair" style="margin-top:16px">
+      <div class="stage paper"><div class="sizes" id="sizes-p"></div></div>
+      <div class="stage ink"><div class="sizes" id="sizes-k"></div></div>
+    </div>
+  </section>
+
+  <section class="construct">
+    <h2>Construction</h2>
+    <p class="lede" style="margin-bottom:24px">Drawn on a 1000 unit em, in the spirit of Timeless Serif so it sits with the site's type. The lap is the O's own counter, scaled to 60 percent: the letter holds a smaller copy of itself, measured against its own size.</p>
+    <div class="stage paper"><svg id="construct" role="img" aria-label="Construction drawing of the Orbe wordmark"></svg></div>
+    <div class="why">
+      <div><h3>The O</h3><p>Cap height 700 with 12 of overshoot, near round (680 by 724) like Timeless. Vertical stress: 102 at the sides, 30 at top and bottom, a squarer counter than the outline.</p></div>
+      <div><h3>The lap</h3><p>An ellipse inside the counter, tangent to it at 2 o'clock and set 10 units into the wall. It leaves the wall with a crisp acute crotch, the way the b's shoulder leaves its stem, travels 306 degrees anticlockwise (the direction an O is written), and swells to 37 on its upright sides.</p></div>
+      <div><h3>The ball</h3><p>A 24 unit ball ends the lap just short of where it began: the landing. It rhymes with the r's 45 unit ball terminal, so the detail belongs to the family rather than sitting on top of it.</p></div>
+      <div><h3>r, b, e</h3><p>Wedge flags on r and b, an arched r shoulder into a pendant ball, a bracketed slab foot, a b with an angled heel, and an e with a level bar at 53 percent. Spacing: O to r 40, r to b 42, b to e 48.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Runner-up: Axis</h2>
+    <p class="lede" style="margin-bottom:24px">The O's stress is tilted 23.4 degrees, the Earth's axial tilt, which is also where old style type puts the pen. On reveal the counter would turn like a world and settle on its axis. It is calm, it reads perfectly at every size, and it is the safer choice.</p>
+    <div class="pair">
+      <div class="stage paper"><div class="hero" id="axis-p" style="line-height:0"></div></div>
+      <div class="stage ink"><div class="hero" id="axis-k" style="line-height:0"></div></div>
+    </div>
+    <div class="why">
+      <div><h3>Why it lost</h3><p>At a glance it is a well-drawn O and nothing more. The critique of rounds 4 and 5 was "typeset Orbe with a tweaked O at most", and Axis is exactly that, only better made. Its idea needs a caption.</p></div>
+      <div><h3>Why the lap won</h3><p>You can see the idea without being told: one stroke, two laps, a landing. It is lettering, not a symbol; it reads as Orbe at 14px; and the reveal is the idea itself, the pen going round twice.</p></div>
+      <div><h3>Risks we checked</h3><p>An open lap read as a c inside an O, which made the O look like a copyright sign, so the lap now closes to 306 degrees. A brushed version read as an enso, so the drawing is strictly geometric.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How we got here</h2>
+    <p class="lede" style="margin-bottom:24px">Six directions first, judged at 18, 48 and 200px on paper and ink beside the Smith &amp; Diction sheet, then the two survivors refined in eleven passes.</p>
+    <div class="grid" id="history"></div>
+  </section>
+
+  <section>
+    <h2>Favicon</h2>
+    <p class="lede" style="margin-bottom:24px">The O alone, recut heavier for 16 to 32px (thicker lap and ball) on an ink tile, so it holds on light and dark browser tabs.</p>
+    <div class="fav"><img src="../favicon.svg" width="16" height="16" alt="Favicon at 16px"><img src="../favicon-32.png" width="32" height="32" alt="Favicon PNG at 32px"><img src="../favicon.svg" width="64" height="64" alt="Favicon at 64px"><img src="../favicon.svg" width="128" height="128" alt="Favicon at 128px"></div>
+  </section>
+
+  <footer>Files: <code>assets/r5/wordmark.svg</code>, <code>assets/r5/wordmark.js</code>, <code>assets/r5/favicon.svg</code>, <code>assets/r5/favicon-32.png</code>, <code>assets/r5/WORDMARK.md</code>. Source drawing: <code>wordmark-board/letters.mjs</code> and <code>final.mjs</code>.</footer>
+</div>
+
+<script type="module">
+import { mountWordmark, wordmarkSVG } from "../wordmark.js";
+import { build } from "./final.mjs";
+import { B, P, O_plain, r, b, e } from "./letters.mjs";
+import { candidates as first } from "./candidates.mjs";
+import { lapO } from "./round2.mjs";
+import { loopO } from "./round3.mjs";
+
+const NS = "http://www.w3.org/2000/svg";
+const fit = (svg) => { const p = svg.querySelector("path"); const bb = p.getBBox(); svg.setAttribute("viewBox", `${bb.x} ${bb.y} ${bb.width} ${bb.height}`); };
+
+// Final, animated
+const heroes = [];
+document.querySelectorAll("[data-mount]").forEach((el) => heroes.push([el, mountWordmark(el)]));
+document.querySelectorAll(".replay").forEach((btn) => btn.addEventListener("click", () => {
+  const host = btn.parentElement.querySelector("[data-mount]");
+  mountWordmark(host);
+}));
+
+// Size ladder
+for (const id of ["sizes-p", "sizes-k"]) {
+  const box = document.getElementById(id);
+  for (const h of [14, 18, 24, 32, 48, 72]) {
+    const fig = document.createElement("figure");
+    const s = wordmarkSVG(); s.style.setProperty("--wm-h", h + "px"); s.style.verticalAlign = "bottom";
+    fig.appendChild(s); fig.insertAdjacentHTML("beforeend", `<figcaption>${h}px</figcaption>`);
+    box.appendChild(fig);
+  }
+}
+
+// Runner-up
+const word = (O) => { const rr = r(O.adv + 40), bb = b(rr.adv + 42), ee = e(bb.adv + 48); return O.d + rr.d + bb.d + ee.d; };
+const axisD = word(O_plain(0, { tilt: -23.4, Sr: 116, H: 26, ki: 0.6 }));
+for (const id of ["axis-p", "axis-k"]) {
+  const s = document.createElementNS(NS, "svg"); s.setAttribute("role", "img"); s.setAttribute("aria-label", "Orbe, runner-up");
+  s.innerHTML = `<path fill="currentColor" d="${axisD}"/>`; s.style.height = "clamp(56px, 10.5vw, 150px)"; s.style.width = "auto"; s.style.maxWidth = "100%";
+  document.getElementById(id).appendChild(s); fit(s);
+}
+
+// Construction drawing
+const g = build(), G = g.geo, c = document.getElementById("construct");
+const xt = B - P.x, cap = B - P.cap, asc = B - P.asc;
+const ell = (cx, cy, rx, ry, cls) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" class="${cls}"/>`;
+const tp = [G.lcx + G.bite * Math.cos(G.th) + G.lrx * Math.cos(G.th), G.lcy + G.bite * Math.sin(G.th) + G.lry * Math.sin(G.th)];
+c.setAttribute("viewBox", "-360 -60 2520 920");
+c.innerHTML = `<style>.gl{stroke:#bf3d17;stroke-width:2;fill:none}.gd{stroke:#bf3d17;stroke-width:2;fill:none;stroke-dasharray:8 7}.gt{font:400 22px 'Paper Mono',monospace;fill:#bf3d17}.mk{fill:#bf3d17}</style>
+<g class="lines">${[[B, "baseline 0"], [xt, "x-height 492"], [cap, "cap 700"], [asc, "ascender 738"]].map(([y, t]) => `<line x1="-350" x2="2150" y1="${y}" y2="${y}" class="gl" opacity=".45"/><text x="-350" y="${y - 8}" class="gt">${t}</text>`).join("")}</g>
+<path fill="#131211" d="${g.O + g.loop + g.ball + g.rbe}" opacity=".9"/>
+${ell(g.Ocx, g.Ocy, G.crx, G.cry, "gd")}
+${ell(G.lcx + G.bite * Math.cos(G.th), G.lcy + G.bite * Math.sin(G.th), G.lrx, G.lry, "gd")}
+<circle cx="${tp[0]}" cy="${tp[1]}" r="9" class="mk"/><text x="${tp[0] + 22}" y="${tp[1] - 14}" class="gt">leaves the wall</text>
+<circle cx="${g.end[0]}" cy="${g.end[1]}" r="${g.ballR + 12}" class="gl"/><text x="${g.end[0] + 50}" y="${g.end[1] + 8}" class="gt">lands, 306°</text>
+<text x="${g.Ocx - 140}" y="${B + 70}" class="gt">counter, and the lap at 60%</text>`;
+
+// History
+const hist = [
+  ...first.map((x) => ({ d: x.d, t: x.title, p: x.idea, v: { axis: "Survived as runner-up", lap: "Idea kept, drawing failed", swash: "Cut: a smile under the word", measure: "Cut: a generic geometric startup", meridian: "Cut: reads as a double O", lig: "Cut: reads Ofbe" }[x.id] })),
+  { d: word(lapO(0, { a0: -100, over: 40 })), t: "Lap, brushed", p: "A broad nib swept once round and past its start.", v: "Cut: an enso, hand-drawn wobble" },
+  { d: word(loopO(0, {})), t: "Loop, first draft", p: "The lap redrawn as a precise hairline inside the counter.", v: "Kept: lettering with an idea" },
+  { d: (() => { const q = build({ sweep: 282 }); return q.O + q.loop + q.ball + q.rbe; })(), t: "Loop, open", p: "Anticlockwise, open on the right.", v: "Cut: the O reads as ©" },
+  { d: (() => { const q = build(); return q.O + q.loop + q.ball + q.rbe; })(), t: "The lap, final", p: "Closed to 306 degrees, crisp crotch at the wall, ball with air.", v: "Chosen", win: true },
+];
+const H = document.getElementById("history");
+for (const h of hist) {
+  const card = document.createElement("div"); card.className = "card" + (h.win ? " win" : "");
+  const s = document.createElementNS(NS, "svg"); s.setAttribute("aria-hidden", "true");
+  s.innerHTML = `<path fill="currentColor" d="${h.d}"/>`;
+  card.appendChild(s); card.insertAdjacentHTML("beforeend", `<b>${h.t}</b><p>${h.p}</p><span class="v">${h.v}</span>`);
+  H.appendChild(card); fit(s);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Orbe wordmark candidates</title>
+<link rel="stylesheet" href="../../fonts.css">
+<style>
+:root{--paper:#f4f2ec;--ink:#131211}
+body{margin:0;background:#ddd9cf;font:13px/1.4 "Timeless Sans",sans-serif;color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #bbb}
+.cell{padding:28px 32px;display:flex;flex-direction:column;gap:22px}
+.paper{background:var(--paper);color:var(--ink)}.ink{background:var(--ink);color:var(--paper)}
+.meta{grid-column:1/3;background:#fff;padding:10px 32px;font-size:13px}
+.meta b{font-size:15px;margin-right:10px}
+.small{display:flex;align-items:center;gap:28px}
+.nav{display:flex;align-items:center;gap:22px;font-size:15px}
+svg{display:block;overflow:visible}
+.cut{fill:var(--bg)}
+.paper{--bg:var(--paper)}.ink{--bg:var(--ink)}
+</style></head><body>
+<div id=root></div>
+<script type=module>
+const set = new URLSearchParams(location.search).get("set") || "candidates"; const { candidates } = await import(`./${set}.mjs`);
+const only = new URLSearchParams(location.search).get("only");
+const list = only ? candidates.filter(c => only.split(",").includes(c.id)) : candidates;
+const svg = (c, h) => `<svg data-c="${c.id}" height="${h}" role="img" aria-label="Orbe"><path fill="currentColor" d="${c.d}"/>${c.cut ? `<path class=cut d="${c.cut}"/>` : ""}</svg>`;
+root.innerHTML = list.map(c => `<div class=row><div class=meta><b>${c.title}</b>${c.idea}</div>
+${["paper","ink"].map(t => `<div class="cell ${t}">${svg(c,200)}<div class=small>${svg(c,48)}<div class=nav>${svg(c,18)}<span>How it works</span><span>Sell</span><span>For buyers</span></div></div></div>`).join("")}</div>`).join("");
+document.querySelectorAll("svg[data-c]").forEach(s => {
+  const bb = s.querySelector("path").getBBox();
+  const pad = 0;
+  s.setAttribute("viewBox", `${bb.x - pad} ${bb.y - pad} ${bb.width + 2*pad} ${bb.height + 2*pad}`);
+  s.setAttribute("width", (s.getAttribute("height") * (bb.width + 2*pad) / (bb.height + 2*pad)).toFixed(1));
+});
+</script></body></html>

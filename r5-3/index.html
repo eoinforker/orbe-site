@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en-GB" class="pre">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe</title>
+<meta name="description" content="Your work, rated against creators your size. Free for every kind of creator, on a card made to be shared. Then a checked record of what you've built, and fair buyers and investors when you want them.">
+<meta name="theme-color" content="#f4f1ea">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="preload" href="../assets/fonts/TimelessSerifVF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/TimelessSansVF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/PaperMonoVF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="./style.css">
+<script>setTimeout(function () { document.documentElement.classList.remove("pre"); }, 1500);</script>
+<script type="module" src="./main.js"></script>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- 1. Hero: two doors -->
+<header class="doors" id="top">
+
+  <div class="door door-c">
+    <nav class="nav" aria-label="Site">
+      <a class="wm" href="#top" aria-label="Orbe, home" data-wordmark>Orbe</a>
+      <div class="nav-links">
+        <a href="#rating">How it works</a>
+        <a href="#sell">Sell</a>
+        <a class="nav-buy" href="#buyers">For buyers</a>
+      </div>
+      <a class="nav-go" href="#handle">Reserve your handle</a>
+    </nav>
+
+    <div class="c-grid" id="main">
+      <div class="c-words">
+        <h1>Your work, rated against creators <em>your size</em>.</h1>
+        <p class="sub">Free for every kind of creator, on a card made to be shared. Then a checked record of what you've built, and fair buyers and investors when you want them.</p>
+
+        <form class="reserve" data-form="hero" novalidate>
+          <div class="r-kind">
+            <label class="sr" for="kind">Where you publish</label>
+            <select id="kind" name="kind">
+              <option value="channel">YouTube</option>
+              <option value="newsletter">Substack</option>
+              <option value="stream">Twitch</option>
+              <option value="podcast">Podcast</option>
+              <option value="portfolio">Photography</option>
+            </select>
+          </div>
+          <div class="r-handle">
+            <label class="r-pre" for="handle">orbe.vc/@</label>
+            <input id="handle" name="handle" placeholder="yourhandle" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+          </div>
+          <button type="submit">Reserve my handle</button>
+        </form>
+        <div class="after" data-after="hero" aria-live="polite"><p>Ratings open with YouTube. Substack, Twitch, podcasts and photography follow.</p></div>
+      </div>
+
+      <article class="card hc" aria-labelledby="hc-name" aria-describedby="hc-line">
+        <div class="hc-body">
+          <header class="hc-who">
+            <p class="hc-name" id="hc-name" data-f="name">Field Recordings</p>
+            <p class="hc-meta"><span data-f="handle">@fieldrecordings</span></p>
+            <p class="hc-meta" data-f="noun">YouTube channel, 250k to 1M subscribers</p>
+          </header>
+          <p class="hc-score"><span class="hc-num" data-f="num">+0.64</span><span class="hc-band" data-f="band">Average</span></p>
+          <p class="hc-zero">Zero is typical for <span data-f="peers">channels</span> this size.</p>
+          <ol class="hc-parts" data-f="parts"></ol>
+          <div class="hc-rec">
+            <p class="hc-profit"><span>Profit last year, from connected accounts</span><b data-f="profit">£142,300</b></p>
+            <p class="hc-src" data-f="src">4 sources, checked 14 Oct</p>
+          </div>
+        </div>
+        <footer class="hc-foot">
+          <p id="hc-line" data-example></p>
+          <button class="hc-pause" type="button" aria-pressed="false">Pause</button>
+        </footer>
+      </article>
+    </div>
+  </div>
+
+  <aside class="door door-b" aria-labelledby="b-line">
+    <p class="b-kick">For buyers, investors and lenders</p>
+    <div class="b-in">
+      <p class="b-line" id="b-line">Creator businesses, read from payouts, not estimates.</p>
+
+      <div class="lst" aria-label="An example listing">
+        <p class="lst-k"><span>Open to offers</span><span data-f="checked">Checked 14 Oct</span></p>
+        <p class="lst-t" data-l="title">YouTube channel, 250k to 1M subscribers</p>
+        <dl class="lst-rows">
+          <div><dt>Creator</dt><dd data-l="creator"><span class="x" aria-hidden="true"></span><span class="b">Withheld until introduced</span></dd></div>
+          <div><dt>Rating</dt><dd data-l="rating"><span class="x" aria-hidden="true"></span><span class="b">Average</span></dd></div>
+          <div><dt>Profit</dt><dd data-l="profit"><span class="x" aria-hidden="true"></span><span class="b">£100k to £250k a year</span></dd></div>
+        </dl>
+        <p class="lst-note"><span class="wide">The card on the left, as a buyer sees it if the creator chooses to sell.</span><span class="narrow">The card above, as a buyer sees it if the creator chooses to sell.</span></p>
+      </div>
+
+      <dl class="b-prices">
+        <div><dt>Membership</dt><dd data-p="membership"></dd></div>
+        <div><dt>Orbe Verified report</dt><dd data-p="report"></dd></div>
+      </dl>
+      <a class="b-go" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
+    </div>
+  </aside>
+
+  <svg class="wires idle" aria-hidden="true" focusable="false"></svg>
+</header>
+
+<main>
+
+<!-- 2. How it works: the rating, kind by kind -->
+<section class="s rating" id="rating" aria-labelledby="r-h">
+  <div class="wrap r-grid">
+    <div class="r-copy">
+      <p class="kick">The Orbe Rating</p>
+      <h2 id="r-h">Zero is typical.</h2>
+      <p class="body">You're compared only with creators like you: the same kind of work, the same size. Above zero, you're ahead of them. Below zero, the report says why and what to try.</p>
+      <p class="card-link"><a href="../card/?kind=channel" data-card-link>See the card you'll get</a><span>Made to be posted, with your address on it.</span></p>
+
+      <div class="plain" aria-live="polite">
+        <h3 data-g="plainH">Field Recordings, in plain English</h3>
+        <p class="rc-explain" data-g="explain"></p>
+        <div class="try">
+          <p class="try-k" data-g="tryK"></p>
+          <p class="try-t" data-g="try"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="r-side">
+      <div class="card rc">
+        <div class="tabs" role="tablist" aria-label="Where you publish"></div>
+        <div class="rc-body" role="tabpanel" id="rc-panel" tabindex="0">
+          <p class="rc-who"><span class="rc-name" data-g="name"></span><span class="rc-meta" data-g="meta"></span></p>
+
+          <div class="scale" aria-hidden="true">
+            <div class="sc-track">
+              <span class="sc-seg" style="--w:1">Poor</span>
+              <span class="sc-seg" style="--w:1.2">Subpar</span>
+              <span class="sc-seg" style="--w:1.6">Average</span>
+              <span class="sc-seg" style="--w:1.2">Good</span>
+              <span class="sc-seg" style="--w:1">Great</span>
+            </div>
+            <span class="sc-zero"><i></i>0, typical</span>
+            <span class="sc-you" data-g="you"><b></b></span>
+          </div>
+          <p class="sr" data-g="srScore"></p>
+
+          <div class="maths">
+            <h3 data-g="mathsH">How a channel's rating is weighted</h3>
+            <div class="w-bar" data-g="bar" aria-hidden="true"></div>
+            <table class="w-table">
+              <thead><tr><th scope="col">Part</th><th scope="col">Weight</th><th scope="col" class="w-ex" data-g="exH">Field Recordings</th></tr></thead>
+              <tbody data-g="rows"></tbody>
+            </table>
+            <p class="maths-note">Each part is scored against creators the same size, then weighted. A measure of how your work is doing, not a score of your talent.</p>
+          </div>
+          <p class="rc-line" data-example></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Your record, and a fair way out -->
+<section class="s sell" id="sell" aria-labelledby="s-h">
+  <div class="wrap">
+    <div class="s-head">
+      <p class="kick">Your record, and a fair way out</p>
+      <h2 id="s-h">When you want out, the hard part is already done.</h2>
+      <p class="body">Connect your accounts once. Every figure is read from the payouts themselves, not estimated from views, and links to where it came from and the day it was checked. Only creators who ask for a profile get one, and you choose what's public.</p>
+    </div>
+
+    <div class="s-grid">
+      <article class="card rec" aria-labelledby="rec-h">
+        <p class="card-k" id="rec-h"><span data-r="url"></span><span>Record</span></p>
+        <ul class="src" data-r="sources"></ul>
+        <p class="rec-foot"><span>Profit last year</span><b data-r="profit"></b></p>
+      </article>
+
+      <article class="card val" aria-labelledby="val-h">
+        <p class="card-k" id="val-h"><span>Indicative value</span><span>Example</span></p>
+        <p class="v-range" aria-live="polite"><span data-v="low"></span> <i>to</i> <span data-v="high"></span></p>
+        <p class="v-mult" data-v="mult"></p>
+        <div class="v-field">
+          <label for="profit">Profit a year</label>
+          <output for="profit" data-v="profit"></output>
+          <input id="profit" type="range" min="20000" max="250000" step="5000" value="120000">
+          <div class="v-ends" aria-hidden="true"><span>£20k</span><span>£250k</span></div>
+        </div>
+        <p class="v-fine">Indicative only, not advice and not an offer.</p>
+      </article>
+
+      <div class="terms" aria-labelledby="t-h">
+        <h3 id="t-h">The terms, in full</h3>
+        <dl>
+          <div><dt>Rating, record, valuation and listing</dt><dd>Free</dd></div>
+          <div><dt>If you sell</dt><dd data-fee></dd></div>
+          <div><dt>If it doesn't sell</dt><dd>Nothing</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. For buyers, investors and lenders -->
+<section class="s ink buyers" id="buyers" aria-labelledby="by-h">
+  <div class="wrap by-grid">
+    <div class="by-copy">
+      <p class="kick">For buyers, investors and lenders</p>
+      <h2 id="by-h">Creator businesses, with the numbers already checked.</h2>
+      <p class="body">Every profile here is a creator who opted in. Every figure is read from the payouts themselves, not estimated from views, through read-only connections, and each one carries its source and the day it was checked.</p>
+      <dl class="checks">
+        <div><dt>Checked</dt><dd>Revenue by source and month, concentration, retention and audience quality, reconciled against payouts.</dd></div>
+        <div><dt>Not checked</dt><dd>Contracts, tax and legal title. Those stay with your own advisers.</dd></div>
+      </dl>
+      <dl class="by-terms">
+        <div><dt>Membership</dt><dd data-p="membership"></dd></div>
+        <div><dt>Orbe Verified report</dt><dd data-p="reportFull"></dd></div>
+      </dl>
+      <p class="by-intro">Introductions, never auctions: you agree terms with the creator, with your own advisers.</p>
+      <a class="b-go" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
+    </div>
+
+    <div class="by-art">
+      <div class="panel offers" aria-labelledby="of-h">
+        <p class="panel-k"><span id="of-h">Open to offers</span><span>Examples</span></p>
+        <table>
+          <thead><tr><th scope="col">Business</th><th scope="col">Size</th><th scope="col">Profit a year</th><th scope="col">Rating</th></tr></thead>
+          <tbody data-offers></tbody>
+        </table>
+        <p class="offers-note">Anonymised examples. Each row is one of the made-up creators on this page, read from the same record as their card, with the name withheld. Profiles exist only for creators who opt in.</p>
+      </div>
+
+      <figure class="panel bench" aria-labelledby="bn-h">
+        <p class="panel-k"><span id="bn-h"><i>The State of the Middle</i></span></p>
+        <p class="bn-q" data-bn="title"></p>
+        <p class="bn-what" data-bn="what"></p>
+        <ol class="bn-bars" data-bench></ol>
+        <p class="bn-key" data-bn="key"></p>
+        <figcaption data-bn="line"></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Close -->
+<section class="s close" aria-labelledby="c-h">
+  <div class="wrap">
+    <h2 id="c-h">Free for creators. <em>For good.</em></h2>
+    <p class="body">Creators never pay. Orbe earns when capital moves into creator businesses: sales, investments and financing.</p>
+    <form class="reserve" data-form="close" novalidate>
+      <div class="r-kind">
+        <label class="sr" for="kind2">Where you publish</label>
+        <select id="kind2" name="kind">
+          <option value="channel">YouTube</option>
+          <option value="newsletter">Substack</option>
+          <option value="stream">Twitch</option>
+          <option value="podcast">Podcast</option>
+          <option value="portfolio">Photography</option>
+        </select>
+      </div>
+      <div class="r-handle">
+        <label class="r-pre" for="handle2">orbe.vc/@</label>
+        <input id="handle2" name="handle" placeholder="yourhandle" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+      </div>
+      <button type="submit">Reserve my handle</button>
+    </form>
+    <div class="after" data-after="close" aria-live="polite"><p>Buying, investing or lending? <a href="mailto:hello@orbe.vc?subject=Buyer%20access">Request access</a>.</p></div>
+
+    <footer class="foot">
+      <p class="foot-top"><span class="wm" data-wordmark>Orbe</span><span>The warranty on your work.</span><a href="mailto:hello@orbe.vc">hello@orbe.vc</a></p>
+      <p class="legal">Every creator and figure on this page is a made-up example. Valuations are indicative, not advice and not an offer. YouTube, Substack and Twitch are trademarks of their owners.</p>
+    </footer>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

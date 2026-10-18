@@ -1,0 +1,22 @@
+/*
+  Three themes from the site's palette (site/r5-*). One flat field each, the
+  lap in ink or paper, and the ball in the one accent. No gradients.
+*/
+const PAPER = "#f3f0e8";
+const INK = "#141311";
+const SUN = "#ff5a1f";
+export const THEMES = {
+    /** Paper field, ink lap, the ball in the site's orange. */
+    paper: { bg: PAPER, ink: INK, soft: "#5d584f", hair: "rgba(20,19,17,0.22)", accent: "#e8480f", well: "#e7e2d7", wellInk: INK },
+    /** Ink field, paper lap, the orange ball. */
+    ink: { bg: INK, ink: PAPER, soft: "#a29e95", hair: "rgba(243,240,232,0.26)", accent: SUN, well: "#24221f", wellInk: PAPER },
+    /** The accent field: ink lap, a paper ball. */
+    sun: { bg: SUN, ink: INK, soft: "#4a1a07", hair: "rgba(20,19,17,0.3)", accent: PAPER, well: "#ff7a45", wellInk: INK },
+};
+export const THEME_NAMES = Object.keys(THEMES);
+/** The first card called the ink theme "night"; old links still work. */
+const ALIASES = { night: "ink" };
+export const paletteFor = (theme) => {
+    const key = ALIASES[theme ?? ""] ?? theme ?? "paper";
+    return THEMES[key] ?? THEMES.paper;
+};

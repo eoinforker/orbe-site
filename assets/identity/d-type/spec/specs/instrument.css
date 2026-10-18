@@ -1,0 +1,7 @@
+@import "_base.css";
+@font-face { font-family: "C InstrumentSans"; src: url("../../fonts/instrument-sans/instrument-sans-latin-standard-normal.woff2") format("woff2"); font-weight: 400 700; font-stretch: 75% 100%; font-display: block; }
+@font-face { font-family: "C InstrumentSerif"; src: url("../../fonts/instrument-serif/instrument-serif-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "C InstrumentSerif"; src: url("../../fonts/instrument-serif/instrument-serif-latin-400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: block; }
+@font-face { font-family: "C GeistMono"; src: url("../../fonts/geist-mono/geist-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
+:root { --sans: "C InstrumentSans", sans-serif; --serif: "C InstrumentSerif", serif; --mono: "C GeistMono", monospace;
+  --disp-w: 400; --h1-tr: -0.035em; --h2-tr: -0.03em; --it-tr: -0.01em; --it-scale: 1.12; --fig-big-tr: -0.04em; --plain-fs: 24px; --plain-lh: 1.25; --fig: "C GeistMono", monospace; }

@@ -1,0 +1,10 @@
+import { build } from "./final.mjs";
+import { O_plain, r, b, e } from "./letters.mjs";
+const list = [];
+const add = (id, title, idea, g) => list.push({ id, title, idea, d: g.O + g.loop + g.ball + g.rbe });
+add("f1", "Loop F1", "Polish: O 106, loop .60 at 1 o'clock, ball 25.", build());
+add("f2", "Loop F2", "Loop .56, merge 12:30, sweep 300.", build({ scale: 0.56, at: -72, sweep: 300 }));
+add("f3", "Loop F3", "Loop .64, stronger swell.", build({ scale: 0.64, swell: 28, hw: 11, ball: 27 }));
+const a = O_plain(0, { tilt: -23.4, Sr: 116, H: 26, ki: 0.6 }); const rr = r(a.adv + 40), bb = b(rr.adv + 42), ee = e(bb.adv + 48);
+list.push({ id: "a4", title: "Axis A4", idea: "Runner-up, refined spacing and weight.", d: a.d + rr.d + bb.d + ee.d });
+export const candidates = list;

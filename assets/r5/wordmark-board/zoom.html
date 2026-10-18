@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="../../fonts.css">
+<style>body{margin:0;background:#f4f2ec;color:#131211}svg{display:block}</style>
+<svg id=s width="1600" height="700"></svg>
+<script type=module>
+const set = new URLSearchParams(location.search).get("set") || "candidates"; const { candidates } = await import(`./${set}.mjs`);
+const id = new URLSearchParams(location.search).get("c") || "axis";
+const c = candidates.find(x=>x.id===id);
+s.innerHTML=`<path fill="currentColor" d="${c.d}"/>`;
+const bb=s.firstChild.getBBox(); s.setAttribute("viewBox",`${bb.x-30} ${bb.y-30} ${bb.width+60} ${bb.height+60}`);
+</script>

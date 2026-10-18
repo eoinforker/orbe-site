@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#f4f2ec;color:#131211;display:grid;grid-template-columns:1fr 1fr}svg{display:block;width:100%;height:auto}p{font:13px sans-serif;margin:4px 10px}</style>
+<div id=root style="display:contents"></div>
+<script type=module>
+const q=new URLSearchParams(location.search);const {candidates}=await import(`./${q.get("set")}.mjs`);
+const crop=q.get("crop");
+root.innerHTML=candidates.map(c=>`<div><p>${c.title} ${c.idea}</p><svg><path fill=currentColor d="${c.d}"/></svg></div>`).join("");
+document.querySelectorAll("svg").forEach(s=>{const b=s.firstChild.getBBox();const v=crop?crop.split(",").map(Number):[b.x-20,b.y-20,b.width+40,b.height+40];s.setAttribute("viewBox",v.join(" "));});
+</script>
