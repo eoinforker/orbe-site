@@ -43,10 +43,10 @@
       </div>
     </div>
   </header>
-  <canvas class="orb" aria-hidden="true"></canvas>
-
   <div class="hero-text">
     <h1 id="h1"><span class="l">Rated</span> <span class="l">against</span><br class="dbr"> <span class="l">creators</span> <span class="l">your size.</span></h1>
+    <div class="hero-row">
+    <div class="hero-left">
     <p class="sub">Free, for good. Your work measured against the creators you&rsquo;re actually up against, never the top&nbsp;1%.</p>
 
     <form class="fold reserve" data-reserve novalidate>
@@ -62,24 +62,30 @@
       <p class="r-kind"><label>I make a <select name="kind" aria-label="What you make"></select></label></p>
       <p class="r-note" aria-live="polite">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
     </form>
+    </div>
+    <div class="stickers" id="stickers" aria-hidden="true"></div>
+    </div>
   </div>
 </section>
 
-<!-- 02. Paper. Why your size: one upload, the wrong yardsticks, and the rating. -->
+<!-- 02. Paper. Why your size: one stream, the wrong yardsticks, and the rating. -->
 <section class="pn rating" id="rating" data-surface="paper" aria-labelledby="v-h">
   <div class="v-head">
     <h2 id="v-h">The only fair yardstick is your size.</h2>
     <p class="v-lede" id="v-lede"></p>
   </div>
   <div class="v-body ow">
-    <span class="ow-tab">One upload, three yardsticks</span>
-    <ol class="yard" id="yard" aria-label="One upload, against three sizes of channel"></ol>
+    <span class="ow-tab" id="yard-tab"></span>
+    <ol class="yard" id="yard"></ol>
     <div class="rt">
       <p class="rt-top"><span class="rt-num" id="rt-num"></span><span class="rt-band" id="rt-band"></span></p>
       <div class="scale" id="scale" aria-hidden="true"></div>
-      <p class="rt-say">Zero is typical for creators your size. Above zero, you&rsquo;re ahead of them. <span id="rt-parts"></span></p>
       <p class="rt-foot" id="rt-foot"></p>
     </div>
+  </div>
+  <div class="v-say">
+    <p class="v-zero">Zero is typical for creators your size. Above zero, you&rsquo;re ahead of them.</p>
+    <p class="v-parts" id="rt-parts"></p>
   </div>
 </section>
 
@@ -90,8 +96,7 @@
     <article class="m">
       <h3 class="m-k">Your record</h3>
       <p class="m-h">Read from payouts, not estimates.</p>
-      <p class="m-p">Orbe reads what Stripe and Google AdSense actually paid you, with your permission. Every verified figure shows where it came from and the day we read it.</p>
-      <p class="m-p">Read only. Orbe cannot move your money or change anything in your accounts.</p>
+      <p class="m-p">Orbe reads what Stripe and Google AdSense actually paid you, with your permission. Every verified figure shows where it came from and the day we read it. Read only. Orbe cannot move your money or change anything in your accounts.</p>
     </article>
     <article class="m">
       <h3 class="m-k">Sponsorships</h3>
@@ -101,15 +106,12 @@
     <article class="m">
       <h3 class="m-k">Selling, when you want to</h3>
       <p class="m-p m-lead">A success fee from the proceeds, only if it sells:</p>
-      <table class="tiers">
-        <caption class="sr">Orbe&rsquo;s success fee on a sale</caption>
-        <tbody>
-          <tr><td>8%</td><th scope="row">up to &pound;500k</th></tr>
-          <tr><td>5%</td><th scope="row">from &pound;500k to &pound;2M</th></tr>
-          <tr><td>3%</td><th scope="row">above &pound;2M</th></tr>
-          <tr><td>&pound;4,000</td><th scope="row">minimum</th></tr>
-        </tbody>
-      </table>
+      <ul class="tiers" aria-label="Orbe&rsquo;s success fee on a sale">
+        <li><b>8%</b><span>up to &pound;500k</span></li>
+        <li><b>5%</b><span>from &pound;500k to &pound;2M</span></li>
+        <li><b>3%</b><span>above &pound;2M</span></li>
+        <li><b>&pound;4,000</b><span>minimum</span></li>
+      </ul>
       <p class="m-p">Orbe introduces you to buyers. Your own adviser handles the sale.</p>
     </article>
   </div>

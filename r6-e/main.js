@@ -57,23 +57,25 @@ function grove(w) {
   return stands.filter(([x]) => x < w);
 }
 
-function paint(svg, { w = 390, h = 300, seed = 7, sun = true, hz = 0 } = {}) {
+function paint(svg, { w = 390, h = 300, seed = 7, sun = true, hz = 0, k = 1, top = 0, trees = grove(w), round = [] } = {}) {
   const r = rng(seed);
-  const farF = (x) => 150 + hz + Math.sin(x / 70 + 1.2) * 9 + Math.sin(x / 23) * 2;
-  const midF = (x) => 190 + hz + Math.sin((x / 390) * Math.PI * 2 + 0.4) * 12 - Math.sin(x / 95 + 0.4) * 8;
-  const fieldF = (x) => 230 + hz + Math.sin(x / 120) * 5;
-  const groundF = (x) => 264 + hz + Math.sin(x / 80 + 2) * 5;
+  /* k presses the land towards the foot, for a low strip */
+  const sq = (y) => h - (h - y) * k;
+  const farF = (x) => sq(150 + hz + Math.sin(x / 70 + 1.2) * 9 + Math.sin(x / 23) * 2);
+  const midF = (x) => sq(190 + hz + Math.sin((x / 390) * Math.PI * 2 + 0.4) * 12 - Math.sin(x / 95 + 0.4) * 8);
+  const fieldF = (x) => sq(230 + hz + Math.sin(x / 120) * 5);
+  const groundF = (x) => sq(264 + hz + Math.sin(x / 80 + 2) * 5);
   const far = ridge(r, w, farF), mid = ridge(r, w, midF), field = ridge(r, w, fieldF, 40), ground = ridge(r, w, groundF, 40);
   const id = `l${seed}`;
-  let s = `<rect class="l-sky" x="-20" y="0" width="${w + 40}" height="${h}"/>`;
+  let s = `<rect class="l-sky" x="-20" y="${top - 200}" width="${w + 40}" height="${h - top + 200}"/>`;
   if (sun) s += `<circle class="l-sun" cx="${w * 0.77}" cy="${132 + hz}" r="30"/>`;
   s += `<path class="l-far" d="${shape(far, h)}"/>`;
   s += `<clipPath id="${id}m"><path d="${shape(mid, h)}"/></clipPath><path class="l-mid" d="${shape(mid, h)}"/>`;
   s += `<g clip-path="url(#${id}m)">`;
   for (let k = 0; k < 3; k++) s += `<path class="l-stripe" d="${curve(mid.map(([x, y]) => [x, y + 10 + k * 9]))}"/>`;
   s += `</g>`;
-  for (const [x, hh, ww] of grove(w)) s += `<path class="l-tree" d="${poplar(x, midF(x) + 6, hh, ww)}"/>`;
-  for (let o = 236; o < w; o += 390) { const tb = midF(o) + 4; s += `<path class="l-tree" d="M${o - 22} ${tb} c-6 -20 6 -36 22 -38 c16 2 28 18 22 38 Z"/>`; }
+  for (const [x, hh, ww] of trees) s += `<path class="l-tree" d="${poplar(x, midF(x) + 6, hh, ww)}"/>`;
+  for (const o of round) { const tb = midF(o) + 4; s += `<path class="l-tree" d="M${o - 22} ${tb} c-6 -20 6 -36 22 -38 c16 2 28 18 22 38 Z"/>`; }
   s += `<clipPath id="${id}f"><path d="${shape(field, h)}"/></clipPath><path class="l-field" d="${shape(field, h)}"/>`;
   s += `<g clip-path="url(#${id}f)">`;
   /* furrows run to one point past the field, so it lies flat */
@@ -83,9 +85,9 @@ function paint(svg, { w = 390, h = 300, seed = 7, sun = true, hz = 0 } = {}) {
   svg.innerHTML = s;
 }
 const land = $("[data-land]");
-if (land) paint(land, { seed: 7 });
+if (land) paint(land, { seed: 7, top: -200, trees: [[226, 58, 9], [242, 74, 10], [258, 52, 8], [368, 44, 8]], round: [] });
 const landHero = $("[data-land-hero]");
-if (landHero) paint(landHero, { seed: 31, w: 1440, sun: false, hz: 10 });
+if (landHero) paint(landHero, { seed: 31, w: 1440, sun: false, k: 0.6, trees: [[64, 30, 7], [77, 36, 8], [90, 26, 6], [610, 28, 6], [1386, 30, 7], [1399, 36, 8]], round: [330, 880] });
 
 /* ---------- every kind can play the story ---------- */
 const initials = { channel: "FR", newsletter: "MN", stream: "NS", podcast: "LT", portfolio: "LP" };
@@ -93,8 +95,9 @@ const trayLabel = { channel: "Channel", newsletter: "Newsletter", stream: "Strea
 const tray = $("[data-tray]");
 tray.innerHTML = ORDER.map((k) => `<button type="button" data-tk="${k}" aria-pressed="false"><span class="tr-av" aria-hidden="true">${initials[k]}</span><span class="tr-k">${trayLabel[k]}</span></button>`).join("");
 
-let kind = "channel";
+let kind = "stream";
 let said = "";
+const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 function firstSentence(e, lead) {
   const ss = e.explain.match(/[^.]+(?:\.\d+[^.]*)*\./g) ?? [e.explain];
   const hit = ss.find((x) => (lead.key === "conversion" ? /paying/ : /beats/).test(x)) ?? ss[0];
@@ -106,12 +109,15 @@ function setKind(k, { recount = true } = {}) {
   /* Newsletters lead with new paying subscribers, not opens: tracked opens include machine opens. */
   const lead = k === "newsletter" ? e.result.parts.find((p) => p.key === "conversion") : e.parts[0];
   const parts = k === "newsletter" ? ["conversion", "engagement", "growth"].map((key) => e.result.parts.find((p) => p.key === key)) : e.parts;
+  const count = WORDS[mathsFor(k).length] ?? String(mathsFor(k).length);
   said = `My ${e.word} is rated ${e.signed}, ${e.band}, against ${e.peers} my size.`;
   const bind = {
     handle: e.handle, size: e.sizeBand, lead: String(lead.score), peers: e.peers, fact: firstSentence(e, lead),
     initials: initials[k], signed: e.signed, band: e.band,
     weights: `The weights for ${e.peers}: ${mathsFor(k).map((m) => `${m.name} ${m.weight}%`).join(", ")}.`,
     notice: ratingNotice(e.platform), said: `“${said}”`,
+    partOf: `${lead.name}, one of ${count} parts`,
+    weighs: `The Orbe Rating weighs all ${count}: ${e.name} is ${e.signed}, ${e.band}.`,
     line1: EXAMPLE_LINE, line2: EXAMPLE_LINE, line3: EXAMPLE_LINE + " Painting drawn by Orbe.",
   };
   for (const el of $$("[data-b]")) if (bind[el.dataset.b] != null) { el.textContent = bind[el.dataset.b]; delete el.dataset.final; }
@@ -248,7 +254,7 @@ $("[data-pause]").addEventListener("click", () => { setPaused(!paused); if (!pau
 if (reduce) setPaused(true);
 wide.addEventListener?.("change", framed);
 
-setKind("channel", { recount: false });
+setKind("stream", { recount: false });
 framed();
 
 /* ---------- the rating is the post: copy the line ---------- */
