@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe fx: text reveal</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--orbe-paper); color: var(--orbe-ink); overflow-x: hidden; }
+  body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1280px; margin: 0 auto; padding: 48px 16px 64px; }
+  .label { font: 500 var(--t-label)/1 var(--mono); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--orbe-graphite); margin: 0 0 16px; }
+  .card { position: relative; width: 100%; aspect-ratio: 1344 / 620; border-radius: var(--r-tab); background: var(--orbe-paper); border: 1px solid var(--orbe-linen); overflow: hidden; }
+  .line { font: 400 var(--t-lede)/1.3 var(--serif); margin: 20px 0 0; max-width: 34ch; }
+  .head { position: absolute; inset: 0; z-index: 1; margin: 0; display: grid; place-content: center; text-align: center; pointer-events: none;
+          font: 700 var(--t-display-3)/var(--lh-tight) var(--sans); letter-spacing: var(--track-head); padding: 16px; }
+  .head em { font: italic 500 1.08em/1 var(--serif); letter-spacing: -0.01em; color: var(--orbe-cobalt); }
+  @media (max-width: 640px) { .card { aspect-ratio: 1 / 1; } main { padding-top: 32px; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="label">fx / text-reveal</p>
+  <div class="card" id="card"></div>
+  <p class="line">a record read from payouts, not estimates.</p>
+</main>
+<script type="module">
+  import { mount } from "../assets/fx/text-reveal.js";
+  window.__fx = mount(document.getElementById("card"));
+</script>
+</body>
+</html>

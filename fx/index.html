@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe motion lab</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F3F0E8; color: #141311; font: 400 16px/1.5 var(--sans, system-ui, sans-serif); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 28px 16px 80px; }
+  h1 { font: 800 clamp(40px, 9vw, 84px)/0.92 var(--sans); letter-spacing: -0.05em; margin: 0 0 12px; }
+  p { max-width: 60ch; margin: 0 0 28px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  a.tile { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 12px; color: inherit; text-decoration: none; min-height: 120px; transition: transform .2s cubic-bezier(.23,1,.32,1); }
+  a.tile:hover, a.tile:focus-visible { transform: translateY(-2px); }
+  .k { font: 500 12px/1 var(--mono, monospace); opacity: .75; }
+  .t { font: 700 22px/1.1 var(--sans); letter-spacing: -0.02em; }
+  .d { font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Motion lab</h1>
+  <p>Ten moving pieces, rebuilt in plain JavaScript in Orbe colours and Orbe words. Each one is a candidate signature moment for the site. Open one, play with it, and tell us which belong.</p>
+  <div class="grid">
+    <a class="tile" style="background:#9EE9FB" href="stamptype.html"><span class="k">01</span><span class="t">Stamp type</span><span class="d">A printed poster that flies in a new world every pass.</span></a>
+    <a class="tile" style="background:#141311;color:#F3F0E8" href="code-trail.html"><span class="k">02</span><span class="t">Code trail</span><span class="d">A staircase of torn analytics source that follows your cursor.</span></a>
+    <a class="tile" style="background:#F2879E" href="holo.html"><span class="k">03</span><span class="t">Holo</span><span class="d">A foil identity card that tilts with you.</span></a>
+    <a class="tile" style="background:#1F4BFF;color:#F3F0E8" href="datamosh.html"><span class="k">04</span><span class="t">Datamosh</span><span class="d">Falling blocks of colour, like a corrupted clip.</span></a>
+    <a class="tile" style="background:#EED56A" href="badge-trail.html"><span class="k">05</span><span class="t">Word trail</span><span class="d">Tiny creator words drop behind the cursor.</span></a>
+    <a class="tile" style="background:#FBFAF6;border:1.5px solid #141311" href="text-reveal.html"><span class="k">06</span><span class="t">Reveal</span><span class="d">Two corner lines dissolve in like weather.</span></a>
+    <a class="tile" style="background:#FF5A1F" href="word-stickers.html"><span class="k">07</span><span class="t">Stickers</span><span class="d">Die cut vinyl words you can grab and fling.</span></a>
+    <a class="tile" style="background:#D6F6FD" href="design-tiles.html"><span class="k">08</span><span class="t">Tiles</span><span class="d">One sentence in clashing blocks that keep reshuffling.</span></a>
+    <a class="tile" style="background:#6F1726;color:#F3F0E8" href="image-sphere.html"><span class="k">09</span><span class="t">Sphere</span><span class="d">A globe of creator work you can spin.</span></a>
+    <a class="tile" style="background:#FBD9E0" href="image-galaxy.html"><span class="k">10</span><span class="t">Galaxy</span><span class="d">A field of work drifting past in depth.</span></a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,7 +1,8 @@
-import { example, ORDER, EXAMPLE_LINE, CARD_EXAMPLE_LINE, benchmark, BENCHMARK_LINE } from "../assets/r5/examples.js";
-import { renderCard } from "../assets/r5/card.js";
+import { example, ORDER, EXAMPLE_LINE, benchmark, BENCHMARK_LINE, mathsFor } from "../assets/r5/examples.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
+import { folk, setFill, FOLK_W, FOLK_H } from "./folk.js";
+import { WORDMARK } from "../assets/r5/wordmark.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -12,273 +13,199 @@ let reduce = false;
 try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
 const params = new URLSearchParams(location.search);
 const css = (name) => getComputedStyle(root).getPropertyValue(name).trim();
-const KIND_COLOUR = (k) => css(`--k-${k}`);
+const NS = "http://www.w3.org/2000/svg";
 
 mountWordmark($("#wm"), { animate: !reduce });
-mountWordmark($("#wm-giant"), { animate: false });
+mountWordmark($("#wm-foot"), { animate: false });
 f("example-line").textContent = EXAMPLE_LINE;
+f("v-example").textContent = EXAMPLE_LINE;
 f("bench-line").textContent = BENCHMARK_LINE;
-f("card-line").textContent = CARD_EXAMPLE_LINE;
 
 const HEAD = { channel: "channels", newsletter: "newsletters", stream: "streamers", podcast: "podcasts", portfolio: "photographers" };
-const WORKS = { channel: "channel", newsletter: "newsletter", stream: "stream", podcast: "show", portfolio: "photographer" };
+const WORKS = { channel: "channel", newsletter: "newsletter", stream: "stream", podcast: "show", portfolio: "photography" };
+const PLATFORM = { channel: ["YouTube", "YouTube or Google"], newsletter: ["platform", "Substack"], stream: ["platform", "Twitch"], podcast: ["platform", "any podcast platform"], portfolio: ["platform", "any photography platform"] };
 const pct = (v) => { const p = v * 100; return (p >= 10 ? Math.round(p) : +p.toFixed(1)) + "%"; };
 const nounOf = (e) => e.sizeBand.split(" ").pop();
+const sizeOf = (e) => e.sizeBand.replace(/ \S+$/, "");
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
-/* ================================================================
-   Pixels. fal's creatures: a lumpy blob on a grid, every cell a body
-   square with a small plus inside, ringed by one cell of a bright edge.
-   ================================================================ */
-function hash(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; }
-
-function setupCanvas(c) {
-  const dpr = Math.min(3, window.devicePixelRatio || 1);
-  const r = c.getBoundingClientRect();
+function colours() {
+  return { ink: css("--orbe-ink"), paper: css("--orbe-chalk"), spark: css("--orbe-ember"), fill: css("--field") };
+}
+const kindColour = (k) => css(`--k-${k}`);
+function box(svg) {
+  const r = svg.getBoundingClientRect();
   const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
-  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
-  const ctx = c.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.imageSmoothingEnabled = false;
-  return { ctx, w, h };
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  return { w, h };
 }
-
-/* A creature: a body ball plus limbs that sway. Returns nothing; paints cells. */
-function creature(ctx, o) {
-  const { x, y, r, cell: c, t = 0, seed = 1, limbs = 5, reach = 1.35, body, dot, edge } = o;
-  const span = Math.ceil((r * (reach + 0.9)) / c);
-  const gx0 = Math.round(x / c) - span, gy0 = Math.round(y / c) - span;
-  const n = span * 2 + 1;
-  // limbs: tapering capsules along a bent path, each ending in a small blob
-  const segs = [], blobs = [[x, y, r * 0.7]];
-  for (let i = 0; i < limbs; i++) {
-    const a0 = (i / limbs) * Math.PI * 2 + hash(i, 1, seed) * 0.8 + Math.sin(t * 0.9 + i * 1.7) * 0.14;
-    const len = r * (0.95 + hash(i, 2, seed) * (reach - 0.5)) * (1 + Math.sin(t * 1.3 + i) * 0.06);
-    const w0 = r * (0.3 + hash(i, 3, seed) * 0.1);
-    const bend = (hash(i, 4, seed) - 0.5) * 1.6 + Math.sin(t * 1.1 + i * 2.3) * 0.15;
-    let px = x, py = y;
-    for (let q = 1; q <= 4; q++) {
-      const u = q / 4, aa = a0 + bend * u * u;
-      const nx = x + Math.cos(aa) * len * u, ny = y + Math.sin(aa) * len * u;
-      segs.push([px, py, nx, ny, w0 * (1 - u * 0.5)]);
-      px = nx; py = ny;
-    }
-    if (hash(i, 5, seed) > 0.4) blobs.push([px, py, w0 * 0.95]);
-  }
-  const holes = [];
-  for (let i = 0; i < 2; i++) { const ha = hash(i, 11, seed) * 6.28, hd = r * 0.3 * hash(i, 12, seed); holes.push([x + Math.cos(ha) * hd, y + Math.sin(ha) * hd, r * (0.1 + hash(i, 13, seed) * 0.06)]); }
-  const seg = (px, py, s) => { const [ax, ay, bx, by, w] = s; const dx = bx - ax, dy = by - ay; const u = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(px - ax - dx * u, py - ay - dy * u) - w; };
-  const tick = Math.floor(t * 2);
-  const m = new Uint8Array(n * n);
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-    const px = (gx0 + i + 0.5) * c, py = (gy0 + j + 0.5) * c;
-    let d = Infinity;
-    for (const [bx, by, br] of blobs) d = Math.min(d, Math.hypot(px - bx, py - by) - br);
-    for (const sg of segs) d = Math.min(d, seg(px, py, sg));
-    for (const [hx, hy, hr] of holes) d = Math.max(d, hr - Math.hypot(px - hx, py - hy));
-    d += (hash(gx0 + i, gy0 + j, seed + tick) - 0.5) * c * 0.9;
-    m[j * n + i] = d < 0 ? 1 : 0;
-  }
-  const at = (i, j) => (i < 0 || j < 0 || i >= n || j >= n ? 0 : m[j * n + i]);
-  // edge first
-  ctx.fillStyle = edge;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-    if (at(i, j)) continue;
-    if (at(i - 1, j) || at(i + 1, j) || at(i, j - 1) || at(i, j + 1) || at(i - 1, j - 1) || at(i + 1, j + 1) || at(i - 1, j + 1) || at(i + 1, j - 1)) ctx.fillRect((gx0 + i) * c, (gy0 + j) * c, c, c);
-  }
-  ctx.fillStyle = body;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) if (at(i, j)) ctx.fillRect((gx0 + i) * c, (gy0 + j) * c, c, c);
-  // the plus in every cell, on a checker so the lattice reads as texture
-  ctx.fillStyle = dot;
-  const a = Math.max(1, Math.round(c * 0.22)), b = Math.max(3, Math.round(c * 0.66)), off = (c - b) / 2, offa = (c - a) / 2;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-    if (!at(i, j) || ((i + j) & 1)) continue;
-    const X = (gx0 + i) * c, Y = (gy0 + j) * c;
-    ctx.fillRect(X + off, Y + offa, b, a);
-    ctx.fillRect(X + offa, Y + off, a, b);
-  }
-}
-
-/* Scattered pixel clusters that blink slowly. */
-function makeClusters(seed, count, box, c) {
-  const out = [];
-  for (let k = 0; k < count; k++) {
-    const cx = box.x + hash(k, 7, seed) * box.w, cy = box.y + hash(k, 8, seed) * box.h;
-    const size = 1 + Math.floor(hash(k, 9, seed) * 3);
-    for (let q = 0; q < size * 2; q++) {
-      out.push({ x: Math.round(cx / c + Math.floor(hash(k, q + 20, seed) * 4) - 2) * c, y: Math.round(cy / c + Math.floor(hash(k, q + 40, seed) * 4) - 2) * c, w: c * (1 + (hash(k, q, seed) > 0.75 ? 1 : 0)), ph: hash(k, q + 60, seed) * 6.28, hot: hash(k, q + 80, seed) > 0.86 });
-    }
-  }
-  return out;
-}
-function drawClusters(ctx, list, c, t, cold, hot) {
-  for (const p of list) {
-    if (!reduce && Math.sin(t * 0.8 + p.ph) < -0.55) continue;
-    ctx.fillStyle = p.hot ? hot : cold;
-    ctx.fillRect(p.x, p.y, p.w, c);
-  }
-}
+/* Width of a kind's folk in local units: the camera body is wider than the O. */
+const spanOf = (k) => (k === "portfolio" ? { l: -96, r: 794 } : { l: 0, r: FOLK_W + 34 });
+const headroom = 1.27; // props rise about a quarter above the O
 
 /* ================================================================
-   Painters: each canvas redraws on its own clock while on screen.
+   1. The hero line-up: creators of one kind, small to big, standing on a
+   ruler. Three of them are your size, and the bracket says so.
    ================================================================ */
-const painters = [];
-function painter(canvas, draw) {
-  const p = { canvas, draw, visible: true };
-  painters.push(p);
-  try { new IntersectionObserver(([en]) => { p.visible = en.isIntersecting; }).observe(canvas); } catch {}
-  return p;
-}
-let last = 0;
-function frame(now) {
-  if (now - last > 110) { // about nine steps a second: pixels should step, not glide
-    last = now;
-    for (const p of painters) if (p.visible) p.draw(now / 1000);
+const lineSvg = $("#lineup");
+const lineFig = $(".lineup");
+let heroRose = false;
+function drawLineup(mode = "still") {
+  const { w, h } = box(lineSvg);
+  const c = colours();
+  const k = kindNow;
+  const wide = w >= 600;
+  const ground = h - (wide ? 30 : 16);
+  const top = wide ? 54 : 40; // room for the bracket
+  const sizes = wide ? [0.55, 1, 1, 1, 1.55] : [0.42, 0.68, 1, 1, 1, 1.62];
+  const trio = sizes.map((m, i) => (m === 1 ? i : -1)).filter((i) => i >= 0);
+  const you = trio[1];
+  const sp = spanOf(k);
+  const ratio = (sp.r - sp.l) / FOLK_H;
+  const g = wide ? -0.12 : 0.04;
+  const upTo = sizes.slice(0, trio[2] + 1);
+  const byW = (w - (wide ? 40 : 20)) / (upTo.reduce((a, m) => a + m * ratio, 0) + (upTo.length - 1) * g);
+  const trioH = Math.min((ground - top) / headroom, byW);
+  const gap = trioH * g;
+  let x = wide ? 24 : 12;
+  const items = sizes.map((m, i) => {
+    const hh = trioH * m, s = hh / FOLK_H;
+    const it = { i, s, x: x - sp.l * s, w: (sp.r - sp.l) * s, hh };
+    x += it.w + gap;
+    return it;
+  });
+  let out = "";
+  // the ruler: a carved line with ticks every 12px, longer every 60px
+  out += `<g class="ruler-g" fill="${c.ink}"><rect x="0" y="${ground}" width="${w}" height="3"/>`;
+  for (let t = 6; t < w; t += 12) { const big = (t - 6) % 60 === 0; out += `<rect x="${t}" y="${ground + 3}" width="${big ? 2 : 1.5}" height="${big ? 10 : 5}"/>`; }
+  out += `</g>`;
+  [...items.filter((it) => it.i !== you), items[you]].forEach((it) => {
+    const n = it.i;
+    const isYou = it.i === you;
+    const look = it.i < you ? 0.9 : it.i > you ? -0.9 : 0;
+    const body = isYou ? kindColour(k) : c.paper;
+    const anim = mode === "rise" ? ` class="rise" style="--rd:${n * 90}ms"` : mode === "hop" ? ` class="hop" style="--hd:${Math.abs(n - you) * 50}ms"` : "";
+    out += `<g transform="translate(${it.x.toFixed(1)} ${ground}) scale(${it.s.toFixed(4)})"><g${anim}>${folk({ kind: k, body, colours: c, look, cls: isYou ? "is-you" : "" }).replace('class="folk', `style="--bd:${(n * 1.3) % 5}s" class="folk`)}</g></g>`;
+  });
+  // the bracket over the three who are your size
+  const a = items[trio[0]], b = items[trio[2]];
+  const bx0 = a.x + spanOf(k).l * a.s, bx1 = b.x + (spanOf(k).r - 34) * b.s;
+  const by = ground - trioH * headroom - 14;
+  const len = (bx1 - bx0) + 2 * 16;
+  out += `<path class="bracket" style="--bl:${len.toFixed(0)}" d="M${bx0},${by + 16}L${bx0},${by}L${bx1},${by}L${bx1},${by + 16}" fill="none" stroke="${c.ink}" stroke-width="3"/>`;
+  const label = "your size";
+  const lw = label.length * (wide ? 9 : 8) + 22;
+  const lx = (bx0 + bx1) / 2;
+  out += `<g class="b-label"><rect x="${lx - lw / 2}" y="${by - 13}" width="${lw}" height="26" rx="13" fill="${c.ink}"/><text x="${lx}" y="${by + 5}" text-anchor="middle" fill="${css("--orbe-chalk")}" style="font:500 ${wide ? 14 : 13}px var(--mono);letter-spacing:.04em">${label.toUpperCase()}</text></g>`;
+  lineSvg.innerHTML = out;
+  if (mode === "rise") {
+    lineFig.classList.add("is-go");
+    setTimeout(() => lineFig.classList.remove("is-go"), 1700);
   }
-  requestAnimationFrame(frame);
 }
-function paintAll(t = 0) { for (const p of painters) p.draw(t); }
-
-/* Hero art */
-const heroCanvas = $("#art-hero");
-let heroClusters = null, heroKey = "";
-painter(heroCanvas, (t) => {
-  const { ctx, w, h } = setupCanvas(heroCanvas);
-  ctx.clearRect(0, 0, w, h);
-  const wide = w >= 1100, mid = w >= 700;
-  const c = wide ? 12 : mid ? 10 : 8;
-  const key = `${w}x${h}`;
-  if (key !== heroKey) {
-    heroKey = key;
-    heroClusters = makeClusters(11, wide ? 14 : 9, wide ? { x: w * 0.8, y: 110, w: w * 0.18, h: 110 } : { x: w * 0.62, y: 70, w: w * 0.36, h: 130 }, c);
-  }
-  const strong = css("--strong"), k = KIND_COLOUR(kindNow);
-  drawClusters(ctx, heroClusters, c, t, strong, k);
-  const x = wide ? 200 : mid ? 200 : 122, y = wide ? 400 : mid ? 170 : 170, r = wide ? 108 : mid ? 76 : 60;
-  creature(ctx, { x, y, r, cell: c, t: reduce ? 0 : t, seed: 4, limbs: 6, reach: 1.3, body: strong, dot: k, edge: k });
-});
-
-/* Buyers art: a second creature, ink panel. */
-const doorCanvas = $("#art-door");
-let doorClusters = null, doorKey = "";
-painter(doorCanvas, (t) => {
-  const { ctx, w, h } = setupCanvas(doorCanvas);
-  ctx.clearRect(0, 0, w, h);
-  const wide = w >= 1100;
-  const c = wide ? 12 : 8;
-  if (doorKey !== `${w}x${h}`) { doorKey = `${w}x${h}`; doorClusters = makeClusters(23, wide ? 10 : 6, wide ? { x: 40, y: h * 0.65, w: w * 0.25, h: h * 0.3 } : { x: w * 0.06, y: 92, w: w * 0.4, h: 70 }, c); }
-  drawClusters(ctx, doorClusters, c, t, css("--k-portfolio"), css("--k-newsletter"));
-  const x = wide ? 230 : w - 92, y = wide ? 320 : 150, r = wide ? 110 : 40;
-  creature(ctx, { x, y, r, cell: c, t: reduce ? 0 : t * 0.8, seed: 9, limbs: 5, reach: 1.6, body: "#0e3b1c", dot: css("--k-stream"), edge: css("--k-stream") });
-});
-
-/* Close art: clusters only, so the type leads. */
-const closeCanvas = $("#art-close");
-let closeClusters = null, closeKey = "";
-painter(closeCanvas, (t) => {
-  const { ctx, w, h } = setupCanvas(closeCanvas);
-  ctx.clearRect(0, 0, w, h);
-  const wide = w >= 1100, c = wide ? 12 : 8;
-  if (closeKey !== `${w}x${h}`) { closeKey = `${w}x${h}`; closeClusters = makeClusters(31, wide ? 10 : 6, wide ? { x: w * 0.82, y: 30, w: w * 0.16, h: 110 } : { x: w * 0.5, y: 14, w: w * 0.46, h: 44 }, c); }
-  drawClusters(ctx, closeClusters, c, t, css("--strong"), KIND_COLOUR(kindNow));
-});
 
 /* ================================================================
-   Drag your size. The same reach, held against every size band:
-   the creature grows as you drag, the column under it is what is
-   typical at that size, and the line is the example's own reach.
+   2. Drag your size. Two of the same kind stand side by side, the same
+   size as each other, and grow as you drag. Each O is a glass, filled to
+   its reach: the typical one at this size, and the example's own. Below,
+   the whole line-up of sizes, small to big.
    ================================================================ */
 const drag = $("#drag");
 const stage = $("#stage");
-const sizeCanvas = $("#art-size");
-const youEl = $(".stage-you");
-let bench, ex, own = 0, bandNow = -1, scaleTop = 1;
+const stageSvg = $("#stage-svg");
+let bench, ex, own = 0, bandNow = -1, scaleTop = 1, shownTypical = null, tween = null;
 
-function geometry(w, h) {
-  const n = bench.rows.length;
-  const pad = w >= 1100 ? 0 : 16;
-  const gap = w >= 1100 ? 10 : 6;
-  const colW = (w - pad * 2 - gap * (n - 1)) / n;
-  const base = h - 4;
-  const plotH = h * 0.6;
-  const yOf = (v) => base - (v / scaleTop) * plotH;
-  return { n, pad, gap, colW, base, yOf };
-}
+function bandOf(v) { return Math.min(bench.rows.length - 1, Math.floor(v * bench.rows.length)); }
 
-painter(sizeCanvas, (t) => {
+function drawStage() {
   if (!bench) return;
-  const { ctx, w, h } = setupCanvas(sizeCanvas);
-  ctx.clearRect(0, 0, w, h);
-  const g = geometry(w, h);
-  const c = w >= 1100 ? 10 : 8;
+  const { w, h } = box(stageSvg);
+  const c = colours();
+  const k = kindNow, kc = kindColour(k);
   const v = +drag.value / 1000;
-  const k = KIND_COLOUR(kindNow), strong = css("--strong"), on = css("--on-strong");
-  const dim = css("--strong-dim");
-  // columns, built from cells, with a dithered cap
+  const wide = w >= 600;
+  const sp = spanOf(k);
+  const trackH = wide ? 78 : 64;
+  const labelH = wide ? 64 : 56;
+  const ground = h - trackH - labelH;
+  const pad = wide ? 40 : 18;
+  const gap = wide ? 64 : 34;
+  const byWidth = ((w - pad * 2 - gap) / 2 / (sp.r - sp.l)) * FOLK_H;
+  const hMax = Math.min((ground - 12) / headroom, byWidth);
+  const hh = hMax * (0.5 + 0.5 * v);
+  const s = hh / FOLK_H;
+  const cw = (sp.r - sp.l - 34) * s;
+  const xT = w / 2 - gap / 2 - cw - sp.l * s;
+  const xY = w / 2 + gap / 2 - sp.l * s;
+  const typ = shownTypical ?? bench.rows[bandNow].value;
+  const share = (x) => clamp01(x / scaleTop);
+  const chalk = css("--orbe-chalk");
+  let out = "";
+  out += `<rect x="0" y="${ground}" width="${w}" height="2" fill="${chalk}" opacity=".5"/>`;
+  out += `<g transform="translate(${xT.toFixed(1)} ${ground}) scale(${s.toFixed(4)})">${folk({ kind: k, body: c.paper, colours: c, look: 1, fill: true, cls: "typ" })}</g>`;
+  out += `<g transform="translate(${xY.toFixed(1)} ${ground}) scale(${s.toFixed(4)})">${folk({ kind: k, body: kc, colours: c, look: -1, fill: true, cls: "you" })}</g>`;
+  // measuring: a line at each fill level, across both glasses
+  const yAt = (sh) => ground + s * (-67 - 213 - sh * 566);
+  const yT = yAt(share(typ)), yY = yAt(share(own));
+  const xa = xT + 100 * s, xb = xY + 564 * s;
+  out += `<g stroke-width="2.5" stroke-dasharray="7 5"><line x1="${xa}" y1="${yT}" x2="${xb}" y2="${yT}" stroke="${chalk}"/><line x1="${xa}" y1="${yY}" x2="${xb}" y2="${yY}" stroke="${kc}"/></g>`;
+  const mx = w / 2;
+  out += `<g stroke="${chalk}" stroke-width="3"><line x1="${mx}" y1="${yT}" x2="${mx}" y2="${yY}"/><line x1="${mx - 9}" y1="${yT}" x2="${mx + 9}" y2="${yT}"/><line x1="${mx - 9}" y1="${yY}" x2="${mx + 9}" y2="${yY}"/></g>`;
+  // the labels under their feet
+  const fs = wide ? 30 : 24, ns = wide ? 14 : 13;
+  const cxT = xT + (sp.l + (sp.r - 34)) / 2 * s, cxY = xY + (sp.l + (sp.r - 34)) / 2 * s;
+  out += `<g fill="${chalk}" text-anchor="middle"><text x="${cxT}" y="${ground + fs + 6}" style="font:700 ${fs}px var(--sans);letter-spacing:-.03em">${pct(typ)}</text><text x="${cxT}" y="${ground + fs + 6 + ns + 6}" style="font:500 ${ns}px var(--sans)">Typical at this size</text>`;
+  out += `<text x="${cxY}" y="${ground + fs + 6}" style="font:700 ${fs}px var(--sans);letter-spacing:-.03em">${pct(own)}</text><text x="${cxY}" y="${ground + fs + 6 + ns + 6}" style="font:500 ${ns}px var(--sans)">${ex.name}</text></g>`;
+  // the line-up of sizes along the track, lined up with the slider
+  const sr = stage.getBoundingClientRect(), ir = drag.getBoundingClientRect();
+  const thumb = 17;
+  const x0 = ir.left - sr.left + thumb, x1 = ir.right - sr.left - thumb;
+  const n = bench.rows.length;
+  const tg = h - 6;
   bench.rows.forEach((r, i) => {
-    const x0 = g.pad + i * (g.colW + g.gap);
-    const top = g.yOf(r.value);
+    const cx = x0 + ((i + 0.5) / n) * (x1 - x0);
+    const ph = (wide ? 22 : 18) + (i / (n - 1)) * (wide ? 30 : 24);
+    const ps = ph / FOLK_H;
     const active = i === bandNow;
-    const cols = Math.max(1, Math.floor(g.colW / c));
-    const x = x0 + (g.colW - cols * c) / 2;
-    const rows = Math.max(1, Math.round((g.base - top) / c));
-    const X = Math.round(x), W = cols * c;
-    ctx.fillStyle = active ? k : dim;
-    ctx.fillRect(X, Math.round(g.base - (rows - 1) * c), W, (rows - 1) * c);
-    for (let cc = 0; cc < cols; cc += 2) ctx.fillRect(X + cc * c, Math.round(g.base - rows * c), c, c); // a dithered cap
-    if (active) {
-      ctx.fillStyle = on;
-      ctx.font = `700 ${w >= 1100 ? 14 : 12}px ${css("--mono")}`;
-      ctx.textAlign = "center";
-      const ly0 = g.yOf(own), capY = g.base - rows * c;
-      const inside = capY < ly0 + 30; // the column reaches the line: write the value inside it
-      ctx.fillStyle = inside ? "#121412" : on;
-      ctx.fillText(pct(r.value), X + W / 2, inside ? g.base - 12 : capY - 8);
-    }
-    if (r.key === bench.example) { // the example's own band carries a mark under it
-      ctx.fillStyle = on;
-      ctx.fillRect(X, g.base + 1, W, 3);
-    }
+    const home = r.key === bench.example;
+    const g = folk({ kind: k, body: home ? kc : c.paper, colours: c, fill: true });
+    out += `<g opacity="${active ? 1 : 0.5}" transform="translate(${(cx - ((sp.l + sp.r - 34) / 2) * ps).toFixed(1)} ${tg}) scale(${ps.toFixed(4)})" data-share="${share(r.value)}">${g}</g>`;
   });
-  // the example's reach: a pixel line across every column
-  const ly = Math.round(g.yOf(own) / 2) * 2;
-  ctx.fillStyle = on;
-  for (let x = g.pad; x < w - g.pad; x += 8) ctx.fillRect(x, ly - 1, 5, 3);
-  stage.style.setProperty("--ly", ly + "px");
-  // you: a creature that walks the line and grows with your size
-  const rr = (w >= 1100 ? 18 : 15) + v * v * (w >= 1100 ? 70 : 46);
-  const cx = Math.min(w - rr * 1.5, Math.max(rr * 1.5, g.pad + v * (w - g.pad * 2)));
-  const cell = rr > 34 ? c : Math.max(4, c - 3);
-  const cy = ly - rr * 1.15;
-  creature(ctx, { x: cx, y: cy, r: rr, cell, t: reduce ? 0 : t * 1.4, seed: 2, limbs: 4, reach: 1.25, body: "#121412", dot: k, edge: k });
-  stage.classList.toggle("tag-right", cx < w * 0.5);
-  const chipW = youEl.offsetWidth || 0;
-  const chipX = Math.min(w - chipW / 2 - 6, Math.max(chipW / 2 + 6, cx));
-  stage.style.setProperty("--yx", chipX + "px");
-  stage.style.setProperty("--ax", Math.min(chipW - 10, Math.max(10, cx - chipX + chipW / 2)) + "px");
-  stage.style.setProperty("--yy", Math.max(14, cy - rr * 1.55 - 6) + "px");
-});
+  stageSvg.innerHTML = out;
+  // fills
+  const gs = $$(".folk", stageSvg);
+  setFill(gs[0], share(typ));
+  setFill(gs[1], share(own));
+  $$("g[data-share]", stageSvg).forEach((g) => setFill($(".folk", g), +g.dataset.share));
+}
 
 function setupMeter(e) {
   ex = e;
   bench = benchmark(e.kind);
   own = parseFloat(e.parts.find((p) => p.key === "reach").value) / 100;
-  scaleTop = Math.max(own, ...bench.rows.map((r) => r.value));
+  scaleTop = Math.max(own, ...bench.rows.map((r) => r.value)) * 1.5;
   f("ex-name").textContent = e.name;
   f("ex-own").textContent = pct(own);
   f("ex-noun").textContent = nounOf(e);
-  f("m-tag").textContent = `${e.name}: ${pct(own)}`;
-  f("m-you").textContent = e.name;
   const i = bench.rows.findIndex((r) => r.key === bench.example);
   drag.value = Math.round(((i + 0.5) / bench.rows.length) * 1000);
   bandNow = -1;
+  shownTypical = null;
+  // the published weights, for this kind
+  f("w-peers").textContent = e.peers;
+  f("w-list").innerHTML = mathsFor(e.kind).map((m) => `<li>${m.name} <b>${m.weight}%</b></li>`).join("");
+  const [m, who] = PLATFORM[e.kind];
+  f("notice").textContent = `It is not a ${m} metric, and it is not provided or endorsed by ${who}.`;
   readMeter(false);
 }
-function times(x) { return (x >= 10 ? Math.round(x) : x.toFixed(1)) + "×"; }
+const times = (x) => (x >= 10 ? Math.round(x) : x.toFixed(1)) + "×";
+function says(x) {
+  return x < 1 ? "Looks behind." : x < 1.6 ? "Looks typical." : x < 2.2 ? "Looks good." : x < 4.5 ? "Looks great." : "Looks like genius.";
+}
 function readMeter(animate) {
-  const n = bench.rows.length;
-  const i = Math.min(n - 1, Math.floor((+drag.value / 1000) * n));
-  const first = bandNow !== -1;
+  const i = bandOf(+drag.value / 1000);
   if (i !== bandNow) {
+    const prev = bandNow;
     bandNow = i;
     const r = bench.rows[i];
     const noun = nounOf(ex);
@@ -290,24 +217,33 @@ function readMeter(animate) {
     const reach = ex.parts.find((p) => p.key === "reach");
     const home = r.key === bench.example;
     const homeLabel = bench.rows.find((row) => row.key === bench.example).label;
-    f("m-here").innerHTML = home
+    f("m-verdict").innerHTML = home
       ? `This is its size. Rated here: <b>${ex.signed} ${ex.band}</b>, reach beats ${reach.score} in 100 ${ex.peers} its size.`
-      : x >= 1
-        ? `Same ${pct(own)}, ${times(x)} typical here. But ${ex.name} has ${homeLabel} ${noun}, so that is where Orbe rates it.`
-        : `Same ${pct(own)}, under typical here. But ${ex.name} has ${homeLabel} ${noun}, so that is where Orbe rates it.`;
+      : `<span class="says">${says(x)}</span> Wrong yardstick. ${ex.name} has ${homeLabel} ${noun}, so that is where Orbe rates it.`;
     drag.setAttribute("aria-valuetext", `${r.label} ${noun}: typical ${pct(r.value)}, ${ex.name} ${times(x)} typical`);
-    if (animate && first && navigator.vibrate) { try { navigator.vibrate(8); } catch {} }
+    // the typical glass drains or fills to its new level; a figure settles, never bounces
+    const from = prev === -1 || !animate || reduce ? r.value : (shownTypical ?? bench.rows[prev].value);
+    if (tween) cancelAnimationFrame(tween);
+    if (from === r.value) { shownTypical = null; }
+    else {
+      const t0 = performance.now(), dur = 380;
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        shownTypical = from + (r.value - from) * e;
+        drawStage();
+        if (p < 1) tween = requestAnimationFrame(step); else { tween = null; shownTypical = null; }
+      };
+      tween = requestAnimationFrame(step);
+    }
   }
-  sizeCanvas && painters.find((p) => p.canvas === sizeCanvas)?.draw(performance.now() / 1000);
+  drawStage();
 }
 drag.addEventListener("input", () => { stopDemo(); readMeter(true); });
 
-/* Drag anywhere on the stage, not only the thumb. */
 let dragging = false;
 function fromPointer(ev) {
-  const rect = stage.getBoundingClientRect();
-  const pad = rect.width >= 1100 ? 0 : 16;
-  const v = Math.min(1, Math.max(0, (ev.clientX - rect.left - pad) / (rect.width - pad * 2)));
+  const ir = drag.getBoundingClientRect();
+  const v = clamp01((ev.clientX - ir.left - 17) / (ir.width - 34));
   drag.value = Math.round(v * 1000);
   readMeter(true);
 }
@@ -316,68 +252,161 @@ stage.addEventListener("pointermove", (ev) => { if (dragging) fromPointer(ev); }
 stage.addEventListener("pointerup", () => { dragging = false; });
 stage.addEventListener("pointercancel", () => { dragging = false; });
 
-/* The first time the stage comes into view, the creature walks once to show it can be dragged. */
+/* On first view the pair walks the sizes once, from its own size out and back, so people see it moves. */
 let demo = null, demoDone = params.get("auto") === "0";
 function stopDemo() { if (demo) cancelAnimationFrame(demo); demo = null; demoDone = true; }
 function runDemo() {
   if (demoDone || reduce) return;
   demoDone = true;
-  const start = +drag.value, t0 = performance.now(), dur = 2600;
+  const start = +drag.value, t0 = performance.now(), dur = 4200;
+  const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   const step = (now) => {
     const p = Math.min(1, (now - t0) / dur);
-    // out to the biggest size, back down to the smallest, home again
-    const path = p < 0.4 ? start + (1000 - start) * ease(p / 0.4) : p < 0.75 ? 1000 - 1000 * ease((p - 0.4) / 0.35) : start * ease((p - 0.75) / 0.25);
+    const path = p < 0.32 ? start + (999 - start) * ease(p / 0.32) : p < 0.72 ? 999 - 999 * ease((p - 0.32) / 0.4) : start * ease((p - 0.72) / 0.28);
     drag.value = Math.round(path);
     readMeter(true);
     if (p < 1) demo = requestAnimationFrame(step); else demo = null;
   };
   demo = requestAnimationFrame(step);
 }
-const ease = (x) => 1 - Math.pow(1 - x, 3);
 try {
-  new IntersectionObserver(([en], io) => { if (en.isIntersecting && en.intersectionRatio > 0.6) { io.disconnect(); setTimeout(runDemo, 250); } }, { threshold: [0, 0.6, 1] }).observe(stage);
+  new IntersectionObserver(([en], io) => { if (en.isIntersecting && en.intersectionRatio > 0.55) { io.disconnect(); setTimeout(runDemo, 450); } }, { threshold: [0, 0.55, 1] }).observe(stage);
 } catch {}
 
 /* ================================================================
-   The card: the product's own drawing, dealt like a deck.
+   3. The verdict: the figure counts up once, and the creator walks the
+   ruler from zero (typical) to where it stands.
    ================================================================ */
-const MOMENTS = ["rating", "best", "size", "season"];
-const MOMENT_NAME = { rating: "Rating", best: "Personal best", size: "Up a size", season: "Season" };
-let momentNow = "rating";
-function cardSvg(e, moment) {
-  const c = e.card;
-  const svg = renderCard(e.result, { moment, format: "square", theme: root.dataset.c === "pink" ? "ink-pink" : "ink-blue", handle: e.handle, name: e.name, note: CARD_EXAMPLE_LINE, idPrefix: `d-${e.kind}-${moment}`, works: c.works, personalBest: c.personalBest, season: c.season, sizeUp: c.sizeUp, workTitle: c.workTitle, image: c.image });
-  return svg.replace(/<svg([^>]*)\swidth="\d+"\s*height="\d+"/, '<svg$1').replace(/<svg([^>]*)\sheight="\d+"\s*width="\d+"/, '<svg$1');
-}
-function availableMoments(e) { return MOMENTS.filter((m) => (m !== "best" || e.card.personalBest) && (m !== "size" || e.card.sizeUp)); }
-function drawDeck(animate) {
+const rulerSvg = $("#ruler");
+let verdictSeen = reduce;
+function drawRuler() {
   const e = example(kindNow);
-  const list = availableMoments(e);
-  if (!list.includes(momentNow)) momentNow = list[0];
-  const next = list[(list.indexOf(momentNow) + 1) % list.length];
-  const front = $(".deck-card.front"), back = $(".deck-card.back");
-  const paint = () => {
-    front.innerHTML = cardSvg(e, momentNow);
-    back.innerHTML = cardSvg(e, next);
-    front.setAttribute("aria-label", `Example card, ${MOMENT_NAME[momentNow]}, for ${e.name}`);
-  };
-  $$(".moments button").forEach((b) => { b.hidden = !list.includes(b.dataset.m); b.setAttribute("aria-checked", String(b.dataset.m === momentNow)); });
-  if (!animate || reduce) { paint(); return; }
-  front.classList.remove("in");
-  front.classList.add("out");
-  setTimeout(() => { front.classList.remove("out"); paint(); front.classList.add("in"); }, 280);
+  const { w, h } = box(rulerSvg);
+  const c = colours();
+  const ink = c.ink;
+  const base = h - 42;
+  const xOf = (r) => 10 + ((Math.max(-3, Math.min(3, r)) + 3) / 6) * (w - 20);
+  let out = `<rect x="0" y="${base}" width="${w}" height="3" fill="${ink}"/>`;
+  for (let r = -3; r <= 3.001; r += 0.25) {
+    const big = Math.abs(r - Math.round(r)) < 0.01;
+    out += `<rect x="${xOf(r) - 0.75}" y="${base + 3}" width="${big ? 2 : 1.5}" height="${big ? 11 : 5}" fill="${ink}"/>`;
+  }
+  [-2, -0.8, 0.8, 2].forEach((b) => { out += `<rect x="${xOf(b) - 1.5}" y="${base - 12}" width="3" height="15" fill="${ink}"/>`; });
+  const bands = [["Poor", -2.5], ["Subpar", -1.4], ["Average", 0], ["Good", 1.4], ["Great", 2.5]];
+  const fsz = w < 420 ? 12 : 14;
+  bands.forEach(([n, at]) => { const on = n === e.band; out += `<text x="${xOf(at)}" y="${base + 34}" text-anchor="middle" fill="${ink}" style="font:${on ? "italic 600" : "400"} ${on ? fsz + 3 : fsz}px ${on ? "var(--serif)" : "var(--sans)"}">${n}</text>`; });
+  out += `<text x="${xOf(0)}" y="${base - 18}" text-anchor="middle" fill="${ink}" style="font:500 12px var(--mono);letter-spacing:.04em">0 TYPICAL</text>`;
+  const ph = Math.min(h - 58, 92), s = ph / FOLK_H;
+  const sp = spanOf(kindNow);
+  const half = ((sp.l + sp.r - 34) / 2) * s;
+  const at = verdictSeen ? xOf(e.rating) : xOf(0);
+  out += `<g class="walker" style="transform:translateX(${at.toFixed(1)}px)"><g transform="translate(${-half} ${base}) scale(${s.toFixed(4)})">${folk({ kind: kindNow, body: kindColour(kindNow), colours: c, look: e.rating > 0 ? 0.8 : -0.8 })}</g></g>`;
+  rulerSvg.innerHTML = out;
+  rulerSvg.dataset.to = xOf(e.rating).toFixed(1);
 }
-function setMoment(m, animate = true) { if (m === momentNow) return; momentNow = m; drawDeck(animate); }
-$("#deck-next").addEventListener("click", () => {
-  const list = availableMoments(example(kindNow));
-  setMoment(list[(list.indexOf(momentNow) + 1) % list.length]);
+function fillVerdict(e) {
+  f("v-num").textContent = verdictSeen ? e.signed : "+0.00";
+  f("v-band").textContent = e.band;
+  f("v-name").textContent = e.name;
+  f("v-peers").textContent = e.peers;
+  f("v-size").textContent = e.sizeBand;
+  f("v-parts").innerHTML = e.parts.map((p, i) => `<li style="--d:${i * 120}ms"><span class="pn">${p.name}</span><span class="pv">${p.value}</span><span class="ps"><b>${p.score}</b>in 100</span><span class="pbar" aria-hidden="true"><i style="--w:${p.score}%"></i></span></li>`).join("");
+  // the line a creator would post: their strongest part, said plainly
+  const pool = e.parts.filter((p) => !(e.kind === "newsletter" && p.key === "reach"));
+  const best = pool.reduce((a, p) => (p.score > a.score ? p : a), pool[0]);
+  const line = `My ${WORKS[e.kind]} beats <b>${best.score} in 100</b> ${e.peers} my size on ${best.name.toLowerCase()}.`;
+  f("post-q").innerHTML = line;
+  f("post-q").dataset.text = line.replace(/<\/?b>/g, "");
+  $(".post-c").textContent = `The line for ${e.name}, a made-up example. Independently calculated by Orbe.`;
+  drawRuler();
+}
+function countUp(e) {
+  const el = f("v-num");
+  const t0 = performance.now(), dur = 900;
+  const sign = (n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toFixed(2);
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / dur), k = 1 - Math.pow(1 - p, 3);
+    el.textContent = p < 1 ? sign(e.rating * k) : e.signed;
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+try {
+  new IntersectionObserver(([en], io) => {
+    if (!en.isIntersecting) return;
+    io.disconnect();
+    const e = example(kindNow);
+    verdictSeen = true;
+    if (reduce) { fillVerdict(e); return; }
+    countUp(e);
+    const wk = $(".walker", rulerSvg);
+    if (wk) requestAnimationFrame(() => { wk.style.transform = `translateX(${rulerSvg.dataset.to}px)`; });
+  }, { threshold: 0.45 }).observe($(".v-fig"));
+  new IntersectionObserver(([en], io) => { if (en.isIntersecting) { $(".parts").classList.add("seen"); io.disconnect(); } }, { threshold: 0.3 }).observe($(".parts"));
+} catch { verdictSeen = true; $(".parts").classList.add("seen"); }
+
+$('[data-f="copy"]').addEventListener("click", async (ev) => {
+  const b = ev.currentTarget;
+  const text = `${f("post-q").dataset.text} Independently calculated by Orbe. orbe.vc`;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch {}
+  b.textContent = ok ? "Copied. Post it." : text;
+  setTimeout(() => { b.textContent = "Copy the line"; }, 2400);
 });
-$$(".moments button").forEach((b) => b.addEventListener("click", () => setMoment(b.dataset.m)));
-radioKeys($(".moments"), () => $$(".moments button:not([hidden])"), (b) => setMoment(b.dataset.m));
 
 /* ================================================================
-   Kinds: the word rolls, the creature takes the kind's colour,
-   the size bands and the card re-rate with the engine.
+   4. The door: a big folk peeks in at the terms.
+   ================================================================ */
+const doorSvg = $("#door-o");
+function drawDoor() {
+  const { w, h } = box(doorSvg);
+  const c = colours();
+  const s = Math.min(w / (FOLK_W + 40), h / (FOLK_H + 60));
+  doorSvg.innerHTML = `<g transform="translate(10 ${h - 4}) scale(${s.toFixed(4)})">${folk({ kind: kindNow, body: css("--night-accent"), colours: { ...c, ink: "#000" }, look: -1 })}</g>`;
+}
+
+/* ================================================================
+   5. The close: a landscape cut from paper, the sun a carved O, and one
+   creator of every kind standing on the ridge at the same size.
+   ================================================================ */
+const landSvg = $("#land");
+const landBox = $(".land");
+let landRose = false;
+function drawLand(mode = "still") {
+  const { w, h } = box(landSvg);
+  const c = colours();
+  const ridge = (x, base, amp, freq, ph) => base + Math.sin(x * freq + ph) * amp + Math.sin(x * freq * 2.3 + ph * 1.7) * amp * 0.3;
+  const hill = (base, amp, freq, ph) => { let d = `M0,${h}L0,${ridge(0, base, amp, freq, ph).toFixed(1)}`; for (let x = 8; x <= w + 8; x += 8) d += `L${x},${ridge(x, base, amp, freq, ph).toFixed(1)}`; return d + `L${w + 8},${h}Z`; };
+  const fr = 6.2 / Math.max(w, 600);
+  const sunR = Math.min(h * 0.36, 120), sunS = (sunR * 2) / 726;
+  let out = "";
+  out += `<g transform="translate(${w * 0.72 - sunR * 0.92} ${h * 0.5 - sunR}) scale(${sunS.toFixed(4)}) translate(0 713)"><path d="${WORDMARK.text.O}" fill="${css("--l-sun")}" fill-rule="evenodd"/></g>`;
+  const layer = (d, fill) => `<path d="${d}" fill="${c.ink}" transform="translate(0 -4)"/><path d="${d}" fill="${fill}"/>`;
+  out += layer(hill(h * 0.48, h * 0.08, fr * 0.8, 1.2), css("--l-far"));
+  out += layer(hill(h * 0.64, h * 0.06, fr * 1.1, 3.1), css("--l-mid"));
+  const nearBase = h * 0.8, nearAmp = h * 0.035, nearPh = 0.4;
+  out += layer(hill(nearBase, nearAmp, fr * 0.9, nearPh), css("--l-near"));
+  const ph = Math.min(h * 0.4, w < 600 ? 66 : 118), s = ph / FOLK_H;
+  const kinds = ORDER;
+  const step = Math.min((w - 40) / kinds.length, ph * 1.5);
+  const x0 = w / 2 - (step * (kinds.length - 1)) / 2;
+  kinds.forEach((k, i) => {
+    const sp = spanOf(k);
+    const cx = x0 + i * step;
+    const gy = ridge(cx, nearBase, nearAmp, fr * 0.9, nearPh) + ph * 0.06;
+    const anim = mode === "rise" ? ` class="rise" style="--rd:${i * 110}ms"` : "";
+    out += `<g transform="translate(${(cx - ((sp.l + sp.r - 34) / 2) * s).toFixed(1)} ${gy.toFixed(1)}) scale(${s.toFixed(4)})"><g${anim}>${folk({ kind: k, body: kindColour(k), colours: c, look: (i - 2) * -0.4 }).replace('class="folk', `style="--bd:${i * 1.1}s" class="folk`)}</g></g>`;
+  });
+  landSvg.innerHTML = out;
+  if (mode === "rise") { landBox.classList.add("is-go"); setTimeout(() => landBox.classList.remove("is-go"), 1800); }
+}
+try {
+  new IntersectionObserver(([en], io) => { if (en.isIntersecting) { io.disconnect(); if (!reduce) { landRose = true; drawLand("rise"); } } }, { threshold: 0.4 }).observe(landBox);
+} catch {}
+
+/* ================================================================
+   Kinds: the word swaps, everyone takes the kind's colour and prop,
+   and every panel re-rates with the engine.
    ================================================================ */
 function roll(el, text, animate) {
   const old = el.dataset.v ?? "";
@@ -427,7 +456,8 @@ function swapWord(word, animate) {
   slot.style.width = w0 + "px";
   slot.getBoundingClientRect();
   slot.style.width = w1 + "px";
-  setTimeout(() => { cur.remove(); slot.style.width = ""; nw.className = "slot-word"; }, 620);
+  setTimeout(() => cur.remove(), 200);
+  setTimeout(() => { slot.style.width = ""; nw.className = "slot-word"; }, 520);
 }
 
 let kindNow = "channel";
@@ -440,8 +470,9 @@ function setKind(k, animate = true) {
   $("#kind-live").textContent = `Rated against ${HEAD[k]} your size.`;
   const e = example(k);
   setupMeter(e);
-  drawDeck(false);
-  paintAll(performance.now() / 1000);
+  fillVerdict(e);
+  if (heroRose) drawLineup(animate && !reduce ? "hop" : "still");
+  drawDoor();
 }
 $$(".kinds button").forEach((b) => b.addEventListener("click", () => {
   stopCycle();
@@ -450,22 +481,31 @@ $$(".kinds button").forEach((b) => b.addEventListener("click", () => {
 }));
 radioKeys($(".kinds"), () => $$(".kinds button"), (b) => { stopCycle(); setKind(b.dataset.kind); });
 
-/* Every kind of creator: the headline walks through them until you choose. */
-let cycle = null;
-function stopCycle() { if (cycle) clearInterval(cycle); cycle = null; }
+/* Every kind of creator: the headline walks through them once (on a phone) or until you choose, with a pause. */
+const pauseBtn = $(".pause");
+let cycle = null, paused = false, steps = 0;
+function stopCycle() { if (cycle) clearInterval(cycle); cycle = null; pauseBtn.hidden = true; }
 if (!reduce && params.get("auto") !== "0") {
   let heroSeen = true;
   try { new IntersectionObserver(([en]) => { heroSeen = en.isIntersecting; }).observe($(".h1")); } catch {}
+  const order = ["channel", "stream", "newsletter", "podcast", "portfolio"];
+  const phone = matchMedia("(max-width: 599px)").matches;
+  pauseBtn.hidden = false;
   cycle = setInterval(() => {
-    if (!heroSeen || document.hidden) return;
+    if (paused || !heroSeen || document.hidden) return;
     if (document.activeElement && document.activeElement.closest(".hero form, .kinds")) return;
-    const order = ["channel", "stream", "newsletter", "podcast", "portfolio"];
+    steps++;
     setKind(order[(order.indexOf(kindNow) + 1) % order.length]);
+    if (phone && steps >= order.length) stopCycle();
   }, 2800);
+  pauseBtn.addEventListener("click", () => {
+    paused = !paused;
+    pauseBtn.setAttribute("aria-pressed", String(paused));
+    pauseBtn.setAttribute("aria-label", paused ? "Play the changing word" : "Pause the changing word");
+  });
   ["pointerdown", "keydown"].forEach((t) => $(".hero").addEventListener(t, (ev) => { if (ev.target.closest(".kinds, form")) stopCycle(); }, { passive: true }));
 }
 
-/* Arrow keys move through a radio group. */
 function radioKeys(group, items, pick) {
   group.addEventListener("keydown", (ev) => {
     const d = ev.key === "ArrowRight" || ev.key === "ArrowDown" ? 1 : ev.key === "ArrowLeft" || ev.key === "ArrowUp" ? -1 : 0;
@@ -480,36 +520,27 @@ function radioKeys(group, items, pick) {
 }
 
 /* ================================================================
-   The colour switch: Blue or Pink, remembered.
+   The founder's colour switch: Blue or Pink, remembered.
    ================================================================ */
+function drawAll() {
+  drawLineup("still");
+  drawStage();
+  drawRuler();
+  drawDoor();
+  drawLand("still");
+}
 function setPalette(c, save = true) {
-  root.dataset.c = c;
+  root.dataset.scheme = c;
   $$(".palette button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.c === c)));
   const meta = $('meta[name="theme-color"]');
   if (meta) meta.content = css("--field");
   if (save) { try { localStorage.setItem("orbe-r6d-c", c); } catch {} }
   const u = new URL(location.href);
   if (u.searchParams.get("c") && u.searchParams.get("c") !== c) { u.searchParams.set("c", c); try { history.replaceState(null, "", u); } catch {} }
-  paintAll(performance.now() / 1000);
-  /* The card takes the brand theme for this colour. */
-  if ($(".deck-card.front").firstChild) drawDeck(false);
+  if (heroRose) drawAll();
 }
 $$(".palette button").forEach((b) => b.addEventListener("click", () => setPalette(b.dataset.c)));
 radioKeys($(".palette"), () => $$(".palette button"), (b) => setPalette(b.dataset.c));
-
-/* ================================================================
-   Stripes between panels, and bars that draw in when seen.
-   ================================================================ */
-$$(".stripe").forEach((s, si) => {
-  const cols = ["--k-channel", "--strong", "--k-stream", "--field", "--k-newsletter", "--strong", "--k-podcast", "--k-portfolio", "--ink"];
-  let html = "";
-  for (let i = 0; i < 18; i++) html += `<i style="--w:${1 + Math.floor(hash(i, si, 5) * 4)};--c:var(${cols[Math.floor(hash(i, si, 6) * cols.length)]})"></i>`;
-  s.innerHTML = html;
-});
-try {
-  const io = new IntersectionObserver((ens) => ens.forEach((en) => { if (en.isIntersecting) { $$(".bar", en.target).forEach((b) => b.classList.add("seen")); io.unobserve(en.target); } }), { threshold: 0.25 });
-  $$(".bars").forEach((b) => io.observe(b));
-} catch { $$(".bar").forEach((b) => b.classList.add("seen")); }
 
 /* ================================================================
    Reserve: honest about what happens.
@@ -518,21 +549,27 @@ $$("form.reserve").forEach((form) => form.addEventListener("submit", async (ev) 
   ev.preventDefault();
   const note = $(".note", form);
   const input = $("input", form);
-  const h = cleanHandle(input.value);
-  if (!h) { note.textContent = "Type the handle you want, then reserve it."; input.focus(); return; }
+  const h = cleanHandle(input.value).toLowerCase();
+  if (!h) { note.classList.remove("done"); note.textContent = "Type the handle you want, then reserve it."; input.focus(); return; }
+  input.value = h;
   const res = await reserve({ handle: h, kind: kindNow });
   note.classList.add("done");
-  note.textContent = res.via === "api"
-    ? `@${h} is yours. Ratings open with YouTube: connect your channel to see yours.`
-    : `Your email app has the request for @${h} written out. Send it and we hold the handle for you.`;
+  const sign = `<span class="sign">orbe.vc/@${h}</span>`;
+  note.innerHTML = res.via === "api"
+    ? `${sign}<br>Held for you. We'll check it's yours when ratings open.`
+    : `${sign}<br>Your email app has the request written out. Held once your email arrives. We'll check it's yours when ratings open.`;
 }));
 
 /* Start */
 const startKind = ORDER.includes(params.get("kind")) ? params.get("kind") : "channel";
-setPalette(root.dataset.c === "pink" ? "pink" : "blue", false);
+setPalette(root.dataset.scheme === "pink" ? "pink" : "blue", false);
 setKind(startKind, false);
-if (reduce) {
-  paintAll(0);
-  let rt;
-  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => paintAll(0), 120); });
-} else requestAnimationFrame(frame);
+heroRose = true;
+drawLineup(reduce ? "still" : "rise");
+drawLand("still");
+let rt, lastW = innerWidth;
+addEventListener("resize", () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { if (innerWidth !== lastW || true) { lastW = innerWidth; drawAll(); } }, 120);
+});
+document.fonts?.ready.then(() => { drawStage(); drawRuler(); });

@@ -1,8 +1,8 @@
-import { example, benchmark, BANDS, EXAMPLE_LINE, CARD_EXAMPLE_LINE, MODEL_VERSION } from "../assets/r5/examples.js";
-import { SPECS } from "../assets/engine/rating/browser.js";
+import { example, benchmark, BANDS, EXAMPLE_LINE, ORDER, MODEL_VERSION } from "../assets/r5/examples.js";
+import { SPECS, RATING_NOTICE } from "../assets/engine/rating/browser.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
-import { renderCard } from "../assets/r5/card.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
+import { bars, COLOURS as C } from "../assets/brand/brand.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const root = document.documentElement;
@@ -10,36 +10,35 @@ root.classList.add("js");
 let reduce = false;
 try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
 
-mountWordmark($("#wm"), { animate: true });
+mountWordmark($("#wm"), { animate: !reduce });
 mountWordmark($("#wm2"), { animate: false });
 
-/* ---------- Palettes: the founder's choice. Blue (fal) or Pink (TypeSafe). ---------- */
+/* ---------- Schemes, from the brand tokens: blue leads, pink is the alternative ---------- */
 const PAL = {
-  pink: { field: "#F2879E", orb: [251, 248, 242] },
-  blue: { field: "#9EE9FB", orb: [31, 75, 255] },
+  blue: { field: C.sky, orb: [31, 75, 255], bars: [C.ember, C.cobalt] },
+  pink: { field: C.peony, orb: [251, 250, 246], bars: [C.ember, C.claret] },
 };
-let pal = root.dataset.c === "blue" ? "blue" : "pink";
+let pal = root.dataset.scheme === "pink" ? "pink" : "blue";
 const paletteBtns = document.querySelectorAll(".palette button");
 function setPalette(c, save) {
   pal = c;
-  root.dataset.c = c;
+  root.dataset.scheme = c;
   paletteBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.c === c)));
   const meta = $('meta[name="theme-color"]');
   if (meta) meta.content = PAL[c].field;
   if (save) {
     try { localStorage.setItem("orbe-c", c); } catch {}
-    try { const u = new URL(location.href); if (u.searchParams.has("c")) { u.searchParams.set("c", c); history.replaceState(null, "", u); } } catch {}
+    try { const u = new URL(location.href); for (const k of ["c", "scheme"]) if (u.searchParams.has(k)) u.searchParams.set(k, c); history.replaceState(null, "", u); } catch {}
   }
   orbs.forEach(orb);
-  drawCard();
+  drawBars();
 }
 paletteBtns.forEach((b) => b.addEventListener("click", () => setPalette(b.dataset.c, true)));
 
 /* ---------- The example, from the engine ---------- */
 const ex = example("channel");
-const r = ex.result;
 const spec = SPECS[ex.platform];
-const reachPart = r.detail.parts.find((p) => p.key === "reach");
+const reachPart = ex.result.detail.parts.find((p) => p.key === "reach");
 const measured = reachPart.measured;
 const sigma = spec.parts.find((p) => p.key === "reach").prior.sigma;
 const bm = benchmark("channel");
@@ -52,15 +51,13 @@ const rows = bm.rows.map((row) => {
 });
 const pct = (v) => `${Math.round(v * 1000) / 10}%`.replace(".0%", "%");
 const sizeOf = (row) => (row.key === "seed" ? "Under 10k" : row.key === "top" ? "Over 5M" : row.label);
-const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 const SAYS = { seed: "Looks behind.", rise: "Looks fine.", low: "Looks good.", high: "Looks great.", top: "Looks like genius. It isn’t." };
 const minus = (s) => s.replace("-", "−");
-
-/* ---------- Hero dialog: the engine at work on the example ---------- */
-$("#dg-title").textContent = `Orbe.engine`;
-$("#dg-ver").textContent = MODEL_VERSION;
-const dgLine = $("#dg-line"), dgBar = $("#dg-bar"), dgOut = $("#dg-out");
 const own = rows.find((x) => x.mine);
+
+/* ---------- Hero window: the engine at work on the example ---------- */
+$("#dg-ver").textContent = `model ${MODEL_VERSION}`;
+const dgLine = $("#dg-line"), dgBar = $("#dg-bar"), dgOut = $("#dg-out");
 const dgSteps = [
   `Reading ${ex.handle}`,
   `Reach ${reachPart.raw} of subscribers`,
@@ -73,32 +70,36 @@ function dgEnd() {
   dgOut.innerHTML = `<b>${minus(ex.signed)}</b><span>${ex.band}</span>`;
 }
 
+/* ---------- The upload: one small painting, the same in every window (a made-up creator's frame) ---------- */
+const UPLOAD = `<svg viewBox="0 0 44 33" aria-hidden="true"><rect width="44" height="33" fill="#D6F6FD"/><circle cx="31" cy="10" r="5" fill="#FF5A1F"/><path d="M0 19 C8 13 14 14 21 18 S35 14 44 17 V33 H0Z" fill="#4D9AD0"/><path d="M0 23 C10 19 20 21 28 23 S40 21 44 22 V33 H0Z" fill="#8E9A4A"/><path d="M0 28 C12 26 26 27 44 26 V33 H0Z" fill="#262B12"/><path d="M6 27 l1.5 -5 M9 27 l-1 -4 M36 26 l1 -5 M39 26 l-1.2 -3.5" stroke="#EED56A" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+
 /* ---------- The signature: one upload, six sizes, six verdicts ---------- */
 $("#v-lede").innerHTML = `A typical upload from <b>${ex.name}</b> reaches <b>${reachPart.raw}</b> of its subscribers. Hold it against every size of channel and the verdict changes six times.`;
 
 const order = [...rows.filter((x) => !x.mine), own];
 const stack = $("#stack");
 stack.innerHTML = order.map((row, i) => row.mine ? `
-  <article class="vw mine" style="--i:${i}" aria-label="Against ${ex.peers} ${row.label}, its own size">
-    <div class="win-bar vw-bar"><span>Upload.vs_${slug(row.label)}</span><span>Its own size</span></div>
-    <div class="vw-row"><canvas class="thumb" aria-hidden="true"></canvas><span class="vw-txt"><span class="vw-vs mono">vs ${row.label}, typical ${pct(row.value)}</span><span class="vw-say">The one Orbe rates.</span></span><span class="vw-n" aria-label="beats ${row.beats} in 100">${row.beats}</span></div>
+  <article class="ow vw mine" style="--i:${i}" aria-label="Against ${ex.peers} ${row.label}, its own size">
+    <span class="ow-tab">Its own size: ${row.label}</span>
+    <div class="vw-row"><span class="thumb">${UPLOAD}</span><span class="vw-txt"><span class="vw-say">The one Orbe rates.</span><span class="vw-typ">Typical here ${pct(row.value)}</span></span><span class="vw-n" aria-label="beats ${row.beats} in 100"><b>${row.beats}</b><span class="vw-in" aria-hidden="true">in 100</span></span></div>
     <div class="rt">
       <div class="rt-top">
         <p class="rt-num num" id="rt-num" aria-label="Rating ${ex.signed}"></p>
-        <p class="rt-band"><span class="mono">Rating</span>${ex.band}</p>
+        <p class="rt-band"><span class="k">Rating</span>${ex.band}</p>
       </div>
-      <p class="rt-who"><b>${ex.name}</b> <span class="mono">${ex.label}, ${ex.sizeBand}</span></p>
+      <p class="rt-who"><b>${ex.name}</b> <span>${ex.label}, ${ex.sizeBand}</span></p>
       <div class="scale" id="scale" aria-hidden="true"></div>
-      <ul class="parts">${ex.parts.map((p) => `<li><span class="p-n">${p.name}</span><span class="p-v mono">${p.value}</span><span class="p-b"><i style="--w:${p.score}%"></i></span><span class="p-s">${p.score}</span></li>`).join("")}</ul>
-      <p class="rt-foot mono">Independently calculated by Orbe.<br><span>${EXAMPLE_LINE}</span></p>
+      <ul class="parts">${ex.parts.map((p) => `<li><span class="p-n">${p.name}</span><span class="p-v">${p.value}</span><span class="p-b"><i style="--w:${p.score}%"></i></span><span class="p-s">${p.score}</span></li>`).join("")}</ul>
+      <p class="rt-foot">Independently calculated by Orbe.<br><span>${EXAMPLE_LINE}</span></p>
     </div>
   </article>` : `
-  <article class="vw" style="--i:${i}" aria-label="Against ${ex.peers} ${sizeOf(row)}: beats ${row.beats} in 100. ${SAYS[row.key]}">
-    <div class="vw-row"><canvas class="thumb" aria-hidden="true"></canvas><span class="vw-txt"><span class="vw-vs mono">vs ${sizeOf(row)}, typical ${pct(row.value)}</span><span class="vw-say">${SAYS[row.key]}</span></span><span class="vw-n" aria-hidden="true">${row.beats}</span></div>
+  <article class="ow vw" style="--i:${i}" aria-label="Against ${ex.peers} ${sizeOf(row)}: beats ${row.beats} in 100. ${SAYS[row.key]}">
+    <span class="ow-tab" aria-hidden="true">vs ${sizeOf(row)}</span>
+    <div class="vw-row" aria-hidden="true"><span class="thumb">${UPLOAD}</span><span class="vw-txt"><span class="vw-say">${SAYS[row.key]}</span><span class="vw-typ">Typical here ${pct(row.value)}</span></span><span class="vw-n"><b>${row.beats}</b><span class="vw-in">in 100</span></span></div>
   </article>`).join("");
 const wins = [...stack.children];
 
-/* The rating, digit by digit, so it can roll in. */
+/* The rating, digit by digit, so it can roll in once. Figures settle; they never bounce. */
 const num = $("#rt-num");
 const digits = [];
 for (const ch of ex.signed) {
@@ -120,7 +121,7 @@ for (const ch of ex.signed) {
   }
 }
 const setDigits = (anim) => digits.forEach(({ col, to }, i) => {
-  if (anim) col.style.transition = `transform 1s cubic-bezier(0.16,1,0.3,1) ${0.15 + (digits.length - i) * 0.06}s`;
+  if (anim) col.style.transition = `transform 1.1s cubic-bezier(0.16,1,0.3,1) ${0.15 + (digits.length - i) * 0.06}s`;
   col.style.transform = `translateY(${-to}em)`;
 });
 
@@ -130,21 +131,13 @@ const posOf = (v) => {
   for (let i = 0; i < 5; i++) if (x <= EDGES[i + 1]) return (i + (x - EDGES[i]) / (EDGES[i + 1] - EDGES[i])) * 20;
   return 100;
 };
-const scale = $("#scale");
-scale.innerHTML = BANDS.map((b) => `<span class="c${b === ex.band ? " on" : ""}">${b}</span>`).join("") + `<span class="you" style="--x:${posOf(ex.rating)}%"></span>`;
+$("#scale").innerHTML = BANDS.map((b) => `<span class="c${b === ex.band ? " on" : ""}">${b}</span>`).join("") + `<span class="you" style="--x:${posOf(ex.rating)}%"></span>`;
 
-/* ---------- The card, drawn by the product's own code ---------- */
-$("#cd-title").textContent = `Card ${ex.handle}`;
-function drawCard() {
-  const c = ex.card;
-  const svg = renderCard(ex.result, {
-    moment: "rating", format: "square", theme: `ink-${pal}`, handle: ex.handle, name: ex.name, note: CARD_EXAMPLE_LINE, idPrefix: "r6a",
-    works: c.works, personalBest: c.personalBest, season: c.season, sizeUp: c.sizeUp, workTitle: c.workTitle, image: c.image,
-  });
-  $("#cd-svg").innerHTML = svg;
-  const el = $("#cd-svg svg");
-  if (el) { el.removeAttribute("width"); el.removeAttribute("height"); el.setAttribute("aria-hidden", "true"); }
-}
+/* ---------- The line worth posting: the rating, said the way a creator would say it ---------- */
+$("#quote").innerHTML = `My last upload had better reach than <em>${ownScore} in 100</em> ${ex.peers} my size.`;
+$("#quote-cap").innerHTML = `<b>${ex.name}</b>, ${minus(ex.signed)} <i>${ex.band}</i> against ${ex.peers} with ${ex.sizeBand}. Zero is typical for creators your size. Independently calculated by Orbe. ${EXAMPLE_LINE}`;
+
+$("#notice").textContent = `Every creator and figure on this page is a made-up example, rated live by the Orbe engine. ${RATING_NOTICE} YouTube, Substack and Twitch are trademarks of their owners.`;
 
 /* ---------- The working, down the desktop margin ---------- */
 $("#vert").textContent = [
@@ -152,7 +145,7 @@ $("#vert").textContent = [
   `sigma ${sigma.toFixed(2)}`, `z ${reachPart.z.toFixed(4)}`, `beats ${ownScore} in 100`, `rating ${ex.signed}`, `model ${MODEL_VERSION}`,
 ].join("  /  ");
 
-/* ---------- Dither: an 8x8 Bayer orb (the hero) and the one upload's thumbnail, repeated ---------- */
+/* ---------- The orb: an 8x8 Bayer dither behind the headline, one per view ---------- */
 const BAYER = [0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21];
 function orb(cv) {
   const w = cv.clientWidth; if (!w) return;
@@ -162,49 +155,37 @@ function orb(cv) {
   const ctx = cv.getContext("2d");
   const img = ctx.createImageData(n, n);
   const L = [-0.55, -0.62, 0.56]; const ll = Math.hypot(...L); L.forEach((v, i) => (L[i] = v / ll));
-  const C = PAL[pal].orb;
+  const col = PAL[pal].orb;
   const rr = n / 2 - 1;
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     const dx = (x + 0.5 - n / 2) / rr, dy = (y + 0.5 - n / 2) / rr, d2 = dx * dx + dy * dy;
     if (d2 > 1) continue;
     const lit = Math.max(0, dx * L[0] + dy * L[1] + Math.sqrt(1 - d2) * L[2]);
     const ink = Math.min(0.92, 0.03 + 0.95 * Math.pow(lit, 1.5));
-    if (ink * 64 > BAYER[(y % 8) * 8 + (x % 8)] + 0.5) { const k = (y * n + x) * 4; img.data[k] = C[0]; img.data[k + 1] = C[1]; img.data[k + 2] = C[2]; img.data[k + 3] = 255; }
+    if (ink * 64 > BAYER[(y % 8) * 8 + (x % 8)] + 0.5) { const k = (y * n + x) * 4; img.data[k] = col[0]; img.data[k + 1] = col[1]; img.data[k + 2] = col[2]; img.data[k + 3] = 255; }
   }
   ctx.putImageData(img, 0, 0);
 }
-/* The upload: a dithered landscape frame (sun, hills, water), the same pixels in every window. */
-function thumb() {
-  const W = 24, H = 18;
-  const c = document.createElement("canvas"); c.width = W; c.height = H;
-  const ctx = c.getContext("2d"); const img = ctx.createImageData(W, H);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const sun = Math.hypot(x - 16.5, y - 5.5) < 3.4 ? 0.05 : 1;
-    const hill = y > 9 + 2.6 * Math.sin(x / 3.4) ? 0.82 : 0;
-    const water = y > 14 ? 0.5 + 0.25 * ((x + y) % 3 === 0) : 0;
-    const sky = 0.12 + (y / H) * 0.22;
-    const v = Math.min(1, Math.max(water || hill || sky, 0)) * sun;
-    const on = v * 64 > BAYER[(y % 8) * 8 + (x % 8)] + 0.5;
-    const k = (y * W + x) * 4; const g = on ? 18 : 250; img.data[k] = g; img.data[k + 1] = g + (on ? 2 : -2); img.data[k + 2] = g + (on ? 0 : -8); img.data[k + 3] = 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  return c;
+
+/* ---------- The close: two fat bars crossing behind the form, clear of the headline ---------- */
+function drawBars() {
+  const host = $("#bars");
+  const wide = innerWidth >= 900;
+  const [a, b] = PAL[pal].bars;
+  const lines = wide
+    ? [[0.5, 1.04, 1.06, 0.3, a], [0.3, 0.86, 1.08, 1.1, b]]
+    : [[-0.15, 1.0, 1.15, 0.66, a], [0.35, 1.08, 1.2, 0.86, b]];
+  host.innerHTML = bars({ w: wide ? 1440 : 390, h: wide ? 900 : 1000, lines, weight: wide ? 0.07 : 0.11 }).replace("<svg ", '<svg preserveAspectRatio="none" ');
 }
-const T = thumb();
-document.querySelectorAll(".thumb").forEach((cv) => { cv.width = T.width; cv.height = T.height; cv.getContext("2d").drawImage(T, 0, 0); });
 
 const orbs = document.querySelectorAll(".orb");
 let ow = innerWidth;
-addEventListener("resize", () => { if (Math.abs(innerWidth - ow) > 40) { ow = innerWidth; orbs.forEach(orb); } });
+addEventListener("resize", () => { if (Math.abs(innerWidth - ow) > 40) { ow = innerWidth; orbs.forEach(orb); drawBars(); } });
 setPalette(pal, false);
 
 /* ---------- Motion, or its end state ---------- */
-function fillRating(anim) {
-  setDigits(anim);
-  root.classList.add("rated");
-}
+function fillRating(anim) { setDigits(anim); root.classList.add("rated"); }
 function playStack() {
-  stack.classList.add("play");
   wins.forEach((w, i) => setTimeout(() => {
     w.classList.add("in");
     if (w.classList.contains("mine")) { fillRating(true); setTimeout(() => stack.classList.add("struck"), 700); }
@@ -221,7 +202,7 @@ function playDialog() {
 
 if (reduce) {
   wins.forEach((w) => w.classList.add("in"));
-  stack.classList.add("play", "struck");
+  stack.classList.add("struck");
   fillRating(false);
   dgEnd();
   root.classList.add("ready");
@@ -234,23 +215,27 @@ if (reduce) {
       if (e.target.id === "dialog") playDialog();
       io.unobserve(e.target);
     }
-  }, { threshold: 0.3 });
+  }, { threshold: 0.2 });
   io.observe(stack);
-  const dg = $("#dialog");
-  if (dg.offsetParent) io.observe(dg); else dgEnd();
+  io.observe($("#dialog"));
 }
 
-/* ---------- Reserve, top and bottom ---------- */
+/* ---------- Reserve, top and bottom: the handle, lower-cased, and the kind of work it is for ---------- */
+const KIND_WORD = { channel: "channel", newsletter: "newsletter", stream: "stream", podcast: "podcast", portfolio: "photography portfolio" };
 document.querySelectorAll("[data-reserve]").forEach((form) => {
   const note = $(".r-note", form);
   const input = $("input", form);
+  const sel = $("select", form);
+  sel.innerHTML = ORDER.map((k) => `<option value="${k}">${KIND_WORD[k] ?? k}</option>`).join("");
+  input.addEventListener("input", () => { const p = input.selectionStart; input.value = input.value.toLowerCase(); try { input.setSelectionRange(p, p); } catch {} });
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const h = cleanHandle(input.value);
+    const h = cleanHandle(input.value).toLowerCase();
     if (!h) { note.innerHTML = "<b>Type the handle you want.</b> Letters, numbers, dots and dashes."; input.focus(); return; }
-    const res = await reserve({ handle: h, kind: "channel" });
-    if (res.ok && res.via === "api") note.innerHTML = `<b>@${h} is yours.</b> Ratings open with YouTube: connect your channel to see yours.`;
-    else if (res.ok) note.innerHTML = `<b>Your email app has the request for @${h}.</b> Send it and the handle is held.`;
+    const kind = KIND_WORD[sel.value] ?? "channel";
+    const res = await reserve({ handle: h, kind });
+    if (res.ok && res.via === "api") note.innerHTML = `<b>@${h} is held for you.</b> We'll check it's yours when ratings open.`;
+    else if (res.ok) note.innerHTML = `<b>Your email app has the request for @${h}.</b> Send it and the handle is held. We'll check it's yours when ratings open.`;
     else if (res.reason === "taken") note.innerHTML = `<b>@${h} is taken.</b> Try another.`;
   });
 });

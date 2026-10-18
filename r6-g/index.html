@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,78 +7,66 @@
 <meta name="description" content="Orbe keeps creators' work like an archive and rates it against creators their size. Free for creators, for good.">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/Newsreader-Italic-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/CommitMono-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="../assets/r5/type.css">
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-r6g-c");if(c==="pink"||c==="blue")document.documentElement.dataset.scheme=c}catch(e){}</script>
 <script type="module" src="main.js"></script>
 </head>
-<body data-c="blue">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <filter id="crayon" filterUnits="userSpaceOnUse" x="-5" y="-8" width="110" height="26">
-    <feTurbulence type="fractalNoise" baseFrequency="0.5 0.9" numOctaves="2" seed="4" result="n"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="1.2" xChannelSelector="R" yChannelSelector="G" result="d"/>
-    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.2 0 0 0 -0.3" result="m"/>
-    <feComposite in="d" in2="m" operator="in"/>
-  </filter>
-</svg>
+<body>
 <a class="skip" href="#handle">Skip to reserving your handle</a>
 
-<!-- [01] Hero: a painted landscape, with the archive's first folder laid over it -->
+<!-- [01] Your work: a painted strip of country on the brand field, the archive's first folder laid over it -->
 <section class="hero pnl" aria-labelledby="h1">
-  <div class="canvas" aria-hidden="true"><svg class="painting" data-paint="hero" data-scheme="hero"></svg></div>
+  <div class="hero-art" aria-hidden="true"><canvas class="paint" data-scene="hero" data-seed="43"></canvas></div>
 
   <header class="nav">
     <a class="nav-mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
     <nav class="nav-links" aria-label="Main">
       <a href="#rating">The rating</a>
-      <a href="#card">Your card</a>
+      <a href="#post">Worth posting</a>
       <a href="#buyers">For buyers</a>
     </nav>
   </header>
 
-  <div class="hero-grid">
-    <div class="folder folder-hero">
-      <p class="hero-caption" aria-hidden="true"><span class="tip">artefact 00 <b>[the archive, painted]</b></span></p>
-      <div class="tab"><span class="bk">[01]</span><span class="rule"></span><span class="tab-name">Your work</span></div>
-      <div class="folder-body">
-        <h1 id="h1">Your work, rated against creators your size.</h1>
-        <p class="lede">A newsletter, a channel, a podcast, a portfolio: each one is a body of work. Orbe keeps yours like an archive and rates it fairly. Free, for good.</p>
-        <form class="reserve" data-reserve novalidate>
-          <label class="sr" for="kind">Kind of work</label>
-          <label class="sr" for="handle">Your handle</label>
-          <div class="slip">
-            <span class="slip-label">File under</span>
-            <div class="slip-row">
-              <select id="kind" name="kind">
-                <option value="channel">YouTube</option>
-                <option value="newsletter">Substack</option>
-                <option value="stream">Twitch</option>
-                <option value="podcast">Podcast</option>
-                <option value="portfolio">Photography</option>
-              </select>
-              <span class="slip-at">orbe.vc/@</span>
-              <input id="handle" name="handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle">
-            </div>
+  <div class="folder folder-hero">
+    <div class="tab"><span class="bk">[01]</span><span class="rule"></span><span class="tab-name">Your work</span></div>
+    <div class="folder-body">
+      <h1 id="h1">Your work, rated against creators your size.</h1>
+      <p class="hero-rate">
+        <span class="hr-n" data-h-rating></span><i class="hr-b" data-h-band></i>
+        <span class="hr-t"><b data-h-name></b>, against <span data-h-peers></span>. A made-up example. Independently calculated by Orbe.</span>
+      </p>
+      <p class="lede">A newsletter, a channel, a podcast, a portfolio: each one is a body of work. Orbe keeps yours like an archive and rates it fairly. Free, for good.</p>
+      <form class="reserve" data-reserve novalidate>
+        <label class="sr" for="kind">Kind of work</label>
+        <label class="sr" for="handle">Your handle</label>
+        <div class="slip">
+          <span class="slip-label">File under</span>
+          <div class="slip-row">
+            <select id="kind" name="kind">
+              <option value="channel">YouTube</option>
+              <option value="newsletter">Substack</option>
+              <option value="stream">Twitch</option>
+              <option value="podcast">Podcast</option>
+              <option value="portfolio">Photography</option>
+            </select>
+            <span class="slip-at">orbe.vc/@</span>
+            <input id="handle" name="handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle">
           </div>
-          <button type="submit" class="file-btn">Reserve my handle</button>
-          <p class="note" data-note>Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
-        </form>
-      </div>
+        </div>
+        <button type="submit" class="file-btn">Reserve my handle</button>
+        <p class="note" data-note>Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+      </form>
     </div>
-
-    <figure class="window" aria-label="An example artefact">
-      <div class="window-bar"><span>[artefact 01]</span><span data-w-title></span></div>
-      <svg class="painting window-art" data-paint="window" data-scheme="channel" aria-hidden="true"></svg>
-      <figcaption>
-        <span class="w-name" data-w-name></span>
-        <span class="w-rate"><b data-w-rating></b> <i data-w-band></i></span>
-        <span class="w-line" data-w-line></span>
-      </figcaption>
-    </figure>
   </div>
 </section>
 
-<!-- [02] The rating, and the signature: a drawer of folders by size; yours opens to your rating -->
+<!-- [02] Your rating. The signature: a drawer of folders by size; yours lifts and opens to the rating, filed -->
 <section class="rating pnl" id="rating" aria-labelledby="h2">
   <div class="sec-head">
     <p class="kicker"><span class="bk">[02]</span><span class="rule"></span>Your rating</p>
@@ -106,25 +94,20 @@
           <span class="nb-v" data-nb-value></span>
         </div>
 
-        <article class="rcard" aria-live="polite">
-          <div class="card-art">
-            <svg class="painting" data-paint="card" data-scheme="channel" aria-hidden="true"></svg>
-            <p class="artefact"><span class="bar"></span><span data-artefact></span></p>
+        <article class="sheet" aria-live="polite">
+          <p class="sheet-k"><span data-code></span><span data-model></span></p>
+          <header class="sheet-head">
+            <h3 data-name></h3>
+            <p class="who" data-who></p>
+          </header>
+          <p class="tip tip-score" data-tip></p>
+          <div class="score">
+            <span class="score-n" data-rating>+0.00</span>
+            <span class="score-b" data-band></span>
           </div>
-          <div class="rc-body">
-            <header class="card-head">
-              <h3 data-name></h3>
-              <p class="who" data-who></p>
-            </header>
-            <p class="tip tip-score" data-tip></p>
-            <div class="score">
-              <span class="score-n" data-rating>+0.00</span>
-              <span class="score-b" data-band></span>
-            </div>
-            <p class="typical" data-typical></p>
-            <ol class="parts" data-parts></ol>
-            <p class="calc">Independently calculated by Orbe.</p>
-          </div>
+          <p class="typical" data-typical></p>
+          <ol class="parts" data-parts></ol>
+          <p class="calc">Independently calculated by Orbe.</p>
         </article>
       </div>
       <div class="flap" aria-hidden="true"><span>[02] Your rating</span></div>
@@ -138,78 +121,85 @@
   </aside>
 </section>
 
-<!-- [03] The card, the record and the money -->
-<section class="money pnl" id="card" aria-labelledby="h3">
+<!-- [03] Worth posting: the rating itself is the thing to share, then the record and the money -->
+<section class="post pnl" id="post" aria-labelledby="h3">
   <div class="sec-head">
-    <p class="kicker"><span class="bk">[03]</span><span class="rule"></span>Your card</p>
-    <h2 id="h3">A card worth posting.</h2>
-    <p class="sec-sub">Your rating and your best work, drawn by the same code that will serve it at orbe.vc/@yourhandle.</p>
+    <p class="kicker"><span class="bk">[03]</span><span class="rule"></span>Worth posting</p>
+    <h2 id="h3">One line, and it&rsquo;s fair.</h2>
   </div>
 
-  <figure class="mount">
-    <div class="mount-card" data-card></div>
-    <figcaption><span class="bar"></span><span data-card-cap></span> <a href="../card/">Every format</a></figcaption>
+  <figure class="line">
+    <blockquote>
+      <p><span data-line-a></span> <span class="ln-n"><span data-line-n></span><canvas class="paint ln-mark" data-scene="underline" data-seed="9" aria-hidden="true"></canvas></span>.</p>
+    </blockquote>
+    <figcaption><span class="mono" data-line-who></span> <span data-line-band></span> A made-up example. Independently calculated by Orbe.</figcaption>
   </figure>
 
   <div class="ledger">
-    <h3 class="ledger-h">Your record. Private, and yours.</h3>
+    <h3 class="ledger-h">Your record. Checked, private, yours.</h3>
     <ol class="ledger-rows">
       <li><span class="bk">[a]</span><div><b>Read from payouts, not estimates.</b> Connect your accounts once. Every verified figure shows where it came from and the day we read it. You choose what is public. YouTube Analytics figures are never public.</div></li>
       <li><span class="bk">[b]</span><div><b>Sponsorships.</b> 15% when Orbe finds the brand, 5% when you bring your own. Paid by the brand, never by you, and only when the sponsorship completes.</div></li>
-      <li><span class="bk">[c]</span><div><b>A fair sale, when you want one.</b> An indicative value, then introductions to vetted buyers. A success fee from the proceeds, and nothing if it doesn't sell.</div></li>
+      <li><span class="bk">[c]</span><div><b>A fair sale, when you want one.</b> An indicative value, then introductions to vetted buyers. Your own adviser handles the sale. A success fee from the proceeds, only if it sells:
+        <dl class="tiers">
+          <div><dt>8%</dt><dd>up to £500k</dd></div>
+          <div><dt>5%</dt><dd>from £500k to £2M</dd></div>
+          <div><dt>3%</dt><dd>above £2M</dd></div>
+        </dl>
+        <span class="tiers-min">£4,000 minimum.</span></div></li>
     </ol>
   </div>
 </section>
 
 <!-- [04] The buyers' door -->
 <section class="buyers pnl" id="buyers" aria-labelledby="h4">
-  <div class="folder folder-strong">
-    <div class="tab"><span class="bk">[04]</span><span class="rule"></span><span class="tab-name">For buyers and backers</span></div>
+  <div class="folder folder-deep">
+    <div class="tab"><span class="bk">[04]</span><span class="rule"></span><span class="tab-name">For buyers and lenders</span></div>
     <div class="folder-body">
       <h2 id="h4">Creator businesses. Read from payouts, not estimates.</h2>
       <dl class="doors">
-        <div><dt>Buy</dt><dd>Free, vetted access to creator businesses for sale. A 2% buyer's premium at completion, 1% above £2M, £1,000 minimum.</dd></div>
-        <div><dt>Invest</dt><dd>Minority investment, through an authorised partner.</dd></div>
+        <div><dt>Buy</dt><dd>Free, vetted access to creator businesses for sale. A 2% buyer&rsquo;s premium at completion, 1% above £2M, £1,000 minimum. Diligence reports are included: £1,500 only if you walk away after receiving one, and never if the report shows the listing was wrong.</dd></div>
         <div><dt>Lend</dt><dd>The creator&rsquo;s record, shared with their consent. A fixed fee per file, paid by the lender.</dd></div>
       </dl>
+      <p class="moat">Every creator who connects sharpens the benchmarks for everyone their size, so each rating, and each listing, rests on more than the last.</p>
       <a class="door" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access <span aria-hidden="true">&rarr;</span></a>
     </div>
   </div>
 </section>
 
-<!-- [05] Close and footer -->
+<!-- [05] Free, for good: a dawn, painted all the way up, then the form and the footer -->
 <section class="close pnl" aria-labelledby="h5">
-  <div class="canvas canvas-close" aria-hidden="true"><svg class="painting" data-paint="close" data-scheme="hero"></svg></div>
+  <div class="close-art" aria-hidden="true"><canvas class="paint" data-scene="dawn" data-seed="60"></canvas></div>
   <div class="folder folder-close">
     <div class="tab"><span class="bk">[05]</span><span class="rule"></span><span class="tab-name">Free, for good</span></div>
     <div class="folder-body">
       <h2 id="h5">Creators never pay. Orbe earns a percentage when money moves.</h2>
       <form class="reserve" data-reserve novalidate>
-          <label class="sr" for="kind2">Kind of work</label>
-          <label class="sr" for="handle2">Your handle</label>
-          <div class="slip">
-            <span class="slip-label">File under</span>
-            <div class="slip-row">
-              <select id="kind2" name="kind">
-                <option value="channel">YouTube</option>
-                <option value="newsletter">Substack</option>
-                <option value="stream">Twitch</option>
-                <option value="podcast">Podcast</option>
-                <option value="portfolio">Photography</option>
-              </select>
-              <span class="slip-at">orbe.vc/@</span>
-              <input id="handle2" name="handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle">
-            </div>
+        <label class="sr" for="kind2">Kind of work</label>
+        <label class="sr" for="handle2">Your handle</label>
+        <div class="slip">
+          <span class="slip-label">File under</span>
+          <div class="slip-row">
+            <select id="kind2" name="kind">
+              <option value="channel">YouTube</option>
+              <option value="newsletter">Substack</option>
+              <option value="stream">Twitch</option>
+              <option value="podcast">Podcast</option>
+              <option value="portfolio">Photography</option>
+            </select>
+            <span class="slip-at">orbe.vc/@</span>
+            <input id="handle2" name="handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle">
           </div>
-          <button type="submit" class="file-btn">Reserve my handle</button>
-          <p class="note" data-note>Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
-        </form>
+        </div>
+        <button type="submit" class="file-btn">Reserve my handle</button>
+        <p class="note" data-note>Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+      </form>
     </div>
   </div>
   <footer class="foot">
-    <span data-wordmark-foot></span>
-    <p>Every creator, artwork and figure on this page is a made-up example, rated by the real engine. Indicative value independently calculated by Orbe from your connected revenue. It is an estimate, not advice and not an offer, and it is not provided or approved by YouTube or Google. YouTube, Substack and Twitch are trademarks of their owners.</p>
-    <p class="foot-links"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a> &nbsp; <a href="../products/">Products</a> &nbsp; <a href="../legal/privacy.html">Privacy</a> &nbsp; <a href="../legal/terms.html">Terms</a></p>
+    <span class="foot-mark" data-wordmark-foot></span>
+    <p>The creators, ratings and figures on this page are made-up examples, rated by the real engine. The paintings are drawn in code. Indicative value independently calculated by Orbe from your connected revenue. It is an estimate, not advice and not an offer, and it is not provided or approved by YouTube or Google. YouTube, Substack and Twitch are trademarks of their owners.</p>
+    <p class="foot-links"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a> <a href="../products/">Products</a> <a href="../legal/privacy.html">Privacy</a> <a href="../legal/terms.html">Terms</a></p>
   </footer>
 </section>
 
