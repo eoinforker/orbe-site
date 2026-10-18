@@ -100,7 +100,7 @@
 .ap-email header { position: relative; display: flex; justify-content: space-between; align-items: center; margin: -48px -64px 30px; padding: 30px 64px; }
 .ap-ecrit { position: absolute; width: 150px; right: 420px; top: 8px; transform: rotate(-8deg); }
 .ap-under { position: relative; white-space: nowrap; }
-.ap-under svg { position: absolute; left: -4%; bottom: -10px; width: 108%; height: 22px; }
+.ap-under svg { position: absolute; left: -4%; bottom: -16px; width: 108%; height: 34px; }
 .ap-email header svg.wm { height: 44px; }
 .ap-emailart { position: relative; height: 210px; padding: 12px; color: var(--orbe-ink); }
 .ap-emailart img { width: 100%; height: 100%; object-fit: cover; display: block; }

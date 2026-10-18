@@ -124,9 +124,9 @@ const email = {
     const e = example("podcast"), pb = e.card.personalBest;
     return `
   <div class="ap-email">
-    <header data-surface="field">${WM}<span class="o-label">After-post report · 18 Oct 2026</span><span class="ap-ecrit o-pixelated">${creature({ seed: 4, body: C.ember, edge: C.paper, mark: C.cobalt, cell: 4 })}</span></header>
+    <header data-surface="field">${WM}<span class="o-label">After-post report · 18 Oct 2026</span><span class="ap-ecrit o-pixelated">${creature({ seed: 4, body: C.ember, edge: C.paper, mark: deep(s), cell: 4 })}</span></header>
     <div class="o-brackets ap-emailart"><img alt="" src="${e.card.image?.href ?? ""}"><span class="o-pill is-tip"><b>artefact 61</b> [${e.card.workTitle.toLowerCase()}]</span></div>
-    <h2 class="o-display is-3">Your best first week <span class="ap-under">yet.${crayon({ shape: "underline", colour: C.cobalt, w: 200, h: 60, seed: 8, weight: 7 })}</span></h2>
+    <h2 class="o-display is-3">Your best first week <span class="ap-under">yet.${crayon({ shape: "underline", colour: deep(s), w: 200, h: 60, seed: 8, weight: 16 })}</span></h2>
     <p class="o-lede">${pb ? `${pb.value} downloads in seven days, past your old best of ${pb.previous}.` : e.best}</p>
     <p class="o-label soft">A made-up show, rated by the Orbe engine</p>
   </div>`;
