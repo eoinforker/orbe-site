@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MADE UP: a fictional show for trying Orbe's podcast tools. Not a real podcast. The domain example.invalid does not exist. -->
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0">
+  <channel>
+    <title>The Long Table (made up)</title>
+    <link>https://example.invalid/long-table</link>
+    <description>A made-up food and community podcast, for trying Orbe's tools.</description>
+    <language>en-gb</language>
+    <itunes:author>Made-up Host</itunes:author>
+    <itunes:owner>
+      <itunes:name>Made-up Host</itunes:name>
+      <itunes:email>owner@example.invalid</itunes:email>
+    </itunes:owner>
+    <itunes:category text="Arts"><itunes:category text="Food"/></itunes:category>
+    <podcast:guid>00000000-made-4000-8000-0000longtable</podcast:guid>
+    <item>
+      <title>Episode 13: Bread, slowly</title>
+      <guid isPermaLink="false">made-up-long-table-13</guid>
+      <pubDate>Thu, 15 Oct 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2400</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-13.mp3" length="38400000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 12: The allotment in October</title>
+      <guid isPermaLink="false">made-up-long-table-12</guid>
+      <pubDate>Thu, 08 Oct 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2537</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-12.mp3" length="40592000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 11: Kitchen tables and who sits at them</title>
+      <guid isPermaLink="false">made-up-long-table-11</guid>
+      <pubDate>Thu, 01 Oct 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2674</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-11.mp3" length="42784000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 10: A pie for eight</title>
+      <guid isPermaLink="false">made-up-long-table-10</guid>
+      <pubDate>Thu, 24 Sep 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2811</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-10.mp3" length="44976000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 9: Sourdough without the fuss</title>
+      <guid isPermaLink="false">made-up-long-table-9</guid>
+      <pubDate>Thu, 17 Sep 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2948</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-9.mp3" length="47168000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 8: Leftovers, properly</title>
+      <guid isPermaLink="false">made-up-long-table-8</guid>
+      <pubDate>Thu, 10 Sep 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>3085</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-8.mp3" length="49360000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 7: What we eat on a Tuesday</title>
+      <guid isPermaLink="false">made-up-long-table-7</guid>
+      <pubDate>Thu, 03 Sep 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>3222</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-7.mp3" length="51552000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 6: The long lunch</title>
+      <guid isPermaLink="false">made-up-long-table-6</guid>
+      <pubDate>Thu, 27 Aug 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>3359</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-6.mp3" length="53744000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 5: Soup season</title>
+      <guid isPermaLink="false">made-up-long-table-5</guid>
+      <pubDate>Thu, 20 Aug 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>3496</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-5.mp3" length="55936000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 4: Learning to braise</title>
+      <guid isPermaLink="false">made-up-long-table-4</guid>
+      <pubDate>Thu, 13 Aug 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>3633</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-4.mp3" length="58128000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 3: A street of bakers</title>
+      <guid isPermaLink="false">made-up-long-table-3</guid>
+      <pubDate>Thu, 06 Aug 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>3770</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-3.mp3" length="60320000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 2: Cooking for one</title>
+      <guid isPermaLink="false">made-up-long-table-2</guid>
+      <pubDate>Thu, 30 Jul 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2407</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-2.mp3" length="38512000" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Episode 1: Seasonal jars</title>
+      <guid isPermaLink="false">made-up-long-table-1</guid>
+      <pubDate>Thu, 23 Jul 2026 06:00:00 GMT</pubDate>
+      <itunes:duration>2544</itunes:duration>
+      <description>A made-up episode of a made-up show, for trying Orbe's podcast tools.</description>
+      <enclosure url="https://media.example.invalid/long-table/episode-1.mp3" length="40704000" type="audio/mpeg"/>
+    </item>
+  </channel>
+</rss>

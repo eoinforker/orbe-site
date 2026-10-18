@@ -1,13 +1,14 @@
 /*
   The lap: the card's one drawing, grown from the wordmark's O.
 
-  In the wordmark the O goes round once as the letter and then carries on into
-  a finer inner lap that lands on a small ball. On the card that gesture is a
-  measure. One lap is the yardstick (your usual work, your old best, or a
-  hundred creators your size); the stroke goes round as far as you went and
-  lands on the ball. 1.8x your usual is the O and four fifths of a second lap,
-  which is very nearly the wordmark itself. Less than one lap leaves the O open,
-  with a hairline showing the rest of the lap.
+  The O of the wordmark (A3, "Carved") is one ring with a gentle vertical
+  stress. On the card the O goes round as a measure. One lap is the yardstick
+  (your usual work, your old best, or a hundred creators your size); the
+  stroke goes round as far as you went and lands on the ball. Past one lap the
+  O closes and the stroke carries on inside it as a finer lap, waisted and
+  flaring at its ends like the wordmark's strokes, so 1.8x your usual is the O
+  and four fifths of a second lap. Short of one lap the O stays open, with a
+  hairline showing the rest of it. Every lap is measured against your own last one.
 
   Pure geometry: numbers in, path data out.
 */
@@ -16,14 +17,16 @@ export const MAX_TURNS = 4;
 /** Least shown, so a tiny figure still draws a visible stroke. */
 export const MIN_TURNS = 0.06;
 const TAU = Math.PI * 2;
+/** Height over width of the O: A3's is 754 by 688. */
+export const RY = 1.09;
 /** Where the pen starts: two o'clock, as in the wordmark. Angles run anticlockwise. */
 const START = (32 / 180) * Math.PI;
 const n = (x) => String(Math.round(x * 10) / 10);
 /** The stroke's weight at an angle: heavy on the sides, fine at the top and bottom, like the O's stress. */
 const weight = (a, thick, thin) => thin + (thick - thin) * Math.cos(a) ** 2;
-/** A ribbon along a centreline given by radius-at-progress, as one closed outline. */
-function ribbon(s, from, to, radius, thick, thin, taper = 0) {
-    const ry = s.ry ?? 1.065;
+/** A ribbon along a centreline given by radius-at-progress, as one closed outline. `waist` thins its middle, so it flares to its ends. */
+function ribbon(s, from, to, radius, thick, thin, taper = 0, waist = 0) {
+    const ry = s.ry ?? RY;
     const span = Math.abs(to - from);
     const steps = Math.max(16, Math.ceil(span * 220));
     const outer = [], inner = [];
@@ -37,6 +40,8 @@ function ribbon(s, from, to, radius, thick, thin, taper = 0) {
         // A short lead-in from the wall, so a lap leaves the O with a crisp crotch rather than a hard edge.
         if (taper > 0 && i / steps < taper)
             w *= 0.25 + 0.75 * ((i / steps) / taper);
+        if (waist > 0)
+            w *= 1 - waist * Math.pow(Math.sin(Math.PI * (i / steps)), 0.7);
         const x = s.cx + Math.cos(a) * r, y = s.cy - Math.sin(a) * r * ry;
         const ux = Math.cos(a), uy = -Math.sin(a) * ry;
         const ul = Math.hypot(ux, uy) || 1;
@@ -49,7 +54,7 @@ function ribbon(s, from, to, radius, thick, thin, taper = 0) {
 }
 /** An ellipse ring of varying weight as two closed contours (even-odd), the O itself. */
 function ring(s, rc, thick, thin) {
-    const ry = s.ry ?? 1.065;
+    const ry = s.ry ?? RY;
     const steps = 240;
     const out = [], inn = [];
     for (let i = 0; i < steps; i++) {
@@ -64,7 +69,7 @@ function ring(s, rc, thick, thin) {
     return `M${out.join("L")}ZM${inn.reverse().join("L")}Z`;
 }
 const ellipse = (s, r) => {
-    const ry = (s.ry ?? 1.065) * r;
+    const ry = (s.ry ?? RY) * r;
     return `M${n(s.cx - r)} ${n(s.cy)}A${n(r)} ${n(ry)} 0 1 0 ${n(s.cx + r)} ${n(s.cy)}A${n(r)} ${n(ry)} 0 1 0 ${n(s.cx - r)} ${n(s.cy)}Z`;
 };
 /** Clamps a measure to what the drawing shows; anything not a number draws as one lap. */
@@ -73,10 +78,10 @@ export function clampTurns(turns) {
         return 1;
     return Math.max(MIN_TURNS, Math.min(MAX_TURNS, turns));
 }
-/** The O's proportions at a given outer radius, from the wordmark: 102 at the sides, 30 at top and bottom, on a 340 radius. */
+/** The O's proportions at a given outer radius, from A3: 114 at the sides, 84 at top and bottom, on a 344 radius, here a touch lighter so the window stays open. */
 export function oWeights(r) {
-    const thick = r * 0.2;
-    return { thick, thin: thick * 0.3, lapThick: thick * 0.4, lapThin: thick * 0.13, ball: thick * 0.3 };
+    const thick = r * 0.26;
+    return { thick, thin: thick * 0.74, lapThick: thick * 0.36, lapThin: thick * 0.27, ball: thick * 0.26 };
 }
 /**
   The lap for a measure: `turns` is how far round, one lap being the yardstick.
@@ -86,11 +91,11 @@ export function oWeights(r) {
 export function drawLap(s, turnsIn) {
     const turns = clampTurns(turnsIn);
     const w = oWeights(s.r);
-    const ry = s.ry ?? 1.065;
+    const ry = s.ry ?? RY;
     const rc = s.r - w.thick / 2; // centreline of the O
     const pad = w.thick * 0.3;
     if (turns < 1) {
-        const rib = ribbon(s, 0, turns, () => rc, w.thick, w.thin);
+        const rib = ribbon(s, 0, turns, () => rc, w.thick, w.thin, 0, 0.12);
         const ball = { cx: rib.end[0], cy: rib.end[1], r: w.ball * 1.35 };
         return {
             stroke: rib.d,
@@ -115,7 +120,7 @@ export function drawLap(s, turnsIn) {
     let end = [s.cx + Math.cos(START) * first, s.cy - Math.sin(START) * first * ry];
     let innermost = first;
     if (extra > 0.001) {
-        const rib = ribbon(s, 0, extra, radius, w.lapThick, w.lapThin);
+        const rib = ribbon(s, 0, extra, radius, w.lapThick, w.lapThin, 0, 0.3);
         parts.push(rib.d);
         end = rib.end;
         // The window sits inside the innermost point the lap reaches.
@@ -139,7 +144,7 @@ export function drawSizeUp(s) {
     const rc = s.r - w.thick / 2;
     const old = rc * 0.62;
     const wallIn = rc - w.thick / 2 - w.lapThick * 0.9;
-    const rib = ribbon(s, 0, 0.94, (k) => old + (wallIn - old) * k, w.lapThick, w.lapThin);
+    const rib = ribbon(s, 0, 0.94, (k) => old + (wallIn - old) * k, w.lapThick, w.lapThin, 0, 0.3);
     return {
         stroke: ring(s, rc, w.thick, w.thin) + rib.d,
         hairline: ellipse(s, old),

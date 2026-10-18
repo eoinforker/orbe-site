@@ -1,0 +1,39 @@
+/* The concepts board for the card. Shares the card page's tokens (../style.css). */
+.board { padding-top: clamp(24px, 6vh, 64px); padding-bottom: 120px; }
+.b-intro { max-width: 52em; }
+.note { margin-top: 18px; font: italic 400 17px/1.45 var(--serif); color: var(--soft); max-width: 40em; }
+.b-sec { margin-top: clamp(64px, 9vw, 120px); }
+.h2 { font: 450 clamp(30px, 3.6vw, 52px)/1 var(--sans); letter-spacing: -0.035em; margin: 0; }
+.lede { margin: 18px 0 0; font-size: 18px; line-height: 1.5; color: var(--soft); max-width: 46em; }
+.learn { margin-top: 26px; display: grid; gap: 0; border-top: 1px solid var(--line); max-width: 60em; }
+.learn li { padding: 14px 0; border-bottom: 1px solid var(--line); color: var(--soft); font-size: 16px; line-height: 1.5; }
+.learn b { color: var(--ink); font-weight: 500; }
+.heroes { margin-top: 32px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start; }
+.heroes.two { grid-template-columns: 1fr 1fr; max-width: 900px; }
+.hero-col { display: grid; gap: 20px; }
+.heroes img, .wide, .grid img, .c-pics img { display: block; width: 100%; height: auto; border-radius: 6px; box-shadow: 0 1px 0 rgba(20,19,17,0.06), 0 18px 40px -30px rgba(20,19,17,0.5); }
+.wide { margin-top: 20px; max-width: 900px; }
+.all { margin-top: 36px; }
+.all summary { cursor: pointer; font-weight: 500; font-size: 16px; padding: 10px 0; }
+.fmt { font: 500 14px/1 var(--sans); color: var(--soft); margin: 28px 0 14px; }
+.grid { display: grid; gap: 14px; }
+.g-story { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.g-square { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.g-link { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.grid figure { margin: 0; }
+.grid figcaption { margin-top: 6px; font-size: 13px; color: var(--soft); }
+.c { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; padding: 36px 0; border-top: 1px solid var(--line); align-items: start; }
+.c:first-of-type { margin-top: 28px; }
+.c-pics { display: grid; grid-template-columns: 0.5625fr 1fr; gap: 14px; align-items: start; }
+.c-n { margin: 0; font: 400 13px/1 var(--mono); color: var(--soft); }
+.c h3 { margin: 10px 0 0; font: 450 28px/1.1 var(--sans); letter-spacing: -0.03em; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tag { font: 500 12px/1 var(--sans); letter-spacing: 0; padding: 6px 9px; border-radius: 6px; background: var(--ink); color: var(--paper); }
+.tag-2 { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+.c-idea { margin: 14px 0 0; font: italic 400 20px/1.4 var(--serif); }
+.c-v { margin: 14px 0 0; color: var(--soft); font-size: 16px; line-height: 1.5; }
+.c-v b { color: var(--ink); font-weight: 500; }
+@media (max-width: 860px) {
+  .heroes, .heroes.two { grid-template-columns: 1fr 1fr; }
+  .hero-col { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+  .c { grid-template-columns: 1fr; gap: 20px; }
+}

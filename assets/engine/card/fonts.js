@@ -3,12 +3,16 @@
   browser, or an SVG served on its own. Pure, so it runs anywhere; the caller
   reads the font files (the API from disk, the browser with fetch).
 */
-/** The site's font files, by the names in site/assets/fonts.css. */
+/**
+  The card's font files (the Masthead type system), as paths under site/assets/.
+  They point at the identity board's copies until site/assets/fonts.css carries
+  the final files; then change the paths here, nothing else.
+*/
 export const SITE_FONTS = [
-    { file: "TimelessSerifVF.woff2", family: "Timeless Serif", style: "normal" },
-    { file: "TimelessSerifItalicVF.woff2", family: "Timeless Serif", style: "italic" },
-    { file: "TimelessSansVF.woff2", family: "Timeless Sans", style: "normal" },
-    { file: "PaperMonoVF.woff2", family: "Paper Mono", style: "normal" },
+    { file: "identity/d-type/fonts/schibsted-grotesk/schibsted-grotesk-latin-wght-normal.woff2", family: "Schibsted Grotesk", style: "normal", weight: "400 900" },
+    { file: "identity/d-type/fonts/newsreader/newsreader-latin-opsz-normal.woff2", family: "Newsreader", style: "normal", weight: "200 800" },
+    { file: "identity/d-type/fonts/newsreader/newsreader-latin-opsz-italic.woff2", family: "Newsreader", style: "italic", weight: "200 800" },
+    { file: "identity/d-type/fonts/commit-mono/commit-mono-latin-400-normal.woff2", family: "Commit Mono", style: "normal", weight: "400" },
 ];
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 /** Base64 without Buffer or btoa, so the same code runs in Node and the browser. */
@@ -27,7 +31,7 @@ export function fontFaceCss(files) {
     return files
         .map((f) => {
         const src = typeof f.data === "string" ? f.data : `data:font/woff2;base64,${base64(f.data)}`;
-        return `@font-face{font-family:${cssString(f.family)};src:url(${cssString(src)}) format("woff2");font-weight:100 900;font-style:${f.style ?? "normal"};}`;
+        return `@font-face{font-family:${cssString(f.family)};src:url(${cssString(src)}) format("woff2");font-weight:${(f.weight ?? "100 900").replace(/[^0-9 ]/g, "")};font-style:${f.style ?? "normal"};}`;
     })
         .join("");
 }

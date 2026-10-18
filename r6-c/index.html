@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-GB" data-c="pink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe</title>
+<meta name="description" content="Your work, rated against creators your size. Free for every kind of creator, for good.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-c");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c;}catch(e){}</script>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../assets/r5/type.css">
+<script type="module" src="./main.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top" id="top">
+  <a class="top-name" href="#top">orbe.vc</a>
+  <nav class="top-links" aria-label="Site">
+    <a href="#rating">The rating</a>
+    <a href="#buyers">For buyers</a>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- 1. What it is, for every kind of creator, one action. -->
+<section class="p hero" aria-labelledby="h1">
+  <div class="hero-art">
+    <div class="mark" id="mark">Orbe</div>
+    <p class="mark-cap"><span>The Orbe Rating</span><span>Free for creators, for good</span></p>
+  </div>
+
+  <h1 id="h1" class="lock">
+    <span class="l-a">Your work,</span>
+    <span class="l-b"><span class="l-rated">rated</span><span class="l-against"><span>against</span><span>creators</span></span></span>
+    <span class="l-c">your size.</span>
+  </h1>
+
+  <div class="reel" aria-label="For every kind of creator: YouTubers, newsletter writers, streamers, podcasters, photographers, educators, musicians, gamers, illustrators and comedians">
+    <ul class="reel-track" aria-hidden="true">
+      <li class="lt lt-yt">YouTubers</li>
+      <li class="lt lt-nl"><span>Newsletter</span><span>writers</span></li>
+      <li class="lt lt-st">Streamers</li>
+      <li class="lt lt-pc">podcasters</li>
+      <li class="lt lt-ph">Photographers</li>
+    </ul>
+    <ul class="reel-track reel-back" aria-hidden="true">
+      <li class="lt lt-ed">educators</li>
+      <li class="lt lt-mu">Musicians</li>
+      <li class="lt lt-ga">Gamers</li>
+      <li class="lt lt-il">illustrators</li>
+      <li class="lt lt-co">Comedians</li>
+    </ul>
+  </div>
+
+  <form class="claim" data-claim novalidate>
+    <label class="claim-field">
+      <span class="claim-pre" aria-hidden="true">orbe.vc/@</span>
+      <span class="sr">Your handle</span>
+      <input name="handle" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="yourhandle" maxlength="40" data-handle>
+    </label>
+    <button class="pill" type="submit">Reserve my handle</button>
+    <p class="claim-note" aria-live="polite" data-note>Free. Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+  </form>
+</section>
+
+<!-- 2. Why it is fair: the rating, set as lettering, from the engine. -->
+<section class="p rating" id="rating" aria-labelledby="h2">
+  <p class="kicker">How the rating reads</p>
+  <h2 id="h2">Zero is typical.</h2>
+  <p class="body">Measured only against creators of your kind and your size. Above zero, you are ahead of them.</p>
+
+  <div class="kinds" role="tablist" aria-label="Kind of work" id="kinds"></div>
+
+  <figure class="piece" id="piece" aria-live="polite">
+    <div class="piece-name"><span id="p-name">Field Recordings</span></div>
+    <div class="piece-num" id="p-num" aria-label="+0.64">
+      <span class="sign" id="p-sign">+</span><span class="int" id="p-int">0</span><span class="dot" aria-hidden="true"></span><span class="dec" id="p-dec">64</span>
+    </div>
+    <div class="piece-band" id="p-band">Average</div>
+    <figcaption class="piece-foot" id="p-foot">Against channels with 250k to 1M subscribers</figcaption>
+  </figure>
+
+  <dl class="parts" id="parts"></dl>
+
+  <p class="fine"><span class="fine-a">Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google.</span><span id="p-line">A made-up creator, rated live by the Orbe engine.</span></p>
+</section>
+
+<!-- 3. The card and the money: the one panel in the brand colour. -->
+<section class="p field" id="card" aria-labelledby="h3">
+  <div class="field-head">
+    <p class="kicker">Your card</p>
+    <h2 id="h3" class="lock lock-ink"><span class="f-a">Worth</span> <span class="f-b">posting.</span></h2>
+  </div>
+  <figure class="card">
+    <div class="card-svg" id="card-svg"></div>
+    <figcaption id="card-line">A made-up creator and made-up artwork, rated live by the Orbe engine.</figcaption>
+  </figure>
+  <div class="money">
+    <p class="money-lead">Read from payouts, not estimates. Orbe reads what Stripe and Google AdSense actually paid you, with your permission, and traces your Stripe charges into the payouts that paid them. Other tools estimate income from views.</p>
+    <dl class="fees">
+      <div class="fee">
+        <dt>Sponsorships</dt>
+        <dd class="fee-n"><span>15<i>%</i></span><span class="fee-or">or</span><span>5<i>%</i></span></dd>
+        <dd class="fee-say">When Orbe finds the brand, or when you bring your own. Paid by the brand, never by you, and only when the sponsorship completes.</dd>
+      </div>
+      <div class="fee">
+        <dt>A fair sale</dt>
+        <dd class="fee-w">When you want one.</dd>
+        <dd class="fee-say">A success fee from the proceeds, only if it sells.</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<!-- 4. The second door: buyers, investors and lenders. -->
+<section class="p buyers" id="buyers" aria-labelledby="h4">
+  <p class="kicker">The second door</p>
+  <p class="who" aria-hidden="true"><span class="w-b">Buyers</span><span class="w-i">investors</span><span class="w-l">Lenders</span></p>
+  <h2 id="h4">Creator businesses. Read from payouts, not estimates.</h2>
+  <ul class="terms">
+    <li><b>Access is free,</b> and vetted.</li>
+    <li><b>Minority investment,</b> through an authorised partner.</li>
+    <li><b>Lending:</b> a fixed fee per file, paid by the lender.</li>
+    <li><b>Every verified figure</b> shows where it came from and the day we read it.</li>
+  </ul>
+  <a class="pill pill-line" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
+</section>
+
+<!-- 5. Close: the promise, the sign, the form again. -->
+<section class="p close" id="close" aria-labelledby="h5">
+  <h2 id="h5" class="lock">
+    <span class="c-a">Creators</span>
+    <span class="c-b">never pay.</span>
+  </h2>
+  <p class="body">Orbe earns a percentage when money moves.</p>
+
+  <figure class="hsign" id="hsign" aria-live="polite">
+    <p class="hs-top"><span>orbe.vc</span></p>
+    <p class="hs-h"><span class="hs-at">@</span><span class="hs-name" id="hs-name">yourhandle</span></p>
+    <figcaption class="hs-foot" id="hs-foot">Not yet reserved</figcaption>
+  </figure>
+
+  <form class="claim" data-claim novalidate>
+    <label class="claim-field">
+      <span class="claim-pre" aria-hidden="true">orbe.vc/@</span>
+      <span class="sr">Your handle</span>
+      <input name="handle" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="yourhandle" maxlength="40" data-handle>
+    </label>
+    <button class="pill" type="submit">Reserve my handle</button>
+    <p class="claim-note" aria-live="polite" data-note>Free, for good.</p>
+  </form>
+
+  <footer class="foot">
+    <div class="foot-mark" id="foot-mark">Orbe</div>
+    <nav class="foot-links" aria-label="Footer">
+      <a href="#rating">The rating</a>
+      <a href="../card/">Your card</a>
+      <a href="#buyers">For buyers</a>
+      <a href="../products/">Products</a>
+      <a href="mailto:hello@orbe.vc">hello@orbe.vc</a>
+      <a href="../legal/privacy.html">Privacy</a>
+      <a href="../legal/terms.html">Terms</a>
+    </nav>
+    <p class="foot-small">© 2026 Orbe. YouTube, Substack and Twitch are trademarks of their owners.</p>
+  </footer>
+</section>
+
+</main>
+
+<div class="swatch" role="group" aria-label="Brand colour">
+  <button type="button" data-set="blue" aria-pressed="false"><i></i>Blue</button>
+  <button type="button" data-set="pink" aria-pressed="true"><i></i>Pink</button>
+</div>
+</body>
+</html>

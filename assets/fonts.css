@@ -1,3 +1,19 @@
+/* Masthead: Schibsted Grotesk, Newsreader, Commit Mono. All SIL OFL 1.1; see fonts/FONTS.md.
+   Full upstream files subset to Latin with case forms, tabular and proportional figures kept. */
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/SchibstedGrotesk-Latin-VF.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/SchibstedGrotesk-Italic-Latin-VF.woff2") format("woff2"); font-weight: 400 900; font-style: italic; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("fonts/Newsreader-Latin-VF.woff2") format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("fonts/Newsreader-Italic-Latin-VF.woff2") format("woff2"); font-weight: 300 700; font-style: italic; font-display: swap; }
+@font-face { font-family: "Commit Mono"; src: url("fonts/CommitMono-Latin-VF.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
+
+:root {
+  --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --mono: "Commit Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Legacy faces, kept only so the archived boards and older rounds still render as they were.
+   No current page uses them. Timeless is not OFL: check its licence before any use (fonts/FONTS.md). */
 @font-face { font-family: "Timeless Sans"; src: url("fonts/TimelessSansVF.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "Timeless Serif"; src: url("fonts/TimelessSerifVF.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "Timeless Serif"; src: url("fonts/TimelessSerifItalicVF.woff2") format("woff2"); font-weight: 100 900; font-style: italic; font-display: swap; }

@@ -1,19 +1,30 @@
 import { clampLines, fitSize, measure, truncate, wrap } from "./metrics.js";
 import { paletteFor } from "./themes.js";
-import { drawLap, drawSizeUp } from "./lap.js";
-import { WORDMARK_PATH, WORDMARK_RATIO, WORDMARK_VIEWBOX } from "./wordmark.js";
+import { drawLap, drawSizeUp, RY } from "./lap.js";
+import { wordmarkCut } from "./wordmark.js";
 export const FORMATS = {
     story: { width: 1080, height: 1920, name: "Story" },
     square: { width: 1080, height: 1080, name: "Square" },
     link: { width: 1200, height: 630, name: "Link preview" },
 };
 export const FORMAT_NAMES = Object.keys(FORMATS);
+/*
+  The Masthead type system: Schibsted Grotesk for the sentence, the figures and
+  the words; Newsreader's italic for the band, the key and the window title;
+  Commit Mono for the address only. Each face is named concretely, so a
+  standalone SVG or a PNG with embedded fonts draws right, and also through the
+  site's --sans, --serif and --mono, so a card inline on a page follows the page.
+*/
+const SANS = "'Schibsted Grotesk', 'Helvetica Neue', Arial, sans-serif";
+const SERIF = "Newsreader, Georgia, serif";
+const MONO = "'Commit Mono', ui-monospace, Menlo, monospace";
 const FAMILY = {
-    serif: { family: "'Timeless Serif', Georgia, serif", weight: 400 },
-    serifItalic: { family: "'Timeless Serif', Georgia, serif", weight: 400, italic: true },
-    sans: { family: "'Timeless Sans', 'Helvetica Neue', Arial, sans-serif", weight: 400 },
-    sansMedium: { family: "'Timeless Sans', 'Helvetica Neue', Arial, sans-serif", weight: 500 },
-    mono: { family: "'Paper Mono', ui-monospace, Menlo, monospace", weight: 400 },
+    serif: { family: SERIF, css: "--serif", weight: 400 },
+    serifItalic: { family: SERIF, css: "--serif", weight: 400, italic: true },
+    sans: { family: SANS, css: "--sans", weight: 400 },
+    sansMedium: { family: SANS, css: "--sans", weight: 500 },
+    display: { family: SANS, css: "--sans", weight: 440 },
+    mono: { family: MONO, css: "--mono", weight: 400 },
 };
 /** Escapes text and attribute values. Every string from a creator passes through here. */
 export function escapeXml(s) {
@@ -32,6 +43,7 @@ function text(x, y, content, s) {
         `x="${n(x)}"`,
         `y="${n(y)}"`,
         `font-family="${f.family}"`,
+        `style="font-family:var(${f.css},${f.family})"`,
         `font-size="${n(s.size)}"`,
         `font-weight="${f.weight}"`,
         f.italic ? `font-style="italic"` : "",
@@ -41,10 +53,6 @@ function text(x, y, content, s) {
     ].filter(Boolean);
     return `<text ${attrs.join(" ")}>${escapeXml(content)}</text>`;
 }
-/* ------------------------------------------------------------------ */
-/* The pieces.                                                        */
-/* ------------------------------------------------------------------ */
-const RY = 1.065;
 /** The lap for the moment, with the work in its window. */
 function lapWithWork(m, p, box, id) {
     const style = { cx: box.cx, cy: box.cy, r: box.r, ry: RY };
@@ -85,20 +93,20 @@ function windowTitle(s, cx, cy, r, fill) {
 /** The sentence at the largest size that fits its lines; cut only at the smallest. Returns lines, size and leading. */
 function fitSentence(s, width, max, min, maxLines) {
     let size = max;
-    const tr = (z) => -0.022 * z;
+    const tr = (z) => -0.034 * z;
     const fits = (z) => {
-        const lines = wrap(s, "serif", z, width, tr(z));
-        return lines.length <= maxLines && lines.every((l) => measure(l, "serif", z, tr(z)) <= width);
+        const lines = wrap(s, "display", z, width, tr(z));
+        return lines.length <= maxLines && lines.every((l) => measure(l, "display", z, tr(z)) <= width);
     };
     while (size > min && !fits(size))
         size -= 2;
     // Balance the lines: the narrowest measure that keeps the same number of lines, so no word is left alone.
-    const count = wrap(s, "serif", size, width, tr(size)).length;
+    const count = wrap(s, "display", size, width, tr(size)).length;
     let lo = width * 0.5, hi = width;
     if (count > 1 && count <= maxLines) {
         for (let i = 0; i < 18; i++) {
             const mid = (lo + hi) / 2;
-            if (wrap(s, "serif", size, mid, tr(size)).length <= count)
+            if (wrap(s, "display", size, mid, tr(size)).length <= count)
                 hi = mid;
             else
                 lo = mid;
@@ -106,11 +114,11 @@ function fitSentence(s, width, max, min, maxLines) {
     }
     else
         hi = width;
-    return { lines: clampLines(s, "serif", size, hi + 1, maxLines, tr(size)), size, lh: size * 1.04 };
+    return { lines: clampLines(s, "display", size, hi + 1, maxLines, tr(size)), size, lh: size * 1.04 };
 }
 function sentence(m, p, x, lastBaseline, fit) {
     const top = lastBaseline - (fit.lines.length - 1) * fit.lh;
-    return fit.lines.map((l, i) => text(x, top + i * fit.lh, l, { face: "serif", size: fit.size, fill: p.ink, tracking: -0.022 * fit.size })).join("");
+    return fit.lines.map((l, i) => text(x, top + i * fit.lh, l, { face: "display", size: fit.size, fill: p.ink, tracking: -0.034 * fit.size })).join("");
 }
 /**
   The figure row: the lead (and the band) in the serif in the accent, its
@@ -120,10 +128,10 @@ function sentence(m, p, x, lastBaseline, fit) {
 function figureRow(m, p, x, baseline, width, lead, rest) {
     const st = m.stat;
     const lt = -0.02 * lead;
-    let leadSize = fitSize(st.lead, "serif", width * 0.62, lead, lead * 0.5, -0.02);
+    let leadSize = fitSize(st.lead, "display", width * 0.62, lead, lead * 0.5, -0.04);
     const out = [];
-    out.push(text(x - leadSize * 0.02, baseline, st.lead, { face: "serif", size: leadSize, fill: p.accent, tracking: -0.02 * leadSize }));
-    let cursor = x + measure(st.lead, "serif", leadSize, -0.02 * leadSize);
+    out.push(text(x - leadSize * 0.02, baseline, st.lead, { face: "display", size: leadSize, fill: p.accent, tracking: -0.04 * leadSize }));
+    let cursor = x + measure(st.lead, "display", leadSize, -0.04 * leadSize);
     if (st.band) {
         const gap = leadSize * 0.22;
         out.push(text(cursor + gap, baseline, st.band, { face: "serifItalic", size: leadSize, fill: p.accent, tracking: lt }));
@@ -131,7 +139,7 @@ function figureRow(m, p, x, baseline, width, lead, rest) {
     }
     if (!st.rest)
         return { svg: out.join(""), height: 0 };
-    const gap = rest * 0.9;
+    const gap = rest * 0.55;
     const room = x + width - cursor - gap;
     const lh = rest * 1.22;
     if (room >= width * 0.3 && wrap(st.rest, "sans", rest, room).length <= 2) {
@@ -144,32 +152,31 @@ function figureRow(m, p, x, baseline, width, lead, rest) {
     lines.forEach((l, i) => out.push(text(x, baseline + rest * 1.5 + i * lh, l, { face: "sans", size: rest, fill: p.soft })));
     return { svg: out.join(""), height: rest * 1.5 + (lines.length - 1) * lh };
 }
-/** The wordmark, drawn from its own path, sitting on a baseline, right-aligned at x. */
+/** The wordmark, drawn from its own path in the cut for its size, sitting on a baseline, right-aligned at x. */
 function wordmark(xRight, baseline, h, fill) {
-    const vb = WORDMARK_VIEWBOX;
-    const w = h * WORDMARK_RATIO;
-    const s = h / vb.height;
-    // The drawn baseline is 12 units above the viewBox's bottom edge.
-    const top = baseline - (vb.height - 12) * s;
-    return `<g transform="translate(${n(xRight - w)} ${n(top)}) scale(${Math.round(s * 100000) / 100000}) translate(0 ${-vb.y})" fill="${fill}"><path d="${WORDMARK_PATH}"/></g>`;
+    const c = wordmarkCut(h);
+    const s = h / c.height;
+    const w = c.width * s;
+    // The baseline is y = 0 in the mark's own units.
+    return `<g transform="translate(${n(xRight - w - c.x * s)} ${n(baseline)}) scale(${Math.round(s * 100000) / 100000})" fill="${fill}"><path d="${c.path}"/></g>`;
 }
 /** The address, as large as `max` and never wider than the room it has. */
 function address(m, p, x, y, width, max) {
-    const size = fitSize(m.url, "sansMedium", width, max, max * 0.62);
-    return text(x, y, truncate(m.url, "sansMedium", size, width), { face: "sansMedium", size, fill: p.ink });
+    const size = fitSize(m.url, "mono", width, max, max * 0.62);
+    return text(x, y, truncate(m.url, "mono", size, width), { face: "mono", size, fill: p.ink });
 }
 /** The label, once, small; any provisional note and example note after it. Two lines at most, the label never cut. */
 function smallPrint(m, p, x, y, width, size) {
     const one = [m.label, m.small].filter(Boolean).join(" ");
-    if (measure(one, "mono", size) <= width)
-        return text(x, y, one, { face: "mono", size, fill: p.soft });
-    const label = text(x, y, truncate(m.label, "mono", fitSize(m.label, "mono", width, size, size * 0.8), width), { face: "mono", size: fitSize(m.label, "mono", width, size, size * 0.8), fill: p.soft });
+    if (measure(one, "sans", size) <= width)
+        return text(x, y, one, { face: "sans", size, fill: p.soft });
+    const label = text(x, y, truncate(m.label, "sans", fitSize(m.label, "sans", width, size, size * 0.8), width), { face: "sans", size: fitSize(m.label, "sans", width, size, size * 0.8), fill: p.soft });
     if (!m.small)
         return label;
-    const s2 = fitSize(m.small, "mono", width, size, size * 0.8);
-    return label + text(x, y + size * 1.45, truncate(m.small, "mono", s2, width), { face: "mono", size: s2, fill: p.soft });
+    const s2 = fitSize(m.small, "sans", width, size, size * 0.8);
+    return label + text(x, y + size * 1.45, truncate(m.small, "sans", s2, width), { face: "sans", size: s2, fill: p.soft });
 }
-const twoLines = (m, size, width) => measure([m.label, m.small].filter(Boolean).join(" "), "mono", size) > width;
+const twoLines = (m, size, width) => measure([m.label, m.small].filter(Boolean).join(" "), "sans", size) > width;
 /* ------------------------------------------------------------------ */
 /* Formats.                                                           */
 /* ------------------------------------------------------------------ */
@@ -191,7 +198,7 @@ function story(m, p, id) {
     out.push(sentence(m, p, M, last, fit));
     const sentenceTop = last - (fit.lines.length - 1) * fit.lh - fit.size * 0.8;
     const keyY = sentenceTop - 70;
-    out.push(text(W / 2, keyY, truncate(m.key, "mono", 25, inner), { face: "mono", size: 25, fill: p.soft, anchor: "middle" }));
+    out.push(text(W / 2, keyY, truncate(m.key, "serifItalic", 29, inner), { face: "serifItalic", size: 29, fill: p.soft, anchor: "middle" }));
     const top = 236, bottom = keyY - 66;
     const r = Math.min(400, (bottom - top) / 2 / RY);
     out.unshift(lapWithWork(m, p, { cx: W / 2, cy: (top + bottom) / 2, r }, id));
@@ -214,7 +221,7 @@ function square(m, p, id) {
     out.push(sentence(m, p, M, last, fit));
     const sentenceTop = last - (fit.lines.length - 1) * fit.lh - fit.size * 0.8;
     const keyY = sentenceTop - 50;
-    out.push(text(W / 2, keyY, truncate(m.key, "mono", 19, inner), { face: "mono", size: 19, fill: p.soft, anchor: "middle" }));
+    out.push(text(W / 2, keyY, truncate(m.key, "serifItalic", 22, inner), { face: "serifItalic", size: 22, fill: p.soft, anchor: "middle" }));
     const top = 60, bottom = keyY - 46;
     const r = Math.min(330, (bottom - top) / 2 / RY);
     out.unshift(lapWithWork(m, p, { cx: W / 2, cy: (top + bottom) / 2, r }, id));
@@ -227,10 +234,10 @@ function link(m, p, id) {
     const cx = W - M - r;
     out.push(lapWithWork(m, p, { cx, cy: H / 2, r }, id));
     const colW = cx - r - 56 - M;
-    out.push(text(M, 92, truncate(m.key, "mono", 15, colW), { face: "mono", size: 15, fill: p.soft }));
+    out.push(text(M, 92, truncate(m.key, "serifItalic", 17, colW), { face: "serifItalic", size: 17, fill: p.soft }));
     const fit = fitSentence(m.sentence, colW, 60, 38, 3);
     const first = 92 + 34 + fit.size * 0.8;
-    fit.lines.forEach((l, i) => out.push(text(M, first + i * fit.lh, l, { face: "serif", size: fit.size, fill: p.ink, tracking: -0.022 * fit.size })));
+    fit.lines.forEach((l, i) => out.push(text(M, first + i * fit.lh, l, { face: "display", size: fit.size, fill: p.ink, tracking: -0.034 * fit.size })));
     const figY = first + (fit.lines.length - 1) * fit.lh + 46 * 1.4;
     out.push(figureRow(m, p, M, figY, colW, 46, 19).svg);
     const small = 13;

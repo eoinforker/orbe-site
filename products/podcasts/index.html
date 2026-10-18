@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en-GB" data-c="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f1ea">
+<title>Podcasts: Orbe</title>
+<meta name="description" content="Orbe's free Chartable replacement: your measurement prefix and host steps, ownership, the show dashboard, smart links and a plausibility check, in your browser.">
+<link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../assets/products.css">
+<link rel="stylesheet" href="../../assets/r5/type.css">
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<script type="module" src="./podcasts.js"></script>
+</head>
+<body>
+<main class="wrap page" id="main">
+  <p class="kick"><span class="tag acc">Free, for good</span><span>The Chartable replacement</span></p>
+  <h1 class="h1">Your podcast, measured.</h1>
+  <p class="lede">When Chartable closed, independent shows lost their prefix, their history and their smart links. Orbe's version counts downloads the same way whatever your host, tracks your chart positions, sends listeners to their own app and tells you which promos worked. Start here: it takes about five minutes.</p>
+  <div data-live></div>
+  <nav class="btns section" aria-label="On this page" style="margin-top:24px">
+    <a class="btn btn-soft btn-sm" href="#setup">1. Set up your prefix</a>
+    <a class="btn btn-ghost btn-sm" href="#dashboard">2. Your dashboard</a>
+    <a class="btn btn-ghost btn-sm" href="#smartlink">3. Smart link</a>
+    <a class="btn btn-ghost btn-sm" href="#plausibility">4. Plausibility check</a>
+  </nav>
+
+  <!-- 1. Set-up wizard -->
+  <section class="section" id="setup">
+    <div class="section-head"><h2 class="h2">Set up your prefix</h2><span class="small">Nothing changes for your listeners</span></div>
+    <div class="grid two start">
+      <div class="panel stack">
+        <h3 class="h3"><span class="step-n">1</span>Your feed</h3>
+        <form class="stack" data-feed-form>
+          <label class="field"><span>RSS feed URL</span><input class="input" type="url" inputmode="url" placeholder="https://feeds.example.com/your-show.xml" data-feed-url autocomplete="off"></label>
+          <div class="btns">
+            <button class="btn" type="submit">Read my feed</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-paste-open>Paste or upload it instead</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-madeup>Use a made-up feed</button>
+          </div>
+        </form>
+        <p class="small" data-feed-status aria-live="polite">We read the feed from your browser. Some hosts block that (a browser rule called CORS); if so, paste the feed or upload the file.</p>
+        <div class="stack hide" data-paste>
+          <label class="field"><span>Feed XML</span><textarea class="input" data-xml placeholder="&lt;rss ...&gt;&lt;channel&gt;..." spellcheck="false"></textarea><small>Open your feed URL in a new tab, select all, copy and paste here. Or save it and upload the file.</small></label>
+          <div class="btns"><button class="btn btn-sm" type="button" data-xml-read>Read pasted feed</button><input type="file" accept=".xml,.rss,application/rss+xml,text/xml" data-xml-file aria-label="Upload the feed file"></div>
+        </div>
+      </div>
+      <div class="panel stack" data-show>
+        <h3 class="h3">Your show</h3>
+        <p class="sub">Read a feed to see its episodes, the host we detect and any measurement prefixes already in it.</p>
+      </div>
+    </div>
+
+    <div class="grid two" style="margin-top:14px">
+      <div class="panel stack" data-prefix-panel>
+        <h3 class="h3"><span class="step-n">2</span>Your prefix</h3>
+        <div class="fields cols2">
+          <label class="field"><span>Show id</span><input class="input mono" data-showid maxlength="40" autocomplete="off" spellcheck="false"><small>Lowercase letters, numbers and hyphens. Yours to keep.</small></label>
+          <label class="field"><span>Your host</span><select class="input" data-host></select></label>
+        </div>
+        <div class="field"><span class="label">Your Orbe prefix</span><div class="copy"><code data-prefix></code><button class="btn btn-ghost btn-sm" type="button" data-copy-prefix>Copy</button></div></div>
+        <ol class="steps" data-steps></ol>
+        <p class="note plain" data-confirmed></p>
+        <div class="field"><span class="label">An episode file, before and after</span><p class="small mono" data-example style="overflow-wrap:anywhere"></p></div>
+      </div>
+      <div class="panel stack">
+        <h3 class="h3"><span class="step-n">3</span>Prove the show is yours</h3>
+        <p class="small">Any one of three routes is enough. Only someone who controls the feed can do the first two.</p>
+        <ol class="steps">
+          <li><b style="font-weight:500">The podcast:txt tag.</b> Paste this into your host's custom tags or channel tags field.
+            <div class="copy" style="margin-top:8px"><code data-txt></code><button class="btn btn-ghost btn-sm" type="button" data-copy-txt>Copy</button></div>
+            <p class="small" style="margin-top:6px">A preview made in this browser. Once the API is live your code comes from your Orbe account, signed with Orbe's secret, and Orbe checks your feed for it.</p>
+          </li>
+          <li><b style="font-weight:500">The prefix itself.</b> Your show id on your newest episodes proves it too.</li>
+          <li><b style="font-weight:500">Your owner email.</b> A one-time link to the itunes:owner address in your feed<span data-owner></span>. Sent by the API.</li>
+        </ol>
+        <h3 class="h3" style="margin-top:18px"><span class="step-n">4</span>Check my feed</h3>
+        <p class="small">After saving the prefix in your host, check again. Hosts can take up to an hour to refresh the feed.</p>
+        <div class="btns"><button class="btn" type="button" data-check>Check my feed</button></div>
+        <div data-check-out aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Dashboard -->
+  <section class="section" id="dashboard">
+    <div class="section-head"><h2 class="h2">Your dashboard</h2><span class="small" data-dash-for></span></div>
+    <div class="sample" role="note"><span data-sample-label></span></div>
+    <div class="stack" style="margin-top:14px" data-dash></div>
+  </section>
+
+  <!-- 3. Smart link -->
+  <section class="section" id="smartlink">
+    <div class="section-head"><h2 class="h2">Smart link</h2><span class="small">One link for every app</span></div>
+    <div class="grid two">
+      <div class="panel stack">
+        <div class="field"><span class="label">Your link</span><div class="copy"><code data-sl-url></code><button class="btn btn-ghost btn-sm" type="button" data-copy-sl>Copy</button></div><small>Goes live with the API. Add <span class="mono">?s=instagram</span> (or any tag) to see clicks by where you posted it.</small></div>
+        <div class="fields cols2">
+          <label class="field"><span>Apple Podcasts id</span><input class="input" inputmode="numeric" data-sl-apple placeholder="e.g. 1234567890"><small>The number in your Apple Podcasts URL.</small></label>
+          <label class="field"><span>Spotify show URL</span><input class="input" type="url" data-sl-spotify placeholder="https://open.spotify.com/show/..."></label>
+          <label class="field"><span>YouTube playlist URL</span><input class="input" type="url" data-sl-youtube placeholder="https://www.youtube.com/playlist?list=..."></label>
+        </div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>App</th><th>Where the link sends them</th></tr></thead><tbody data-sl-apps></tbody></table></div>
+      </div>
+      <div class="panel stack">
+        <h3 class="h3">How it picks the app</h3>
+        <p class="small">In order: an app the listener chose (?app=), the app they chose last time on this device (one functional cookie holding only the app's name), Apple Podcasts on Apple devices, and otherwise a plain page listing every app. A wrong app is worse than one tap, so Android and desktop get the page.</p>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Listener</th><th>What happens</th></tr></thead><tbody data-sl-cases></tbody></table></div>
+        <p class="label">The page listeners see when we cannot be sure</p>
+        <iframe class="doc" title="Smart link landing page preview" data-sl-frame sandbox="" style="height:520px"></iframe>
+        <p class="small">A preview: its buttons are inactive here. Clicks are counted without keeping IP addresses.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Plausibility -->
+  <section class="section" id="plausibility">
+    <div class="section-head"><h2 class="h2">Plausibility check</h2><span class="small">For buyers, brands and your own peace of mind</span></div>
+    <p class="sub" style="margin-bottom:14px">Is a download claim consistent with what can be seen in public? The model never accuses: each flag says what was compared, the numbers on both sides, and an innocent reading where there is one. Every threshold is provisional until Orbe has measured and host-reported numbers side by side.</p>
+    <div class="split">
+      <form class="panel stack" data-pl-form>
+        <div class="btns"><button class="btn btn-ghost btn-sm" type="button" data-pl-ex="ok">Example: consistent</button><button class="btn btn-ghost btn-sm" type="button" data-pl-ex="bad">Example: questions</button><button class="btn btn-ghost btn-sm" type="button" data-pl-clear>Clear</button></div>
+        <p class="small">Examples are made up.</p>
+        <label class="field"><span>Claimed downloads in the last 30 days</span><input class="input" type="number" min="0" inputmode="numeric" name="claim"></label>
+        <fieldset class="stack">
+          <legend class="label">Measured by Orbe</legend>
+          <div class="fields cols3">
+            <label class="field"><span>Downloads, 30 days</span><input class="input" type="number" min="0" name="measured"></label>
+            <label class="field"><span>Days measured</span><input class="input" type="number" min="0" name="days"></label>
+            <label class="field"><span>Prefix</span><select class="input" name="coverage"><option value="live">All episodes</option><option value="partial">Some</option></select></label>
+          </div>
+        </fieldset>
+        <fieldset class="stack">
+          <legend class="label">Public signals</legend>
+          <div class="fields cols2">
+            <label class="field"><span>OP3 downloads, 30 days</span><input class="input" type="number" min="0" name="op3"></label>
+            <label class="field"><span>OP3 weeks of data</span><input class="input" type="number" min="0" name="op3weeks"></label>
+            <label class="field"><span>Podcast Index episode count</span><input class="input" type="number" min="0" name="indexCount"></label>
+            <label class="field"><span>Public ratings, all platforms</span><input class="input" type="number" min="0" name="ratings"></label>
+            <label class="field"><span>Best chart position seen</span><input class="input" type="number" min="1" name="chart"></label>
+            <label class="chip-check" style="align-self:end"><input type="checkbox" name="dead"> Podcast Index marks the feed dead</label>
+          </div>
+          <label class="field"><span>YouTube views of video episodes</span><input class="input" name="videos" placeholder="e.g. 1200, 950, 1400"><small>One number per video episode, commas between.</small></label>
+        </fieldset>
+        <fieldset class="stack">
+          <legend class="label">The claim in detail (optional)</legend>
+          <label class="field"><span>Episodes: date, first 7 days, first 30 days</span><textarea class="input" name="episodes" placeholder="2026-09-30, 4200, 6100"></textarea></label>
+          <label class="field"><span>Daily downloads, oldest first</span><textarea class="input" name="daily" placeholder="410, 395, 512, ..." style="min-height:70px"></textarea></label>
+          <label class="field"><span>Total claimed for those days</span><input class="input" type="number" min="0" name="dailyTotal"></label>
+        </fieldset>
+        <div class="btns"><button class="btn" type="submit">Check the claim</button></div>
+      </form>
+      <div class="stack" data-pl-out>
+        <div class="panel"><p class="sub" style="margin:0">Enter a claim and whatever public signals you have, or try an example. If you read a feed above, its episode dates are used too.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

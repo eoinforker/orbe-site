@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en-GB" data-c="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f1ea">
+<title>Make my card: Orbe</title>
+<meta name="description" content="Your Orbe card from your own rating and your own picture, drawn in your browser.">
+<link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../assets/products.css">
+<link rel="stylesheet" href="../../assets/r5/type.css">
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<style>
+  .stage { background: var(--stone); border-radius: 16px; padding: clamp(14px, 3vw, 36px); display: grid; justify-items: center; }
+  .cardbox { aspect-ratio: var(--ar, 1 / 1); width: min(100%, calc((100vh - 220px) * var(--w, 1) / var(--h, 1))); border-radius: 6px; overflow: hidden; box-shadow: 0 24px 48px -32px rgba(20, 19, 17, 0.5); }
+  .cardbox svg { display: block; width: 100%; height: 100%; }
+  .thumb { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line); }
+</style>
+<script type="module" src="./card.js"></script>
+</head>
+<body>
+<main class="wrap page" id="main">
+  <p class="kick"><span class="orbe-label">Independently calculated by Orbe</span></p>
+  <h1 class="h1">Make my card.</h1>
+  <p class="lede">Your rating as a card made to be posted, drawn by the same code the API will serve at orbe.vc/@you/card.svg. Add your own picture: it is drawn on this device and never uploaded.</p>
+  <div data-live></div>
+
+  <div class="panel section hide" data-none>
+    <h2 class="h3">No rating in this tab yet</h2>
+    <p class="sub">Rate your work first; the card picks up your result here. The rating is kept only in this browser tab.</p>
+    <div class="btns" style="margin-top:12px"><a class="btn" href="../rate/">Rate my work</a><a class="btn btn-ghost" href="../../card/">See the made-up examples</a></div>
+  </div>
+
+  <div class="split section hide" data-has>
+    <div class="stack">
+      <div class="panel stack">
+        <div class="field"><span class="label">Moment</span><div class="seg" data-moment>
+          <button type="button" data-v="best">Personal best</button><button type="button" data-v="rating" aria-pressed="true">Rating</button><button type="button" data-v="season">Year so far</button>
+        </div></div>
+        <div class="field"><span class="label">Format</span><div class="seg" data-format>
+          <button type="button" data-v="square" aria-pressed="true">Square</button><button type="button" data-v="story">Story</button><button type="button" data-v="link">Link</button>
+        </div></div>
+        <div class="field"><span class="label">Theme</span><div class="seg" data-theme>
+          <button type="button" data-v="paper" aria-pressed="true">Paper</button><button type="button" data-v="ink">Ink</button><button type="button" data-v="sun">Sun</button>
+        </div></div>
+        <div class="fields cols2">
+          <label class="field"><span>Name</span><input class="input" data-name maxlength="40"></label>
+          <label class="field"><span>Handle</span><input class="input" data-handle maxlength="24"></label>
+        </div>
+        <div class="field">
+          <span class="label">Your picture (optional)</span>
+          <div class="row" style="align-items:center">
+            <img class="thumb hide" alt="" data-thumb>
+            <input type="file" accept="image/*" data-image aria-label="Choose your picture">
+            <button class="btn btn-ghost btn-sm hide" type="button" data-noimg>Remove</button>
+          </div>
+          <small>Your thumbnail, cover or a photo of your work. Resized here to 900 pixels and kept in this tab.</small>
+        </div>
+        <div class="btns"><button class="btn" type="button" data-download>Download PNG</button><span class="small" data-size></span></div>
+        <p class="small" data-src></p>
+      </div>
+    </div>
+    <div class="sticky">
+      <figure class="stage"><div class="cardbox" data-card></div></figure>
+    </div>
+  </div>
+</main>
+</body>
+</html>

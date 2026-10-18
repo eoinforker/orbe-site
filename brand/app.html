@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbe application</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="../assets/brand/components.css">
+<link rel="stylesheet" href="apps.css">
+<style>body{margin:0;background:#141311}</style>
+</head>
+<body>
+<!-- One application at its native size, for image exports: app.html?app=hero&scheme=blue -->
+<div id="app" class="app"></div>
+<script type="module">
+  import { APPS } from "./apps.js";
+  const q = new URLSearchParams(location.search);
+  const a = APPS[q.get("app") ?? "hero"], s = q.get("scheme") === "pink" ? "pink" : "blue";
+  document.documentElement.dataset.scheme = s;
+  const el = document.getElementById("app");
+  el.style.width = a.w + "px"; el.style.height = a.h + "px";
+  el.innerHTML = a.render(s);
+  await document.fonts.ready;
+  document.body.dataset.ready = "1";
+</script>
+</body>
+</html>

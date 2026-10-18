@@ -1,0 +1,55 @@
+/*
+  Masthead type roles, shared by the r5 pages. Load after the page's own style.css.
+  Schibsted Grotesk (var(--sans)) for headlines, interface and every figure.
+  Newsreader (var(--serif)) for the italic line and serif text.
+  Commit Mono (var(--mono)) for addresses, handles and dates only.
+  From identity/d-type/RECOMMENDATION.md:
+  1. Big figures (+0.64, £142,300) in the sans with proportional lining figures.
+  2. Scores, weights, percentiles, prices and labels leave the mono for the sans.
+  3. Tabular figures only for values that change in place (slider readouts). Schibsted's
+     tabular set also widens the comma and full stop to a figure's width, which reads as
+     "£1 ,200" outside a true column, so short values and table cells stay proportional.
+  Selectors carry :root:root so these roles win over the pages' own (up to two-class) rules.
+*/
+
+:root:root body { font-kerning: normal; }
+
+/* Capitals-only labels get the case forms. */
+:root:root :is(.kick, .b-kick, .lst-k, .panel-k, .you-k, .w-table thead th, .offers th) { font-feature-settings: "case" 1; }
+
+/* 1. Big figures: sans, proportional lining figures. */
+:root:root :is(.hc-num, .s-you-num, .rd-num, .val-range, .v-range, .terms dd.big, .rec-foot b, .hc-profit b, .m-sum-n, .r-num, .num) {
+  font-family: var(--sans);
+  font-variant-numeric: proportional-nums lining-nums;
+  font-feature-settings: "pnum" 1, "lnum" 1;
+}
+:root:root .hc-num { letter-spacing: -0.04em; }
+:root:root :is(.v-range, .val-range) { letter-spacing: -0.035em; }
+
+/* 2. Figures in rows and cells: sans, proportional lining figures. */
+:root:root :is(.card, .panel, .w-table, .p-v, .w-w, .w-x, .w-bar span, .b-prices dd, .lst-rows dd, .offers td, .bn-bars li, .bars li, .bars .n,
+.sc-you b, .sc-zero, .sc-seg, .v-ends, .slide-ends, .slider-ends, .s-lab, .weights .w span, .w-list .wt, .weights-list .w,
+.rd-parts .v, .o-table td.p, .mini b, .m-c, .m-name b .w, .m-axis, .scale-names, .r-part .p-val, .rec-rows dd, .prices dd, .by-terms dd, .hc-rec b) {
+  font-family: var(--sans);
+  font-variant-numeric: proportional-nums lining-nums;
+  font-feature-settings: "pnum" 1, "lnum" 1;
+  letter-spacing: 0;
+}
+
+/* 3. Values that change in place: sans, tabular, so the digits hold still. */
+:root:root :is(.v-field output, .slide-top output, .slider-top output) {
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* Labels and notes: sans (the pages keep their own tracking for capitals). */
+:root:root :is(.after, .p-s, .hc-src, .hc-foot p, .hc-pause, .b-kick, .kick, .lst-k, .lst-rows dt, .card-link span, .try-k span,
+.rc-meta, .rc-line, .w-table thead th, .card-k, .wait span, .v-fine, .panel-k, .bench figcaption, .legal, .real,
+.rd-parts .pr-l, .offers thead th, .you-k) {
+  font-family: var(--sans);
+}
+:root:root :is(.real, .card-k, .after, .legal, .rc-line, .p-s, .hc-src) { letter-spacing: 0; }
+
+/* Addresses, handles and dates stay in the mono. */
+:root:root :is(.card-k span[data-r="url"], .card-k > span:only-child, [data-f="checked"], .sources .d, .src-when) { font-family: var(--mono); }

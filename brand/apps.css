@@ -1,0 +1,143 @@
+/* The applications, at native pixel sizes. Shared by the book (scaled) and app.html (exports). */
+.app { position: relative; overflow: hidden; font-family: var(--font-text); color: var(--orbe-ink); background: var(--surface); }
+.app svg.wm { display: block; height: 30px; width: auto; fill: currentColor; }
+.app .mono { font-family: var(--font-mono); font-size: 13px; }
+.app .soft { color: var(--text-soft); }
+.app .small { font-size: 13px; line-height: 1.4; }
+.app .ap-tabnum { margin-right: 14px; }
+.app .o-pixelated svg { display: block; width: 100%; height: auto; }
+
+/* 1. hero */
+.ap-hero { position: absolute; inset: 0; }
+.ap-hero::after { content: ""; position: absolute; inset: 0; background: url("../assets/brand/grain.svg"); mix-blend-mode: multiply; opacity: 0.8; pointer-events: none; z-index: 9; }
+.ap-hero .ap-bars, .ap-deck .ap-bars { position: absolute; inset: 0; }
+.ap-hero .ap-bars svg, .ap-deck .ap-bars svg { width: 100%; height: 100%; }
+.ap-hero .ap-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 300px; }
+.ap-hero .ap-ground svg { width: 100%; height: 100%; display: block; }
+.ap-nav { position: absolute; top: 28px; left: 64px; right: 64px; display: flex; justify-content: space-between; align-items: center; z-index: 3; }
+.ap-nav svg.wm { height: 34px; }
+.ap-nav span { display: flex; gap: 10px; align-items: center; }
+.ap-nav .o-pill { min-height: 36px; }
+.ap-hero .ap-h { position: absolute; left: 60px; top: 112px; width: 820px; font-size: 118px; line-height: 0.86; letter-spacing: -0.058em; z-index: 2; }
+.ap-loop { position: relative; white-space: nowrap; }
+.ap-loop svg { position: absolute; left: -34px; top: -14px; width: calc(100% + 64px); height: calc(100% + 34px); pointer-events: none; }
+.ap-hero .ap-form { position: absolute; left: 64px; top: 606px; width: 640px; padding: 22px 24px 24px; z-index: 4; }
+.ap-hero .ap-form .o-lede { font-size: 20px; margin-bottom: 16px; }
+.ap-row { display: flex; gap: 10px; }
+.ap-row .o-input { flex: 1; }
+.ap-hero .ap-card { position: absolute; right: 72px; top: 132px; width: 452px; margin: 0; transform: rotate(2.5deg); border: var(--line) solid var(--orbe-ink); box-shadow: var(--shadow-hard); z-index: 3; }
+.ap-hero .ap-card svg, .ap-card-full svg { display: block; width: 100%; height: auto; }
+.ap-hero .ap-critter { position: absolute; width: 250px; left: 760px; top: 640px; z-index: 5; transform: rotate(-6deg); }
+
+/* 2. card */
+.ap-card-full { position: absolute; inset: 0; }
+
+/* 3. dashboard */
+.ap-dash { position: absolute; inset: 0; background: var(--surface-sunk); display: grid; grid-template-columns: 210px 1fr; grid-template-rows: 64px 1fr; }
+.ap-dbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 28px; background: var(--surface-raised); border-bottom: var(--line) solid var(--orbe-ink); }
+.ap-dbar svg.wm { height: 24px; margin-right: 22px; }
+.ap-sp { flex: 1; }
+.ap-rail { padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--rule); }
+.ap-rail a { padding: 10px 14px; border-radius: var(--r-pill); font-size: 15px; font-weight: 500; }
+.ap-rail a.is-on { background: var(--orbe-ink); color: var(--orbe-paper); }
+.ap-railfoot { margin-top: auto; color: var(--text-soft); padding: 0 14px; }
+.ap-main { padding: 56px 28px 24px; display: grid; grid-template-columns: 1.25fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 20px; min-height: 0; }
+.ap-show { grid-column: 1 / -1; display: grid; grid-template-columns: 132px 1fr auto; gap: 24px; align-items: center; padding: 18px 24px 18px 18px; margin-top: 26px; background: var(--surface-raised); }
+.ap-art { padding: 8px; color: var(--orbe-ink); }
+.ap-art img { display: block; width: 116px; height: 116px; object-fit: cover; }
+.ap-show .o-serif { font-size: 44px; }
+.ap-show .mono { margin: 6px 0 10px; }
+.ap-best { margin: 0; font-size: 15px; }
+.ap-rating { text-align: right; }
+.ap-rating p { margin: 8px 0 0; }
+.ap-rating .o-figure { font-size: 76px; }
+.ap-rating .o-band { font-size: 30px; margin-left: 8px; }
+.ap-dash .o-window { box-shadow: var(--shadow-hard-s); display: flex; flex-direction: column; min-height: 0; }
+.ap-dash .o-window-body { flex: 1; min-height: 0; }
+.ap-cols { position: relative; height: 100%; min-height: 150px; display: flex; align-items: flex-end; gap: 8px; padding-top: 18px; }
+.ap-cols span { flex: 1; height: var(--h); background: color-mix(in srgb, var(--orbe-ink) 18%, var(--surface-raised)); position: relative; }
+.ap-cols span.is-new { background: var(--accent); }
+.ap-cols span i { position: absolute; bottom: 100%; left: 0; right: 0; text-align: center; font: 500 10px/1.6 var(--font-mono); font-style: normal; color: var(--text-soft); }
+.ap-cols span.is-new i { color: var(--orbe-ink); font-weight: 600; }
+.ap-cols::after { content: ""; position: absolute; left: 0; right: 0; bottom: var(--typ); border-top: 1.5px dashed var(--orbe-ink); }
+.ap-cols em { position: absolute; left: 0; bottom: calc(var(--typ) + 4px); font: 500 10px/1 var(--font-mono); font-style: normal; text-transform: uppercase; letter-spacing: 0.06em; background: var(--surface-raised); padding: 0 4px 0 0; }
+.ap-parts ul { list-style: none; margin: 0; padding: 0; }
+.ap-parts li { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
+.ap-parts li:last-child { border: 0; }
+.ap-parts li em { font-style: normal; color: var(--text-soft); text-align: right; font-size: 13px; }
+.ap-meter { height: 8px; border-radius: 99px; background: var(--surface-sunk); position: relative; overflow: hidden; }
+.ap-meter::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--accent); border-radius: 99px; }
+.ap-parts li > span:last-child { font-size: 13px; color: var(--text-soft); text-align: right; }
+.ap-table table { width: 100%; border-collapse: collapse; font-size: 14px; font-feature-settings: var(--figures-table); }
+.ap-table th { text-align: right; font: 500 10px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-soft); padding: 0 0 8px; border-bottom: var(--line) solid var(--orbe-ink); }
+.ap-table td { text-align: right; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+.ap-table th:first-child, .ap-table td:first-child { text-align: left; }
+.ap-table td b { display: inline-block; width: 26px; font-weight: 600; color: var(--text-soft); }
+.ap-table td.mono { font-size: 12px; }
+.ap-tiers p { margin: 0; }
+.ap-tiers p.o-status { margin-top: 10px; font-weight: 600; }
+.ap-tiers p.o-status:first-child { margin-top: 0; }
+.ap-tiers p.small { padding-left: 16px; margin-top: 2px; }
+.ap-tiers a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+
+/* 4. social */
+.ap-social { position: absolute; inset: 0; padding: 80px 72px; }
+.ap-social::after { content: ""; position: absolute; inset: 0; background: url("../assets/brand/grain.svg"); mix-blend-mode: multiply; opacity: 0.8; pointer-events: none; }
+.ap-orb { position: absolute; width: 600px; right: -230px; top: -250px; }
+.ap-kicker { position: relative; margin: 0 0 40px; }
+.ap-social .o-display { position: relative; font-size: 210px; line-height: 0.84; letter-spacing: -0.06em; width: 900px; }
+.ap-social .o-lede { position: relative; font-size: 40px; line-height: 1.22; width: 760px; margin-top: 44px; }
+.ap-critter2 { position: absolute; width: 470px; right: 30px; bottom: 150px; transform: rotate(-6deg); }
+.ap-social footer { position: absolute; left: 72px; right: 72px; bottom: 84px; display: flex; justify-content: space-between; align-items: flex-end; }
+.ap-social footer svg.wm { height: 64px; }
+.ap-social footer .mono { font-size: 22px; }
+.ap-stripe { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; }
+.ap-stripe svg { width: 100%; height: 100%; display: block; }
+
+/* 5. email */
+.ap-email { position: absolute; inset: 0; background: var(--surface); padding: 48px 64px; }
+.ap-email header { position: relative; display: flex; justify-content: space-between; align-items: center; margin: -48px -64px 30px; padding: 30px 64px; }
+.ap-ecrit { position: absolute; width: 150px; right: 420px; top: 8px; transform: rotate(-8deg); }
+.ap-under { position: relative; white-space: nowrap; }
+.ap-under svg { position: absolute; left: -4%; bottom: -10px; width: 108%; height: 22px; }
+.ap-email header svg.wm { height: 44px; }
+.ap-emailart { position: relative; height: 210px; padding: 12px; color: var(--orbe-ink); }
+.ap-emailart img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ap-emailart .o-pill { position: absolute; left: 26px; bottom: 26px; }
+.ap-email .o-display { font-size: 78px; margin-top: 30px; }
+.ap-email .o-lede { font-size: 30px; margin: 26px 0 18px; }
+
+/* 6. stripe drawer */
+.ap-stripe-ui { position: absolute; inset: 0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #F5F6F8; }
+.ap-host { position: absolute; inset: 0; filter: saturate(0); }
+.ap-hostbar { height: 56px; background: #fff; border-bottom: 1px solid #E3E5EA; }
+.ap-hostside { position: absolute; left: 0; top: 56px; bottom: 0; width: 220px; background: #fff; border-right: 1px solid #E3E5EA; }
+.ap-hostmain { position: absolute; left: 260px; top: 96px; right: 460px; display: grid; gap: 18px; }
+.ap-hostmain i { height: 90px; background: #fff; border: 1px solid #E3E5EA; border-radius: 8px; }
+.ap-hostmain i.w { height: 160px; }
+.ap-drawer { position: absolute; right: 0; top: 0; bottom: 0; width: 420px; background: #fff; border-left: 1px solid #E3E5EA; box-shadow: -12px 0 32px rgba(20, 19, 17, 0.08); padding: 24px; color: #1A1B25; }
+.ap-drawer header { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid #E3E5EA; }
+.ap-drawer header img { width: 32px; height: 32px; border-radius: 7px; }
+.ap-drawer header b { font-size: 16px; flex: 1; }
+.ap-drawer header span { font-size: 22px; color: #6A7383; }
+.ap-dstatus { display: inline-flex; align-items: center; gap: 8px; margin: 22px 0 12px; font-size: 13px; font-weight: 600; color: #1A1B25; }
+.ap-dstatus .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--positive); }
+.ap-drawer h3 { font-size: 20px; line-height: 1.3; margin: 0 0 16px; font-weight: 600; }
+.ap-drawer ul { margin: 0 0 24px; padding-left: 18px; font-size: 14px; line-height: 1.5; color: #414552; }
+.ap-drawer li { margin-bottom: 8px; }
+.ap-dbtn { display: block; text-align: center; padding: 10px; border-radius: 6px; background: #1A1B25; color: #fff; font-size: 14px; font-weight: 600; }
+.ap-dnote { font-size: 12px; color: #6A7383; margin-top: 18px; }
+
+/* 7. deck */
+.ap-deck { position: absolute; inset: 0; }
+.ap-deck::after { content: ""; position: absolute; inset: 0; background: url("../assets/brand/grain.svg"); mix-blend-mode: multiply; opacity: 0.8; pointer-events: none; }
+.ap-deckwm { position: absolute; left: 120px; top: 250px; }
+.ap-deckwm svg.wm { height: 330px; }
+.ap-deckline { position: absolute; left: 124px; top: 660px; width: 880px; font: 400 58px/1.12 var(--font-serif); letter-spacing: -0.015em; margin: 0; }
+.ap-deckscape { position: absolute; right: 120px; top: 230px; width: 620px; transform: rotate(2deg); }
+.ap-deckscape .o-folder { padding: 14px; box-shadow: var(--shadow-hard); }
+.ap-deckpaint { border-radius: 10px; overflow: hidden; height: 380px; }
+.ap-deckpaint svg { display: block; width: 100%; height: 100%; }
+.ap-critter3 { position: absolute; width: 330px; right: 90px; top: 640px; transform: rotate(-8deg); }
+.ap-deck footer { position: absolute; left: 124px; right: 120px; bottom: 72px; display: flex; gap: 48px; font-size: 18px; border-top: 1.5px solid var(--orbe-ink); padding-top: 20px; }
+.ap-deck footer span:last-child { margin-left: auto; }

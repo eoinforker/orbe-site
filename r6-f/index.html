@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-GB" data-c="pink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe</title>
+<meta name="description" content="Your work, rated against creators your size. Free for creators, for good. Orbe earns a percentage when money moves.">
+<meta name="theme-color" content="#171412">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<script>
+  (function () {
+    var c = null;
+    try { c = new URLSearchParams(location.search).get("c"); } catch (e) {}
+    if (c !== "blue" && c !== "pink") { try { c = localStorage.getItem("orbe-r6f-c"); } catch (e) {} }
+    if (c === "blue" || c === "pink") document.documentElement.setAttribute("data-c", c);
+  })();
+</script>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../assets/r5/type.css">
+<script type="module" src="./main.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar" id="top">
+  <a class="wm" href="#top" aria-label="Orbe, home" data-wordmark>Orbe</a>
+  <span class="bar-mid mono">The Orbe Rating</span>
+  <a class="bar-buy mono" href="#buyers">For buyers</a>
+</header>
+
+<main id="main">
+
+<!-- 01 · Hero -->
+<section class="hero" aria-labelledby="h1">
+  <div class="hero-copy">
+    <h1 id="h1">Your work, rated against creators your&nbsp;size.</h1>
+    <p class="sub">For channels, newsletters, streams, podcasts and photography. Free, for good, on a card worth posting.</p>
+
+    <form class="reserve" id="reserve" novalidate>
+      <label class="field">
+        <span class="sr">Your handle</span>
+        <span class="pre mono" aria-hidden="true">orbe.vc/@</span>
+        <input id="handle" name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle" enterkeyhint="go">
+      </label>
+      <button class="go mono" type="submit">Reserve</button>
+    </form>
+    <p class="note mono" id="note" aria-live="polite">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+  </div>
+
+  <figure class="stage" id="stage">
+    <canvas class="strings" id="strings" aria-hidden="true"></canvas>
+    <span class="corner tl mono" aria-hidden="true">Peers, same size</span>
+    <span class="corner tr mono" aria-hidden="true">Provisional benchmarks</span>
+
+    <div class="tag-hang" id="tagHang">
+      <button class="tag" id="tag" type="button" aria-label="Show the next made-up creator">
+        <svg class="tag-body" id="tagBody" aria-hidden="true"></svg>
+        <span class="t-tl mono">Orbe 2026</span>
+        <span class="t-hole" aria-hidden="true"></span>
+        <span class="t-o" aria-hidden="true"><svg id="tagO"></svg></span>
+        <span class="t-num"><b class="num" data-rating>+0.64</b><i class="mono" data-band>Average</i></span>
+        <span class="t-name"><span data-name>Field Recordings</span><small class="mono" data-size>250k to 1M subscribers</small></span>
+        <span class="t-bl mono">Against creators<br>your size</span>
+        <span class="t-br mono" data-handle>@fieldrecordings</span>
+      </button>
+    </div>
+
+    <figcaption class="cap">
+      <span class="cap-row"><b class="mono" data-part>Reach</b><span class="ticks" data-ticks aria-hidden="true"></span><span class="score num" data-score>85</span></span>
+      <span class="cap-line"><span class="beats" data-beats>Reach: beats 85 in 100 channels this size.</span> <span data-example>A made-up creator, rated live by the Orbe engine.</span> Independently calculated by Orbe. <button type="button" class="next" id="next">Next example <span class="mono" data-pager>01/05</span></button></span>
+    </figcaption>
+  </figure>
+</section>
+
+<!-- 02 · The rating -->
+<section class="reading" id="how" aria-labelledby="h2-read">
+  <div class="sec-copy">
+    <p class="folio"><span class="mono">[01]</span><i aria-hidden="true"></i><span>The rating</span></p>
+    <h2 id="h2-read">Zero is typical for creators your size.</h2>
+    <p class="lead">Orbe reads every piece of work against creators of the same kind and size, on provisional benchmarks for now. Above zero, you're ahead of them. Below it, the report says why.</p>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="flap" aria-hidden="true"><svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 0 L50 18 L100 0"/></svg><span class="well"><svg id="panelO"></svg></span></div>
+    <div class="p-head">
+      <p class="p-title"><span data-p-verb>Reading</span> <span data-p-name>Field Recordings</span></p>
+      <p class="p-count"><span class="quad" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span data-p-step>1</span> of 4</p>
+    </div>
+    <ol class="steps" id="steps">
+      <li><i aria-hidden="true"></i><span>Reading uploads</span><em></em></li>
+      <li><i aria-hidden="true"></i><span>Comparing with your size</span><em></em></li>
+      <li><i aria-hidden="true"></i><span>Weighing the parts</span><em></em></li>
+      <li><i aria-hidden="true"></i><span>Rating</span><em></em></li>
+    </ol>
+    <div class="p-now">
+      <p class="p-now-t" data-now-t>Reading 25 uploads</p>
+      <p class="p-now-d mono" data-now-d aria-live="polite">Best of the last twelve: 1.8× a typical upload.</p>
+    </div>
+    <ul class="meters" id="meters" aria-label="Sub-scores against creators the same size"></ul>
+    <button type="button" class="again" id="again" hidden>Read it again</button>
+  </div>
+
+  <div class="maths">
+    <p class="maths-k mono">The weights, in the open</p>
+    <p class="maths-w" id="weights"></p>
+    <p class="under"><span data-example>A made-up creator, rated live by the Orbe engine.</span> Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google. On provisional benchmarks. A measure of how your work is doing, not a score of your talent.</p>
+  </div>
+</section>
+
+<!-- 03 · The card and the money -->
+<section class="money" id="card" aria-labelledby="h2-card">
+  <div class="sec-copy">
+    <p class="folio"><span class="mono">[02]</span><i aria-hidden="true"></i><span>Your card, your record</span></p>
+    <h2 id="h2-card">Worth posting. Read from payouts, not estimates.</h2>
+  </div>
+  <figure class="print">
+    <div class="print-card" id="printCard" role="img" aria-label="The Orbe card for a made-up creator"></div>
+    <figcaption class="print-cap mono"><span>Story card</span><span>1080 × 1920</span></figcaption>
+  </figure>
+  <div class="ledger-wrap">
+    <p class="lead">Every verified figure shows where it came from and the day we read it. Then sponsors and a fair sale, when you want them.</p>
+    <dl class="ledger">
+      <div><dt>Rating, record, value, listing</dt><dd>Free</dd></div>
+      <div><dt>Sponsors Orbe finds</dt><dd>15%, paid by the brand</dd></div>
+      <div><dt>Sponsors you bring</dt><dd>5%, paid by the brand</dd></div>
+      <div><dt>If you sell</dt><dd>8% to £500k, 5% to £2M, 3% above, £4,000 minimum, from the proceeds</dd></div>
+      <div><dt>If it doesn't sell</dt><dd>Nothing</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- 04 · Buyers, investors and lenders -->
+<section class="buyers" id="buyers" aria-labelledby="h2-buy">
+  <div class="folder">
+    <p class="tab"><span class="mono">[03]</span><i aria-hidden="true"></i><span>For buyers</span></p>
+    <div class="folder-in">
+      <div class="f-copy">
+        <h2 id="h2-buy">Creator businesses. Read from payouts, not estimates.</h2>
+        <p>For buyers, investors and lenders. Every verified figure is dated, and you see what was checked and what wasn't.</p>
+        <a class="door" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access <span aria-hidden="true">→</span></a>
+      </div>
+      <dl class="f-terms">
+        <div><dt>Access</dt><dd>Free, and vetted</dd></div>
+        <div><dt>Buying a business</dt><dd>2% at completion, 1% above £2M, £1,000 minimum</dd></div>
+        <div><dt>Diligence reports</dt><dd>Included; £1,500 only if you walk away</dd></div>
+        <div><dt>Investing</dt><dd>Through an authorised partner</dd></div>
+        <div><dt>Lending</dt><dd>A fixed fee per file, paid by the lender</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · Close -->
+<footer class="close" aria-labelledby="h2-close">
+  <h2 id="h2-close">Creators never pay. <span>Orbe earns a percentage when money moves.</span></h2>
+  <form class="reserve" id="reserve2" novalidate>
+    <label class="field">
+      <span class="sr">Your handle</span>
+      <span class="pre mono" aria-hidden="true">orbe.vc/@</span>
+      <input id="handle2" name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle" enterkeyhint="go">
+    </label>
+    <button class="go mono" type="submit">Reserve</button>
+  </form>
+  <p class="note mono" id="note2" aria-live="polite">Your handle is kept for you. Ratings open with YouTube: connect your channel to see yours.</p>
+  <div class="foot">
+    <span class="foot-wm" data-wordmark-foot>Orbe</span>
+    <p class="foot-row mono"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a><a href="../products/">Products</a><a href="../legal/privacy.html">Privacy</a><a href="../legal/terms.html">Terms</a><span>Orbe 2026</span></p>
+    <p class="legal">Every creator, figure and card on this page is a made-up example, rated live by the Orbe engine. Indicative value independently calculated by Orbe from your connected revenue. It is an estimate, not advice and not an offer, and it is not provided or approved by YouTube or Google. YouTube, Substack and Twitch are trademarks of their owners.</p>
+  </div>
+</footer>
+</main>
+
+<div class="swatch" role="group" aria-label="Brand colour">
+  <button type="button" data-set-c="blue" aria-pressed="false"><i aria-hidden="true"></i>Blue</button>
+  <button type="button" data-set-c="pink" aria-pressed="true"><i aria-hidden="true"></i>Pink</button>
+</div>
+</body>
+</html>

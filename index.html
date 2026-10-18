@@ -3,68 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Orbe, round 5</title>
+<title>Orbe, round 6</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/r5/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/fonts.css">
 <style>
-  :root { --paper: #f3f1ea; --ink: #121412; --soft: #5d5a52; --line: rgba(18, 20, 18, 0.14); --sun: #e5532a; }
+  :root { --field: #9ee9fb; --deep: #1f4bff; --ink: #121412; --paper: #f6f4ee; --soft: #4a5a5e; --line: rgba(18, 20, 18, 0.16); }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 var(--sans, system-ui, sans-serif); -webkit-font-smoothing: antialiased; }
-  main { max-width: 880px; margin: 0 auto; padding: 48px 16px 80px; }
-  .wm { display: block; height: 30px; color: var(--ink); margin-bottom: 40px; }
-  .wm svg { height: 100%; width: auto; }
-  h1 { font: 400 clamp(34px, 6vw, 56px)/1.04 var(--serif, Georgia, serif); letter-spacing: -0.02em; margin: 0 0 14px; }
-  .lede { color: var(--soft); max-width: 60ch; margin: 0 0 40px; }
-  h2 { font: 500 13px/1 var(--mono, ui-monospace, monospace); letter-spacing: 0.02em; color: var(--soft); margin: 48px 0 12px; }
-  ol, ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  li { border-bottom: 1px solid var(--line); }
-  a.row { display: grid; grid-template-columns: 3.2rem 1fr auto; gap: 4px 16px; padding: 18px 0; color: inherit; text-decoration: none; align-items: baseline; }
-  a.row:hover .t, a.row:focus-visible .t { text-decoration: underline; text-underline-offset: 0.2em; }
-  .n { font: 400 13px/1 var(--mono, ui-monospace, monospace); color: var(--soft); }
-  .t { font-weight: 500; }
-  .s { font: 400 14px/1 var(--mono, ui-monospace, monospace); white-space: nowrap; }
-  .d { grid-column: 2 / -1; color: var(--soft); font-size: 15px; }
-  .cut .t, .cut .s { color: var(--soft); }
-  p.note { color: var(--soft); font-size: 14px; margin-top: 40px; max-width: 64ch; }
-  @media (max-width: 560px) { a.row { grid-template-columns: 2.4rem 1fr; } .s { grid-column: 2; } }
+  .top { background: var(--field); padding: 28px 16px 40px; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .wm { display: block; height: 28px; color: var(--ink); --wm-h: 28px; }
+  h1 { font: 800 clamp(44px, 10vw, 96px)/0.9 var(--sans); letter-spacing: -0.05em; margin: 36px 0 14px; }
+  .lede { max-width: 58ch; margin: 0; font-size: 17px; }
+  main { padding: 8px 16px 80px; }
+  h2 { font: 500 13px/1 var(--mono, ui-monospace, monospace); letter-spacing: 0.02em; color: var(--soft); margin: 44px 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  a.tile { display: flex; flex-direction: column; gap: 6px; padding: 18px; border: 1.5px solid var(--ink); border-radius: 14px; background: #fff; color: inherit; text-decoration: none; min-height: 150px; transition: transform .2s cubic-bezier(.23,1,.32,1); }
+  a.tile:hover, a.tile:focus-visible { transform: translateY(-2px); }
+  .k { font: 500 12px/1 var(--mono, monospace); color: var(--soft); }
+  .t { font: 700 22px/1.1 var(--sans); letter-spacing: -0.02em; }
+  .d { color: var(--soft); font-size: 15px; }
+  .row { display: flex; gap: 8px; margin-top: auto; font: 500 13px/1 var(--mono, monospace); }
+  .row span { padding: 6px 9px; border-radius: 99px; background: var(--paper); }
+  ul.plain { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+  ul.plain li { border-bottom: 1px solid var(--line); }
+  ul.plain a { display: block; padding: 14px 0; color: inherit; }
+  p.note { color: var(--soft); font-size: 14px; max-width: 66ch; margin-top: 36px; }
 </style>
 </head>
 <body>
-<main>
+<header class="top"><div class="wrap">
   <span class="wm" data-wordmark aria-label="Orbe">Orbe</span>
-  <h1>Round 5</h1>
-  <p class="lede">Every version, the card and the identity boards, as they stand. Scores are from the independent critic unless marked as the builder's own. The bar is 9.0.</p>
+  <h1>Round 6</h1>
+  <p class="lede">Seven directions, each led by one reference at full strength, built phone first in four or five panels. Every page has a Blue / Pink switch in the corner. Add <b>?c=pink</b> to any link to start in pink.</p>
+</div></header>
+<main><div class="wrap">
+  <h2>The seven directions</h2>
+  <div class="grid">
+    <a class="tile" href="r6-a/"><span class="k">r6-a</span><span class="t">Field</span><span class="d">TypeSafe. Same upload, six verdicts: only one is fair.</span><span class="row"><span>~8.6*</span></span></a>
+    <a class="tile" href="r6-b/"><span class="k">r6-b</span><span class="t">The live product</span><span class="d">Ramp, with a hand-drawn pen layer over the real engine.</span><span class="row"><span>~8.5*</span></span></a>
+    <a class="tile" href="r6-c/"><span class="k">r6-c</span><span class="t">Lettering</span><span class="d">Smith &amp; Diction. Your handle becomes a lettered sign.</span><span class="row"><span>~8.7*</span></span></a>
+    <a class="tile" href="r6-d/"><span class="k">r6-d</span><span class="t">Drag your size</span><span class="d">fal. Colour, pixel creatures and a size you can drag.</span><span class="row"><span>~8.6*</span></span></a>
+    <a class="tile" href="r6-e/"><span class="k">r6-e</span><span class="t">The story</span><span class="d">Wrapped. Tap through: you beat 66 in 100 newsletters your size.</span><span class="row"><span>~8.6*</span></span></a>
+    <a class="tile" href="r6-f/"><span class="k">r6-f</span><span class="t">Tactile</span><span class="d">A die-cut tag, string art to creators your size.</span><span class="row"><span>~8.5*</span></span></a>
+    <a class="tile" href="r6-g/"><span class="k">r6-g</span><span class="t">The archive</span><span class="d">Painted. Your card is filed beside creators your size.</span><span class="row"><span>~8.4*</span></span></a>
+  </div>
 
-  <h2>The versions still in</h2>
-  <ol>
-    <li><a class="row" href="r5-5/"><span class="n">r5-5</span><span class="t">The method</span><span class="s">8.1 → ~8.9*</span><span class="d">"Know where you stand." The published weights add up into the rating in front of you; the creator's record is wired into the buyer's listing.</span></a></li>
-    <li><a class="row" href="r5-3/"><span class="n">r5-3</span><span class="t">Two doors</span><span class="s">8.1 → ~8.8*</span><span class="d">Creators and buyers on the first screen, one system: the record becomes the listing, on phones too.</span></a></li>
-    <li><a class="row" href="r5-4/"><span class="n">r5-4</span><span class="t">Not the top 1%</span><span class="s">7.8 → ~8.7*</span><span class="d">One diagram makes the argument: you on the curve of creators your size, the top 1% marked as not who you're measured against.</span></a></li>
-  </ol>
-
-  <h2>The card and the identity</h2>
-  <ul>
-    <li><a class="row" href="card/"><span class="n">Card</span><span class="t">The card you'll get</span><span class="s">being redesigned</span><span class="d">The shareable rating card. A new version built around moments and your own work is in progress.</span></a></li>
-    <li><a class="row" href="assets/identity/a-lettering/board.html"><span class="n">A</span><span class="t">Lettering: A1 to A4</span><span class="s">A3 chosen</span><span class="d">A3 Carved is the chosen wordmark, being refined now.</span></a></li>
-    <li><a class="row" href="assets/identity/b-grotesque/board.html"><span class="n">B</span><span class="t">Drawn sans: B1 to B3</span><span class="s"></span><span class="d">Nest, Forward, Module.</span></a></li>
-    <li><a class="row" href="assets/identity/c-mark/board.html"><span class="n">C</span><span class="t">Symbol and wordmark: C1 to C3</span><span class="s"></span><span class="d">Level, In proportion, One slope.</span></a></li>
-    <li><a class="row" href="assets/identity/d-type/board.html"><span class="n">D</span><span class="t">Typefaces</span><span class="s">Masthead chosen</span><span class="d">Nine pairings on the real hero and card.</span></a></li>
+  <h2>Use the products</h2>
+  <ul class="plain">
+    <li><a href="products/">Products: rate your work, podcasts (the Chartable replacement), sponsorships, selling, diligence</a></li>
+    <li><a href="card/">Your card</a></li>
+    <li><a href="brand/">The brand system (arriving)</a></li>
   </ul>
 
-  <h2>Cut</h2>
-  <ol>
-    <li class="cut"><a class="row" href="r5-1/"><span class="n">r5-1</span><span class="t">The report</span><span class="s">7.7</span><span class="d">Its close and ticking record rows live on in the others.</span></a></li>
-    <li class="cut"><a class="row" href="r5-2/"><span class="n">r5-2</span><span class="t">The lookup</span><span class="s">7.5</span><span class="d">Its "you" panel after you reserve a handle lives on in the others.</span></a></li>
-  </ol>
+  <h2>The identity work</h2>
+  <ul class="plain">
+    <li><a href="assets/identity/a-lettering/board.html">Lettering A1 to A4 (A3 Carved chosen)</a></li>
+    <li><a href="assets/identity/b-grotesque/board.html">Drawn sans B1 to B3</a></li>
+    <li><a href="assets/identity/c-mark/board.html">Symbols C1 to C3</a></li>
+    <li><a href="assets/identity/d-type/board.html">Typefaces (Masthead chosen)</a></li>
+    <li><a href="card/concepts/">The card concepts</a></li>
+  </ul>
 
-  <p class="note">* The builder's own estimate after the fix round; the next independent critique follows the identity and content update. Every creator and figure on these pages is a made-up example.</p>
-</main>
+  <h2>Earlier rounds</h2>
+  <ul class="plain">
+    <li><a href="r5-5/">r5-5 The method</a></li><li><a href="r5-3/">r5-3 Two doors</a></li><li><a href="r5-4/">r5-4 Not the top 1%</a></li>
+  </ul>
+
+  <p class="note">* The builder's own estimate. The independent critique of round 6 is running now, and this page will be updated with its scores and the fixes. Every creator and figure on these pages is a made-up example, rated live by the Orbe engine.</p>
+</div></main>
 <script type="module">
-  try {
-    const { mountWordmark } = await import("./assets/r5/wordmark.js");
-    mountWordmark(document.querySelector("[data-wordmark]"), { animate: true });
-  } catch {}
+  try { const { mountWordmark } = await import("./assets/r5/wordmark.js"); mountWordmark(document.querySelector("[data-wordmark]"), { animate: true }); } catch {}
 </script>
 </body>
 </html>

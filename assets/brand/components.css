@@ -1,0 +1,84 @@
+/*
+  Orbe components, built only from tokens.css. Square for numbers, round for
+  people: windows (hard, square) hold figures and money; folders (soft,
+  rounded, tabbed) hold creators and their work; pills and bars are the play.
+*/
+
+/* ---------------------------------------------------------------- type roles */
+.o-display { font: var(--w-display) var(--t-display-2) / var(--lh-display) var(--font-display); letter-spacing: var(--track-display); text-wrap: balance; margin: 0; }
+.o-display.is-hero { font-size: var(--t-display-1); }
+.o-display.is-3 { font-size: var(--t-display-3); line-height: 0.92; letter-spacing: -0.04em; }
+.o-serif { font: 400 var(--t-serif-1) / 1.02 var(--font-serif); letter-spacing: -0.02em; font-optical-sizing: auto; text-wrap: balance; margin: 0; }
+.o-title { font: var(--w-title) var(--t-title) / var(--lh-title) var(--font-text); letter-spacing: var(--track-title); margin: 0; }
+.o-lede { font: 400 var(--t-lede) / 1.38 var(--font-serif); margin: 0; text-wrap: pretty; }
+.o-body { font: 400 var(--t-body) / var(--lh-text) var(--font-text); }
+.o-small { font: 400 var(--t-small) / 1.45 var(--font-text); }
+.o-label { font: 500 var(--t-label) / 1.3 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.o-figure { font: 700 var(--t-figure) / 0.9 var(--font-display); letter-spacing: -0.05em; font-feature-settings: var(--figures-display); }
+.o-band { font: italic 400 1em / 1 var(--font-serif); letter-spacing: -0.01em; }
+.o-tnum { font-feature-settings: var(--figures-table); }
+
+/* [01] ——— Title: the idyll's bracket numbering */
+.o-num { display: inline-flex; align-items: baseline; gap: 0.7em; font: 400 1.25rem / 1 var(--font-serif); }
+.o-num::after { content: none; }
+.o-num > span:first-child::after { content: ""; display: inline-block; width: 2.4em; height: 1px; background: currentColor; margin-left: 0.7em; vertical-align: 0.32em; }
+
+/* ---------------------------------------------------------------- window: hard, square, for figures and money */
+.o-window { background: var(--surface-raised); color: var(--orbe-ink); border: var(--line) solid var(--orbe-ink); border-radius: var(--r-window); box-shadow: var(--shadow-hard); }
+.o-window > .o-window-bar { display: flex; justify-content: space-between; gap: 12px; background: var(--orbe-ink); color: var(--orbe-paper); padding: 6px 10px; font: 500 11px / 1.2 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.o-window > .o-window-body { padding: 16px; }
+
+/* ---------------------------------------------------------------- folder: soft, tabbed, for people and their work */
+.o-folder { position: relative; background: var(--surface); color: var(--orbe-ink); border-radius: 0 var(--r-folder) var(--r-folder) var(--r-folder); margin-top: 44px; }
+.o-folder > .o-folder-tab { position: absolute; left: 0; bottom: 100%; height: 44px; padding: 0 44px 0 20px; display: flex; align-items: center; background: inherit; border-radius: var(--r-tab) 0 0 0; clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 100%, 0 100%); font: 400 1.125rem / 1 var(--font-serif); white-space: nowrap; }
+.o-folder > .o-folder-tab::before { content: ""; position: absolute; inset: 0 0 -1px; border-radius: inherit; background: inherit; z-index: -1; }
+
+/* ---------------------------------------------------------------- corner brackets: framing a creator's work, sparingly */
+.o-brackets { position: relative; padding: var(--s-4); }
+.o-brackets::before, .o-brackets::after { content: ""; position: absolute; width: var(--bracket); height: var(--bracket); border: var(--line) solid currentColor; pointer-events: none; }
+.o-brackets::before { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.o-brackets::after { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+
+/* ---------------------------------------------------------------- buttons: always pills */
+.o-btn { --bg: var(--action); --fg: var(--on-action); display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 26px; border: var(--line) solid var(--orbe-ink); border-radius: var(--r-pill); background: var(--bg); color: var(--fg); font: 700 1.0625rem / 1 var(--font-text); letter-spacing: -0.01em; text-decoration: none; cursor: pointer; box-shadow: var(--shadow-lift); transition: transform var(--dur-press) var(--ease-standard), box-shadow var(--dur-press) var(--ease-standard), background var(--dur-ui) var(--ease-standard); }
+.o-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 var(--orbe-ink); }
+.o-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--orbe-ink); background: var(--action-press); }
+.o-btn.is-quiet { --bg: transparent; --fg: currentColor; box-shadow: none; border-color: currentColor; }
+.o-btn.is-quiet:hover { transform: none; background: color-mix(in srgb, currentColor 8%, transparent); }
+.o-btn.is-small { min-height: 36px; padding: 0 16px; font-size: 0.875rem; }
+.o-btn:focus-visible, .o-input:focus-within, .o-toggle button:focus-visible, .o-pill:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ---------------------------------------------------------------- inputs */
+.o-input { display: flex; align-items: center; min-height: 56px; border: var(--line) solid var(--orbe-ink); border-radius: var(--r-input); background: var(--orbe-chalk); color: var(--orbe-ink); padding: 0 16px; gap: 2px; font: 400 1rem / 1 var(--font-mono); }
+.o-input > .o-input-pre { color: var(--orbe-graphite); }
+.o-input input { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
+.o-input input::placeholder { color: var(--orbe-graphite); opacity: 1; }
+.o-input.is-error { border-color: var(--negative); box-shadow: inset 0 0 0 1px var(--negative); }
+.o-hint { font: 400 0.8125rem / 1.4 var(--font-text); margin-top: 8px; }
+.o-hint.is-error { color: var(--negative); }
+
+/* ---------------------------------------------------------------- pills: tags, kinds of work, size bands */
+.o-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 14px; border: var(--line) solid currentColor; border-radius: var(--r-pill); font: 600 0.875rem / 1 var(--font-text); background: transparent; color: inherit; }
+.o-pill[aria-selected="true"], .o-pill.is-on { background: var(--orbe-ink); color: var(--orbe-paper); border-color: var(--orbe-ink); }
+.o-pill.is-tip { background: var(--orbe-ink); color: var(--orbe-paper); border-color: var(--orbe-ink); border-radius: 8px; font: 500 0.8125rem / 1 var(--font-text); }
+.o-pill.is-tip b { font-weight: 500; color: var(--orbe-stone); margin-right: 2px; }
+
+/* status words: a dot and words, never a badge or a tick */
+.o-status { display: inline-flex; align-items: center; gap: 8px; font: 500 0.875rem / 1.2 var(--font-text); color: var(--text); }
+.o-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--text-soft)); }
+.o-status.is-positive { --dot: var(--positive); }
+.o-status.is-negative { --dot: var(--negative); }
+.o-status.is-warning { --dot: var(--warning-fill); }
+.o-status.is-info { --dot: var(--info); }
+
+/* ---------------------------------------------------------------- the colour toggle */
+.o-toggle { display: inline-flex; padding: 3px; gap: 2px; border: var(--line) solid var(--orbe-ink); border-radius: var(--r-pill); background: var(--orbe-chalk); }
+.o-toggle button { all: unset; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: var(--r-pill); font: 600 0.8125rem / 1 var(--font-text); color: var(--orbe-ink); cursor: pointer; transition: background var(--dur-ui) var(--ease-settle), color var(--dur-ui) var(--ease-settle); }
+.o-toggle button::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--dot); box-shadow: 0 0 0 1.5px var(--orbe-ink); }
+.o-toggle button[aria-pressed="true"] { background: var(--orbe-ink); color: var(--orbe-paper); }
+.o-toggle button[aria-pressed="true"]::before { box-shadow: 0 0 0 1.5px var(--orbe-paper); }
+
+/* ---------------------------------------------------------------- texture */
+.o-grain { position: relative; isolation: isolate; }
+.o-grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: url("grain.svg"); mix-blend-mode: multiply; opacity: 0.9; z-index: 1; }
+.o-pixelated { image-rendering: pixelated; shape-rendering: crispEdges; }

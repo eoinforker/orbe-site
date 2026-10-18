@@ -13,6 +13,7 @@ const FALLBACK = {
     serifItalic: fallback("serifItalic"),
     sans: fallback("sans"),
     sansMedium: fallback("sansMedium"),
+    display: fallback("display"),
     mono: fallback("mono"),
 };
 /** The width of a line of text in pixels, with tracking in pixels per character as SVG applies it. */

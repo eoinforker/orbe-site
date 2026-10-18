@@ -15,9 +15,6 @@
   --night-grey: #a9a69c;
   --night-line: rgba(243, 241, 234, 0.16);
   --you-night: #f3f1ea;
-  --sans: "Timeless Sans", "Helvetica Neue", Arial, sans-serif;
-  --serif: "Timeless Serif", Georgia, serif;
-  --mono: "Paper Mono", ui-monospace, Menlo, monospace;
   --pad: clamp(16px, 4.45vw, 64px);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);

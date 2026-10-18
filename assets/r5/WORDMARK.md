@@ -1,79 +1,82 @@
-# Orbe wordmark: The lap
+# Orbe wordmark: Carved
 
 ## The idea
 
-The O of Orbe is one stroke that goes round twice: once as the letter, the world, then a second, finer lap inside it that comes to rest on a small ball just short of where it began. It is an orb and its orbit in one movement of the pen, and every lap is measured against your own last one, which is what Orbe does for creators.
-
-It is lettering, not a symbol: take the lap away and you still have a well-made serif Orbe; keep it and the O carries the name's meaning.
+Orbe is lettered the way names are cut into stone in the City of London: every stem narrows at its waist and flares out to a crisp, flat-cut end, with no serifs, so the word reads carved rather than printed. It is made to last and made by hand, which is what a record of your work should feel like to the creator who earned it and to the investor who relies on it.
 
 ## Files
 
 | File | Use |
 |---|---|
-| `wordmark.svg` | The mark, ink by default. `fill="currentColor"`, so it takes the colour of its parent when inlined. As an `<img>` it renders black. |
-| `wordmark.js` | `mountWordmark(el, { animate = true })` inserts the inline SVG (accessible name "Orbe") and plays the reveal once. `wordmarkSVG()` returns the bare SVG element with no motion. |
-| `favicon.svg` | The O alone, recut heavier for 16 to 32px, paper on an ink tile. |
-| `favicon-32.png` | 32px PNG of the favicon for places that cannot take SVG. |
-| `wordmark-board/` | The board (`index.html`) with the final, the runner-up and the explorations, plus the source drawing (`letters.mjs`, `final.mjs`). |
+| `wordmark.svg` | The mark, text cut (25px tall and up). `fill="currentColor"`. As an `<img>` it renders black. |
+| `wordmark-small.svg` | The small cut, for marks 16 to 24px tall when you place an SVG by hand. |
+| `wordmark.js` | `mountWordmark(el, { animate = true })` inserts the inline SVG (accessible name "Orbe"), picks the cut from the height it renders at, and plays the reveal once. `wordmarkSVG({ cut })` returns the bare SVG with no motion (`cut: "text"` by default, or `"small"`). `WORDMARK` exports both cuts' paths and viewBoxes for code that draws without a DOM. |
+| `favicon.svg`, `favicon-32.png`, `favicon-16.png` | The O alone, recut heavier and set on the pixel grid, paper on an ink tile. |
+| `apple-touch-icon.png` | 180px, full-bleed ink square (iOS rounds the corners). |
+| `icon-512.png` | 512px app icon, also at `stripe-app/icon.png` for the Stripe App. The O sits inside the central circle, so a round mask never cuts it. |
+| `wordmark-src/` | The drawing (`carved.mjs`), the writer of `wordmark.js` and the SVGs (`emit.mjs`), the icons (`icons.mjs`) and proof sheets (`shots/`). |
+| `wordmark-board/` | History: "The lap", the previous wordmark, with its board, sources and final files in `wordmark-board/lap-final/`. |
 
 ### Wiring it in
 
 ```html
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
 
 <a class="wm" href="#top" aria-label="Orbe, home">Orbe</a>
 <script type="module">
   import { mountWordmark } from "../assets/r5/wordmark.js";
-  mountWordmark(document.querySelector(".wm"));                      // nav: plays once
+  mountWordmark(document.querySelector(".wm"));                           // nav: plays once
   mountWordmark(document.querySelector(".foot .wm"), { animate: false }); // footer: still
 </script>
 ```
 
 - Leave the text "Orbe" in the HTML. It is the no-JS fallback, and `mountWordmark` replaces it.
-- **Size:** set `--wm-h` on the link or any ancestor. The default is `0.78em`, so with the current `.wm` font sizes (23 to 28px) it lands at 18 to 22px tall. For example, use `.top { --wm-h: 20px }`. `--wm-va` nudges the vertical alignment (default `-0.02em`).
-- **Reverse:** use `color: var(--paper)` on the parent. There is no second file, and the same goes for any colour.
-- The reveal plays on mount if the mark is on screen, otherwise the first time it scrolls into view. Until the moment it plays, the mark is fully drawn, so it is never stuck half drawn. With `prefers-reduced-motion: reduce` or `animate: false` it renders still.
+- **Size:** set `--wm-h` on the link or any ancestor (default `0.78em`). `--wm-va` nudges the vertical alignment (default `-0.02em`).
+- **Reverse:** `color: var(--paper)` on the parent. Any flat colour works the same way.
+- The reveal plays on mount if the mark is on screen, otherwise the first time it scrolls into view. Until then the mark is fully drawn, so it never sits half cut. With `prefers-reduced-motion: reduce` or `animate: false` it renders still.
 
-## The reveal (1.24s, once)
+## The reveal (1.1s, once)
 
-One pen draws the O anticlockwise from 2 o'clock, the way an O is written, then carries on without lifting into the inner lap at the same speed (1.0s, one ease in and out across both). Then the ball lands with a small overshoot (0.24s). The r, b and e are present from the first frame, so the name is never unreadable. The motion is the idea: the pen goes round twice and lands. The animation is done with masks on the static paths, which are removed when it ends, so the resting mark is exactly `wordmark.svg`.
+A chisel cuts each stroke along its line in writing order: the O anticlockwise from the top, the r's stem then its arm, the b's stem then its bowl, the e from its bar round to its terminal. Each cut is a groove the width of the waist, so for a moment every stem is plain and parallel. Then the cut opens out and the flares arrive last, at the ends, as crisp corners. It shows the one idea (waist, then flare) and nothing else: no bounce, no fade, no loop.
 
 ## Construction
 
-All of it is drawn as paths on a 1000 unit em (`wordmark-board/letters.mjs`, `final.mjs`), in the spirit of Timeless Serif so it sits with the site's type.
+Drawn as paths on a 1000 unit em, baseline at y = 0 (`wordmark-src/carved.mjs`).
 
-- **Metrics:** baseline 0, x-height 492, cap 700, ascender 738, round overshoot 12. The viewBox is `0 16 2025 756`, and the baseline sits 12 units above its bottom edge.
-- **O:** 680 by 724, near round like Timeless's O, with vertical stress: 102 at the sides and 30 at the top and bottom. The outline uses a handle ratio of 0.56 and the squarer counter 0.60.
-- **The lap:** the O's own counter, scaled to 60 percent (the letter holds a smaller copy of itself, measured against its own size). It is set tangent to the counter at 2 o'clock and 10 units into the wall, so it leaves the wall with a crisp acute crotch, the same logic as the b's shoulder leaving its stem. It travels 306 degrees anticlockwise, 11 units at top and bottom and swelling to 37 on its upright sides, so it carries the O's stress.
-- **Ball:** a 24 unit ball that rhymes with the r's 45 unit ball terminal. It stops with clear air from the wall, just short of where the lap began.
-- **r:** a wedge flag, an arched shoulder thinning from 76 to 32 into a pendant ball, and a bracketed slab foot.
-- **b:** a wedge flag, a 94 stem, a bowl with its stress on the right and an angled heel at the baseline.
-- **e:** a 96 stroke, the bar at 53 percent of the x-height and an angled terminal.
-- **Spacing:** O to r 40, r to b 42, b to e 48 (side to side, optically set).
+- **Metrics (text cut):** x-height 500, O cap 700, b ascender 742. Rounds overshoot by 13 at the cap and 11 at the x-height. viewBox `0 -742 2040 755`; the baseline sits 13 units above the bottom edge.
+- **Stems:** 102 at the waist, flaring to 136 at the top and 142 at the foot (the foot is a touch wider so the letters stand). The flare reaches 118 units in from each end on a concave curve and the middle runs nearly straight: the chisel's entry, not a bulge. Every free end is cut flat.
+- **O:** 664 by 726, vertical stress, 112 at the sides and 80 at top and bottom. The counter is a touch squarer than the outline (handle 0.60 against 0.565).
+- **r:** the top of the stem is cut flat and runs straight on into the arm, which rises to the x-height overshoot and ends in a flat cut that is itself a small flare (98 at the tip against 84 in the arch). The arm leaves the stem in a thin crotch.
+- **b:** a 742 stem with the same waist and flares. The bowl's counter is the stem's own concave side, and the bowl meets the stem in thin crotches top and bottom.
+- **e:** 112 sides, a 60 bar at 54 percent of the x-height, and an aperture made by one straight cut at 38 degrees from the bar's end, so the terminal is a crisp angled end like the stems'.
+- **Spacing:** O to r 56, r to b 34, b to e 62 (edge to edge at the flares), set as a word at 96 and 240px.
+- **Small cut (16 to 24px):** the same drawing with heavier waists (118 against 140 to 146 at the ends), lower contrast in the rounds (O 122 by 94), x-height 510, a 70 bar, an opener e and looser spacing (74, 52, 80). `mountWordmark` switches at 24.5px tall. At 25px and up the text cut is used.
 
 ## Clear space
 
-Keep clear space of **one third of the mark's height** on every side, which is roughly the gap between the x-height and the top of the b. That is 6px at the 18px nav size and 67px at 200px. Nothing (text, rules, card edges) comes inside it.
+Keep clear space of **one third of the mark's height** on every side, which is roughly the gap between the x-height and the top of the b. That is 7px at the 22px nav size and 80px at 240px. Nothing (text, rules, card edges) comes inside it.
 
 ## Minimum size
 
-- **Screen:** 14px tall. The lap holds to 14px on high-density screens and 16px on standard ones. Below 16px tall on a standard screen, use the favicon instead of the wordmark.
-- **Favicon:** 16px and up. It has its own heavier cut and is never a scaled-down wordmark.
+- **Screen:** 16px tall, using the small cut. Below 16px use the favicon instead.
+- **Favicon:** 16px and up. It has its own heavier cut on the pixel grid and is never a scaled-down wordmark.
 - **Print:** 5mm tall.
 
 ## Do
 
 - Use it in one flat colour: ink on paper, paper on ink, or ink on sky.
 - Size it by height (`--wm-h`), keep its proportions, and give it its clear space.
-- Let the reveal play once, in the nav, on load. Use it still everywhere else (footer, repeated marks).
+- Let `mountWordmark` choose the cut. When placing an SVG by hand, use `wordmark-small.svg` at 16 to 24px and `wordmark.svg` above.
+- Let the reveal play once, in the nav, on load. Use it still everywhere else.
 - Use the favicon O on its own where a square is needed: tabs, app icons, avatars.
 
 ## Don't
 
-- Don't typeset "Orbe" in Timeless Serif as a stand-in. Use the drawn mark.
-- Don't recolour the lap or the ball separately, outline the mark, add shadows, glows or gradients, or put it on a busy image.
-- Don't stretch, slant, rotate, re-space or set it in capitals.
-- Don't loop the animation, play it on hover, or play it on every instance on a page.
-- Don't put the O inside a circle, seal, badge or tick, or use the lap as a free-standing symbol apart from the favicon.
-- Don't use it below the minimum size. Switch to the favicon.
+- Don't set "Orbe" in Schibsted Grotesk or Newsreader as a stand-in. Use the drawn mark.
+- Don't outline it, add shadows, glows or gradients, or put it on a busy image.
+- Don't stretch, slant, rotate, re-space or set it in capitals, and don't round off the flat cuts.
+- Don't loop the reveal, play it on hover, or play it on every instance on a page.
+- Don't put the O inside a circle, seal, badge or tick, or add a symbol beside the word.
+- Don't use the text cut below 25px or the small cut above 24px, and don't use either below 16px.

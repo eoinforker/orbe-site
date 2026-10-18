@@ -43,9 +43,9 @@ let fontCssPromise = null;
 export function embeddedFontCss() {
   fontCssPromise ??= Promise.all(
     SITE_FONTS.map(async (f) => {
-      const res = await fetch(new URL(`../fonts/${f.file}`, import.meta.url));
+      const res = await fetch(new URL(`../${f.file}`, import.meta.url));
       if (!res.ok) throw new Error(`Could not load ${f.file}`);
-      return { family: f.family, style: f.style, data: new Uint8Array(await res.arrayBuffer()) };
+      return { family: f.family, style: f.style, weight: f.weight, data: new Uint8Array(await res.arrayBuffer()) };
     }),
   ).then(fontFaceCss);
   return fontCssPromise;

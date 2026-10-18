@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en-GB" data-c="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe</title>
+<meta name="description" content="Rated against creators your size. Free for every kind of creator, on a card worth posting.">
+<meta name="theme-color" content="#9EE9FB">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<script>
+  /* The founder's colour switch, applied before first paint: ?c=blue or ?c=pink, else the remembered choice. */
+  (function () {
+    var c = null;
+    try { c = new URLSearchParams(location.search).get("c"); } catch (e) {}
+    if (c !== "blue" && c !== "pink") { try { c = localStorage.getItem("orbe-r6d-c"); } catch (e) {} }
+    if (c === "blue" || c === "pink") document.documentElement.dataset.c = c;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../assets/r5/type.css">
+<script type="module" src="./main.js"></script>
+</head>
+<body data-kind="channel">
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- 1. Hero: what it is, for every kind, one action. -->
+<header class="p hero" id="top">
+  <canvas class="art" id="art-hero" aria-hidden="true"></canvas>
+  <span class="pill pill-a" aria-hidden="true"></span>
+  <span class="pill pill-b" aria-hidden="true"></span>
+
+  <nav class="nav" aria-label="Site">
+    <a class="wm" href="#top" aria-label="Orbe, home"><span id="wm">Orbe</span></a>
+    <a class="nav-buy" href="#buyers">For buyers</a>
+  </nav>
+
+  <div class="hero-in" id="main">
+    <div class="kinds" role="radiogroup" aria-label="Your kind of work">
+      <button type="button" role="radio" aria-checked="true" data-kind="channel">Channel</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="stream">Stream</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="newsletter">Newsletter</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="podcast">Podcast</button>
+      <button type="button" role="radio" aria-checked="false" data-kind="portfolio">Photography</button>
+    </div>
+
+    <h1 class="h1">
+      <span class="h1-a">Rated against</span>
+      <span class="slot"><span class="slot-word">channels</span></span>
+      <span class="h1-b">your size.</span>
+    </h1>
+    <p class="sr" aria-live="polite" id="kind-live"></p>
+
+    <p class="sub">Free for every kind of creator, on a card worth posting.</p>
+
+    <form class="reserve" novalidate>
+      <label class="field">
+        <span class="field-pre">orbe.vc/@</span>
+        <input name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle" aria-label="Your handle">
+      </label>
+      <button class="go" type="submit">Reserve my handle</button>
+      <p class="note" role="status">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+    </form>
+  </div>
+</header>
+
+<div class="stripe" aria-hidden="true"></div>
+
+<!-- 2. The rating: why it is fair. Drag your size. -->
+<section class="p size" id="size" aria-labelledby="size-h">
+  <div class="size-in">
+    <div class="size-copy">
+      <p class="k">[01] The rating</p>
+      <h2 class="size-h" id="size-h">Drag your size.</h2>
+      <p class="size-p"><span data-f="ex-name">Field Recordings</span> reaches <b data-f="ex-own">25%</b> of its <span data-f="ex-noun">subscribers</span>. Is that good? It depends on size. Slide it through every size.</p>
+    </div>
+
+    <div class="meter">
+      <div class="read" aria-live="polite">
+        <p class="read-band"><span data-f="m-band">250k to 1M</span> <span data-f="m-noun">subscribers</span></p>
+        <p class="read-big"><span class="roll" data-f="m-x">2.5×</span><span class="read-unit">typical</span></p>
+        <p class="read-line" data-f="m-line">A typical channel this size reaches 10%.</p>
+      </div>
+
+      <div class="stage" id="stage">
+        <canvas class="stage-art" id="art-size" aria-hidden="true"></canvas>
+        <p class="stage-tag" data-f="m-tag" aria-hidden="true"></p>
+        <p class="stage-you" data-f="m-you" aria-hidden="true">You</p>
+      </div>
+
+      <label class="drag-wrap">
+        <span class="sr">Your audience size</span>
+        <input class="drag" id="drag" type="range" min="0" max="1000" value="500" step="1">
+      </label>
+      <div class="ends" aria-hidden="true"><span>Smaller</span><span class="ends-hint">Drag</span><span>Bigger</span></div>
+
+      <p class="here" data-f="m-here"></p>
+      <p class="fine"><span>Independently calculated by Orbe.</span> <span>It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google.</span> <span data-f="bench-line">The engine's starting baselines.</span> <span data-f="example-line">A made-up creator, rated live by the Orbe engine.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. The card and the money. -->
+<section class="p cardmoney" id="card" aria-labelledby="card-h">
+  <div class="cm-in">
+    <div class="cm-card">
+      <p class="k">[02] Your card</p>
+      <h2 class="cm-h" id="card-h">A card worth posting.</h2>
+      <div class="deck" id="deck" role="group" aria-roledescription="carousel" aria-label="Example cards">
+        <button class="deck-hit" type="button" id="deck-next" aria-label="Show the next card"></button>
+        <div class="deck-card back" aria-hidden="true"></div>
+        <div class="deck-card front" role="img" aria-label=""></div>
+      </div>
+      <div class="moments" role="radiogroup" aria-label="Which moment">
+        <button type="button" role="radio" aria-checked="true" data-m="rating">Rating</button>
+        <button type="button" role="radio" aria-checked="false" data-m="best">Personal best</button>
+        <button type="button" role="radio" aria-checked="false" data-m="size">Up a size</button>
+        <button type="button" role="radio" aria-checked="false" data-m="season">Season</button>
+      </div>
+      <p class="fine dark" data-f="card-line">A made-up creator and made-up artwork, rated live by the Orbe engine.</p>
+    </div>
+
+    <div class="cm-money">
+      <p class="k">[03] Your money</p>
+      <h2 class="cm-h2">Read from payouts, not estimates.</h2>
+      <ul class="bars">
+        <li class="bar" style="--c: var(--k-stream)"><b class="bar-n">Free</b><span class="bar-t">Your rating, your card and your record. For good.</span></li>
+        <li class="bar" style="--c: var(--k-newsletter)"><b class="bar-n">15% <i>or</i> 5%</b><span class="bar-t">On sponsorships, when Orbe finds the brand or when you bring your own. Paid by the brand, never by you, and only when the sponsorship completes.</span></li>
+        <li class="bar" style="--c: var(--k-channel)"><b class="bar-n">When you sell</b><span class="bar-t">A fair sale, when you want one. Orbe's success fee comes from the proceeds, only if it sells.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 4. The second door: buyers, investors and lenders. -->
+<section class="p door" id="buyers" aria-labelledby="door-h">
+  <canvas class="art" id="art-door" aria-hidden="true"></canvas>
+  <div class="door-in">
+    <p class="k">[04] Buyers, investors and lenders</p>
+    <h2 class="door-h" id="door-h">Creator businesses. Read from payouts, not estimates.</h2>
+    <p class="door-p">Every verified figure shows where it came from and the day we read it. Where a platform does not report payouts, we say so beside the figure.</p>
+    <ul class="tiles">
+      <li class="tile" style="--c: var(--k-stream)"><b>Buy</b><span>Access is free, and vetted.</span><i class="dots" aria-hidden="true"></i></li>
+      <li class="tile" style="--c: var(--k-portfolio)"><b>Invest</b><span>Minority investment, through an authorised partner.</span><i class="dots" aria-hidden="true"></i></li>
+      <li class="tile" style="--c: var(--k-newsletter)"><b>Lend</b><span>A fixed fee per file, paid by the lender.</span><i class="dots" aria-hidden="true"></i></li>
+    </ul>
+    <a class="door-go" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
+  </div>
+</section>
+
+<div class="stripe" aria-hidden="true"></div>
+
+<!-- 5. Close and footer. -->
+<footer class="p close" id="reserve" aria-labelledby="close-h">
+  <canvas class="art" id="art-close" aria-hidden="true"></canvas>
+  <div class="close-in">
+    <h2 class="close-h" id="close-h">Creators never&nbsp;pay.</h2>
+    <p class="close-p">Orbe earns a percentage when money moves.</p>
+    <form class="reserve" novalidate>
+      <label class="field">
+        <span class="field-pre">orbe.vc/@</span>
+        <input name="handle" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourhandle" aria-label="Your handle">
+      </label>
+      <button class="go" type="submit">Reserve my handle</button>
+      <p class="note" role="status">Free for every kind of creator.</p>
+    </form>
+    <nav class="foot" aria-label="Footer">
+      <a href="#size">The rating</a>
+      <a href="../card/">Make a card</a>
+      <a href="#buyers">For buyers</a>
+      <a href="../products/">Products</a>
+      <a href="mailto:hello@orbe.vc">hello@orbe.vc</a>
+      <a href="../legal/privacy.html">Privacy</a>
+      <a href="../legal/terms.html">Terms</a>
+    </nav>
+    <p class="fine foot-tm">YouTube, Substack and Twitch are trademarks of their owners.</p>
+  </div>
+  <p class="giant" aria-hidden="true"><span id="wm-giant">Orbe</span></p>
+</footer>
+
+<div class="palette" role="radiogroup" aria-label="Brand colour">
+  <button type="button" role="radio" data-c="blue" aria-checked="true"><i aria-hidden="true"></i>Blue</button>
+  <button type="button" role="radio" data-c="pink" aria-checked="false"><i aria-hidden="true"></i>Pink</button>
+</div>
+
+</body>
+</html>
