@@ -41,7 +41,7 @@ const hero = {
   render: (s) => `
   <div class="ap-hero" data-surface="field">
     <div class="ap-bars">${memo("bars" + s, () => bars({ w: 1440, h: 900, weight: 0.07, lines: [[0.62, 0.2, 0.93, 0.07, C.ember], [0.9, 0.62, 1.08, 0.5, deep(s)]] }))}</div>
-    <div class="ap-ground">${memo("ls-hero" + s, () => landscape({ w: 1440, h: 420, palette: scape(s), seed: 43, horizon: 0.18, grainOpacity: 0.4 }))}</div>
+    <div class="ap-ground">${memo("ls-hero" + s, () => landscape({ w: 1440, h: 420, palette: scape(s), seed: 43, horizon: 0.2, grainOpacity: 0.4, sky: false }))}</div>
     <nav class="ap-nav">${WM}<span><a class="o-pill">The rating</a><a class="o-pill">For buyers</a><a class="o-btn is-small">Reserve your handle</a></span></nav>
     <h1 class="o-display ap-h">Your work, rated against creators <span class="ap-loop">your size.${crayon({ shape: "loop", colour: C.ember, w: 600, h: 190, seed: 4, weight: 5 })}</span></h1>
     <div class="o-folder ap-form"><span class="o-folder-tab"><span class="ap-tabnum">[01]</span> Reserve your handle</span>

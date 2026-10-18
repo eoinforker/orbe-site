@@ -77,10 +77,10 @@ function pictures() {
   const pal = scheme === "pink" ? "dawn" : "sky";
   const ground = $("[data-scape=cover]");
   const w = Math.max(390, Math.round(ground.clientWidth || 1440)), h = Math.max(200, Math.round(ground.clientHeight || 320));
-  ground.innerHTML = landscape({ w, h, palette: pal, seed: 43, horizon: 0.22, grainOpacity: 0.45 });
+  ground.innerHTML = landscape({ w, h, palette: pal, seed: 43, horizon: 0.3, grainOpacity: 0.45, sky: false });
   const cov = $("[data-bars]");
   const cw = cov.clientWidth || 1440, ch = cov.clientHeight || 900, wide = cw > 760;
-  cov.innerHTML = bars({ w: cw, h: ch, weight: wide ? 0.06 : 0.045, lines: wide ? [[0.6, 0.16, 0.95, 0.04, C.ember], [0.82, 0.5, 1.06, 0.36, deep()]] : [[0.62, 0.05, 1.05, 0.0, C.ember], [0.78, 0.6, 1.08, 0.52, deep()]] });
+  cov.innerHTML = bars({ w: cw, h: ch, weight: wide ? 0.06 : 0.045, lines: wide ? [[0.6, 0.16, 0.95, 0.04, C.ember], [0.82, 0.5, 1.06, 0.36, deep()]] : [[0.66, 0.035, 1.08, -0.01, C.ember]] });
   $("[data-scape=tile]").innerHTML = landscape({ w: 900, h: 300, palette: pal, seed: 11, horizon: 0.45 });
   $("[data-orb]").innerHTML = ditherOrb({ fg: scheme === "pink" ? C.peony : C.sky, seed: 3, cells: 64, cell: 5 });
   $("[data-bartile]").innerHTML = bars({ w: 400, h: 200, weight: 0.13, lines: [[0.1, 0.75, 0.6, 0.2, C.ember], [0.5, 0.85, 0.92, 0.45, deep()]] });

@@ -11,7 +11,7 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
 .bk-wrap { width: min(1280px, 100% - 2 * var(--gutter)); margin-inline: auto; }
-.bk-sec { padding: clamp(72px, 9vw, 144px) 0; position: relative; }
+.bk-sec { padding: clamp(64px, 7.5vw, 112px) 0; position: relative; }
 .bk-sec > .bk-wrap > .o-display { margin: 20px 0 28px; max-width: 14ch; }
 .bk-measure { max-width: 62ch; }
 .bk-sub { margin: clamp(40px, 5vw, 64px) 0 16px; color: var(--text-soft); }
@@ -42,7 +42,7 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 .bk-scheme-field { position: relative; overflow: hidden; border: var(--line) solid var(--orbe-ink); border-radius: var(--r-folder); padding: 28px; min-height: 360px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
 .bk-scheme-field .o-display { max-width: 9ch; position: relative; z-index: 1; }
 .bk-scheme-field .o-btn { position: relative; z-index: 1; margin-top: auto; }
-.bk-scheme-critter { position: absolute; width: 46%; right: -4%; bottom: -6%; }
+.bk-scheme-critter { position: absolute; width: 36%; right: -3%; bottom: -8%; }
 .bk-rec { position: relative; z-index: 1; }
 .bk-scheme .o-title { margin: 18px 0 6px; }
 .bk-ratio { display: flex; height: 34px; margin-top: 14px; border: var(--line) solid var(--orbe-ink); border-radius: 8px; overflow: hidden; }
@@ -97,11 +97,11 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 .bk-pscale span { display: inline-flex; flex-direction: column; gap: 4px; }
 .bk-pscale small { font: 500 10px/1 var(--font-mono); color: var(--orbe-graphite); }
 .bk-figures { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 24px; align-items: start; }
-.bk-figures .o-figure { margin: 0 0 8px; }
+.bk-figures .o-figure { margin: 0 0 8px; font-size: clamp(56px, 6.4vw, 104px); white-space: nowrap; }
 .bk-figures .o-figure .o-band { font-size: 0.4em; }
-.bk-money { width: 100%; border-collapse: collapse; font-size: 0.875rem; font-feature-settings: var(--figures-table); }
+.bk-money { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .bk-money td { padding: 7px 0; border-bottom: 1px solid var(--rule); }
-.bk-money td:last-child { text-align: right; font-weight: 600; }
+.bk-money td:last-child { text-align: right; font-weight: 600; font-feature-settings: var(--figures-table); }
 .bk-figrule { margin: 0 0 14px; font-size: 0.9375rem; }
 .bk-figrule b { display: block; font: 500 11px/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
@@ -127,7 +127,7 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 .bk-frames { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .bk-frame { margin: 0; }
 .bk-frame .o-brackets { padding: 12px; }
-.bk-frame img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.bk-frame img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
 .bk-frame figcaption { margin-top: 10px; }
 .bk-frame .o-folder { padding: 12px; background: var(--surface-sunk); }
 .bk-frame .o-folder .o-folder-tab { font-size: 0.9375rem; height: 36px; }
@@ -143,7 +143,7 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 .bk-bar-demo { display: block; width: 100%; height: 28px; border-radius: 99px; background: var(--spark); margin-top: 10px; transform: rotate(-3deg); }
 .bk-ui { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px clamp(24px, 4vw, 56px); }
 .bk-ui-block .o-input { margin-bottom: 10px; }
-.bk-ui-block .o-status { margin: 0 0 10px; }
+.bk-ui-block .o-status { display: flex; margin: 0 0 10px; }
 .bk-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
 .o-btn.is-hover { transform: translateY(-2px); box-shadow: 0 5px 0 var(--orbe-ink); }
 .o-btn.is-press { transform: translateY(3px); box-shadow: none; background: var(--action-press); }
@@ -165,10 +165,11 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 .bk-voice { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 64px); margin-top: 40px; }
 .bk-voice .o-small { margin: 8px 0 16px; }
 .bk-do { list-style: none; margin: 0; padding: 0; }
-.bk-do li { padding: 12px 0; border-top: 1px solid var(--rule); font: 600 clamp(1.0625rem, 1rem + 0.4vw, 1.3rem)/1.3 var(--font-text); letter-spacing: -0.01em; }
-.bk-do li b { display: inline-block; width: 64px; font: 500 11px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; vertical-align: 3px; }
+.bk-do li { display: grid; grid-template-columns: 64px 1fr; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--rule); font: 600 clamp(1.0625rem, 1rem + 0.4vw, 1.3rem)/1.3 var(--font-text); letter-spacing: -0.01em; }
+.bk-do li b { font: 500 11px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 .bk-do li.is-dont { font-weight: 400; text-decoration: line-through; text-decoration-thickness: 1.5px; opacity: 0.86; }
-.bk-do li.is-dont b { text-decoration: none; display: inline-block; }
+.bk-do li.is-dont { text-decoration: none; }
+.bk-do li.is-dont span { text-decoration: line-through; text-decoration-thickness: 1.5px; }
 
 /* applications */
 .bk-apps { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(24px, 3vw, 40px) 24px; margin-top: 40px; }
@@ -177,13 +178,18 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
 .bk-app.is-third { grid-column: span 4; }
 .bk-app-frame { position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px rgba(243, 240, 232, 0.24); }
 .bk-app-frame > .app { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-.bk-app figcaption { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin-top: 14px; font-size: 0.875rem; line-height: 1.45; color: var(--text-soft); }
-.bk-app figcaption b { color: var(--text); font-weight: 700; }
-.bk-app figcaption .o-label { grid-row: span 2; color: var(--night-accent); }
+.bk-appsec { background: var(--orbe-ink); color: var(--orbe-paper); }
+.bk-appsec .o-small { color: var(--orbe-stone); }
+.bk-appsec code { background: rgba(243, 240, 232, 0.12); }
+.bk-app figcaption { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin-top: 14px; font-size: 0.875rem; line-height: 1.45; color: var(--orbe-stone); }
+.bk-app figcaption b { color: var(--orbe-paper); font-weight: 700; }
+.bk-app figcaption .o-label { grid-row: span 2; color: var(--night-accent); padding-top: 3px; }
 
 /* footer */
 .bk-foot { padding: 72px 0 0; overflow: hidden; }
 .bk-foot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.bk-foot-grid > div { min-width: 0; }
+.bk-foot code { overflow-wrap: anywhere; }
 .bk-foot pre { background: var(--orbe-ink); color: var(--orbe-paper); padding: 16px; border-radius: 12px; overflow-x: auto; margin: 12px 0 0; }
 .bk-foot pre code { background: none; padding: 0; }
 .bk-foot-wm { margin-top: 56px; line-height: 0; }
@@ -202,7 +208,8 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
   .bk-schemes, .bk-why, .bk-supporting, .bk-rules, .bk-faces, .bk-figures, .bk-sides, .bk-frames, .bk-shapes, .bk-ui, .bk-voice, .bk-foot-grid { grid-template-columns: 1fr; }
   .bk-primary { grid-template-columns: 1fr 1fr; }
   .bk-primary .bk-sw:first-child { grid-column: span 2; }
-  .bk-swatches { grid-template-columns: repeat(3, 1fr); }
+  .bk-swatches { grid-template-columns: repeat(2, 1fr); }
+  .bk-cover .o-display { font-size: clamp(3.25rem, 15vw, 4.5rem); }
   .bk-step { grid-template-columns: 1fr; gap: 8px; }
   .bk-scheme-field { min-height: 300px; padding: 20px; }
   .bk-tiles { grid-template-columns: 1fr; }
@@ -211,5 +218,6 @@ code { background: color-mix(in srgb, currentColor 9%, transparent); padding: 1p
   .bk-app figcaption { grid-template-columns: 1fr; }
   .bk-app figcaption .o-label { grid-row: auto; }
   .bk-cover { padding-bottom: 260px; min-height: 0; }
-  .bk-cover-critter { bottom: 150px; }
+  .bk-cover-critter { bottom: 112px; width: 132px; right: 20px; }
+  .bk-cover-lede { max-width: 26ch; }
 }

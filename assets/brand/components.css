@@ -18,7 +18,7 @@
 .o-band { font: italic 400 1em / 1 var(--font-serif); letter-spacing: -0.01em; }
 .o-tnum { font-feature-settings: var(--figures-table); }
 
-/* [01] ——— Title: the idyll's bracket numbering */
+/* [01], a short rule, then the title: the idyll's bracket numbering */
 .o-num { display: inline-flex; align-items: baseline; gap: 0.7em; font: 400 1.25rem / 1 var(--font-serif); }
 .o-num::after { content: none; }
 .o-num > span:first-child::after { content: ""; display: inline-block; width: 2.4em; height: 1px; background: currentColor; margin-left: 0.7em; vertical-align: 0.32em; }

@@ -254,7 +254,7 @@ function ribbon(R, x0, y0, x1, y1, w, bend = 0) {
   by turbulence, with crayon grain on top. The idyll side of the brand: warm,
   made by hand, a place to keep work.
 */
-export function landscape({ w = 1200, h = 800, palette = "sky", seed = 43, horizon = 0.5, grainOpacity = 0.5 } = {}) {
+export function landscape({ w = 1200, h = 800, palette = "sky", seed = 43, horizon = 0.5, grainOpacity = 0.5, sky = true } = {}) {
   const S = typeof palette === "string" ? LANDSCAPES[palette] : palette;
   const R = rng(seed * 977 + w);
   const s = Math.max(0.55, Math.min(1.6, Math.sqrt(w * h) / 560));
@@ -270,11 +270,12 @@ export function landscape({ w = 1200, h = 800, palette = "sky", seed = 43, horiz
     + `<feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  ${cut} 0 0 0 ${(0.4 - cut * 0.3).toFixed(2)}" result="m"/>`
     + `<feComposite in="r" in2="m" operator="in"/></filter>`;
   const defs = `<defs>${mk("h", 0.005, 0.09, 1, 4.6)}${mk("v", 0.16, 0.006, 0.7, 4.0)}${mk("d", 0.05, 0.05, 1.2, 2.4)}`
-    + `<filter id="${p}c" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="${seed + 3}"/><feColorMatrix type="matrix" values="0 0 0 0 0.14  0 0 0 0 0.13  0 0 0 0 0.09  0 0 0 -1.6 1.0"/></filter></defs>`;
+    + `<filter id="${p}c" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="${seed + 3}"/><feColorMatrix type="matrix" values="0 0 0 0 0.14  0 0 0 0 0.13  0 0 0 0 0.09  0 0 0 -1.6 1.0"/></filter><mask id="${p}m"><rect y="${f1(h * horizon)}" width="${w}" height="${h}" fill="#fff"/></mask></defs>`;
   const layer = (f, paths) => `<g filter="url(#${p}${f})">${paths.join("")}</g>`;
   const path = (fill, d, op = 1) => `<path fill="${fill}" d="${d}" opacity="${op.toFixed(2)}"/>`;
   const hz = h * (horizon + R() * 0.04);
-  const out = [`<rect width="${w}" height="${h}" fill="${S.sky[0]}"/>`];
+  // sky: false paints only the ground, so it can sit on a page's own field
+  const out = sky ? [`<rect width="${w}" height="${h}" fill="${S.sky[0]}"/>`] : [];
   let ps = [];
   for (let i = 0; i < 18; i++) {
     const y = R() * hz * 1.05, bw = Math.max(hz * (0.12 + R() * 0.22), 22);
@@ -286,7 +287,7 @@ export function landscape({ w = 1200, h = 800, palette = "sky", seed = 43, horiz
     const x0 = R() * w * 0.8, x1 = x0 + w * (0.15 + R() * 0.4);
     ps.push(path(pick(S.streak), ribbon(R, x0, y, x1, y - h * 0.01, bw, h * 0.01), 0.55 + R() * 0.4));
   }
-  out.push(layer("h", ps));
+  if (sky) out.push(layer("h", ps));
   out.push(`<rect x="0" y="${f1(hz + h * 0.015)}" width="${w}" height="${f1(h - hz)}" fill="${S.field[1]}"/>`);
   ps = [];
   for (let i = 0; i < 9; i++) {
@@ -330,7 +331,7 @@ export function landscape({ w = 1200, h = 800, palette = "sky", seed = 43, horiz
     ps.push(path(pick(S.grass), ribbon(R, x, base, x + (R() - 0.3) * w * 0.04, base - len, w * 0.006 + 4 + R() * 5), 0.75 + R() * 0.25));
   }
   out.push(layer("v", ps));
-  out.push(`<rect width="${w}" height="${h}" filter="url(#${p}c)" opacity="${grainOpacity}"/>`);
+  out.push(`<rect width="${w}" height="${h}" filter="url(#${p}c)" opacity="${grainOpacity}"${sky ? "" : ` mask="url(#${p}m)"`}/>`);
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice">${defs}${out.join("")}</svg>`;
 }
 

@@ -68,7 +68,8 @@
 .ap-meter { height: 8px; border-radius: 99px; background: var(--surface-sunk); position: relative; overflow: hidden; }
 .ap-meter::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--accent); border-radius: 99px; }
 .ap-parts li > span:last-child { font-size: 13px; color: var(--text-soft); text-align: right; }
-.ap-table table { width: 100%; border-collapse: collapse; font-size: 14px; font-feature-settings: var(--figures-table); }
+.ap-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ap-table td:not(:first-child) { font-feature-settings: var(--figures-table); }
 .ap-table th { text-align: right; font: 500 10px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-soft); padding: 0 0 8px; border-bottom: var(--line) solid var(--orbe-ink); }
 .ap-table td { text-align: right; padding: 7px 0; border-bottom: 1px solid var(--rule); }
 .ap-table th:first-child, .ap-table td:first-child { text-align: left; }

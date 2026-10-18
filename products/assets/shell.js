@@ -104,7 +104,7 @@ export const today = () => new Date().toISOString().slice(0, 10);
 const regions = (() => { try { return new Intl.DisplayNames(["en-GB"], { type: "region" }); } catch { return null; } })();
 export const country = (code) => { if (!code || code === "Unknown" || code === "Other") return code || "Unknown"; try { return regions?.of(code.toUpperCase()) ?? code; } catch { return code; } };
 /* Copy is checked for dashes: replace any that slip in from data. */
-export const nodash = (s) => String(s ?? "").replace(/\s*[–—]\s*/g, ", ");
+export const nodash = (s) => String(s ?? "").replace(/\s*[\u2013\u2014]\s*/g, ", ");
 
 /* ---------- files ---------- */
 export const readText = (file) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = () => rej(r.error); r.readAsText(file); });
@@ -159,8 +159,9 @@ export function barsList(entries, { label = (k) => k, max } = {}) {
 }
 
 /* Vertical bars over days, drawn as an SVG with a <title> per bar for hover. */
-export function dayChart(series, { height = 180, unit = "downloads" } = {}) {
-  const w = 720;
+export function dayChart(series, { height, unit = "downloads", width } = {}) {
+  const w = width ?? (innerWidth < 640 ? 380 : 720);
+  height ??= w < 500 ? 200 : 180;
   const pad = { l: 34, r: 6, t: 8, b: 22 };
   const max = Math.max(1, ...series.map((d) => d.value));
   const step = niceStep(max);
