@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en-GB" data-c="blue">
+<html lang="en-GB" data-c="blue" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f1ea">
+<meta name="theme-color" content="#F3F0E8">
 <title>Sponsorships: Orbe</title>
 <meta name="description" content="Price a sponsorship from your own numbers, with the reasons and the rate-card sources, and see how a brand's brief ranks opted-in creators.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
 <link rel="stylesheet" href="../../assets/r5/type.css">
-<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
 <script type="module" src="./sponsorships.js"></script>
 </head>
 <body>
@@ -42,7 +43,7 @@
         <div class="btns"><button class="btn" type="submit">Price it</button><button class="btn btn-ghost btn-sm" type="button" data-price-example>Made-up example</button></div>
         <p class="err" data-price-err role="alert"></p>
       </form>
-      <div class="stack" data-price-out>
+      <div class="stack figures" data-price-out>
         <div class="panel"><p class="sub" style="margin:0">Type what your recent works delivered at the window brands buy: views at 30 days for YouTube, unique opens at 7 days for newsletters, downloads at 30 days for podcasts, average viewers for streams.</p></div>
       </div>
     </div>
@@ -79,9 +80,9 @@
           <label class="field"><span>Publish by, days ahead</span><input class="input" type="number" min="2" max="180" name="to" value="60"></label>
         </div>
         <div class="field"><span class="label">Who found the creator</span><div class="seg" data-source><button type="button" data-v="network" aria-pressed="true">Orbe's matching (15%)</button><button type="button" data-v="direct" aria-pressed="false">The brand, direct (5%)</button></div></div>
-        <div class="btns"><button class="btn" type="submit">Match</button></div>
+        <div class="btns"><button class="btn" type="submit">Match creators</button></div>
       </form>
-      <div class="stack" data-brief-out></div>
+      <div class="stack figures" data-brief-out></div>
     </div>
   </section>
 

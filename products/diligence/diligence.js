@@ -1,8 +1,9 @@
 /* Diligence: real Orbe Verified reports from the record module's labelled fixtures (site/assets/engine/record). */
-import { shell, $, esc, segmented, download, liveStrip, nodash } from "../assets/shell.js";
+import { shell, $, $$, esc, segmented, download, liveStrip, nodash, icon } from "../assets/shell.js";
 import { buildReport, renderHtml, textToString, cleanCreator, suspiciousCreator, messyCreator, FIXTURE_NOW, FIXTURE_BUYER } from "../../assets/engine/record/browser.js";
 
 shell("diligence");
+for (const b of $$("[data-icon]")) b.insertAdjacentHTML("afterbegin", icon(b.dataset.icon, { size: 16 }));
 $("[data-live]").innerHTML = liveStrip({
   live: "The verified record, every cross-check, the flags and the report renderer: the record module's own code, run on made-up records.",
   local: "Reports are generated on this device from labelled fixtures. Download or print one to see the file a buyer gets.",
@@ -40,8 +41,7 @@ function show(key) {
   const tone = rep.verdict.status === "verified" ? "good" : rep.verdict.status === "partly_verified" ? "bad" : "warn";
   const TONE = { good: ["good", "Good"], concern: ["warn", "Ask"], note: ["", "Note"] };
   $("[data-summary]").innerHTML = `
-    <p><span class="tag ${tone}" style="font-size:15px;padding:6px 14px">${esc(rep.verdict.label)}</span></p>
-    <p style="font-size:18px">${esc(nodash(textToString(rep.verdict.summary)))}</p>
+    <p style="font-size:18px"><strong class="verdict-word ${tone}">${esc(rep.verdict.label)}.</strong> ${esc(nodash(textToString(rep.verdict.summary)))}</p>
     <ul class="fits">${rep.keyPoints.slice(0, 6).map((k) => `<li><span class="tag ${(TONE[k.tone] ?? TONE.note)[0]}">${(TONE[k.tone] ?? TONE.note)[1]}</span><span>${esc(nodash(textToString(k.text)))}</span></li>`).join("")}</ul>
     <p class="small">The full report follows: scroll inside it, or open it as a full page. Every number in it links to the figure index and on to the source read it came from.</p>`;
   frame.srcdoc = html.replace("</head>", `${SITE_TYPE}</head>`);

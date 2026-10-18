@@ -4,18 +4,20 @@
   sent anywhere. The last file per account is remembered on this device only,
   so a later upload can show new personal bests.
 */
-import { shell, $, $$, esc, count, day, today, readText, dropZone, segmented, store, liveStrip, nodash } from "../assets/shell.js";
-import { rate, rateWorks, topStat, focusAreas, explain, personalBests, recordMetric, isRated, SPECS, signed, ratingNotice, RATING_LABEL, MODEL_VERSION } from "../../assets/engine/rating/browser.js";
+import { shell, $, $$, esc, count, day, today, readText, dropZone, segmented, store, liveStrip, nodash, icon, fold, sourcesList, ask } from "../assets/shell.js";
+import { rate, rateWorks, topStat, focusAreas, explain, personalBests, recordMetric, isRated, SPECS, signed as engineSigned, ratingNotice, RATING_LABEL, MODEL_VERSION } from "../../assets/engine/rating/browser.js";
 import { readCreatorExport, EXPORT_FORMATS, accountIdFor, workIdFor } from "../../assets/engine/ingest/browser.js";
 
 shell("rate");
 
 $("[data-live]").innerHTML = liveStrip({
   live: "The Orbe Rating, sub-scores, explanation and records, from the same engine the API runs (maths version " + MODEL_VERSION + ").",
-  local: "Your file is parsed and rated on this device. The last file per account is kept in this browser so your next upload can show new personal bests. Nothing is uploaded.",
+  local: "Your file is parsed and rated on this device. If you allow it, the last file per account is kept in this browser so your next upload can show new personal bests. Nothing is uploaded.",
   api: "Connect YouTube Analytics, Substack or your host once and Orbe refreshes your rating for you, keeps your history and sends your personal bests as they happen. Public YouTube ratings wait for YouTube's approval.",
 });
 
+// A true minus on ratings, as the brand writes them (−0.20).
+const signed = (x) => engineSigned(x).replace(/^-/, "\u2212");
 const KIND_WORD = { youtube: "Subscribers", substack: "Free and paid subscribers", podcast: "Followers", twitch: "Followers", photography: "Followers" };
 const HAS_LENGTH = { youtube: true, podcast: true, twitch: true };
 const ui = { mode: "upload" };
@@ -30,6 +32,7 @@ segmented($("[data-mode]"), (v) => {
 /* ---------- upload ---------- */
 let picked = null;
 $("[data-exported]").value = today();
+$("[data-drop]").insertAdjacentHTML("afterbegin", icon("upload", { size: 24 }));
 $("[data-where]").innerHTML = EXPORT_FORMATS.map((f) => `<li><span><b>${esc(f.label)}.</b> ${esc(f.where)}</span></li>`).join("");
 dropZone($("[data-drop]"), $("[data-file]"), (file) => {
   picked = { name: file.name, read: () => readText(file) };
@@ -58,7 +61,14 @@ $("[data-upload]").addEventListener("submit", async (e) => {
   try {
     const text = await picked.read();
     const read = await readCreatorExport(text, { exportedAt: `${exported}T23:00:00.000Z`, audience, title: $("[data-title]").value.trim() || undefined });
-    show(read.snapshot, `${exported}T23:00:00.000Z`, { source: `${read.label} export: ${read.used} works read, ${read.skipped} left out.`, warnings: read.warnings, sample: !!picked.sample });
+    show(read.snapshot, `${exported}T23:00:00.000Z`, {
+      source: `${read.label} export: ${read.used} works read, ${read.skipped} left out.`,
+      sources: [
+        { kind: "file", label: `${picked.name}, a ${read.label} export`, provenance: `${read.used} works read, ${read.skipped} left out. Read on this device; exported ${day(exported)}.${picked.sample ? " A made-up file." : ""}` },
+        { kind: "typed", label: `${count(audience)} followers or subscribers`, provenance: "Typed by you. Exports rarely carry it." },
+      ],
+      warnings: read.warnings, sample: !!picked.sample,
+    });
   } catch (x) {
     err.textContent = nodash(x?.message || "We could not read that file.");
   }
@@ -133,7 +143,7 @@ $("[data-manual]").addEventListener("submit", (e) => {
   if (works.length < 1) return void (err.textContent = "Add at least one work with a publish date.");
   const at = new Date().toISOString();
   const snapshot = { account: { id: accountId, creatorId: null, kind, platformId, handle: title, title, audience }, works, provenance: { source: "invoice_upload", accountId: platformId, checkedAt: at, basis: "uploaded" } };
-  show(snapshot, at, { source: `${works.length} works you typed.`, warnings: [] });
+  show(snapshot, at, { source: `${works.length} works you typed.`, sources: [{ kind: "typed", label: `${works.length} works and ${count(audience)} ${KIND_WORD[kind].toLowerCase()}`, provenance: `Typed by you on ${day(at)}. Missing boxes count as unknown, never zero.` }], warnings: [] });
 });
 
 /* ---------- result ---------- */
@@ -144,7 +154,8 @@ function show(snapshot, at, meta) {
   const result = rate(snapshot, at);
   const key = `orbe-rate-history:${snapshot.account.id}`;
   const prev = meta.sample ? null : store.local.json(key);
-  if (!meta.sample) store.local.put(key, snapshot);
+  // A file is kept on this device only once the person allows it; after that, the newest replaces it.
+  if (prev) store.local.put(key, snapshot);
   const titles = new Map(snapshot.works.map((w) => [w.id, w.title]));
 
   if (!isRated(result)) {
@@ -171,7 +182,7 @@ function show(snapshot, at, meta) {
           <p class="small">${esc(snapshot.account.title)}</p>
           <div class="big num" aria-label="Orbe Rating ${esc(signed(result.rating))}">${esc(signed(result.rating))}</div>
         </div>
-        <span class="tag acc" style="font-size:15px;padding:6px 14px">${esc(result.band)}</span>
+        <span class="tag acc band">${esc(result.band)}</span>
       </div>
       <p class="sub" style="margin-top:0">Zero is typical for ${esc(spec.peers)} with ${esc(result.sizeBand)} ${esc(spec.audienceNoun)}. ${d.provisional ? "On provisional benchmarks: the engine's starting baselines, replaced by measured ones as creators consent to be counted." : ""}</p>
       <p><span class="orbe-label">${esc(RATING_LABEL)}</span></p>
@@ -200,9 +211,9 @@ function show(snapshot, at, meta) {
 
     <div class="panel stack">
       <h2 class="h3">Your records</h2>
-      ${fresh.length ? `<ul class="reasons">${fresh.map((p) => `<li><span><b style="font-weight:500">New personal best since your last file:</b> ${esc(label(p))}, ${count(p.value)}${p.previous !== null ? ` (was ${count(p.previous)})` : ""}, on “${esc(titles.get(p.workId) ?? "a work")}”.</span></li>`).join("")}</ul>` : `<p class="small">${prev ? "No new records since the last file you rated here." : "Rate a newer export after your next post and new personal bests show here. Your last file is remembered on this device only."}</p>`}
+      ${fresh.length ? `<ul class="reasons">${fresh.map((p) => `<li><span><b style="font-weight:500">New personal best since your last file:</b> ${esc(label(p))}, ${count(p.value)}${p.previous !== null ? ` (was ${count(p.previous)})` : ""}, on “${esc(titles.get(p.workId) ?? "a work")}”.</span></li>`).join("")}</ul>` : `<p class="small">${prev ? "No new records since the last file you rated here." : meta.sample ? "Made-up files are never kept, so records here start from this file." : "Keep this file on this device below, then rate a newer export after your next post: new personal bests show here."}</p>`}
       ${records.length ? `<ul class="reasons">${records.map((p) => `<li><span>Best ${esc(label(p).replace(/^best /, ""))}: ${count(p.value)}, “${esc(titles.get(p.workId) ?? "a work")}”${p.previous !== null ? `, ahead of your next best ${count(p.previous)}` : ""}.</span></li>`).join("")}</ul>` : `<p class="small">Records need at least four works with the same number.</p>`}
-      ${prev ? `<button class="btn btn-ghost btn-sm" type="button" data-forget>Forget my last file on this device</button>` : ""}
+      ${meta.sample ? "" : `<div data-keep id="keep-${esc(snapshot.account.id).replace(/[^a-z0-9-]/gi, "")}"></div>`}
     </div>
 
     <div class="panel stack">
@@ -216,7 +227,10 @@ function show(snapshot, at, meta) {
       <h2 class="h3">Make my card</h2>
       <p class="small">Opens the card with this rating. Add your own picture there; it stays on this device too.</p>
       <div class="btns"><a class="btn" href="../card/" data-card>Make my card</a></div>
-      <p class="small">${esc(meta.source)} Maths version ${esc(result.modelVersion)}.</p>
+      ${fold("Where these numbers come from", `${(meta.sources?.length ?? 0) + 1} sources`, sourcesList([
+        ...(meta.sources ?? [{ kind: "typed", label: meta.source }]),
+        { kind: "engine", label: `The Orbe Rating, maths version ${result.modelVersion}`, provenance: `Independently calculated by Orbe against ${spec.peers} your size${d.provisional ? ", on provisional benchmarks" : ""}.` },
+      ]))}
       ${warnings(meta.warnings)}
     </div>`;
 
@@ -235,12 +249,33 @@ function show(snapshot, at, meta) {
     works: d.workRatings, personalBest, season: { name: `${now.getUTCFullYear()} so far`, works: works.filter((w) => (w.ageDays ?? 0) <= dayOfYear) },
     workTitle: best ? titles.get(best.workId) : snapshot.account.title, sample: !!meta.sample,
   });
-  $("[data-forget]")?.addEventListener("click", (e) => { try { localStorage.removeItem(key); } catch {} e.target.textContent = "Forgotten"; e.target.disabled = true; });
+  const keep = $("[data-keep]");
+  if (keep && prev) keptLine(keep, key);
+  else if (keep) ask(keep, {
+    title: "Keep this file on this device?",
+    body: "Then your next upload can show new personal bests. It stays in this browser only, never on a server, until you forget it.",
+    call: `Save ${snapshot.works.length} works for ${snapshot.account.title} in this browser's storage`,
+    allow: "Keep it", deny: "Don't keep",
+    onAllow: () => store.local.put(key, snapshot),
+    allowed: (ok) => (ok ? "Kept on this device. Rate a newer export after your next post to see new bests." : "This browser blocks storage, so nothing was kept."),
+    denied: "Not kept. Nothing from this file stays on this device.",
+    then: (ok, stored) => ok && stored && keptLine(keep, key, true),
+  });
   if (innerWidth < 900) out.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function warnings(list) {
   if (!list?.length) return "";
   const shown = list.slice(0, 6);
-  return `<details class="small"><summary>${list.length} note${list.length === 1 ? "" : "s"} on reading your file</summary><ul class="reasons" style="margin-top:8px">${shown.map((w) => `<li><span>${esc(nodash(w))}</span></li>`).join("")}${list.length > shown.length ? `<li><span>and ${list.length - shown.length} more.</span></li>` : ""}</ul></details>`;
+  return fold("Notes on reading your file", `${list.length}`, `<ul class="reasons">${shown.map((w) => `<li><span>${esc(nodash(w))}</span></li>`).join("")}${list.length > shown.length ? `<li><span>and ${list.length - shown.length} more.</span></li>` : ""}</ul>`);
+}
+
+function keptLine(el, key, focus = false) {
+  el.innerHTML = `<p class="ask-done" tabindex="-1"><span class="state good">Kept on this device</span><span>Your last file is in this browser only. Rate a newer export after your next post to see new bests.</span><button class="btn btn-ghost btn-sm" type="button" data-forget>Forget it</button></p>`;
+  if (focus) el.firstElementChild.focus({ preventScroll: true });
+  $("[data-forget]", el).addEventListener("click", () => {
+    try { localStorage.removeItem(key); } catch {}
+    el.innerHTML = `<p class="ask-done" tabindex="-1"><span class="state">Forgotten</span><span>Nothing from your files stays on this device.</span></p>`;
+    el.firstElementChild.focus({ preventScroll: true });
+  });
 }

@@ -21,7 +21,7 @@ function setColour(c, save) {
 mountWordmark($("#mark"), { animate: true });
 mountWordmark($("#foot-mark"), { animate: false });
 
-/* The reel: a second copy of the lettering so the loop is seamless. */
+/* The reel: a second copy of the lettering so the loop never shows a gap. */
 $$(".reel-track").forEach((track) => {
   [...track.children].forEach((li) => { const c = li.cloneNode(true); c.dataset.copy = ""; track.appendChild(c); });
 });

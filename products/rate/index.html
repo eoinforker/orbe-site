@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en-GB" data-c="blue">
+<html lang="en-GB" data-c="blue" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f1ea">
+<meta name="theme-color" content="#F3F0E8">
 <title>Rate my work: Orbe</title>
 <meta name="description" content="The Orbe Rating from your own export or figures, calculated in your browser. Nothing leaves your device.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
 <link rel="stylesheet" href="../../assets/r5/type.css">
-<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
 <script type="module" src="./rate.js"></script>
 </head>
 <body>
@@ -50,8 +51,8 @@
             <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-podcast-host.csv" data-aud="6000" data-name="The Long Table (made up)">Podcast host</button>
             <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-spotify-for-creators.csv" data-aud="900" data-name="Fixture Talks (made up)">Spotify for Creators</button>
           </div>
-          <details class="small">
-            <summary>Where to find your export</summary>
+          <details class="fold">
+            <summary><span>Where to find your export</span></summary>
             <ul class="reasons" style="margin-top:10px" data-where></ul>
             <p style="margin-top:8px">Column names are our reading of each export and have not yet been checked against every account. If a file is not recognised, type your works instead.</p>
           </details>
@@ -88,7 +89,7 @@
       <p class="note plain">No public lookups. Rating a YouTube channel from its public handle waits for YouTube's acceptance of Orbe's derived-metrics use; until then a rating comes only from numbers you bring.</p>
     </div>
 
-    <div class="stack" data-out>
+    <div class="stack figures" data-out>
       <div class="panel" data-empty>
         <h2 class="h3">Your rating appears here</h2>
         <p class="sub">A number centred on zero, a band, five sub-scores against creators your size, a plain-English explanation, how each work did against your own typical, and your records.</p>

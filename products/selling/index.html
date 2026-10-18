@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en-GB" data-c="blue">
+<html lang="en-GB" data-c="blue" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f1ea">
+<meta name="theme-color" content="#F3F0E8">
 <title>Selling: Orbe</title>
 <meta name="description" content="An indicative value from your revenue, the fee calculator for a sale through Orbe, and the tail clause explained. Indicative, not advice, not an offer.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
 <link rel="stylesheet" href="../../assets/r5/type.css">
-<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
 <script type="module" src="./selling.js"></script>
 </head>
 <body>
@@ -43,7 +44,7 @@
         <div class="btns"><button class="btn" type="submit">Value it</button><button class="btn btn-ghost btn-sm" type="button" data-val-example>Made-up example</button></div>
         <p class="err" data-val-err role="alert"></p>
       </form>
-      <div class="stack" data-val-out>
+      <div class="stack figures" data-val-out>
         <div class="panel"><p class="sub" style="margin:0">Enter your revenue by stream, or month by month, and your margin. The range appears here with every factor that moved it.</p></div>
       </div>
     </div>
@@ -59,7 +60,7 @@
         <label class="chip-check"><input type="checkbox" name="launch"> Launch rate: 5% for the first 20 deals (undecided)</label>
         <label class="field" data-dealno><span>Deal number</span><input class="input" type="number" min="1" name="deal" value="3"></label>
       </form>
-      <div class="stack" data-fee-out></div>
+      <div class="stack figures" data-fee-out></div>
     </div>
   </section>
 

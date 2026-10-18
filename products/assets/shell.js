@@ -4,6 +4,9 @@
   file reading, and per-tab storage that never leaves this browser.
 */
 import { mountWordmark } from "../../assets/r5/wordmark.js";
+import { icon } from "../../assets/icons/icons.js";
+
+export { icon };
 
 export const TOOLS = [
   { key: "hub", href: "", label: "All products" },
@@ -42,12 +45,17 @@ export function shell(current, depth = 1) {
   const cur = header.querySelector('.tabs [aria-current="page"]');
   if (cur && cur.offsetLeft > innerWidth - 80) cur.scrollIntoView({ inline: "center", block: "nearest" });
   footer();
+  // On a phone the "What works today" strip starts folded, so the tool's first control is on screen.
+  setTimeout(() => { if (matchMedia("(max-width: 759px)").matches) for (const d of document.querySelectorAll("[data-live-fold]")) d.open = false; });
+  // Static disclosures get the same caret as the ones the tools build.
+  for (const sum of document.querySelectorAll("details.fold > summary")) if (!sum.querySelector(".o-icon")) sum.insertAdjacentHTML("afterbegin", icon("caret", { size: 16, className: "caret" }));
 }
 
 function palette(root) {
   const set = (c, save) => {
     if (c !== "blue" && c !== "pink") return;
     document.documentElement.dataset.c = c;
+    document.documentElement.dataset.scheme = c;
     for (const b of root.querySelectorAll(".pal button")) b.setAttribute("aria-pressed", String(b.dataset.c === c));
     if (save) store.local.set("orbe-palette", c);
     document.dispatchEvent(new CustomEvent("palette", { detail: c }));
@@ -95,7 +103,7 @@ export function money(m, { pence = false } = {}) {
   if (!m) return "n/a";
   const sym = { GBP: "£", USD: "$", EUR: "€" }[m.currency] ?? "";
   const v = m.amount / 100;
-  return `${v < 0 ? "-" : ""}${sym}${new Intl.NumberFormat("en-GB", { minimumFractionDigits: pence ? 2 : 0, maximumFractionDigits: pence ? 2 : 0 }).format(Math.abs(v))}`;
+  return `${v < 0 ? "\u2212" : ""}${sym}${new Intl.NumberFormat("en-GB", { minimumFractionDigits: pence ? 2 : 0, maximumFractionDigits: pence ? 2 : 0 }).format(Math.abs(v))}`;
 }
 export const pct = (x, dp = 0) => (x === null || x === undefined ? "n/a" : `${(x * 100).toFixed(dp)}%`);
 export const bps = (b) => `${(b / 100).toLocaleString("en-GB", { maximumFractionDigits: 2 })}%`;
@@ -145,11 +153,49 @@ export function download(name, text, type = "text/plain") {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
+/* Copy, then say so on the button itself for a moment (the button keeps its width). */
 export async function copyText(btn, text) {
   try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement("textarea"); t.value = text; document.body.append(t); t.select(); try { document.execCommand("copy"); } catch {} t.remove(); }
-  const was = btn.textContent;
-  btn.textContent = "Copied";
-  setTimeout(() => (btn.textContent = was), 1400);
+  const label = btn.querySelector("[data-label]") ?? btn;
+  const was = label.textContent;
+  btn.style.minWidth = `${btn.offsetWidth}px`;
+  label.textContent = "Copied";
+  setTimeout(() => { label.textContent = was; btn.style.minWidth = ""; }, 1400);
+}
+
+/* A copy button's inner markup: the copy glyph and a label that can change. */
+export const copyLabel = (word = "Copy") => `${icon("copy", { size: 16 })}<span data-label>${word}</span>`;
+
+/* ---------- the guide's working, in plain HTML ----------
+   fold(): a <details> that keeps the answer on show and folds how Orbe got there
+   (AI Elements Reasoning, Quartz Reasoning: still text, a count in the summary, no shimmer).
+   sourcesList(): where each figure came from, with its provenance (AI Elements Sources).
+   ask(): a step that waits on the person, with Deny and Allow (Quartz ToolCall awaiting
+   permission, AI Elements Confirmation). It resolves to one line saying what happened. */
+export function fold(title, meta, body, { open = false } = {}) {
+  return `<details class="fold"${open ? " open" : ""}><summary>${icon("caret", { size: 16, className: "caret" })}<span>${title}${meta ? ` <span class="meta">${meta}</span>` : ""}</span></summary><div class="fold-body">${body}</div></details>`;
+}
+
+const SOURCE_GLYPH = { file: "record", typed: "person", link: "link", connected: "source", engine: "chart", public: "search" };
+export function sourcesList(items) {
+  return `<ul class="sources">${items.map((s) => `<li>${icon(SOURCE_GLYPH[s.kind] ?? "record", { size: 16 })}<span class="src-t">${s.url ? `<a href="${esc(s.url)}" rel="noopener noreferrer" target="_blank">${esc(s.label)}</a>` : esc(s.label)}</span>${s.provenance ? `<span class="src-p">${esc(s.provenance)}</span>` : ""}</li>`).join("")}</ul>`;
+}
+
+export function ask(el, { title, body, call, allow = "Allow", deny = "Deny", onAllow, onDeny, allowed, denied, then }) {
+  el.innerHTML = `<div class="ask" role="group" aria-labelledby="${el.id || (el.id = `ask-${Math.random().toString(36).slice(2, 8)}`)}-t">
+    <div class="ask-head"><h3 id="${el.id}-t">${esc(title)}</h3><span class="state waiting">Waiting on you</span></div>
+    <div class="ask-body"><p>${esc(body)}</p>${call ? `<div class="ask-call">${esc(call)}</div>` : ""}</div>
+    <div class="ask-acts"><button class="btn btn-ghost btn-sm" type="button" data-deny>${esc(deny)}</button><button class="btn btn-sm" type="button" data-allow>${esc(allow)}</button></div>
+  </div>`;
+  const settle = (ok) => {
+    const r = ok ? onAllow?.() : onDeny?.();
+    const line = ok ? allowed : denied;
+    el.innerHTML = `<p class="ask-done" tabindex="-1"><span class="state ${ok ? "good" : ""}">${ok ? "Allowed" : "Denied"}</span><span>${esc(typeof line === "function" ? line(r) : line)}</span></p>`;
+    el.firstElementChild.focus({ preventScroll: true });
+    then?.(ok, r);
+  };
+  el.querySelector("[data-allow]").addEventListener("click", () => settle(true));
+  el.querySelector("[data-deny]").addEventListener("click", () => settle(false));
 }
 
 /* ---------- small charts (single series, hover titles, with a table view) ---------- */
@@ -193,9 +239,10 @@ function niceStep(max) {
 
 /* The three-way status strip every tool shows. */
 export function liveStrip({ live, local, api }) {
-  return `<div class="live" aria-label="What works today">
+  return `<details class="fold live-fold" open data-live-fold><summary>${icon("caret", { size: 16, className: "caret" })}<span>What works today <span class="meta">live now, in your browser, with the API</span></span></summary>
+  <div class="live">
     <div><b><span class="dot dot-live"></span>Live now</b>${live}</div>
     <div><b><span class="dot dot-local"></span>In your browser only</b>${local}</div>
     <div><b><span class="dot dot-api"></span>When the Orbe API is deployed</b>${api}</div>
-  </div>`;
+  </div></details>`;
 }

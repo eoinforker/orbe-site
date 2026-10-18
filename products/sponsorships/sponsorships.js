@@ -1,5 +1,5 @@
 /* Sponsorships: the sponsor module's inventory, pricing and matching (site/assets/engine/sponsor), in the browser. */
-import { shell, $, $$, esc, count, money, bps, store, segmented, liveStrip, nodash } from "../assets/shell.js";
+import { shell, $, $$, esc, count, money, bps, store, segmented, liveStrip, nodash, fold, sourcesList } from "../assets/shell.js";
 import { inventoryFromStats, previewBrief, TYPED_NOTE, SAMPLE_CREATORS_LABEL, DEFAULT_TAKE_RATE, feeTermsFor, fundingFor, specsForKind, RATE_CARD_VERSION, RATING_LABEL } from "../../assets/engine/sponsor/browser.js";
 
 shell("sponsorships");
@@ -59,10 +59,11 @@ pf.addEventListener("submit", (e) => {
   const fx = currency === "GBP" ? (m, to) => (m.currency === to ? m : m.currency === "USD" && to === "GBP" ? { amount: Math.round(m.amount * rate), currency: "GBP" } : null) : undefined;
   const price = Number(f.price.value) > 0 ? { amount: Math.round(Number(f.price.value) * 100), currency } : null;
   const { inventory, note } = inventoryFromStats({ kind: f.kind.value, audience, units, price, currency, fx, rating: f.band.value ? { band: f.band.value, rating: 0 } : null, at: new Date().toISOString() });
-  $("[data-price-out]").innerHTML = inventory.items.map((item) => itemPanel(item, price)).join("") + `<p class="note plain">${esc(note)}</p>`;
+  $("[data-price-out]").innerHTML = inventory.items.map((item) => itemPanel(item, price, units.length)).join("") + `<p class="note plain">${esc(note)}</p>`;
 });
 
-function itemPanel(item, price) {
+const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
+function itemPanel(item, price, typed) {
   const s = item.suggestion;
   const w = item.stats.windows;
   const per = s?.per === "hour" ? "an hour" : "a placement";
@@ -72,8 +73,11 @@ function itemPanel(item, price) {
     ${s?.status === "suggested"
       ? `<div><p class="small">Suggested price, ${per}</p><p class="big num" style="font-size:clamp(40px,8vw,64px)">${esc(money(s.low))} to ${esc(money(s.high))}</p></div>
          <dl class="dl"><dt>Rate used per 1,000 ${esc(item.stats.unit)}</dt><dd>${esc(money(s.cpm.low, { pence: true }))} to ${esc(money(s.cpm.high, { pence: true }))}</dd><dt>Expected delivery</dt><dd>${count(s.expected.units)} ${esc(s.expected.unit)} at ${s.expected.day} ${s.expected.day === 1 ? "day" : "days"}</dd><dt>Evidence</dt><dd>${esc({ own_history: "Your own completed sponsorships", comparables: "Creators your kind and size", rate_card: "Provisional rate card" }[s.basis])}</dd></dl>
-         <ul class="reasons">${s.reasons.map((r) => `<li><span>${esc(nodash(r.replace(/ read at source\./, ", from the figures you typed.")))}</span></li>`).join("")}</ul>
-         ${s.sources.length ? `<div><p class="label">Rate-card sources (${esc(s.version || RATE_CARD_VERSION)})</p><ul class="reasons" style="margin-top:6px">${s.sources.map((src) => `<li><span><a href="${esc(src.url)}" rel="noopener noreferrer" target="_blank">${esc(src.label)}</a></span></li>`).join("")}</ul><p class="small" style="margin-top:6px">Third-party figures from search snippets, not verified against the originals. Replaced by realised rates from verified sponsorships through Orbe.</p></div>` : s.provisional ? `<p class="small">No published comparable was found for this format: the rate is a placeholder, the first to be replaced with realised rates.</p>` : ""}`
+         ${fold("How Orbe priced it", `${s.reasons.length} reason${s.reasons.length === 1 ? "" : "s"}`, `<ul class="reasons">${s.reasons.map((r) => `<li><span>${esc(nodash(r.replace(/ read at source\./, ", from the figures you typed.")))}</span></li>`).join("")}</ul>`)}
+         ${fold("Sources", `${s.sources.length + 1}`, sourcesList([
+           { kind: "typed", label: `Your ${typed} works and audience`, provenance: "Typed by you, not yet read at source. Brands see verified delivery once your accounts are connected." },
+           ...s.sources.map((src) => ({ kind: "link", label: src.label, url: src.url, provenance: `${host(src.url)}. A third-party figure from a search snippet, not verified against the original. Rate card ${s.version || RATE_CARD_VERSION}.` })),
+         ]) + (s.sources.length ? `<p class="small" style="margin-top:8px">Replaced by realised rates from verified sponsorships through Orbe.</p>` : s.provisional ? `<p class="small" style="margin-top:8px">No published comparable was found for this format: the rate is a placeholder, the first to be replaced with realised rates.</p>` : ""))}`
       : `<p class="note warn">${esc(nodash(s?.reason ?? "No suggestion yet."))}</p>`}
     <p class="small">Delivery: ${w.filter((x) => x.n > 0).map((x) => x.median === null ? `${x.day} days: ${esc(x.note ?? "not enough")}` : `${x.day} days: median ${count(x.median)}, middle half ${count(x.p25)} to ${count(x.p75)} (${x.n} works)`).join("; ")}.${item.stats.consistency !== null ? ` Consistency ${Math.round(item.stats.consistency * 100)}%.` : ""}</p>
     ${fees.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>At your price</th><th class="r">You get</th><th class="r">Orbe's fee</th><th class="r">Brand pays</th></tr></thead><tbody>${fees.map((x) => `<tr><td>${x.src === "network" ? "Orbe found the brand" : "You brought the brand"}</td><td class="r">${esc(money(x.price))}</td><td class="r">${esc(money(x.fee))}</td><td class="r">${esc(money(x.total))}</td></tr>`).join("")}</tbody></table></div>` : ""}

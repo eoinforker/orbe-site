@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en-GB" data-c="blue">
+<html lang="en-GB" data-c="blue" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f1ea">
+<meta name="theme-color" content="#F3F0E8">
 <title>Make my card: Orbe</title>
 <meta name="description" content="Your Orbe card from your own rating and your own picture, drawn in your browser.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
 <link rel="stylesheet" href="../../assets/r5/type.css">
-<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
 <style>
   .stage { background: var(--stone); border-radius: 16px; padding: clamp(14px, 3vw, 36px); display: grid; justify-items: center; }
   .cardbox { aspect-ratio: var(--ar, 1 / 1); width: min(100%, calc((100vh - 220px) * var(--w, 1) / var(--h, 1))); border-radius: 6px; overflow: hidden; box-shadow: 0 24px 48px -32px rgba(20, 19, 17, 0.5); }

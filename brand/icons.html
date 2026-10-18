@@ -34,7 +34,7 @@
 
   /* the pick: one deep panel on the page */
   .pick { margin-top: var(--s-5); padding: var(--s-5); display: grid; gap: var(--s-5); }
-  @media (min-width: 900px) { .pick { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; padding: var(--s-6); } .pick > ol { grid-column: 2; grid-row: 1 / span 2; } .pick > .demo { grid-column: 1; grid-row: 2; align-self: start; } }
+  @media (min-width: 900px) { .pick { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; padding: var(--s-6); } .pick > ol { grid-column: 2; grid-row: 1 / span 2; align-content: start; } .pick > .demo { grid-column: 1; grid-row: 2; align-self: start; } }
   .pick h2 { font: var(--w-display) var(--t-display-3) / 0.95 var(--font-display); letter-spacing: -0.04em; }
   .pick ol { list-style: decimal; padding-left: 1.3em; display: grid; gap: var(--s-3); }
   .pick li::marker { font-family: var(--font-serif); }
@@ -136,7 +136,7 @@
 
   <section aria-labelledby="board-h">
     <h2 class="h2" id="board-h">The candidates</h2>
-    <p class="sub">From the design.how icon libraries directory (17 sets), the six that are open, drawn for interface sizes and cover Orbe's glyphs. Each as published on npm, untouched, scaled to the size shown.</p>
+    <p class="sub">From the design.how icon libraries directory (17 sets), the six that cover Orbe's glyphs at interface sizes under a licence Orbe can ship. Each as published on npm, untouched, scaled to the size shown.</p>
     <div class="controls">
       <span><span class="lab" id="on-l">On</span><span class="o-toggle" role="group" aria-labelledby="on-l" data-on>
         <button type="button" data-v="paper" aria-pressed="true">Paper</button><button type="button" data-v="sky" aria-pressed="false">Sky</button><button type="button" data-v="cobalt" aria-pressed="false">Cobalt</button><button type="button" data-v="ink" aria-pressed="false">Ink</button>

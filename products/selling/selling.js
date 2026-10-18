@@ -1,5 +1,5 @@
 /* Selling: the market module's valuation, fees and tail clause (site/assets/engine/market), in the browser. */
-import { shell, $, $$, esc, money, bps, pct, day, segmented, liveStrip, nodash } from "../assets/shell.js";
+import { shell, $, $$, esc, money, bps, pct, day, segmented, liveStrip, nodash, fold, sourcesList } from "../assets/shell.js";
 import { valuate, INDICATIVE_LABEL, VALUATION_MODEL_VERSION, TAKE_RATE, TAKE_RATE_LAUNCH, settlement, BUYER_TERMS, tailScenario } from "../../assets/engine/market/browser.js";
 
 shell("selling");
@@ -87,13 +87,18 @@ vf.addEventListener("submit", (e) => {
   $("[data-val-out]").innerHTML = `<div class="panel stack">
       <p class="kick" style="margin:0"><span class="tag warn">Indicative</span><span class="tag">Confidence ${esc(v.confidence)}</span></p>
       ${v.range ? `<p class="big num" style="font-size:clamp(40px,9vw,72px)">${esc(money(v.range.low))} to ${esc(money(v.range.high))}</p>
-        <p class="small">${v.multiples.low}x to ${v.multiples.high}x a year's profit, centred on ${v.multiples.centre}x.</p>` : `<p class="h2">No range</p>`}
+        <p class="small">${v.multiples.low}× to ${v.multiples.high}× a year's profit, centred on ${v.multiples.centre}×.</p>` : `<p class="h2">No range</p>`}
       <dl class="dl"><dt>Revenue, last twelve months${v.annualised ? " (annualised)" : ""}</dt><dd>${esc(money(v.ttmRevenue))}</dd><dt>Profit</dt><dd>${esc(money(v.ttmProfit))}</dd><dt>Verified share</dt><dd>${pct(v.verifiedShare)}</dd><dt>Growth</dt><dd>${v.growth === null ? "n/a" : pct(v.growth)}</dd><dt>Largest stream</dt><dd>${pct(v.largestStreamShare)}</dd></dl>
-      <ul class="reasons">${v.reasons.map((r) => `<li><span>${esc(nodash(r))}</span></li>`).join("")}</ul>
+      ${fold("Why this range", `${v.reasons.length} reason${v.reasons.length === 1 ? "" : "s"}`, `<ul class="reasons">${v.reasons.map((r) => `<li><span>${esc(nodash(r))}</span></li>`).join("")}</ul>`)}
+      ${fold("Sources", "3", sourcesList([
+        { kind: "typed", label: `${declared.length} revenue lines, ${mode === "lines" ? "as you pasted them" : "built from your monthly figures by stream"}`, provenance: "Declared by you, so none of it counts as verified. Connected revenue (Stripe, AdSense, checked invoices) replaces it." },
+        { kind: "typed", label: `A ${f.margin.value}% profit margin and ${f.face.value}% reliance on you`, provenance: "Your own estimates." },
+        { kind: "engine", label: `Orbe's valuation model ${v.modelVersion}`, provenance: "Provisional multiples set from public comparables until Orbe's own completed deals replace them." },
+      ]))}
     </div>
     <div class="panel stack">
       <h3 class="h3">What moved the multiple</h3>
-      <div class="tbl-wrap"><table class="tbl"><tbody>${v.factors.map((x) => `<tr><td>${esc(FACTOR[x.key] ?? x.key)}</td><td class="r" style="white-space:nowrap">${x.key === "base" ? `${x.effect}x` : `${x.effect >= 0 ? "+" : ""}${x.effect.toFixed(2)}x`}</td><td class="small">${esc(nodash(x.reason))}</td></tr>`).join("")}</tbody></table></div>
+      <div class="tbl-wrap"><table class="tbl"><tbody>${v.factors.map((x) => `<tr><td>${esc(FACTOR[x.key] ?? x.key)}</td><td class="r" style="white-space:nowrap">${x.key === "base" ? `${x.effect}×` : `${x.effect >= 0 ? "+" : "\u2212"}${Math.abs(x.effect).toFixed(2)}×`}</td><td class="small">${esc(nodash(x.reason))}</td></tr>`).join("")}</tbody></table></div>
     </div>
     ${w.range && v.range ? `<div class="panel stack"><h3 class="h3">What if it were verified?</h3><p>With the same figures read at source, the range would be <b style="font-weight:500">${esc(money(w.range.low))} to ${esc(money(w.range.high))}</b>, confidence ${esc(w.confidence)}. Connecting your revenue sources narrows the range and can lift the centre, because buyers pay for numbers they can trust.</p><p class="small">A what-if on your own figures, not a second valuation.</p></div>` : ""}
     <p class="note warn">${esc(INDICATIVE_LABEL)} Every multiple and adjustment is provisional (model ${esc(v.modelVersion)}), set from public comparables until Orbe's own completed deals replace them. Your figures here are declared, so none of them counts as verified.</p>`;

@@ -4,7 +4,7 @@
   (site/assets/engine/podcast, built from product/src/podcast). The feed is
   read in the browser; nothing is sent to Orbe.
 */
-import { shell, $, $$, esc, count, day, pct, store, copyText, readText, barsList, dayChart, liveStrip, country, nodash } from "../assets/shell.js";
+import { shell, $, $$, esc, count, day, pct, store, copyText, copyLabel, readText, barsList, dayChart, liveStrip, country, nodash, icon, fold, sourcesList } from "../assets/shell.js";
 import {
   readFeedDetails, suggestShowId, isShowId, prefixFor, prefixUrl, prefixChain, stepsFor, HOST_HOWTO, hostOf, checkPrefix, txtCode, txtTag,
   sampleDashboard, SAMPLE_LABEL, buildPublicStats, appLinks, chooseApp, landingPage, APP_NAMES, APPS, assessPlausibility, RULES_VERSION, PROVENANCE_METHODS, MIN_REPORTABLE,
@@ -32,12 +32,18 @@ const maskEmail = (email) => {
 
 /* ---------- 1. the feed ---------- */
 const status = $("[data-feed-status]");
+for (const b of $$("[data-copy-prefix], [data-copy-txt], [data-copy-sl]")) b.innerHTML = copyLabel();
+$("[data-attach]").innerHTML = icon("upload", { size: 20 });
+$("[data-chip-clear]").innerHTML = icon("close", { size: 16 });
+$("[data-attach]").addEventListener("click", () => $("[data-xml-file]").click());
+$("[data-chip-clear]").addEventListener("click", () => { $("[data-xml-file]").value = ""; $("[data-chip]").classList.add("hide"); $("[data-feed-url]").focus(); });
+const reading = (what) => (status.innerHTML = `<span class="state waiting"><span class="arc" aria-hidden="true"></span>${esc(what)}</span>`);
 $("[data-paste-open]").addEventListener("click", () => { $("[data-paste]").classList.remove("hide"); $("[data-xml]").focus(); });
 $("[data-feed-form]").addEventListener("submit", async (e) => {
   e.preventDefault();
   const url = $("[data-feed-url]").value.trim();
   if (!/^https?:\/\//i.test(url)) return void (status.innerHTML = `<span class="err">Paste the full feed address, starting with https://</span>`);
-  status.textContent = "Reading your feed…";
+  reading("Reading your feed");
   try {
     const res = await fetch(url, { headers: { accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.5" }, cache: "no-store" });
     if (!res.ok) throw new Error(`The feed answered ${res.status}.`);
@@ -50,7 +56,14 @@ $("[data-feed-form]").addEventListener("submit", async (e) => {
   }
 });
 $("[data-xml-read]").addEventListener("click", () => load($("[data-xml]").value, state.feedUrl || $("[data-feed-url]").value.trim() || "https://example.invalid/your-feed.xml", false));
-$("[data-xml-file]").addEventListener("change", async (e) => { const f = e.target.files[0]; if (f) load(await readText(f), state.feedUrl || $("[data-feed-url]").value.trim() || `https://example.invalid/${f.name}`, false); });
+$("[data-xml-file]").addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  $("[data-chip-name]").textContent = f.name;
+  $("[data-chip]").classList.remove("hide");
+  reading(`Reading ${f.name}`);
+  load(await readText(f), state.feedUrl || $("[data-feed-url]").value.trim() || `https://example.invalid/${f.name}`, false);
+});
 $("[data-madeup]").addEventListener("click", async () => {
   const xml = await (await fetch("../fixtures/made-up-feed.xml")).text();
   $("[data-feed-url]").value = "https://example.invalid/long-table/feed.xml";
@@ -283,11 +296,21 @@ form.addEventListener("submit", (e) => {
   const index = num(f.indexCount.value) !== undefined || f.dead.checked ? { id: 0, title: state.feed?.title ?? "", url: state.feedUrl, episodeCount: num(f.indexCount.value), dead: f.dead.checked ? 1 : 0 } : null;
   const videos = f.videos.value.split(/[\s,;]+/).map(Number).filter((n) => Number.isFinite(n) && n > 0).map((views, i) => ({ episodeGuid: `v${i}`, videoWorkId: `v${i}`, videoTitle: "", views, daysApart: 0, similarity: 1, firstFrameCount: false }));
   const p = assessPlausibility({ claim, measured, op3, index, feed: state.feed, videos, bestChart: num(f.chart.value) ? { rank: num(f.chart.value), chart: "a public chart" } : null, ratings: num(f.ratings.value) !== undefined ? { count: num(f.ratings.value) } : null, now: new Date() });
+  const SIGNAL = {
+    "Measured by Orbe": { kind: "engine", provenance: "Counted at Orbe's prefix with IAB-style rules. Typed into this form here; read live once the API is deployed." },
+    "OP3 public counts": { kind: "public", provenance: "OP3, the open podcast prefix: public counts, typed into this form." },
+    "Claimed daily series": { kind: "typed", provenance: "The claim as given, typed into this form." },
+    "Podcast Index": { kind: "public", provenance: "The public Podcast Index listing, typed into this form." },
+    "YouTube views of video episodes": { kind: "public", provenance: "Public YouTube view counts, typed into this form." },
+    "Chart positions": { kind: "public", provenance: "A public chart position, typed into this form." },
+    "Public ratings": { kind: "public", provenance: "Ratings shown publicly on Apple Podcasts and Spotify, typed into this form." },
+  };
   const VERDICT = { consistent: ["Consistent", "good"], consistent_with_notes: ["Consistent, with notes", "good"], questions: ["Questions to ask", "warn"], inconsistent: ["Inconsistent", "bad"], not_enough_signal: ["Not enough signal", ""] };
   const SEV = { info: "", low: "", medium: "warn", high: "bad" };
   $("[data-pl-out]").innerHTML = `<div class="panel stack">
       <p><span class="tag ${VERDICT[p.verdict][1]}" style="font-size:15px;padding:6px 14px">${VERDICT[p.verdict][0]}</span></p>
-      <p class="small">Signals used: ${esc(p.signalsUsed.join(", ") || "none")}. Rules ${esc(p.rulesVersion)}, every threshold provisional.</p>
+      ${fold("Signals compared", `${p.signalsUsed.length || "none"}`, p.signalsUsed.length ? sourcesList(p.signalsUsed.map((u) => ({ ...(SIGNAL[u] ?? { kind: "typed", provenance: "Typed into this form." }), label: u }))) : `<p class="small">Add a claim and at least one signal to compare it with.</p>`)}
+      <p class="small">Rules ${esc(p.rulesVersion)}, every threshold provisional.</p>
       ${p.estimate ? `<p class="note">Public estimate: ${count(p.estimate.monthlyLow)} to ${count(p.estimate.monthlyHigh)} downloads a month, from ${esc(p.estimate.basis)}. ${esc(PROVENANCE_METHODS.estimated)}.</p>` : ""}
     </div>
     ${p.flags.length ? p.flags.map((fl) => `<div class="panel stack"><p><span class="tag ${SEV[fl.severity]}">${esc(fl.severity)}</span> <span class="small mono">${esc(fl.code)}</span></p><p>${esc(nodash(fl.reason))}</p>${fl.innocent ? `<p class="small"><b style="font-weight:500">An innocent reading:</b> ${esc(nodash(fl.innocent))}</p>` : ""}<p class="small">${Object.entries(fl.evidence).map(([k, v]) => `${esc(k)}: ${esc(typeof v === "number" ? count(v) : v)}`).join(" · ")}</p></div>`).join("") : `<div class="panel"><p class="small" style="margin:0">No flags. ${p.verdict === "not_enough_signal" ? "Add a claim and at least one signal to compare it with." : "The claim sits within what the signals allow."}</p></div>`}`;

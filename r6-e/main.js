@@ -27,7 +27,7 @@ function setColour(c, save) {
 setColour(document.documentElement.dataset.c === "pink" ? "pink" : "blue", false);
 swatches.forEach((b) => b.addEventListener("click", () => setColour(b.dataset.c, true)));
 
-/* ---------- a painting, drawn by hand in code: cut shapes, carved marks, no filters ---------- */
+/* ---------- the painting: cut-paper layers drawn in code, flat colour, one ember sun ---------- */
 function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 /* A smooth line through points (Catmull-Rom as Béziers). */
 function curve(pts) {
@@ -40,87 +40,52 @@ function curve(pts) {
   }
   return d;
 }
-/* A ridge: y at x, as a gentle shape with a little hand wobble. */
-function ridge(r, w, f, step = 26) {
+function ridge(r, w, f, step = 30) {
   const pts = [];
-  for (let x = -20; x < w + 20; x += step) pts.push([x, f(x) + (r() - 0.5) * 3]);
+  for (let x = -20; x < w + 20; x += step) pts.push([x, f(x) + (r() - 0.5) * 2]);
   pts.push([w + 20, f(w + 20)]);
   return pts;
 }
 const shape = (pts, h) => `${curve(pts)} L${pts.at(-1)[0]} ${h} L${pts[0][0]} ${h} Z`;
-/* A gouge: a tapered cut, like a lino tool leaves. */
-function gouge(x, y, len, ang, wid) {
-  const dx = Math.cos(ang) * len, dy = Math.sin(ang) * len, nx = -Math.sin(ang) * wid, ny = Math.cos(ang) * wid;
-  const mx = x + dx / 2, my = y + dy / 2;
-  return `M${x.toFixed(1)} ${y.toFixed(1)} Q${(mx + nx).toFixed(1)} ${(my + ny).toFixed(1)} ${(x + dx).toFixed(1)} ${(y + dy).toFixed(1)} Q${(mx - nx * 0.4).toFixed(1)} ${(my - ny * 0.4).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}Z`;
-}
 function poplar(x, base, h, wid) {
   return `M${x} ${base} C${x - wid} ${base - h * 0.25} ${x - wid * 0.8} ${base - h * 0.75} ${x} ${base - h} C${x + wid * 0.8} ${base - h * 0.75} ${x + wid} ${base - h * 0.25} ${x} ${base}Z`;
 }
+/* Trees for a width: a stand of poplars and one round tree, repeated across wide ground. */
+function grove(w) {
+  const stands = [];
+  for (let o = 0; o < w; o += 390) stands.push([o + 52, 58, 9], [o + 68, 72, 10], [o + 84, 50, 8], [o + 342, 46, 8]);
+  return stands.filter(([x]) => x < w);
+}
 
-function paint(svg, { w = 390, h = 300, seed = 7, sun = true, trees = true, hz = 0 } = {}) {
+function paint(svg, { w = 390, h = 300, seed = 7, sun = true, hz = 0 } = {}) {
   const r = rng(seed);
-  const farF = (x) => 150 + hz + Math.sin(x / 70 + 1.2) * 9 + Math.sin(x / 23) * 3;
-  const midF = (x) => 188 + hz + (x / w) * 26 - Math.sin(x / 95 + 0.4) * 16;
-  const fieldF = (x) => 228 + hz - (x / w) * 14 + Math.sin(x / 60) * 4;
-  const groundF = (x) => 262 + hz + Math.sin(x / 80 + 2) * 6;
-  const far = ridge(r, w, farF), mid = ridge(r, w, midF), field = ridge(r, w, fieldF, 30), ground = ridge(r, w, groundF, 34);
+  const farF = (x) => 150 + hz + Math.sin(x / 70 + 1.2) * 9 + Math.sin(x / 23) * 2;
+  const midF = (x) => 190 + hz + Math.sin((x / 390) * Math.PI * 2 + 0.4) * 12 - Math.sin(x / 95 + 0.4) * 8;
+  const fieldF = (x) => 230 + hz + Math.sin(x / 120) * 5;
+  const groundF = (x) => 264 + hz + Math.sin(x / 80 + 2) * 5;
+  const far = ridge(r, w, farF), mid = ridge(r, w, midF), field = ridge(r, w, fieldF, 40), ground = ridge(r, w, groundF, 40);
   const id = `l${seed}`;
-  let s = "";
-  if (sun) {
-    s += `<circle class="l-sun" cx="300" cy="${128 + hz}" r="40"/>`;
-    for (let k = 0; k < 5; k++) s += `<path class="l-sun-cut" d="M${268 + k * 2} ${112 + hz + k * 9} q${30 - k * 1} ${-3 + (r() - 0.5) * 2} ${62 - k * 4} 0" />`;
-  }
+  let s = `<rect class="l-sky" x="-20" y="0" width="${w + 40}" height="${h}"/>`;
+  if (sun) s += `<circle class="l-sun" cx="${w * 0.77}" cy="${132 + hz}" r="30"/>`;
   s += `<path class="l-far" d="${shape(far, h)}"/>`;
-  /* far water: two flat carved lines */
-  for (let k = 0; k < 9; k++) { const x = r() * w, y = farF(x) + 8 + r() * 12; s += `<path class="l-cut-soft" d="${gouge(x, y, 14 + r() * 26, (r() - 0.5) * 0.06, 0.9)}"/>`; }
-  s += `<clipPath id="${id}m"><path d="${shape(mid, h)}"/></clipPath>`;
-  s += `<path class="l-mid" d="${shape(mid, h)}"/>`;
+  s += `<clipPath id="${id}m"><path d="${shape(mid, h)}"/></clipPath><path class="l-mid" d="${shape(mid, h)}"/>`;
   s += `<g clip-path="url(#${id}m)">`;
-  for (let k = 0; k < 7; k++) {
-    const off = 9 + k * 7;
-    const pts = mid.map(([x, y]) => [x, y + off + Math.sin(x / 40 + k) * 1.2]);
-    s += `<path class="l-stripe" d="${curve(pts)}" style="stroke-width:${(2.6 - k * 0.15).toFixed(2)}"/>`;
-  }
+  for (let k = 0; k < 3; k++) s += `<path class="l-stripe" d="${curve(mid.map(([x, y]) => [x, y + 10 + k * 9]))}"/>`;
   s += `</g>`;
-  if (trees) {
-    for (const [x, hh, ww] of [[52, 58, 9], [68, 72, 10], [84, 50, 8], [342, 46, 8]]) {
-      const b = midF(x) + 6;
-      s += `<path class="l-tree" d="${poplar(x, b, hh, ww)}"/><path class="l-tree-cut" d="M${x} ${b - 6} L${x} ${b - hh * 0.8}"/>`;
-      for (let k = 0; k < 4; k++) s += `<path class="l-cut" d="${gouge(x - 1, b - hh * (0.25 + k * 0.15), ww * 0.7, -0.5, 0.8)}"/>`;
-    }
-    const tx = 236, tb = midF(tx) + 4;
-    s += `<path class="l-tree" d="M${tx} ${tb} m-22 0 c-6 -20 6 -36 22 -38 c16 2 28 18 22 38 Z"/>`;
-    for (let k = 0; k < 4; k++) s += `<path class="l-cut" d="${gouge(tx - 14 + k * 6, tb - 12 - k * 5, 10, -0.9 + k * 0.2, 1)}"/>`;
-  }
-  s += `<clipPath id="${id}f"><path d="${shape(field, h)}"/></clipPath>`;
-  s += `<path class="l-field" d="${shape(field, h)}"/>`;
+  for (const [x, hh, ww] of grove(w)) s += `<path class="l-tree" d="${poplar(x, midF(x) + 6, hh, ww)}"/>`;
+  for (let o = 236; o < w; o += 390) { const tb = midF(o) + 4; s += `<path class="l-tree" d="M${o - 22} ${tb} c-6 -20 6 -36 22 -38 c16 2 28 18 22 38 Z"/>`; }
+  s += `<clipPath id="${id}f"><path d="${shape(field, h)}"/></clipPath><path class="l-field" d="${shape(field, h)}"/>`;
   s += `<g clip-path="url(#${id}f)">`;
-  /* furrows that run to a point beyond the field, so the field lies flat */
-  for (let k = -9; k <= 18; k++) {
-    const x0 = 120 + k * 32, x1 = 195 + k * 7;
-    s += `<path class="l-furrow" d="M${x0} ${h} Q${(x0 + x1) / 2 + (r() - 0.5) * 6} ${fieldF(x1) + 30} ${x1} ${fieldF(x1) - 4}"/>`;
-  }
+  /* furrows run to one point past the field, so it lies flat */
+  for (let x0 = -w; x0 < w * 2; x0 += 34) { const vx = w / 2 + (x0 - w / 2) * 0.22; s += `<path class="l-furrow" d="M${x0} ${h} L${vx.toFixed(1)} ${fieldF(vx) - 2}"/>`; }
   s += `</g>`;
   s += `<path class="l-ground" d="${shape(ground, h + 2)}"/>`;
-  /* grass, cut into the ground by hand: short upward gouges along the ridge */
-  for (let x = -6; x < w + 6; x += 5 + r() * 6) {
-    const y = groundF(x) + 4 + r() * 6;
-    s += `<path class="l-cut" d="${gouge(x, y, 7 + r() * 9, -Math.PI / 2 + (r() - 0.5) * 0.7, 1.1)}"/>`;
-  }
-  for (let k = 0; k < 26; k++) {
-    const x = r() * w, y = groundF(x) + 18 + r() * (h - groundF(x) - 18);
-    if (y > h - 2) continue;
-    s += `<path class="l-cut-soft" d="${gouge(x, y, 8 + r() * 16, (r() - 0.5) * 0.25, 1)}"/>`;
-  }
   svg.innerHTML = s;
 }
 const land = $("[data-land]");
 if (land) paint(land, { seed: 7 });
-const land2 = $("[data-land2]");
-if (land2) paint(land2, { seed: 19, sun: false, trees: false });
-const land3 = $("[data-land3]");
-if (land3) paint(land3, { seed: 31, w: 1440, sun: false, trees: true, hz: 20 });
+const landHero = $("[data-land-hero]");
+if (landHero) paint(landHero, { seed: 31, w: 1440, sun: false, hz: 10 });
 
 /* ---------- every kind can play the story ---------- */
 const initials = { channel: "FR", newsletter: "MN", stream: "NS", podcast: "LT", portfolio: "LP" };
@@ -145,13 +110,13 @@ function setKind(k, { recount = true } = {}) {
   const bind = {
     handle: e.handle, size: e.sizeBand, lead: String(lead.score), peers: e.peers, fact: firstSentence(e, lead),
     initials: initials[k], signed: e.signed, band: e.band,
-    weights: mathsFor(k).map((m) => `${m.name} ${m.weight}%`).join(", "),
+    weights: `The weights for ${e.peers}: ${mathsFor(k).map((m) => `${m.name} ${m.weight}%`).join(", ")}.`,
     notice: ratingNotice(e.platform), said: `“${said}”`,
     line1: EXAMPLE_LINE, line2: EXAMPLE_LINE, line3: EXAMPLE_LINE + " Painting drawn by Orbe.",
   };
   for (const el of $$("[data-b]")) if (bind[el.dataset.b] != null) { el.textContent = bind[el.dataset.b]; delete el.dataset.final; }
   $("[data-ms]").style.setProperty("--to", lead.score / 100);
-  $("[data-bands]").innerHTML = BANDS.map((b) => `<li${b === e.band ? ' class="is" aria-current="true"' : ""}><span>${b}</span></li>`).join("");
+  $("[data-bands]").innerHTML = BANDS.map((b) => `<li${b === e.band ? ' class="is" aria-current="true"' : ""}>${b}</li>`).join("");
   $("[data-parts]").innerHTML = parts.map((p) => `<li><b>${p.score}</b><span>${p.name}<small>${p.value}</small></span></li>`).join("");
   for (const b of $$("[data-tk]")) b.setAttribute("aria-pressed", String(b.dataset.tk === k));
   for (const s of $$("[data-kind]")) s.value = k;
@@ -249,7 +214,7 @@ function goPhone(i) {
 /* Tap the right of a moment for the next, the left for the one before. */
 $(".story").addEventListener("click", (ev) => {
   if (wide.matches) return;
-  if (ev.target.closest("a, button, input, select, label, form, textarea, .sticker, blockquote")) return;
+  if (ev.target.closest("a, button, input, select, label, form, textarea, .win, blockquote")) return;
   const dir = ev.clientX < innerWidth * 0.3 ? -1 : 1;
   if ((dir > 0 && cur >= N - 1) || (dir < 0 && cur <= 0)) return;
   goPhone(cur + dir);
@@ -307,7 +272,6 @@ function syncHandles(src) {
 for (const h of handles) h.addEventListener("input", () => syncHandles(h));
 for (const k of $$("[data-kind]")) k.addEventListener("change", () => setKind(k.value));
 
-$("[data-peek]").addEventListener("click", () => { if (wide.matches) show(N - 1); else goPhone(N - 1); });
 
 /* The reply bar carries the handle into the last moment. */
 $("[data-jump]").addEventListener("submit", (ev) => {

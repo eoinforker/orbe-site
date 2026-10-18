@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en-GB" data-c="blue">
+<html lang="en-GB" data-c="blue" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f1ea">
+<meta name="theme-color" content="#F3F0E8">
 <title>Podcasts: Orbe</title>
 <meta name="description" content="Orbe's free Chartable replacement: your measurement prefix and host steps, ownership, the show dashboard, smart links and a plausibility check, in your browser.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
 <link rel="stylesheet" href="../../assets/r5/type.css">
-<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink")document.documentElement.dataset.c=c}catch(e){}</script>
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
 <script type="module" src="./podcasts.js"></script>
 </head>
 <body>
@@ -32,11 +33,21 @@
     <div class="grid two start">
       <div class="panel stack">
         <h3 class="h3"><span class="step-n">1</span>Your feed</h3>
-        <form class="stack" data-feed-form>
-          <label class="field"><span>RSS feed URL</span><input class="input" type="url" inputmode="url" placeholder="https://feeds.example.com/your-show.xml" data-feed-url autocomplete="off"></label>
+        <form class="stack" data-feed-form novalidate>
+          <div class="field">
+            <label class="label" for="feed-url">RSS feed URL, or upload the feed file</label>
+            <div class="composer">
+              <input class="input" id="feed-url" type="url" inputmode="url" placeholder="https://feeds.example.com/your-show.xml" data-feed-url autocomplete="off" spellcheck="false">
+              <div class="composer-bar">
+                <button class="icon-btn" type="button" data-attach aria-label="Upload the feed file"></button>
+                <span class="chip-file hide" data-chip><span data-chip-name></span><button type="button" data-chip-clear aria-label="Remove the uploaded feed"></button></span>
+                <span class="grow"></span>
+                <button class="btn btn-sm" type="submit">Read my feed</button>
+              </div>
+            </div>
+          </div>
           <div class="btns">
-            <button class="btn" type="submit">Read my feed</button>
-            <button class="btn btn-ghost btn-sm" type="button" data-paste-open>Paste or upload it instead</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-paste-open>Paste the feed instead</button>
             <button class="btn btn-ghost btn-sm" type="button" data-madeup>Use a made-up feed</button>
           </div>
         </form>
@@ -87,7 +98,7 @@
   <section class="section" id="dashboard">
     <div class="section-head"><h2 class="h2">Your dashboard</h2><span class="small" data-dash-for></span></div>
     <div class="sample" role="note"><span data-sample-label></span></div>
-    <div class="stack" style="margin-top:14px" data-dash></div>
+    <div class="stack figures" style="margin-top:14px" data-dash></div>
   </section>
 
   <!-- 3. Smart link -->
@@ -151,7 +162,7 @@
         </fieldset>
         <div class="btns"><button class="btn" type="submit">Check the claim</button></div>
       </form>
-      <div class="stack" data-pl-out>
+      <div class="stack figures" data-pl-out>
         <div class="panel"><p class="sub" style="margin:0">Enter a claim and whatever public signals you have, or try an example. If you read a feed above, its episode dates are used too.</p></div>
       </div>
     </div>
