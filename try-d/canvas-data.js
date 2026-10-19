@@ -140,8 +140,6 @@ export function disagree() {
 }
 
 /* ---------------------------------------------------------------- the Sunday note */
-import { sha256Hex } from "../assets/engine/core/hash.js";
-import { MODEL_VERSION } from "../assets/engine/rating/browser.js";
 
 /* Each kind's own words for its work. */
 const WORKS = {
@@ -185,11 +183,3 @@ export function letterFor(key) {
     best: `The best of your last twelve ${works} did ${top.multiple.toFixed(1)} times your typical ${one}.`,
   };
 }
-
-/** The rating's checksum: SHA-256 of what the engine computed, so the number can be checked again. */
-export function checksum(key, f = 1) {
-  const r = rated(key, f);
-  const body = JSON.stringify({ model: MODEL_VERSION, kind: r.k.o.kind, account: r.k.handle, at: FIXTURE_NOW, rating: r.rating, parts: r.result.parts.map((p) => [p.key, p.score]) });
-  return sha256Hex(body);
-}
-export { MODEL_VERSION };

@@ -6,9 +6,10 @@
 import { mountWordmark, wordmarkSVG } from "../assets/r5/wordmark.js";
 import { mountArt, ease, GW, GH } from "./pixels.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
+import { mountGiant } from "./footer.js";
 import {
-  MODEL_VERSION as MODEL, KINDS, rated, newest, sale, quote, plausible, prefixed, disagree, mathsFor, benchmark,
-  count, gbp, gbpExact, TAKE_RATE, OP3_SAMPLE, letterFor, noteDate, checksum, signed, minus,
+  KINDS, rated, sale, quote, plausible, prefixed, disagree,
+  count, gbp, gbpExact, TAKE_RATE, OP3_SAMPLE, letterFor, noteDate, signed, minus,
 } from "./canvas-data.js";
 
 document.documentElement.classList.add("js");
@@ -19,7 +20,6 @@ try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (
 const EASE = "cubic-bezier(0.45, 0, 0.2, 1)";
 
 mountWordmark($("[data-wordmark]"), { animate: !reduce });
-mountWordmark($("[data-wordmark-small]"), { animate: false });
 if (!reduce) document.documentElement.classList.add("motion");
 
 /*
@@ -58,19 +58,24 @@ function measure(word) {
   m.remove();
   return w;
 }
+/*
+  The visible word is drawn letter by letter as generated content, so it is
+  never text: innerText, a copy and a screen reader all get the word once,
+  from the inline copy beside it, even while an old word is still leaving.
+*/
 function chars(word) {
   const s = document.createElement("span");
   s.className = "slot-word";
   s.setAttribute("aria-hidden", "true");
-  s.dataset.slotWord = "";
-  for (const c of word) { const ch = document.createElement("span"); ch.className = "ch"; ch.textContent = c; s.appendChild(ch); }
+  s.dataset.slotWord = word;
+  for (const c of word) { const ch = document.createElement("span"); ch.className = "ch"; ch.dataset.c = c; s.appendChild(ch); }
   return s;
 }
 let settle = 0;
 function setWord(word, animate) {
   const old = $("[data-slot-word]", slot);
   slotSr.textContent = word;
-  if (old && old.textContent === word) return;
+  if (old && old.dataset.slotWord === word) return;
   const next = chars(word);
   if (!animate || reduce) { old?.remove(); slot.appendChild(next); slot.style.width = ""; return; }
   const from = slot.getBoundingClientRect().width;
@@ -100,6 +105,8 @@ const F = (v) => Math.exp((v / 100) * Math.log(3));
 const FILL = { sky: "chalk", straw: "straw", peony: "peony" };
 let current = KINDS[0].key;
 
+/* the piece answers too: a click on it turns to the next kind (the tabs are its keyboard twin) */
+$("[data-art]").addEventListener("click", () => { stopCycle(); const i = KINDS.findIndex((k) => k.key === current); show(KINDS[(i + 1) % KINDS.length].key, true); });
 for (const k of KINDS) {
   const b = document.createElement("button");
   b.type = "button"; b.textContent = k.label; b.dataset.kind = k.key; b.setAttribute("aria-pressed", String(k.key === current));
@@ -135,7 +142,6 @@ function paint(r) {
   out.textContent = count(r.typical);
   views.setAttribute("aria-valuetext", `${count(r.typical)} ${k.unit}. Rating ${r.signed.replace("−", "minus ")}, ${r.band}. Beats ${b} in 100 ${r.peers} your size.`);
   drawHundred(r);
-  $("[data-checksum]").textContent = `sha256 ${checksum(r.k.key, F(Number(views.value)))} · model ${MODEL}`;
 }
 
 /*
@@ -185,7 +191,7 @@ $("[data-sig]", noteEl).appendChild(wordmarkSVG({ cut: "text" }));
 let noteOpen = false;
 function fillNote(key, animate) {
   const L = letterFor(key);
-  for (const f of ["name", "open", "band", "beat", "detail", "best", "handle"]) N(f).textContent = L[f];
+  for (const f of ["name", "open", "band", "beat", "detail", "handle"]) N(f).textContent = L[f];
   stopCount(N("signed"));
   N("signed").textContent = L.signed;
   /* it rewrites for the new kind: a short dip says so, only if someone can see it */
@@ -199,7 +205,7 @@ function show(key, animateWord) {
   const r = rated(key, 1);
   hero.dataset.fill = FILL[k.colour];
   art.show(key, animateWord && !reduce);
-  $("[data-frame-name]").textContent = `Rate my work / ${k.name}`;
+  $("[data-frame-name]").textContent = `rating.txt / ${k.name}`;
   $("[data-who-name]").textContent = k.name;
   $("[data-who-handle]").textContent = k.handle;
   $("[data-who-size]").textContent = r.sizeBand;
@@ -264,35 +270,41 @@ function paintSale() {
   $("[data-sell-prem]").textContent = gbp(s.premium);
   stopCount($("[data-sell-net]"));
   $("[data-sell-net]").textContent = gbp(s.net);
-  $("[data-split-net]").style.width = `${(s.net / s.price) * 100}%`;
-  $("[data-split-fee]").style.width = `${(s.fee / s.price) * 100}%`;
+  $("[data-sell-net-2]").textContent = gbp(s.net);
   $("[data-sell-slices]").innerHTML = s.slices.map((x) => `<li>${x.rateBps / 100}% of ${gbp(x.from)} to ${gbp(x.to)}: ${gbp(x.fee)}</li>`).join("") + (s.minimum ? `<li>Below £4,000, so the minimum applies.</li>` : "") + `<li>Buyer pays ${gbp(s.buyerPays)} in all.</li>`;
   sellIn.setAttribute("aria-valuetext", `${gbp(s.price)}. Seller's fee ${gbp(s.fee)}, you receive ${gbp(s.net)}.`);
 }
 sellIn.addEventListener("input", paintSale);
 paintSale();
 
-/* ---------------------------------------------------------------- The Record: estimate and paid, racing once */
+/* ---------------------------------------------------------------- The Record: estimate and paid, racing; a click runs it again */
 const d = disagree();
 const estEl = $("[data-race-est]"), paidEl = $("[data-race-paid]");
 const estBar = $("[data-race-est-bar]"), paidBar = $("[data-race-paid-bar]");
+const raceLine = $("[data-race-line]");
+const RACE_DONE = `${gbp(d.estimate - d.paid)} less was paid than estimated. Your record uses what was paid, read through a read-only Stripe App. With the API.`;
+let raceRaf = 0;
 const finish = () => {
   estEl.innerHTML = `<s>${gbpExact(d.estimate)}</s>`; paidEl.textContent = gbpExact(d.paid);
   estBar.style.width = "100%"; paidBar.style.width = `${(d.paid / d.estimate) * 100}%`;
-  $("[data-race-est-line]").textContent = "Not what was paid.";
+  raceLine.textContent = RACE_DONE;
 };
 function race() {
+  cancelAnimationFrame(raceRaf);
+  if (reduce) { finish(); return; }
   const D = 1800, t0 = performance.now();
-  $("[data-race-est-line]").textContent = "Counting.";
+  raceLine.textContent = "Counting both.";
   const tick = (now) => {
     const t = Math.min(1, (now - t0) / D);
-    const e = Math.min(d.estimate, (d.estimate * 1.0) * t), p = Math.min(d.paid, d.estimate * t);
+    const e = Math.min(d.estimate, d.estimate * t), p = Math.min(d.paid, d.estimate * t);
     estEl.textContent = gbpExact(e); paidEl.textContent = gbpExact(p);
     estBar.style.width = `${(e / d.estimate) * 100}%`; paidBar.style.width = `${(p / d.estimate) * 100}%`;
-    if (t < 1) requestAnimationFrame(tick); else finish();
+    if (t < 1) raceRaf = requestAnimationFrame(tick); else finish();
   };
-  requestAnimationFrame(tick);
+  raceRaf = requestAnimationFrame(tick);
 }
+$("[data-race-go]").addEventListener("click", race);
+$("[data-race] .win-body").addEventListener("click", race);
 if (reduce || !("IntersectionObserver" in window)) finish();
 else {
   estBar.style.width = "0%"; paidBar.style.width = "0%";
@@ -326,7 +338,7 @@ function paintClaim() {
   $("[data-pl-claim]").textContent = count(c);
   $("[data-pl-verdict]").textContent = VERDICT[p.verdict] ?? p.verdict;
   const ratio = (c / OP3_SAMPLE).toFixed(1);
-  $("[data-pl-why]").textContent = `${ratio}× a made-up public count of ${count(OP3_SAMPLE)} over eight weeks. ${p.flags[0]?.innocent ?? "Within what public counts allow for."}`;
+  $("[data-pl-why]").textContent = `${ratio}× a made-up public count of ${count(OP3_SAMPLE)}.`;
   plIn.setAttribute("aria-valuetext", `${count(c)} downloads a month. ${VERDICT[p.verdict]}.`);
 }
 plIn.addEventListener("input", paintClaim);
@@ -337,27 +349,15 @@ const showIn = $("[data-show]");
 function paintPrefix() {
   const id = showIn.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40) || "yourshow";
   let url;
-  try { url = prefixed(id, "https://media.example.com/episode-1.mp3"); } catch (e) { url = `https://m.orbe.vc/p/${id}/media.example.com/episode-1.mp3`; }
+  try { url = prefixed(id, "https://media.example.com/ep1.mp3"); } catch (e) { url = `https://m.orbe.vc/p/${id}/media.example.com/ep1.mp3`; }
   $("[data-show-out]").textContent = url.replace(/^https:\/\//, "");
 }
 showIn.addEventListener("input", paintPrefix);
 paintPrefix();
 
-/* ---------------------------------------------------------------- Rate my work / Maths and the State of the Middle */
-const bm = benchmark("channel");
-const maxV = Math.max(...bm.rows.map((r) => r.value));
-$("[data-sizes]").innerHTML = bm.rows.map((r) => `<li class="${r.key === bm.example ? "here" : ""}"><span>${r.label}</span><i style="width:${(r.value / maxV) * 100}%"></i><span>${Math.round(r.value * 100)}%</span></li>`).join("");
-
-/* ---------------------------------------------------------------- Diligence, Lending, the guide */
-const report = gbp(TAKE_RATE.buyers.report.standard);
-$$("[data-dil]").forEach((b) => b.addEventListener("click", () => {
-  $$("[data-dil]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-  $("[data-dil-out]").textContent = b.dataset.dil === "1" ? report : "£0";
-}));
+/* ---------------------------------------------------------------- Diligence and Lending, from the engine's fee table */
+$("[data-dil]").textContent = gbp(TAKE_RATE.buyers.report.standard);
 $("[data-lend]").textContent = gbp(TAKE_RATE.financingFilePrice);
-const nw = newest("explainer");
-$("[data-guide]").textContent = `${nw.multiple.toFixed(1)}×`;
-$("[data-guide-line]").textContent = `Field Recordings’ newest upload, ${Math.round(nw.ageDays)} days in, against its own typical. Then three next steps. With the API.`;
 
 /* ---------------------------------------------------------------- reserve */
 const sel = $("[data-kind-select]");
@@ -384,7 +384,7 @@ form.addEventListener("submit", async (e) => {
   lines then arrive in reading order, and its rating and the sale's net
   count up to the engine's values. Each plays once; reduced motion skips it all.
 */
-const wall = $(".wall");
+const wall = $("[data-wall]");
 const px = (b) => ({ left: `${b.left}px`, top: `${b.top}px`, width: `${b.width}px`, height: `${b.height}px` });
 function zoomOpen(win, then) {
   const W = wall.getBoundingClientRect(), r = win.getBoundingClientRect();
@@ -424,4 +424,104 @@ else {
     });
   }, { threshold: 0.2 });
   wins.forEach((w) => io.observe(w));
+  /* a keyboard arriving first opens them all at once: nothing focusable stays shut */
+  wall.addEventListener("focusin", () => { wins.forEach((w) => { io.unobserve(w); if (w.classList.contains("shut")) { w.classList.remove("shut"); if (w === noteEl) openNote(); } }); }, { once: true });
 }
+
+/* ---------------------------------------------------------------- moving the windows
+  On a desktop the five windows can be picked up by their title rows, the
+  way TypeSafe's can: a press brings one to the front, a drag moves it
+  within the section, and Tidy puts every window back on the grid. A
+  focused title moves with the arrow keys (Shift for a longer step), and
+  Escape puts that one back. On a phone nothing moves and the windows stack.
+*/
+const tools = $("#tools");
+const tidyRow = $("[data-tidy-row]"), tidyBtn = $("[data-tidy]"), tidySay = $("[data-tidy-say]");
+const moveWins = $$("[data-win]", wall);
+const off = new Map(moveWins.map((w) => [w, { x: 0, y: 0 }]));
+let movable = false, zTop = 1;
+const canMove = () => { try { return matchMedia("(min-width: 1024px)").matches && !matchMedia("(pointer: coarse)").matches; } catch (e) { return false; } };
+const nameOf = (w) => $("[data-grip]", w).textContent;
+function put(w, x, y) {
+  const o = off.get(w);
+  const r = w.getBoundingClientRect(), S = tools.getBoundingClientRect(), pad = 8;
+  const baseL = r.left - o.x, baseT = r.top - o.y;
+  o.x = Math.round(Math.max(S.left + pad - baseL, Math.min(S.right - pad - r.width - baseL, x)));
+  o.y = Math.round(Math.max(S.top + pad - baseT, Math.min(S.bottom - pad - r.height - baseT, y)));
+  w.style.transform = o.x || o.y ? `translate(${o.x}px, ${o.y}px)` : "";
+}
+const front = (w) => { if (movable) w.style.zIndex = String(++zTop); };
+function settleBack(list) {
+  for (const w of list) {
+    if (!reduce) { w.classList.add("tidying"); setTimeout(() => w.classList.remove("tidying"), 340); }
+    const o = off.get(w); o.x = 0; o.y = 0; w.style.transform = "";
+  }
+}
+function setMovable(on) {
+  movable = on;
+  wall.classList.toggle("movable", on);
+  tidyRow.hidden = !on;
+  for (const w of moveWins) {
+    const g = $("[data-grip]", w);
+    if (on) {
+      g.tabIndex = 0; g.setAttribute("role", "button");
+      g.setAttribute("aria-roledescription", "movable window");
+      g.setAttribute("aria-describedby", "move-help");
+    } else {
+      g.removeAttribute("tabindex"); g.removeAttribute("role"); g.removeAttribute("aria-roledescription"); g.removeAttribute("aria-describedby");
+      const o = off.get(w); o.x = 0; o.y = 0; w.style.transform = ""; w.style.zIndex = "";
+    }
+  }
+}
+const help = document.createElement("span");
+help.id = "move-help"; help.className = "sr";
+help.textContent = "Arrow keys move this window, Shift for a longer step. Escape puts it back.";
+tidyRow.appendChild(help);
+
+let held = null;
+for (const w of moveWins) {
+  const bar = $(".win-bar", w), grip = $("[data-grip]", w);
+  w.addEventListener("pointerdown", () => front(w));
+  bar.addEventListener("pointerdown", (e) => {
+    if (!movable || e.button !== 0 || e.target.closest("a, button, input, summary, label")) return;
+    e.preventDefault();
+    const o = off.get(w);
+    held = { w, id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: o.x, oy: o.y };
+    bar.setPointerCapture(e.pointerId);
+    w.classList.add("held");
+  });
+  bar.addEventListener("pointermove", (e) => {
+    if (!held || held.w !== w || held.id !== e.pointerId) return;
+    put(w, held.ox + e.clientX - held.sx, held.oy + e.clientY - held.sy);
+  });
+  const drop = (e) => {
+    if (!held || held.w !== w) return;
+    held = null; w.classList.remove("held");
+    try { bar.releasePointerCapture(e.pointerId); } catch (err) {}
+  };
+  bar.addEventListener("pointerup", drop);
+  bar.addEventListener("pointercancel", drop);
+  grip.addEventListener("focus", () => front(w));
+  grip.addEventListener("keydown", (e) => {
+    if (!movable) return;
+    const step = e.shiftKey ? 64 : 16, o = off.get(w);
+    const by = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (by) { e.preventDefault(); put(w, o.x + by[0], o.y + by[1]); return; }
+    if (e.key === "Escape") { e.preventDefault(); settleBack([w]); tidySay.textContent = `${nameOf(w)} is back in its place.`; }
+  });
+}
+tidyBtn.addEventListener("click", () => {
+  settleBack(moveWins);
+  moveWins.forEach((w) => { w.style.zIndex = ""; });
+  tidySay.textContent = "Every window is back on the grid.";
+});
+setMovable(canMove());
+addEventListener("resize", () => {
+  const on = canMove();
+  if (on !== movable) setMovable(on);
+  else if (on) for (const w of moveWins) { const o = off.get(w); put(w, o.x, o.y); }
+});
+
+/* ---------------------------------------------------------------- the giant mark */
+mountGiant($("[data-giant]"), $("[data-giant-svg]"), $("[data-giant-cap]"),
+  KINDS.map((k) => ({ name: k.name, beats: beatsOf(rated(k.key, 1)) })), { reduce: reduce || !("IntersectionObserver" in window) });
