@@ -1,0 +1,72 @@
+/*
+  The one Orbe system the five Today screens share: the bar, the figure, the
+  line to post, the footer. Each page sets its own field, ink and texture on
+  body[data-world] and keeps these bones.
+*/
+@font-face { font-family: "Hand"; src: url("fonts/NothingYouCouldDo-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Departure Mono"; src: url("fonts/DepartureMono-Regular.woff2") format("woff2"); font-display: swap; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg, var(--orbe-paper));
+  color: var(--ink, var(--orbe-ink));
+  font: 400 var(--t-body)/var(--lh-text) var(--font-text);
+  font-feature-settings: var(--figures-display);
+  overflow-x: hidden;
+}
+img, canvas, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+button, input { font: inherit; }
+:focus-visible { outline: 2px solid var(--focus-ring, var(--orbe-ink)); outline-offset: 3px; }
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: 16px; top: -60px; background: var(--orbe-ink); color: var(--orbe-paper); padding: 8px 12px; z-index: 10; }
+.skip:focus { top: 8px; }
+
+.wrap { width: 100%; max-width: 1360px; margin: 0 auto; padding: 0 var(--gutter); }
+
+/* ---------------------------------------------------------------- the bar */
+.bar { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 18px 0 14px; border-bottom: var(--line) solid currentColor; }
+.bar .mark { --wm-h: 26px; display: inline-flex; color: inherit; text-decoration: none; line-height: 0; }
+.bar .mark svg { height: var(--wm-h); width: auto; }
+.bar .today { font: 700 var(--t-small)/1 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.bar .when { font: 400 var(--t-small)/1 var(--font-mono); opacity: 0.85; }
+.bar .who { margin-left: auto; font: 600 var(--t-small)/1 var(--font-mono); }
+.tag-made { display: inline-block; font: 600 11px/1 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; padding: 5px 7px 4px; border: 1.5px solid currentColor; }
+
+/* ---------------------------------------------------------------- shared type */
+.label { font: 600 var(--t-label)/1.3 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.num { font-feature-settings: var(--figures-table); }
+.hand { font-family: "Hand", var(--font-serif); font-weight: 400; letter-spacing: 0.01em; }
+
+/* ---------------------------------------------------------------- the line to post */
+.post { display: grid; gap: 12px; }
+.post blockquote { margin: 0; font: 600 var(--t-title)/1.25 var(--font-display); letter-spacing: var(--track-title); }
+.post .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.copy {
+  appearance: none; cursor: pointer; min-height: 44px; padding: 0 20px;
+  font: 700 16px/1 var(--font-text); letter-spacing: -0.01em;
+  background: var(--btn, var(--orbe-ink)); color: var(--on-btn, var(--orbe-paper));
+  border: var(--line) solid var(--btn, var(--orbe-ink)); border-radius: var(--r-pill);
+  transition: transform var(--dur-press) var(--ease-standard);
+}
+.copy:active { transform: translateY(1px); }
+.copied { font: 600 var(--t-small)/1.3 var(--font-mono); min-height: 1.3em; }
+
+/* ---------------------------------------------------------------- footer */
+.foot { margin-top: var(--s-8); padding: 20px 0 40px; border-top: var(--line) solid currentColor; display: grid; gap: 14px; font-size: var(--t-small); }
+.foot .calc { font-weight: 700; }
+.foot p { margin: 0; max-width: 72ch; }
+.foot nav { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 600 var(--t-small)/1.4 var(--font-mono); }
+.foot nav a[aria-current] { text-decoration: none; opacity: 0.6; }
+
+/* ---------------------------------------------------------------- the rotating word (Odin, from lab/desk) */
+.rot { display: inline-block; position: relative; vertical-align: top; overflow: hidden; padding: 0 0.04em 0.14em; margin: 0 -0.04em -0.14em; }
+.rot .w { display: inline-block; white-space: nowrap; }
+.rot .w.out { position: absolute; left: 0.04em; top: 0; }
+.rot .c { display: inline-block; will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe Studio</title>
+<meta name="description" content="Your work, rated against creators your size. Free for creators, for good.">
+<meta name="theme-color" content="#9EE9FB">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="./studio.css">
+<script>try{var q=new URLSearchParams(location.search);if(q.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("still");else document.documentElement.classList.add("move")}catch(e){}</script>
+<script type="module" src="./studio.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the studio</a>
+
+<header class="bar">
+  <button class="o-switch" type="button" data-switch aria-pressed="false">
+    <span class="sr" data-switch-label>Orbe. Switch between the example and your own numbers</span>
+    <svg class="wm" data-wm viewBox="0 -742 2040 755" aria-hidden="true" focusable="false"></svg>
+  </button>
+  <span class="bar-app mono">Studio</span>
+  <nav class="bar-areas" aria-label="Areas">
+    <button type="button" data-go="today">Today</button>
+    <button type="button" data-go="work">Work</button>
+    <button type="button" data-go="record">Record</button>
+    <button type="button" data-go="deals">Deals</button>
+    <button type="button" data-go="sell">Sell</button>
+  </nav>
+  <div class="bar-right">
+    <button class="who" type="button" data-go="people" aria-haspopup="dialog">
+      <span class="who-dot" aria-hidden="true"></span>
+      <span><span class="who-name" data-who-name>Field Recordings</span> <span class="who-tag" data-who-tag>made up</span></span>
+    </button>
+    <button class="btn btn-export" type="button" data-go="export"><span data-i="upload"></span><span>Use my export</span></button>
+    <button class="btn btn-ink" type="button" data-go="reserve"><span>Reserve my handle</span></button>
+  </div>
+</header>
+
+<main class="desk" id="main" tabindex="-1">
+  <section class="field" data-field aria-labelledby="h1">
+    <div class="hero">
+      <h1 id="h1"><span class="h1-a">Your work, rated against</span> <span class="h1-b">creators your size.</span></h1>
+      <p class="lede">Free for creators, for good. For the thing you're building, at any size. <span class="lede-soft">Nothing leaves this device.</span></p>
+      <p class="say" data-say aria-live="polite"></p>
+      <p class="bricks" data-bricks></p>
+    </div>
+    <div class="world" data-world></div>
+    <p class="world-key mono" data-world-key></p>
+    <ul class="icons" data-icons aria-label="Open a window"></ul>
+  </section>
+
+  <!-- Every area is a window on a desktop and a tab on a phone. -->
+  <section class="win" id="w-today" data-win="today" aria-labelledby="t-today">
+    <header class="tb"><h2 class="tb-t" id="t-today">Today</h2><span class="tb-meta" data-today-meta></span><button class="tb-x" type="button" data-close aria-label="Close Today"></button></header>
+    <div class="wb" data-today></div>
+  </section>
+
+  <section class="win" id="w-work" data-win="work" aria-labelledby="t-work" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-work">Work</h2><span class="tb-meta" data-work-meta></span><button class="tb-x" type="button" data-close aria-label="Close Work"></button></header>
+    <div class="wb" data-work></div>
+  </section>
+
+  <section class="win" id="w-record" data-win="record" aria-labelledby="t-record" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-record">Record</h2><span class="tb-meta">Only money fills it</span><button class="tb-x" type="button" data-close aria-label="Close Record"></button></header>
+    <div class="wb" data-record></div>
+  </section>
+
+  <section class="win" id="w-deals" data-win="deals" aria-labelledby="t-deals" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-deals">Deals</h2><span class="tb-meta">Price a sponsorship</span><button class="tb-x" type="button" data-close aria-label="Close Deals"></button></header>
+    <div class="wb" data-deals></div>
+  </section>
+
+  <section class="win" id="w-sell" data-win="sell" aria-labelledby="t-sell" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-sell">Sell</h2><span class="tb-meta">Optional, and quiet</span><button class="tb-x" type="button" data-close aria-label="Close Sell"></button></header>
+    <div class="wb" data-sell></div>
+  </section>
+
+  <section class="win win-sheet" id="w-week" data-win="week" aria-labelledby="t-week" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-week">The Sunday note</h2><span class="tb-meta">Written from your numbers</span><button class="tb-x" type="button" data-close aria-label="Close the Sunday note"></button></header>
+    <div class="wb" data-week></div>
+  </section>
+
+  <section class="win win-sheet" id="w-people" data-win="people" aria-labelledby="t-people" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-people">Someone like me</h2><span class="tb-meta">All made up</span><button class="tb-x" type="button" data-close aria-label="Close Someone like me"></button></header>
+    <div class="wb" data-people></div>
+  </section>
+
+  <section class="win win-sheet" id="w-export" data-win="export" aria-labelledby="t-export" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-export">Use my export</h2><span class="tb-meta">Stays on this device</span><button class="tb-x" type="button" data-close aria-label="Close Use my export"></button></header>
+    <div class="wb" data-export></div>
+  </section>
+
+  <section class="win win-sheet" id="w-reserve" data-win="reserve" aria-labelledby="t-reserve" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-reserve">Reserve my handle</h2><span class="tb-meta">Free</span><button class="tb-x" type="button" data-close aria-label="Close Reserve my handle"></button></header>
+    <div class="wb" data-reserve></div>
+  </section>
+
+  <section class="win win-sheet" id="w-earns" data-win="earns" aria-labelledby="t-earns" hidden>
+    <header class="tb"><h2 class="tb-t" id="t-earns">How Orbe earns</h2><span class="tb-meta">Only when money moves</span><button class="tb-x" type="button" data-close aria-label="Close How Orbe earns"></button></header>
+    <div class="wb" data-earns></div>
+  </section>
+</main>
+
+<footer class="status">
+  <p><b>Free for creators, for good.</b> Orbe earns only when money moves: <span class="nw">15% of a sponsorship when Orbe finds the brand,</span> <span class="nw">5% when you bring it,</span> <span class="nw">paid by the brand.</span> <span class="nw">8%, 5%, 3% of a sale, £4,000 minimum,</span> <span class="nw">nothing if it doesn't sell.</span></p>
+  <button class="status-btn" type="button" data-go="earns">How Orbe earns</button>
+</footer>
+
+<nav class="tabs" aria-label="Areas">
+  <button type="button" data-tab="today"><span class="px" data-px="today"></span><span>Today</span></button>
+  <button type="button" data-tab="work"><span class="px" data-px="work"></span><span>Work</span></button>
+  <button type="button" data-tab="record"><span class="px" data-px="record"></span><span>Record</span></button>
+  <button type="button" data-tab="deals"><span class="px" data-px="deals"></span><span>Deals</span></button>
+  <button type="button" data-tab="sell"><span class="px" data-px="sell"></span><span>Sell</span></button>
+</nav>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+<noscript><p class="noscript">Orbe Studio runs in your browser and needs JavaScript. Nothing you load into it leaves your device.</p></noscript>
+</body>
+</html>

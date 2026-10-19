@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Today: Pendulum Hours (made up)</title>
+<meta name="description" content="An example Today screen in Orbe for a made-up science explainer channel, rated live by the Orbe engine.">
+<meta name="theme-color" content="#9EE9FB">
+<link rel="icon" href="../../../assets/r5/favicon.svg" type="image/svg+xml">
+<script type="importmap">{ "imports": { "three": "../../../assets/vendor/three-0.160.0.module.min.js" } }</script>
+<link rel="stylesheet" href="../../../assets/fonts.css">
+<link rel="stylesheet" href="../../../assets/brand/tokens.css">
+<link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="main.js"></script>
+</head>
+<body data-world="science">
+<a class="skip" href="#line">Skip to your line to post</a>
+<div class="wrap">
+  <header class="bar" data-bar></header>
+
+  <main>
+    <section class="hero">
+      <div class="say-a">
+        <p class="label kicker">Pendulum Hours &middot; science explainers &middot; <span data-size></span></p>
+        <h1 class="h1" data-h1></h1>
+      </div>
+      <figure class="plate">
+        <div class="plate-photo" data-hero>
+          <canvas class="gl" data-canvas aria-hidden="true"></canvas>
+          <canvas class="dots" data-dots aria-hidden="true"></canvas>
+          <div class="slot" data-slot>
+            <p class="tag tag-you" data-tag="you" aria-hidden="true"><span class="tag-rule"></span><span class="tag-t">beats <b data-beats></b> in 100</span></p>
+            <p class="tag tag-zero" data-tag="zero" aria-hidden="true"><span class="tag-rule"></span><span class="tag-t">typical for<br> your size</span></p>
+          </div>
+        </div>
+        <figcaption><b>Plate 1.</b> <span data-plate-cap></span></figcaption>
+      </figure>
+      <div class="say-b">
+        <p class="lede" data-lede></p>
+        <dl class="body-of-work" data-body></dl>
+      </div>
+    </section>
+
+    <section class="reading" aria-labelledby="reading-h">
+      <div class="score">
+        <p class="label" id="reading-h">The number</p>
+        <p class="big num" data-rating></p>
+        <p class="band" data-band></p>
+        <p class="score-say" data-score-say></p>
+      </div>
+      <div class="latest">
+        <p class="label">Your latest upload</p>
+        <h2 class="latest-t" data-latest-t></h2>
+        <div class="vs">
+          <div><span class="label">Against your own typical</span><b class="num" data-own></b><span data-own-say></span></div>
+          <div><span class="label">Against channels your size</span><b class="num" data-peer></b><span data-peer-say></span></div>
+        </div>
+        <p class="hook" data-hook></p>
+      </div>
+    </section>
+
+    <section class="fig" aria-labelledby="fig-h">
+      <header class="fig-head">
+        <h2 class="label" id="fig-h">Fig. 2. Your last twelve uploads, each against your own typical</h2>
+        <p class="fig-key"><span class="k-dot"></span> one upload <span class="k-zero"></span> your typical (zero)</p>
+      </header>
+      <div class="chart" data-chart></div>
+      <ol class="fig-list" data-list></ol>
+    </section>
+
+    <section class="parts" aria-labelledby="parts-h">
+      <h2 class="label" id="parts-h">The readings, against 100 channels your size</h2>
+      <ul data-parts></ul>
+    </section>
+
+    <section class="ritual" aria-labelledby="ritual-h">
+      <div class="sunday">
+        <p class="label" id="ritual-h">Your Sunday reading</p>
+        <p class="sunday-t" data-sunday></p>
+      </div>
+      <div class="record">
+        <p class="label">Your record, standing</p>
+        <p class="record-t" data-record></p>
+      </div>
+      <div class="sponsor">
+        <p class="label">For the sponsor email</p>
+        <p data-sponsor></p>
+      </div>
+    </section>
+
+    <section class="post" id="line" aria-labelledby="post-h" tabindex="-1">
+      <h2 class="label" id="post-h">Your line to post</h2>
+      <blockquote data-line></blockquote>
+      <div class="row"><button class="copy" type="button" data-copy>Copy the line</button><p class="copied" role="status" aria-live="polite" data-copied></p></div>
+    </section>
+  </main>
+
+  <footer class="foot" data-foot></footer>
+</div>
+</body>
+</html>
