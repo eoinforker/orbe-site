@@ -13,20 +13,22 @@
 <body>
 <a class="skip" href="#main">Skip to the rating</a>
 
-<header class="bar">
-  <a class="mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
+<header class="bar" data-bar>
+  <a class="mark" data-part href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
   <nav class="links" aria-label="Products">
-    <a href="./products/rate/">Rate my work</a>
-    <a href="./products/podcasts/">Podcasts</a>
-    <a href="./products/sponsorships/">Sponsorships</a>
-    <a href="./products/selling/">Selling</a>
+    <a data-part href="./products/rate/">Ratings</a>
+    <a data-part href="./products/podcasts/">Podcasts</a>
+    <a data-part href="./products/sponsorships/">Sponsorships</a>
+    <a data-part href="./products/selling/">Selling</a>
   </nav>
-  <a class="btn btn-ink btn-s" href="#reserve">Reserve your handle</a>
+  <a class="btn-go btn-s" data-part href="#reserve"><span class="go" aria-hidden="true"></span>Reserve your handle</a>
 </header>
 
 <main id="main">
   <!-- Screen one: a Sky field, the sentence, the pixel piece and the instrument -->
-  <section class="hero" aria-labelledby="h1">
+  <section class="hero" data-head="light" aria-labelledby="h1">
+    <div class="frame" aria-hidden="true"><i></i><i></i><i></i><b class="tick p-tl"></b><b class="tick p-tr"></b></div>
+    <canvas class="trail" data-trail aria-hidden="true"></canvas>
     <div class="art-box" data-art-box><canvas class="art" data-art aria-hidden="true"></canvas></div>
     <div class="hero-copy">
       <p class="hello enter"><em>Hello &amp; welcome.</em> <time datetime="2026-10-19">Monday 19 October 2026</time></p>
@@ -37,20 +39,21 @@
         <span class="h-line">your size.</span>
       </h1>
       <p class="lede enter">Orbe is the intelligence layer for the creator economy: free, honest numbers for creators, the tools the people around them use, and help when money moves.</p>
+      <p class="aud enter" data-aud><span class="aud-k">For</span> <a href="#main" data-to="hero">creators</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-managers" data-to="for-managers"><span class="ph-off">managers and </span>agencies</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-brands" data-to="for-brands">brands</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-buyers" data-to="for-buyers for-funds"><span class="ph-off">buyers and </span>funds</a></p>
       <div class="ctas enter">
-        <a class="btn btn-cobalt" href="./products/rate/">Rate my work</a>
-        <a class="btn btn-line" href="#tools">See how it works</a>
+        <a class="btn-go" href="./products/rate/"><span class="go" aria-hidden="true"></span>See where you stand</a>
+        <a class="lnk lnk-down" href="#tools">How it works</a>
       </div>
     </div>
 
     <div class="stage enter enter-late">
-      <article class="win win-hero" data-hero aria-labelledby="hero-t">
+      <article class="win win-hero" data-head="light" data-hero aria-labelledby="hero-t">
         <div class="win-bar">
-          <span class="win-title" id="hero-t" data-frame-name>rating.txt / Field Recordings</span>
+          <span class="win-title" id="hero-t" data-frame-name data-grip>rating.txt / Field Recordings</span>
           <span class="win-ctl"><span class="win-tag">Made up</span><button class="win-btn" type="button" data-pause aria-pressed="false">Pause</button></span>
         </div>
         <div class="win-body hero-body">
-          <div class="kind-list" role="group" aria-label="Kind of work" data-kinds></div>
+          <div class="kinds" data-kinds-wrap><div class="kind-list" role="group" aria-label="Kind of work" data-kinds></div></div>
 
           <div class="who">
             <p class="who-name" data-who-name>Field Recordings</p>
@@ -88,9 +91,9 @@
   </section>
 
   <!-- Screen two: what Orbe does, in three beats of windows you can move -->
-  <section class="tools" id="tools" aria-labelledby="tools-h">
+  <section class="tools" data-head="light" id="tools" aria-labelledby="tools-h">
     <div class="tools-head">
-      <h2 id="tools-h" class="h2">What Orbe does for you.</h2>
+      <h2 id="tools-h" class="h2">Your work, read properly.</h2>
       <p class="tools-lede">Every figure is worked out live by the engine. Every creator is made up.</p>
       <p class="tidy-row" data-tidy-row hidden><span class="tidy-hint" id="tidy-hint">Drag a window by its title.</span><button class="win-btn tidy" type="button" data-tidy>Tidy</button><span class="sr" aria-live="polite" data-tidy-say></span></p>
     </div>
@@ -99,8 +102,8 @@
       <h3 class="beat-h b-1"><span class="beat-n">1</span>Understand your work.</h3>
 
       <!-- The Sunday note: the rating, as a letter -->
-      <article class="win c-note" data-pair="note" aria-labelledby="note-t" data-note data-win>
-        <div class="win-bar"><span class="win-title" id="note-t" data-grip>sunday_note.txt</span><a class="win-btn" href="./products/rate/">Get yours</a></div>
+      <article class="win c-note" data-head="light" data-pair="note" aria-labelledby="note-t" data-note data-win>
+        <div class="win-bar"><span class="win-title" id="note-t" data-grip>sunday_note.txt</span><a class="win-lnk" href="./products/rate/">Get yours</a></div>
         <div class="win-body note-body" data-note-body>
           <p class="says n-line">Your Sunday note, written from your numbers.</p>
           <p class="n-date n-line" data-n="date">Sunday the eighteenth of October, 2026</p>
@@ -118,8 +121,8 @@
       </article>
 
       <!-- The guide, after a post: one work against your typical and your size, then three next steps -->
-      <article class="win c-post" data-pair="note" aria-labelledby="post-t" data-win data-post>
-        <div class="win-bar"><span class="win-title" id="post-t" data-grip>after_post.txt</span><a class="win-btn" href="./products/rate/">Try yours</a></div>
+      <article class="win c-post" data-head="light" data-pair="note" aria-labelledby="post-t" data-win data-post>
+        <div class="win-bar"><span class="win-title" id="post-t" data-grip>after_post.txt</span><a class="win-lnk" href="./products/rate/">Try yours</a></div>
         <div class="win-body">
           <p class="says">Know which <span data-post-one>upload</span> is quietly doing well.</p>
           <div class="post-pick">
@@ -148,8 +151,8 @@
 
       <div class="row row-2">
       <!-- Podcasts, with what you get back and the plausibility check -->
-      <article class="win c-pod" data-pair="pod" aria-labelledby="pod-t" data-win>
-        <div class="win-bar"><span class="win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="win-btn" href="./products/podcasts/">Open</a></div>
+      <article class="win c-pod" data-head="light" data-pair="pod" aria-labelledby="pod-t" data-win>
+        <div class="win-bar"><span class="win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="win-lnk" href="./products/podcasts/">Open</a></div>
         <div class="win-body">
           <div class="pod-in">
             <p class="says">Know who’s listening, for free.</p>
@@ -172,8 +175,8 @@
       </article>
 
       <!-- The State of the Middle: where you sit -->
-      <article class="win c-mid" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
-        <div class="win-bar"><span class="win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="win-btn" href="./products/">Open</a></div>
+      <article class="win c-mid" data-head="dark" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
+        <div class="win-bar"><span class="win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="win-lnk" href="./products/">Open</a></div>
         <div class="win-body">
           <p class="says">Know what typical looks like at your size.</p>
           <div class="mid-pick">
@@ -197,8 +200,8 @@
 
       <div class="row row-3">
       <!-- Sponsorships -->
-      <article class="win c-spon" data-pair="spon" aria-labelledby="spon-t" data-win>
-        <div class="win-bar"><span class="win-title" id="spon-t" data-grip>sponsorship_quote.txt</span><a class="win-btn" href="./products/sponsorships/">Open</a></div>
+      <article class="win c-spon" data-head="light" data-pair="spon" aria-labelledby="spon-t" data-win>
+        <div class="win-bar"><span class="win-title" id="spon-t" data-grip>sponsorship_quote.txt</span><a class="win-lnk" href="./products/sponsorships/">Open</a></div>
         <div class="win-body">
           <p class="says">Know what a slot is worth.</p>
           <p class="win-k">Sponsorships. An integrated read</p>
@@ -210,7 +213,7 @@
       </article>
 
       <!-- The Record: estimate against paid, a race you can rerun -->
-      <article class="win c-record" data-pair="rec" aria-labelledby="rec-t" data-win data-race>
+      <article class="win c-record" data-head="light" data-pair="rec" aria-labelledby="rec-t" data-win data-race>
         <div class="win-bar"><span class="win-title" id="rec-t" data-grip>estimate_vs_paid.txt</span><button class="win-btn" type="button" data-race-go>Replay</button></div>
         <div class="win-body">
           <p class="says">See what was paid, not estimated.</p>
@@ -230,8 +233,8 @@
       </article>
 
       <!-- Selling, with every fee and diligence -->
-      <article class="win c-sell" data-pair="sell" aria-labelledby="sell-t" data-win>
-        <div class="win-bar"><span class="win-title" id="sell-t" data-grip>selling.txt</span><a class="win-btn" href="./products/selling/">Open</a></div>
+      <article class="win c-sell" data-head="dark" data-pair="sell" aria-labelledby="sell-t" data-win>
+        <div class="win-bar"><span class="win-title" id="sell-t" data-grip>selling.txt</span><a class="win-lnk" href="./products/selling/">Open</a></div>
         <div class="win-body">
           <p class="says">Know what you’d keep if you sold.</p>
           <label class="win-k" for="sell">Selling. If it sold for</label>
@@ -256,32 +259,40 @@
     </div>
 
     <!-- Who else it is for: one plain line each, and the tool that exists -->
-    <article class="win for" aria-labelledby="for-h">
+    <article class="win for" data-head="light" aria-labelledby="for-h">
       <div class="win-bar"><h3 class="win-title" id="for-h">who_its_for.txt <span class="for-sub">Besides you</span></h3></div>
       <div class="win-body for-body">
-        <div class="for-i">
+        <div class="for-i" id="for-brands" tabindex="-1">
           <h4 class="for-k">Brands</h4>
-          <p class="for-t">Price a slot from what a creator’s work actually delivered, and get a shortlist for your brief. <a href="./products/sponsorships/">Sponsorships</a></p>
+          <p class="for-fig" data-for-brand>£2,250 to £3,950</p>
+          <p class="for-cap" data-for-brand-cap>A read at 155,000 views, made up</p>
+          <p class="for-t">Price a slot from what a creator’s work actually delivered, and get a shortlist for your brief. <a class="lnk lnk-s" href="./products/sponsorships/">Sponsorships</a></p>
         </div>
-        <div class="for-i">
-          <h4 class="for-k">Managers and media companies</h4>
-          <p class="for-t">Your whole roster, rated fairly against creators their size, with rate cards you can defend. <a href="./products/roster/">The roster</a></p>
+        <div class="for-i" id="for-managers" tabindex="-1">
+          <h4 class="for-k">Managers and agencies</h4>
+          <p class="for-fig" data-for-roster>−0.12 to +1.23</p>
+          <p class="for-cap" data-for-roster-cap>Six made-up clients, rated by size</p>
+          <p class="for-t">Your whole roster, rated fairly against creators their size, with rate cards you can defend to a brand. <a class="lnk lnk-s" href="./products/roster/">The roster</a></p>
         </div>
-        <div class="for-i">
+        <div class="for-i" id="for-buyers" tabindex="-1">
           <h4 class="for-k">Buyers, M&amp;A and PE</h4>
-          <p class="for-t">Revenue read from payouts, a diligence report before any offer, and buyers matched by size. <a href="./products/diligence/">Diligence</a></p>
+          <p class="for-fig" data-for-gap>£1,849.85</p>
+          <p class="for-cap">Estimated, never paid, one made-up month</p>
+          <p class="for-t">Revenue read from payouts, a diligence report before any offer, and buyers matched by size. <a class="lnk lnk-s" href="./products/diligence/">Diligence</a></p>
         </div>
-        <div class="for-i">
-          <h4 class="for-k">Investors</h4>
-          <p class="for-t">The State of the Middle: honest seasonal benchmarks for the creators most data ignores. <a href="#benchmarks">The benchmarks</a></p>
+        <div class="for-i" id="for-funds" tabindex="-1">
+          <h4 class="for-k">Funds and investors</h4>
+          <p class="for-fig" data-for-mid>10%</p>
+          <p class="for-cap" data-for-mid-cap>Typical reach, 250k to 1M subscribers</p>
+          <p class="for-t">The State of the Middle: honest seasonal benchmarks for the creators most data ignores. <a class="lnk lnk-s" href="#benchmarks">The benchmarks</a></p>
         </div>
       </div>
     </article>
   </section>
 
   <!-- Screen three: build your goliath -->
-  <section class="goliath" id="reserve" aria-labelledby="gol-h">
-    <div class="block">
+  <section class="goliath" data-head="light" id="reserve" aria-labelledby="gol-h">
+    <div class="block" data-head="dark">
       <div class="block-copy">
         <h2 id="gol-h" class="giant">Build your goliath.</h2>
         <p class="serif">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
@@ -294,7 +305,7 @@
         </div>
         <label class="field-label" for="kind">What you make</label>
         <select id="kind" class="field" name="kind" data-kind-select></select>
-        <button class="btn btn-chalk" type="submit">Reserve my handle</button>
+        <button class="btn-go btn-wide" type="submit"><span class="go" aria-hidden="true"></span>Reserve my handle</button>
         <p class="form-note" data-reserve-note aria-live="polite">Held once your email arrives. We’ll check it’s yours when ratings open.</p>
       </form>
       <p class="sign">Free for creators, for good. Made by people who refresh the same pages you do. <span class="sign-by">The Orbe team, London, 19 October 2026.</span></p>
@@ -302,7 +313,7 @@
   </section>
 </main>
 
-<footer class="site-foot" aria-labelledby="foot-h">
+<footer class="site-foot" data-head="light" aria-labelledby="foot-h">
   <h2 class="sr" id="foot-h">Orbe</h2>
   <nav class="foot-cols" aria-label="Footer">
     <div class="foot-col">
@@ -338,7 +349,7 @@
     </div>
   </nav>
   <p class="foot-line">Independently calculated by Orbe. Every creator on this page is made up.</p>
-  <div class="giant-mark" data-giant aria-hidden="true">
+  <div class="giant-mark" data-head="light" data-giant aria-hidden="true">
     <p class="giant-cap" data-giant-cap>Field Recordings · 93 in 100 · made up</p>
     <div class="giant-svg" data-giant-svg></div>
   </div>

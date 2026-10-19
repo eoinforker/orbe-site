@@ -55,6 +55,8 @@ export function mountGiant(box, svgHost, cap, people, { reduce = false } = {}) {
     const k = PAIRS[i % PAIRS.length], who = people[i % people.length];
     box.style.setProperty("--gbg", `var(--p-${k}-bg)`);
     box.style.setProperty("--gfg", `var(--p-${k}-fg)`);
+    /* the fixed header reads this to pick its colours over the mark */
+    box.dataset.head = k === "sell" || k === "also" ? "dark" : "light";
     cap.textContent = `${who.name} · ${who.beats} in 100 · made up`;
   };
   /* t in ms within one turn */

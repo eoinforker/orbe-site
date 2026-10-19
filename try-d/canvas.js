@@ -103,8 +103,8 @@ const views = $("[data-views]");
 const kindList = $("[data-kinds]");
 const art = mountArt($("[data-art]"));
 const F = (v) => Math.exp((v / 100) * Math.log(3));
-const FILL = { sky: "chalk", straw: "straw", peony: "peony" };
 let current = KINDS[0].key;
+const DARK_KINDS = new Set(["devlog", "letsplay", "longexposure"]);
 
 /* the piece answers too: a click on it turns to the next kind (the tabs are its keyboard twin) */
 $("[data-art]").addEventListener("click", () => { stopCycle(); const i = KINDS.findIndex((k) => k.key === current); show(KINDS[(i + 1) % KINDS.length].key, true); });
@@ -114,6 +114,30 @@ for (const k of KINDS) {
   b.addEventListener("click", () => { stopCycle(); show(k.key, true); });
   kindList.appendChild(b);
 }
+/* the strip is one row: arrow keys walk it, and where it scrolls, its edges fade */
+const kindsWrap = $("[data-kinds-wrap]");
+const kindBtns = $$("button", kindList);
+kindList.addEventListener("keydown", (e) => {
+  const i = kindBtns.indexOf(document.activeElement);
+  const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: kindBtns.length - 1 }[e.key];
+  if (i < 0 || to === undefined) return;
+  e.preventDefault();
+  kindBtns[(to + kindBtns.length) % kindBtns.length].focus();
+});
+function fadeKinds() {
+  const max = kindsWrap.scrollWidth - kindsWrap.clientWidth;
+  kindsWrap.classList.toggle("fade-l", max > 1 && kindsWrap.scrollLeft > 2);
+  kindsWrap.classList.toggle("fade-r", max > 1 && kindsWrap.scrollLeft < max - 2);
+}
+/* bring the chosen kind into the strip's view, without moving the page */
+function revealKind(key) {
+  const b = kindBtns.find((x) => x.dataset.kind === key);
+  if (!b) return;
+  const pad = 48, L = b.offsetLeft, R = L + b.offsetWidth, W = kindsWrap.clientWidth, x = kindsWrap.scrollLeft;
+  const to = L - pad < x ? L - pad : R + pad > x + W ? R + pad - W : x;
+  if (to !== x) kindsWrap.scrollTo({ left: Math.max(0, to), behavior: reduce ? "auto" : "smooth" });
+}
+kindsWrap.addEventListener("scroll", fadeKinds, { passive: true });
 /* the hundred: one cell per creator your size, the ones you beat in ink, you in Cobalt */
 const cellEls = Array.from({ length: 100 }, () => { const i = document.createElement("i"); i.className = "c"; cellsBox.insertBefore(i, select); return i; });
 
@@ -240,7 +264,8 @@ function show(key, animateWord) {
   const k = KINDS.find((x) => x.key === key);
   views.value = 0;
   const r = rated(key, 1);
-  hero.dataset.fill = FILL[k.colour];
+  hero.dataset.kindPair = key;
+  hero.dataset.head = DARK_KINDS.has(key) ? "dark" : "light";
   art.show(key, animateWord && !reduce);
   $("[data-frame-name]").textContent = `rating.txt / ${k.name}`;
   $("[data-who-name]").textContent = k.name;
@@ -251,6 +276,7 @@ function show(key, animateWord) {
   $("[data-noun-2]").textContent = k.noun;
   $("[data-unit]").textContent = k.unit;
   $$("[data-kind]", kindList).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.kind === key)));
+  revealKind(key);
   setWord(k.word, animateWord);
   paint(r);
   fillNote(key, animateWord);
@@ -260,7 +286,7 @@ function show(key, animateWord) {
 }
 
 views.addEventListener("input", () => { stopCycle(); paint(rated(current, F(Number(views.value)))); });
-addEventListener("resize", () => { paint(rated(current, F(Number(views.value)))); placeArt(); });
+addEventListener("resize", () => { paint(rated(current, F(Number(views.value)))); placeArt(); fadeKinds(); });
 
 /* ---------------------------------------------------------------- the turn: once through the six, then stop */
 const pause = $("[data-pause]");
@@ -292,7 +318,8 @@ else {
   /* stop as soon as the instrument leaves view */
   if ("IntersectionObserver" in window) new IntersectionObserver((es) => { if (es.some((e) => !e.isIntersecting)) stopCycle(); }).observe(hero);
 }
-document.fonts?.ready.then(() => { paint(rated(current, F(Number(views.value)))); placeArt(); });
+fadeKinds();
+document.fonts?.ready.then(() => { paint(rated(current, F(Number(views.value)))); placeArt(); fadeKinds(); });
 
 /* ---------------------------------------------------------------- Selling / Price */
 const sellIn = $("[data-sell]");
@@ -512,37 +539,46 @@ else {
 }
 
 /* ---------------------------------------------------------------- moving the windows
-  On a desktop the five windows can be picked up by their title rows, the
+  On a desktop the windows, and the instrument at the top, can be picked up by their title rows, the
   way TypeSafe's can: a press brings one to the front, a drag moves it
   within the section, and Tidy puts every window back on the grid. A
   focused title moves with the arrow keys (Shift for a longer step), and
   Escape puts that one back. On a phone nothing moves and the windows stack.
 */
-const tools = $("#tools");
 const tidyRow = $("[data-tidy-row]"), tidyBtn = $("[data-tidy]"), tidySay = $("[data-tidy-say]");
-const moveWins = $$("[data-win]", wall);
+const moveWins = [hero, ...$$("[data-win]", wall)];
 const off = new Map(moveWins.map((w) => [w, { x: 0, y: 0 }]));
 let movable = false, zTop = 1;
 const canMove = () => { try { return matchMedia("(min-width: 1024px)").matches && !matchMedia("(pointer: coarse)").matches; } catch (e) { return false; } };
 const nameOf = (w) => $("[data-grip]", w).textContent;
 function put(w, x, y) {
   const o = off.get(w);
-  const r = w.getBoundingClientRect(), S = tools.getBoundingClientRect(), pad = 8;
+  const r = w.getBoundingClientRect(), S = w.closest("section").getBoundingClientRect(), pad = 8;
+  /* the instrument never goes up under the fixed header */
+  const padTop = w === hero ? $("[data-bar]").offsetHeight + 8 : pad;
   const baseL = r.left - o.x, baseT = r.top - o.y;
   o.x = Math.round(Math.max(S.left + pad - baseL, Math.min(S.right - pad - r.width - baseL, x)));
-  o.y = Math.round(Math.max(S.top + pad - baseT, Math.min(S.bottom - pad - r.height - baseT, y)));
+  o.y = Math.round(Math.max(S.top + padTop - baseT, Math.min(S.bottom - pad - r.height - baseT, y)));
   w.style.transform = o.x || o.y ? `translate(${o.x}px, ${o.y}px)` : "";
+  if (w === hero) heroTidy.hidden = !(o.x || o.y);
 }
+/* the instrument's own Tidy, shown only once it has been moved */
+const heroTidy = document.createElement("button");
+heroTidy.type = "button"; heroTidy.className = "win-btn"; heroTidy.textContent = "Tidy"; heroTidy.hidden = true;
+heroTidy.addEventListener("click", () => { settleBack([hero]); heroTidy.hidden = true; $("[data-grip]", hero).focus(); });
+$(".win-ctl", hero).appendChild(heroTidy);
 const front = (w) => { if (movable) w.style.zIndex = String(++zTop); };
 function settleBack(list) {
   for (const w of list) {
     if (!reduce) { w.classList.add("tidying"); setTimeout(() => w.classList.remove("tidying"), 340); }
     const o = off.get(w); o.x = 0; o.y = 0; w.style.transform = "";
+    if (w === hero) heroTidy.hidden = true;
   }
 }
 function setMovable(on) {
   movable = on;
   wall.classList.toggle("movable", on);
+  $(".stage").classList.toggle("movable", on);
   tidyRow.hidden = !on;
   for (const w of moveWins) {
     const g = $("[data-grip]", w);
@@ -566,7 +602,7 @@ for (const w of moveWins) {
   const bar = $(".win-bar", w), grip = $("[data-grip]", w);
   w.addEventListener("pointerdown", () => front(w));
   bar.addEventListener("pointerdown", (e) => {
-    if (!movable || e.button !== 0 || e.target.closest("a, button, input, summary, label")) return;
+    if (!movable || e.button !== 0 || e.target.closest("a, button, input, summary, label, .kinds")) return;
     e.preventDefault();
     const o = off.get(w);
     held = { w, id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: o.x, oy: o.y };
@@ -579,7 +615,7 @@ for (const w of moveWins) {
   });
   const drop = (e) => {
     if (!held || held.w !== w) return;
-    held = null; w.classList.remove("held");
+    held = null; w.classList.remove("held"); headTheme();
     try { bar.releasePointerCapture(e.pointerId); } catch (err) {}
   };
   bar.addEventListener("pointerup", drop);
@@ -608,3 +644,152 @@ addEventListener("resize", () => {
 /* ---------------------------------------------------------------- the giant mark */
 mountGiant($("[data-giant]"), $("[data-giant-svg]"), $("[data-giant-cap]"),
   KINDS.map((k) => ({ name: k.name, beats: beatsOf(rated(k.key, 1)) })), { reduce: reduce || !("IntersectionObserver" in window) });
+
+/* ---------------------------------------------------------------- who it's for: one live figure each, from the engine */
+{
+  const q = quote(155000).find((x) => x.format === "integration")?.s;
+  if (q && q.status === "suggested") $("[data-for-brand]").textContent = `${gbp(q.low.amount)} to ${gbp(q.high.amount)}`;
+  const rs = KINDS.map((k) => rated(k.key, 1).rating).sort((a, b) => a - b);
+  $("[data-for-roster]").textContent = `${minus(signed(rs[0]))} to ${minus(signed(rs.at(-1)))}`;
+  $("[data-for-roster-cap]").textContent = "Six made-up clients, rated by size";
+  $("[data-for-gap]").textContent = gbpExact(d.estimate - d.paid);
+  const m = middle(benchKinds()[0].key), row = m.rows.find((r) => r.key === m.at);
+  $("[data-for-mid]").textContent = row.value;
+  $("[data-for-mid-cap]").textContent = `Typical reach, ${row.label.replace(/^Under/, "under").replace(/^Over/, "over")} ${m.audienceNoun}`;
+}
+
+/* ---------------------------------------------------------------- the audience line: jump to the part, light it once */
+for (const a of $$("[data-aud] a")) {
+  a.addEventListener("click", (e) => {
+    const ids = a.dataset.to.split(" ");
+    const els = ids.map((id) => (id === "hero" ? hero : document.getElementById(id))).filter(Boolean);
+    if (!els.length) return;
+    e.preventDefault();
+    const first = els[0];
+    first.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: first === hero ? "nearest" : "center" });
+    for (const el of els) {
+      el.classList.remove("lit");
+      void el.offsetWidth;
+      el.classList.add("lit");
+      clearTimeout(el._lit);
+      el._lit = setTimeout(() => el.classList.remove("lit"), reduce ? 4000 : 1800);
+    }
+    if (first === hero) $("[data-kind][aria-pressed=\"true\"]", hero).focus({ preventScroll: true });
+    else first.focus({ preventScroll: true });
+  });
+}
+
+/* ---------------------------------------------------------------- the pointer's trail, in the Sky hero
+  Where a mouse moves over the hero, cells of fal's 11.28px lattice light in
+  the chosen kind's colours and fade over 1.2s; a click stamps a small
+  cluster. At most 60 cells; drawn on one canvas under the words; nothing
+  runs once the last cell has gone. Off on touch and under reduced motion.
+*/
+{
+  const fine = (() => { try { return matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) { return false; } })();
+  const cv = $("[data-trail]");
+  if (fine && !reduce && cv) {
+    const heroEl = $(".hero"), ctx = cv.getContext("2d");
+    const CELL = 11.28, LIFE = 1200, MAX = 60;
+    const TRAIL = {
+      explainer: ["#EED56A", "#1F4BFF", "#141311"], devlog: ["#141311", "#EED56A"], podcast: ["#F2879E", "#6F1726", "#FBFAF6"],
+      letsplay: ["#1238D6", "#EED56A", "#141311"], recipe: ["#FBD9E0", "#1F4BFF", "#6F1726"], longexposure: ["#6F1726", "#FBD9E0"],
+    };
+    let cells = [], raf = 0, dpr = 1, last = "";
+    const size = () => {
+      dpr = Math.min(2, devicePixelRatio || 1);
+      const w = heroEl.clientWidth, h = heroEl.clientHeight;
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      cv.style.width = `${w}px`; cv.style.height = `${h}px`;
+    };
+    size();
+    if ("ResizeObserver" in window) new ResizeObserver(size).observe(heroEl);
+    const draw = (now) => {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      cells = cells.filter((c) => now - c.t < LIFE);
+      for (const c of cells) {
+        const t = Math.max(0, (now - c.t) / LIFE);
+        ctx.globalAlpha = 1 - ease(t);
+        ctx.fillStyle = c.c;
+        const x0 = Math.round(c.x * CELL * dpr), y0 = Math.round(c.y * CELL * dpr);
+        ctx.fillRect(x0, y0, Math.round((c.x + 1) * CELL * dpr) - x0, Math.round((c.y + 1) * CELL * dpr) - y0);
+      }
+      ctx.globalAlpha = 1;
+      raf = cells.length ? requestAnimationFrame(draw) : 0;
+    };
+    const add = (x, y, now) => {
+      const pal = TRAIL[current] ?? TRAIL.explainer;
+      cells.push({ x, y, t: now, c: pal[(((x + y) % pal.length) + pal.length) % pal.length] });
+      if (cells.length > MAX) cells.splice(0, cells.length - MAX);
+      if (!raf) raf = requestAnimationFrame(draw);
+    };
+    const at = (e) => { const b = heroEl.getBoundingClientRect(); return [Math.floor((e.clientX - b.left) / CELL), Math.floor((e.clientY - b.top) / CELL)]; };
+    const over = (e) => e.pointerType === "mouse" && !e.target.closest(".stage");
+    heroEl.addEventListener("pointermove", (e) => {
+      if (!over(e) || e.buttons) return;
+      const [x, y] = at(e), k = `${x},${y}`;
+      if (k === last) return;
+      /* a fast move fills the cells between, up to eight, so the line stays whole */
+      const now = performance.now(), [px, py] = last ? last.split(",").map(Number) : [x, y];
+      const n = Math.min(8, Math.max(Math.abs(x - px), Math.abs(y - py)));
+      for (let i = 1; i < n; i++) add(Math.round(px + ((x - px) * i) / n), Math.round(py + ((y - py) * i) / n), now - (n - i) * 8);
+      last = k;
+      add(x, y, now);
+    });
+    heroEl.addEventListener("pointerdown", (e) => {
+      if (!over(e) || e.target.closest("a, button, input, select, label")) return;
+      const [x, y] = at(e), now = performance.now();
+      for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [2, 0], [0, 2], [-1, 1]]) add(x + dx, y + dy, now - Math.abs(dx + dy) * 40);
+    });
+    heroEl.addEventListener("pointerleave", () => { last = ""; });
+  }
+}
+
+/* ---------------------------------------------------------------- the header's colours
+  An IntersectionObserver whose root is cut down to a one pixel line through
+  the middle of the fixed header reports which declared fields ([data-head])
+  are under it. Each part of the header (the mark, the links, the button)
+  then takes the theme of the smallest field under its own centre, so a
+  dark window under the links turns only the links. Nothing runs between
+  crossings; a field changing its theme (the instrument's kind, the mark in
+  the footer) is caught by a MutationObserver.
+*/
+const bar = $("[data-bar]");
+const parts = $$("[data-part]", bar);
+/* a window's title row is Chalk whatever its body is */
+$$(".win-bar").forEach((b) => { b.dataset.head = "light"; });
+const fields = $$("[data-head]");
+const under = new Set();
+function headTheme() {
+  const B = bar.getBoundingClientRect(), y = B.top + B.height / 2;
+  const live = [...under].filter((el) => !el.classList.contains("shut")).map((el) => [el, el.getBoundingClientRect()]).filter(([, r]) => r.top <= y && r.bottom >= y);
+  for (const p of parts) {
+    const P = p.getBoundingClientRect(), x = P.left + P.width / 2;
+    let best = null, area = Infinity;
+    for (const [el, r] of live) {
+      if (r.left > x || r.right < x) continue;
+      const A = r.width * r.height;
+      /* the smallest field wins; at the same size, the one inside the other */
+      if (A < area || (A === area && best?.contains(el))) { best = el; area = A; }
+    }
+    const on = best?.dataset.head ?? "light";
+    if (p.dataset.on !== on) p.dataset.on = on;
+  }
+}
+let headIO = null;
+function watchHead() {
+  headIO?.disconnect();
+  under.clear();
+  const B = bar.getBoundingClientRect(), mid = Math.round(B.top + B.height / 2);
+  headIO = new IntersectionObserver((es) => {
+    for (const e of es) e.isIntersecting ? under.add(e.target) : under.delete(e.target);
+    headTheme();
+  }, { rootMargin: `${-mid}px 0px ${-(innerHeight - mid - 1)}px 0px`, threshold: 0 });
+  fields.forEach((f) => headIO.observe(f));
+}
+if ("IntersectionObserver" in window) {
+  watchHead();
+  let rs = 0;
+  addEventListener("resize", () => { clearTimeout(rs); rs = setTimeout(watchHead, 120); });
+  new MutationObserver(headTheme).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["data-head", "class"] });
+}
