@@ -1,14 +1,14 @@
 /*
-  badge-trail: tiny creator words drop behind the cursor as small die cut
-  bars of colour, hold for a beat and flick away.
+  badge-trail: the wrong yardsticks drop behind the cursor as small ink
+  bars, hold for a beat and flick away.
 
   Essentials kept from the spec:
   - the trail spawns on the raw pointer path, rate limited by time AND by
     distance travelled, so a still cursor cannot stack badges in place
   - hard non overlap: a candidate rect (inflated by a gap) is tested against
     every live badge and the drop is skipped if it would touch one
-  - words from a shuffled bag, colours walked round the wheel so neighbours
-    differ, intensity from pointer speed
+  - words from a shuffled bag, all in one ink (the hue walker is kept for
+    the old API), intensity from pointer speed
   - slam in along the direction of travel, hold with a sub pixel wobble,
     flick out thinner and rotated; neighbours get a small shove on a drop
   - a ghost cursor takes over after the pointer leaves, so the card is
@@ -20,44 +20,20 @@
 */
 
 export const WORDS = [
-  "views",
-  "retention",
-  "cpm",
-  "rpm",
-  "sponsor",
-  "payout",
-  "renewals",
-  "open rate",
-  "watch time",
-  "churn",
-  "episode",
-  "upload",
-  "subs",
-  "ctr",
-  "thumbnail",
-  "hook",
-  "cohort",
-  "median",
-  "payday",
-  "invoice",
-  "merch",
-  "listens",
-  "brand deal",
-  "newsletter",
-  "members",
-  "first 30s",
+  "the top 1%",
+  "viral",
+  "followers",
+  "the charts",
+  "vanity views",
+  "trending",
+  "the giants",
+  "likes",
 ];
 
-// Static examples for reduced motion. No purples anywhere in this file.
-const STATIC = [
-  { text: "retention", color: "#c6ff3d" },
-  { text: "payout", color: "#38e0ff" },
-  { text: "rpm", color: "#ff8a3d" },
-  { text: "renewals", color: "#ffe234" },
-  { text: "watch time", color: "#ff5c8a" },
-];
+// Static examples for reduced motion: ink words on the plate, nothing else.
+const STATIC = ["the top 1%", "viral", "followers", "the charts", "vanity views"].map((text) => ({ text, color: "#141311" }));
 
-const FONT_PX = 11;
+const FONT_PX = 12;
 const PAD_X = 4;
 const PAD_Y = 2;
 const RADIUS = 3;
@@ -75,7 +51,7 @@ const IDLE_WOBBLE = 0.35;
 const IDLE_BREATH = 0.01;
 const SPECIAL_EVERY = 15;
 const SCRAMBLE_MS = 130;
-const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*%£";
+const SCRAMBLE_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789%";
 const SPEED_FULL = 40;
 const INTENSITY_FLOOR = 0.35;
 const REPEL_PX = 3;
@@ -174,9 +150,8 @@ function badgeStyle(s) {
     whiteSpace: "nowrap",
     padding: `${PAD_Y}px ${PAD_X}px`,
     borderRadius: `${RADIUS}px`,
-    textTransform: "uppercase",
-    letterSpacing: "0.02em",
-    color: "#141311",
+    letterSpacing: "0",
+    color: "#F3F0E8",
     pointerEvents: "none",
   });
 }
@@ -192,7 +167,7 @@ export function mount(el, opts = {}) {
   el.setAttribute("role", "img");
   el.setAttribute(
     "aria-label",
-    "A pale card that drops a trail of small coloured badges of creator words, like retention, rpm and payout, behind the cursor. On touch, drag a finger across it.",
+    "A pale card that drops a trail of the wrong yardsticks, like the top 1%, viral and followers, in ink behind the cursor. On touch, drag a finger across it.",
   );
 
   const layer = document.createElement("div");
@@ -228,7 +203,7 @@ export function mount(el, opts = {}) {
     let wpx = text.length * FONT_PX * 0.62;
     if (ctx) {
       ctx.font = `500 ${FONT_PX}px ${FONT_FAMILY}`;
-      wpx = ctx.measureText(text.toUpperCase()).width + text.length * FONT_PX * 0.02;
+      wpx = ctx.measureText(text).width;
     }
     return Math.ceil(wpx) + PAD_X * 2;
   };
@@ -333,9 +308,11 @@ export function mount(el, opts = {}) {
           const color = nextColor(intensity);
           const node = document.createElement("span");
           badgeStyle(node);
-          // every fifteenth drop is inverted: ink bar, coloured word
-          node.style.background = special ? "#141311" : color;
-          node.style.color = special ? color : "#141311";
+          // one ink for every word: the wrong yardsticks, never a rainbow
+          void color;
+          node.style.background = special ? "#F3F0E8" : "#141311";
+          node.style.color = special ? "#141311" : "#F3F0E8";
+          if (special) node.style.boxShadow = "inset 0 0 0 1.5px #141311";
           node.style.willChange = "opacity, transform";
           node.style.width = `${bw}px`;
           node.style.height = `${bh}px`;
@@ -349,7 +326,7 @@ export function mount(el, opts = {}) {
             y,
             w: bw,
             h: bh,
-            text: text.toUpperCase(),
+            text,
             born: now,
             dirX: dx,
             dirY: dy,

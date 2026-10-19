@@ -64,16 +64,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .sw { width: 8px; height: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1.5px var(--orbe-ink); }
 .sw-blue { background: var(--orbe-sky); }
 .sw-pink { background: var(--orbe-peony); }
-.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 0 var(--gut) 10px; margin: 0 auto; max-width: 1200px; scroll-padding-inline: var(--gut); --fl: #000; --fr: #000; mask-image: linear-gradient(to right, var(--fl), #000 32px, #000 calc(100% - 40px), var(--fr)); }
+.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 0 var(--gut); margin: 0 auto; max-width: 1200px; scroll-padding-inline: var(--gut); --fl: #000; --fr: #000; mask-image: linear-gradient(to right, var(--fl), #000 32px, #000 calc(100% - 40px), var(--fr)); }
 /* A paper fade at whichever edge has more tabs behind it (set by shell.js; the right one until it runs). */
 .tabs:not(.more-l):not(.more-r) { --fr: transparent; }
 .tabs.more-r { --fr: transparent; }
 .tabs.more-l { --fl: transparent; }
 @media (min-width: 900px) { .tabs, .tabs.more-r, .tabs.more-l { mask-image: none; } }
 .tabs::-webkit-scrollbar { display: none; }
-.tabs a { flex: none; text-decoration: none; font-size: 14px; color: var(--soft); padding: 6px 12px; border-radius: var(--r-pill); border: 1.5px solid transparent; white-space: nowrap; }
-.tabs a:hover { color: var(--ink); }
-.tabs a[aria-current="page"] { color: var(--ink); background: var(--paper-hi); border-color: var(--orbe-ink); font-weight: 600; }
+/* Tabs are hairline: plain words on paper, the current one underlined in ink on the header's rule. */
+.tabs a, .page-tabs a { flex: none; text-decoration: none; font-size: 14px; color: var(--soft); padding: 10px 12px 11px; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs a:hover, .page-tabs a:hover { color: var(--ink); }
+.tabs a[aria-current="page"], .page-tabs a[aria-current] { color: var(--ink); border-bottom-color: var(--orbe-ink); font-weight: 600; }
+/* A page's own sections, as the same hairline tab row (Podcasts). */
+.page-tabs { display: flex; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); margin-top: 24px; }
+.page-tabs::-webkit-scrollbar { display: none; }
+.page-tabs a:first-child { padding-left: 0; }
+.page-tabs .tab-n { font-family: var(--font-mono); color: var(--soft); margin-right: 6px; font-weight: 400; }
+@media (max-width: 759px) { .page-tabs .tab-n { display: none; } .page-tabs a { padding-inline: 10px; } }
 
 /* ---------- page ---------- */
 .page { padding-top: 28px; padding-bottom: 80px; }
@@ -340,13 +347,8 @@ details.table-view summary { cursor: pointer; color: var(--soft); min-height: 32
 .step-go { justify-self: start; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 15px; font-weight: 700; color: var(--link); text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1.5px; }
 .step-go .o-icon { transform: rotate(-90deg); transition: transform var(--dur-ui) var(--ease-settle); }
 @media (hover: hover) { .step:hover .step-go .o-icon { transform: rotate(-90deg) translateY(3px); } .step:hover .step-h a { text-decoration: underline; text-underline-offset: 0.15em; text-decoration-thickness: 2px; } }
-.step-tag { font-size: 14px; font-weight: 600; }
-/* Podcasts, free for good, sits in a sky well: the field colour, no edge, no lift. */
-.step-field { background: var(--field); color: var(--on-field); margin-inline: calc(-1 * var(--gut)); padding-inline: var(--gut); border-bottom-color: transparent; }
-.step-field .step-k, .step-field .step-p, .step-field .step-tag { color: var(--on-field-soft); }
-.step-field .step-h a { color: var(--on-field); }
-.step-field .step-go { color: var(--on-field); }
-@media (min-width: 900px) { .step-field { margin-inline: -16px; padding-inline: 16px; border-radius: 4px; } }
+/* Podcasts says "Free, for good" in a mono kicker above its name, on paper like the other four. */
+.step-tag { font: 500 12px/1.3 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--soft); }
 .hub-fold { margin-top: 40px; }
 
 .foot { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; color: var(--soft); display: grid; gap: 8px; }
@@ -407,3 +409,22 @@ fieldset.stack > legend + * { clear: both; margin-top: 0; }
 .foot .pal { margin-top: 4px; }
 .foot .pal button:first-of-type { padding-left: 4px; }
 .grid > .panel + .panel { margin-top: 0; }
+
+/* Preloaded results: room is kept for the made-up result window so it lands without a shift. */
+[data-out] > [data-empty] { min-height: 330px; }
+@media (min-width: 900px) { [data-out] > [data-empty] { min-height: 300px; } }
+/* Rate on a phone: the made-up result window leads, then the form, then the rest of the result. */
+@media (max-width: 899px) {
+  .split.lead { display: flex; flex-direction: column; }
+  .split.lead > * { display: contents; }
+  .split.lead > [data-out] > :first-child { order: -1; margin-bottom: 28px; }
+  .split.lead > [data-out] > :nth-child(2) { margin-top: 32px; }
+}
+
+/* Desktop small print: nothing under 14px, so the honesty table and the helper text read without effort. */
+@media (min-width: 900px) {
+  .mono { font-size: max(14px, 0.9em); }
+  .live dt, .live dd { font-size: 15px; }
+  .pal-k, .field small, .hint, .kpi .s, .tbl th, .sources .src-p, .ask-call, .state, .step-k, .copy code, .ep .m, .proof-parts { font-size: 14px; }
+  .sample::before, .hub-kick, .page-kick, .proof-k, .step-tag, .chart .ax { font-size: 14px; }
+}

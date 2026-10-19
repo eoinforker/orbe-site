@@ -239,7 +239,7 @@ function renderSmartLink() {
   const link = { showId: state.showId, title: state.feed?.title ?? "Your show", feedUrl: state.feedUrl || "https://example.invalid/feed.xml", appleId, apps };
   const links = appLinks(link);
   $("[data-sl-url]").textContent = `orbe.vc/l/${state.showId}`;
-  $("[data-sl-apps]").innerHTML = APPS.filter((k) => links[k]).map((k) => `<tr><td>${esc(APP_NAMES[k])}</td><td class="mono" style="overflow-wrap:anywhere;font-size:12.5px">${esc(links[k])}</td></tr>`).join("");
+  $("[data-sl-apps]").innerHTML = APPS.filter((k) => links[k]).map((k) => `<tr><td>${esc(APP_NAMES[k])}</td><td class="mono" style="overflow-wrap:anywhere">${esc(links[k])}</td></tr>`).join("");
   $("[data-sl-cases]").innerHTML = DEVICES.map(([who, input]) => {
     const c = chooseApp(link, input);
     return `<tr><td>${esc(who)}</td><td>${c.kind === "redirect" ? `Straight to ${esc(APP_NAMES[c.app])}` : "The page listing every app"}</td></tr>`;
@@ -254,8 +254,10 @@ const EXAMPLES = {
   ok: { claim: 21000, measured: 18900, days: 35, coverage: "live", op3: "", op3weeks: "", indexCount: 48, ratings: 160, chart: 64, videos: "", episodes: "", daily: "", dailyTotal: "" },
   bad: { claim: 310000, measured: "", days: "", coverage: "live", op3: 52000, op3weeks: 8, indexCount: 22, ratings: 4, chart: "", videos: "900, 1100, 760, 1300", episodes: "2026-09-02, 9000, 8200\n2026-09-09, 11000, 15000\n2026-09-16, 10000, 14800", daily: Array(21).fill(10000).join(", "), dailyTotal: 230000 },
 };
-for (const b of $$("[data-pl-ex]")) b.addEventListener("click", () => { fill(EXAMPLES[b.dataset.plEx]); form.requestSubmit(); });
-$("[data-pl-clear]").addEventListener("click", () => { form.reset(); $("[data-pl-out]").innerHTML = ""; });
+let plSample = false;
+for (const b of $$("[data-pl-ex]")) b.addEventListener("click", () => { fill(EXAMPLES[b.dataset.plEx]); plSample = true; form.requestSubmit(); });
+$("[data-pl-clear]").addEventListener("click", () => { form.reset(); plSample = false; $("[data-pl-out]").innerHTML = ""; });
+form.addEventListener("input", () => { plSample = false; });
 function fill(v) { for (const [k, x] of Object.entries(v)) if (form.elements[k]) form.elements[k].value = x; form.elements.dead.checked = false; }
 const num = (v) => (v === "" || v === null || v === undefined || !Number.isFinite(Number(v)) ? undefined : Number(v));
 form.addEventListener("submit", (e) => {
@@ -284,6 +286,7 @@ form.addEventListener("submit", (e) => {
   const VERDICT = { consistent: ["Consistent", "good"], consistent_with_notes: ["Consistent, with notes", "good"], questions: ["Questions to ask", "warn"], inconsistent: ["Inconsistent", "bad"], not_enough_signal: ["Not enough signal", ""] };
   const SEV = { info: "", low: "", medium: "warn", high: "bad" };
   $("[data-pl-out]").innerHTML = `<div class="panel stack">
+      ${plSample ? `<div class="sample"><span><b>A made-up claim.</b> The figures in the form are invented, for trying the check. Type a real claim to replace them.</span></div>` : ""}
       <p><span class="tag ${VERDICT[p.verdict][1]}" style="font-size:17px">${VERDICT[p.verdict][0]}</span></p>
       ${fold("Signals compared", `${p.signalsUsed.length || "none"}`, p.signalsUsed.length ? sourcesList(p.signalsUsed.map((u) => ({ ...(SIGNAL[u] ?? { kind: "typed", provenance: "Typed into this form." }), label: u }))) : `<p class="small">Add a claim and at least one signal to compare it with.</p>`)}
       <p class="small">Rules ${esc(p.rulesVersion)}, every threshold provisional.</p>
@@ -300,6 +303,23 @@ form.addEventListener("submit", (e) => {
   $("[data-feed-url]").value = "";
 })();
 void RULES_VERSION;
+
+/* The check opens on a made-up claim, labelled, so it never starts empty. */
+fill(EXAMPLES.ok);
+plSample = true;
+form.requestSubmit();
+
+/* The section tabs: the one in view is marked current. */
+const tabLinks = $$("[data-page-tabs] a");
+const secs = tabLinks.map((a) => document.getElementById(a.getAttribute("href").slice(1)));
+const markTab = () => {
+  const y = innerHeight * 0.35;
+  let cur = 0;
+  secs.forEach((el, i) => { if (el && el.getBoundingClientRect().top <= y) cur = i; });
+  tabLinks.forEach((a, i) => (i === cur ? a.setAttribute("aria-current", "location") : a.removeAttribute("aria-current")));
+};
+let tabRaf = 0;
+addEventListener("scroll", () => { if (!tabRaf) tabRaf = requestAnimationFrame(() => { tabRaf = 0; markTab(); }); }, { passive: true });
 
 /* Smart link and the plausibility check start folded; a link to either opens it. */
 const openSection = (id) => { const d = document.getElementById(id)?.querySelector("details[data-sec]"); if (d) d.open = true; };

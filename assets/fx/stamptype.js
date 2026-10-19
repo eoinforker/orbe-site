@@ -16,7 +16,7 @@
   - square 600 space composition letterboxed in the card
 
   Usage: import { mount } from "./stamptype.js";
-         const fx = mount(el, { worlds }); fx.destroy();
+         const fx = mount(el, { worlds, scheme: "blue" }); fx.destroy();
 */
 
 const TICK_MS = 50;
@@ -31,34 +31,43 @@ const FIELD_SWAP = 5;
 
 /*
   Palette rule: field and bar far apart in BOTH hue and value, and ink
-  near black or near white. Each world below was picked against that.
+  near black or near white, at AA or better on its bar. Only the brand
+  colours: Sky, Ink, Cobalt, Ember and Paper in blue; the pink set trades
+  Cobalt and Sky for Claret and Peony, so peony never meets cobalt. No
+  paint colours (Straw, Water, Meadow and the rest stay in the paintings).
 */
+const LINES = [
+  ["rated against", "creators", "your size,", "not the charts."],
+  ["read from", "payouts,", "not from", "estimates."],
+  ["free for", "creators.", "we earn when", "money moves."],
+  ["your size,", "your record,", "your real", "numbers."],
+  ["a fair read", "on the work", "you already", "put out."],
+];
+
 export const WORLDS = [
-  {
-    // cobalt field, straw bar: blue against yellow, deep against light
-    bg: "#1F4BFF", bar: "#EED56A", ink: "#141311",
-    lines: ["rated against", "creators", "your size,", "not the charts."],
-  },
-  {
-    // claret field, sky bar: red against cyan, dark against pale
-    bg: "#6F1726", bar: "#9EE9FB", ink: "#141311",
-    lines: ["read from", "payouts,", "not from", "estimates."],
-  },
-  {
-    // paper field, cobalt bar, white ink: warm pale against saturated deep
-    bg: "#F3F0E8", bar: "#1F4BFF", ink: "#FFFFFF",
-    lines: ["free for", "creators.", "we earn when", "money moves."],
-  },
-  {
-    // ink field, ember bar: neutral near black against hot orange
-    bg: "#141311", bar: "#FF5A1F", ink: "#141311",
-    lines: ["your size,", "your record,", "your real", "numbers."],
-  },
-  {
-    // ember field, ink bar, paper ink: orange against neutral, light on dark
-    bg: "#FF5A1F", bar: "#141311", ink: "#F3F0E8",
-    lines: ["a fair read", "on the work", "you already", "put out."],
-  },
+  // cobalt field, paper bar, ink: deep blue against warm pale
+  { bg: "#1F4BFF", bar: "#F3F0E8", ink: "#141311", lines: LINES[0] },
+  // ink field, sky bar, ink: near black against pale cyan
+  { bg: "#141311", bar: "#9EE9FB", ink: "#141311", lines: LINES[1] },
+  // paper field, cobalt bar, chalk ink: warm pale against saturated deep
+  { bg: "#F3F0E8", bar: "#1F4BFF", ink: "#FBFAF6", lines: LINES[2] },
+  // sky field, ink bar, sky ink: pale cyan against near black
+  { bg: "#9EE9FB", bar: "#141311", ink: "#9EE9FB", lines: LINES[3] },
+  // ember field, ink bar, paper ink: hot orange against neutral dark
+  { bg: "#FF5A1F", bar: "#141311", ink: "#F3F0E8", lines: LINES[4] },
+];
+
+export const WORLDS_PINK = [
+  // claret field, paper bar, ink: deep red against warm pale
+  { bg: "#6F1726", bar: "#F3F0E8", ink: "#141311", lines: LINES[0] },
+  // ink field, peony bar, ink: near black against pink
+  { bg: "#141311", bar: "#F2879E", ink: "#141311", lines: LINES[1] },
+  // paper field, claret bar, blush ink: warm pale against deep red
+  { bg: "#F3F0E8", bar: "#6F1726", ink: "#FBD9E0", lines: LINES[2] },
+  // peony field, ink bar, peony ink: pink against near black
+  { bg: "#F2879E", bar: "#141311", ink: "#F2879E", lines: LINES[3] },
+  // ember field, ink bar, paper ink: hot orange against neutral dark
+  { bg: "#FF5A1F", bar: "#141311", ink: "#F3F0E8", lines: LINES[4] },
 ];
 
 const HEADLINE = 71 / 600;
@@ -322,7 +331,8 @@ class StampType {
 }
 
 export function mount(el, opts = {}) {
-  const worlds = opts.worlds && opts.worlds.length ? opts.worlds : WORLDS;
+  const scheme = opts.scheme || document.documentElement.getAttribute("data-scheme");
+  const worlds = opts.worlds && opts.worlds.length ? opts.worlds : scheme === "pink" ? WORLDS_PINK : WORLDS;
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (!el.hasAttribute("role")) el.setAttribute("role", "img");

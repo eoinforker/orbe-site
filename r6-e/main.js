@@ -1,6 +1,7 @@
 /* Orbe r6-e: the story. Every figure comes from the engine via examples.js. */
-import { example, ORDER, BANDS, EXAMPLE_LINE, mathsFor } from "../assets/r5/examples.js";
+import { example, benchmark, ORDER, BANDS, EXAMPLE_LINE, mathsFor } from "../assets/r5/examples.js";
 import { ratingNotice } from "../assets/engine/rating/label.js";
+import { SPECS } from "../assets/engine/rating/kinds.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
 import { paintCanvas, PALETTES } from "./painter.js";
@@ -74,6 +75,8 @@ function setKind(k, { recount = true } = {}) {
   $("[data-ms]").style.setProperty("--to", lead.score / 100);
   $("[data-bands]").innerHTML = BANDS.map((b) => `<li${b === e.band ? ' class="is" aria-current="true"' : ""}>${b}</li>`).join("");
   $("[data-parts]").innerHTML = parts.map((p) => `<li><b>${p.score}</b><span>${p.name}<small>${p.value}</small></span></li>`).join("");
+  setYard(k);
+  if (cur === 1) strike();
   for (const b of $$("[data-tk]")) b.setAttribute("aria-pressed", String(b.dataset.tk === k));
   for (const s of $$("[data-kind]")) s.value = k;
   $("[data-peers-you]").textContent = e.peers;
@@ -82,6 +85,40 @@ function setKind(k, { recount = true } = {}) {
   const m1 = $(".m1");
   m1.classList.remove("fill"); void m1.offsetWidth; m1.classList.add("fill");
 }
+/* ---------- one piece of work, three yardsticks: the smallest, the biggest, and its own size ----------
+   The same reading of the engine as r6-a: where the work's reach would sit among the smallest and the
+   biggest creators of its kind, against the score the engine gives it among its own size. */
+const erf = (x) => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+const phi = (z) => 0.5 * (1 + erf(z / Math.SQRT2));
+const say = (n, mine) => (mine ? "Ahead of most." : n >= 97 ? "Looks like genius." : n >= 75 ? "Looks great." : n >= 45 ? "Looks ordinary." : "Looks weak.");
+const VERDICT = { "Looks like genius.": "a genius", "Looks great.": "great", "Looks ordinary.": "ordinary", "Looks weak.": "weak" };
+const lower = (s) => s.replace(/^Under/, "under").replace(/^Over/, "over");
+function setYard(k) {
+  const e = example(k);
+  const spec = SPECS[e.platform];
+  const reach = e.result.detail.parts.find((p) => p.key === "reach");
+  const sigma = spec.parts.find((p) => p.key === "reach").prior.sigma;
+  const own = e.result.parts.find((p) => p.key === "reach").score;
+  const bm = benchmark(k);
+  /* A percentile: never "100 in 100", never "0 in 100". */
+  const beats = (row) => (row.key === bm.example ? own : Math.max(1, Math.min(99, Math.round(phi(Math.log(reach.measured / row.value) / sigma) * 100))));
+  const first = bm.rows[0], last = bm.rows[bm.rows.length - 1], mine = bm.rows.find((r) => r.key === bm.example);
+  $("[data-yard]").setAttribute("aria-label", `One ${e.word}'s reach, against three sizes of ${e.peers}`);
+  $("[data-yard]").innerHTML = [[first], [last], [mine, true]].map(([row, m]) => `<li class="y${m ? " mine" : ""}">
+    <span class="y-vs">${m ? `Its size<small>${row.label}</small>` : row.label}</span>
+    <span class="y-say"><span class="y-w">${say(beats(row), m)}</span>${m ? "" : '<span class="vh"> Not a fair comparison.</span>'}</span>
+    <b class="y-n">${beats(row)}</b>
+  </li>`).join("");
+  $("[data-yard-why]").innerHTML = `Against small ${e.peers}, ${VERDICT[say(beats(first))]}. Against the giants, ${VERDICT[say(beats(last))]}. <b>Neither is&nbsp;fair.</b>`;
+}
+/* The wrong verdicts are struck through in turn as the window arrives. */
+const m2win = document.querySelector(".m2 .win");
+function strike() {
+  m2win.classList.remove("struck"); void m2win.offsetWidth;
+  if (reduce) { m2win.classList.add("struck"); return; }
+  setTimeout(() => m2win.classList.add("struck"), 450);
+}
+
 tray.addEventListener("click", (ev) => { const b = ev.target.closest("[data-tk]"); if (b) setKind(b.dataset.tk); });
 
 /* ---------- the second door: every example, rated live ---------- */
@@ -131,7 +168,7 @@ function setScene(i, { replay = false } = {}) {
   cur = i;
   document.body.dataset.scene = String(i);
   const k = Math.min(i, N - 1);
-  for (const p of $$("[data-pos2]")) p.textContent = String(k + 1).padStart(2, "0");
+  for (const p of $$("[data-pos2]")) p.textContent = String(k + 1);
   const pos = $("[data-pos]"); if (pos) pos.textContent = String(k + 1);
   for (const f of fills) {
     f.style.setProperty("--a", k / N);
@@ -146,6 +183,7 @@ function setScene(i, { replay = false } = {}) {
     p.classList.add("seen");
     if (i === 0) { p.classList.remove("fill"); void p.offsetWidth; p.classList.add("fill"); }
     for (const el of $$("[data-count]", p)) if (wide.matches || first) countUp(el);
+    if (i === 1 && (wide.matches || first)) strike();
   }
 }
 
@@ -158,11 +196,20 @@ function sceneFromScroll() {
   for (let k = N - 1; k >= 0; k--) if (moments[k].getBoundingClientRect().top <= mid) return k;
   return 0;
 }
+/* The phone header wears the ground of whatever sits under it, so it never prints over a moment's type. */
+const top = $(".top");
+function groundTop() {
+  const y = top.offsetHeight;
+  let s = 0;
+  moments.forEach((q, n) => { if (q.getBoundingClientRect().top <= y) s = n; });
+  panels.forEach((q, n) => { if (q.offsetParent && q.getBoundingClientRect().top <= y) s = N + n; });
+  top.dataset.s = String(s);
+}
 let ticking = false;
 addEventListener("scroll", () => {
   if (wide.matches || ticking) return;
   ticking = true;
-  requestAnimationFrame(() => { ticking = false; const s = sceneFromScroll(); if (s !== cur) setScene(s); });
+  requestAnimationFrame(() => { ticking = false; groundTop(); const s = sceneFromScroll(); if (s !== cur) setScene(s); });
 }, { passive: true });
 
 function goPhone(i) {
@@ -195,6 +242,7 @@ function framed() {
   } else {
     moments.forEach((q) => q.classList.remove("is-on"));
     setScene(sceneFromScroll());
+    groundTop();
   }
 }
 fills[1]?.addEventListener("animationend", () => {

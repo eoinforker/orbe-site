@@ -20,14 +20,17 @@ $("[data-add-stream]").addEventListener("click", () => streamsEl.insertAdjacentH
 let mode = "quick";
 segmented($("[data-val-mode]"), (v) => { mode = v; $("[data-quick]").classList.toggle("hide", v !== "quick"); $("[data-lines]").classList.toggle("hide", v !== "lines"); });
 vf.elements.face.addEventListener("input", () => ($("[data-face-out]").textContent = `${vf.elements.face.value}%`));
+/* The made-up example: a YouTube channel with three streams. It is valued on load, labelled, until you value your own. */
+const EXAMPLE = { kind: "youtube", months: 24, growth: 18, margin: 62, face: 60, streams: [{ stream: "ads", amount: 6200, who: "" }, { stream: "sponsorship", amount: 3800, who: "Brindle Coffee (made up)" }, { stream: "memberships", amount: 1500 }] };
 $("[data-val-example]").addEventListener("click", () => {
   mode = "quick";
-  streamsEl.innerHTML = streamRow({ stream: "ads", amount: 6200, who: "" }) + streamRow({ stream: "sponsorship", amount: 3800, who: "Brindle Coffee (made up)" }) + streamRow({ stream: "memberships", amount: 1500 });
-  vf.elements.months.value = 24;
-  vf.elements.growth.value = 18;
-  vf.elements.margin.value = 62;
-  vf.elements.face.value = 60;
-  $("[data-face-out]").textContent = "60%";
+  streamsEl.innerHTML = EXAMPLE.streams.map(streamRow).join("");
+  vf.elements.kind.value = EXAMPLE.kind;
+  vf.elements.months.value = EXAMPLE.months;
+  vf.elements.growth.value = EXAMPLE.growth;
+  vf.elements.margin.value = EXAMPLE.margin;
+  vf.elements.face.value = EXAMPLE.face;
+  $("[data-face-out]").textContent = `${EXAMPLE.face}%`;
   vf.requestSubmit();
 });
 
@@ -46,14 +49,18 @@ function declaredLines() {
       return { month: `${m[1]}-${m[2].padStart(2, "0")}-01`, gross: { amount, currency: "GBP" }, stream, counterparty: p[3] || undefined };
     }).filter(Boolean);
   }
-  const months = monthsBack(Math.max(3, Math.min(36, Number(f.months.value) || 12)));
-  const g = (Number(f.growth.value) || 0) / 100;
+  const streams = $$("[data-stream]").map((row) => ({ stream: $('[data-s="stream"]', row).value, amount: Number($('[data-s="amount"]', row).value), who: $('[data-s="who"]', row).value }));
+  return linesFromStreams(streams, Number(f.months.value), Number(f.growth.value));
+}
+function linesFromStreams(streams, monthsN, growth) {
+  const months = monthsBack(Math.max(3, Math.min(36, monthsN || 12)));
+  const g = (growth || 0) / 100;
   const out = [];
-  for (const row of $$("[data-stream]")) {
-    const pounds = Number($('[data-s="amount"]', row).value);
+  for (const row of streams) {
+    const pounds = Number(row.amount);
     if (!(pounds > 0)) continue;
-    const stream = $('[data-s="stream"]', row).value;
-    const who = $('[data-s="who"]', row).value.trim() || undefined;
+    const stream = row.stream;
+    const who = row.who?.trim() || undefined;
     months.forEach((month, i) => {
       const age = months.length - 1 - i;
       const k = age < 12 ? 1 : 1 / (1 + g);
@@ -69,7 +76,11 @@ vf.addEventListener("submit", (e) => {
   const declared = declaredLines();
   if (!declared.length) return void (err.textContent = "Add at least one stream with a monthly amount, or some revenue lines.");
   const f = vf.elements;
-  const input = { kind: f.kind.value, revenue: [], declared, costs: { basis: "declared_margin", margin: Math.min(1, Math.max(0.01, Number(f.margin.value) / 100)) }, faceDependence: Number(f.face.value) / 100 };
+  valueIt({ kind: f.kind.value, declared, margin: f.margin.value, face: f.face.value, pasted: mode === "lines" });
+});
+function valueIt({ kind, declared, margin, face, pasted, sample = false }) {
+  const err = $("[data-val-err]");
+  const input = { kind, revenue: [], declared, costs: { basis: "declared_margin", margin: Math.min(1, Math.max(0.01, Number(margin) / 100)) }, faceDependence: Number(face) / 100 };
   let v, w;
   try {
     v = valuate(input);
@@ -81,21 +92,23 @@ vf.addEventListener("submit", (e) => {
   }
   const FACTOR = { base: "Starting multiple", verification: "Verification", diversification: "Spread of streams", face: "Needs you", history: "History", growth: "Growth", concentration: "One big payer", size: "Size" };
   $("[data-val-out]").innerHTML = `<div class="panel stack">
-      <p class="small" style="margin:0">Indicative. Confidence ${esc(v.confidence)}.</p>
+      <p class="small" style="margin:0">${sample ? "A made-up example. " : ""}Indicative. Confidence ${esc(v.confidence)}.</p>
       ${v.range ? `<p class="big num" style="font-size:clamp(40px,9vw,72px)">${esc(money(v.range.low))} to ${esc(money(v.range.high))}</p>
         <p class="small">${v.multiples.low}× to ${v.multiples.high}× a year's profit, centred on ${v.multiples.centre}×.</p>` : `<p class="h2">No range</p>`}
+      ${sample ? `<div class="sample"><span><b>A made-up YouTube channel:</b> ads, a sponsor and memberships, £${(EXAMPLE.streams.reduce((t, x) => t + x.amount, 0)).toLocaleString("en-GB")} a month at a ${margin}% margin. Shown until you value your own: enter your revenue and press Value it.</span></div>` : ""}
       <dl class="dl"><dt>Revenue, last twelve months${v.annualised ? " (annualised)" : ""}</dt><dd>${esc(money(v.ttmRevenue))}</dd><dt>Profit</dt><dd>${esc(money(v.ttmProfit))}</dd><dt>Verified share</dt><dd>${pct(v.verifiedShare)}</dd><dt>Growth</dt><dd>${v.growth === null ? "n/a" : pct(v.growth)}</dd><dt>Largest stream</dt><dd>${pct(v.largestStreamShare)}</dd></dl>
       ${fold("Why this range", `${v.reasons.length} reason${v.reasons.length === 1 ? "" : "s"}`, `<ul class="reasons">${v.reasons.map((r) => `<li><span>${esc(nodash(r))}</span></li>`).join("")}</ul>`)}
       ${fold("Sources", "3", sourcesList([
-        { kind: "typed", label: `${declared.length} revenue lines, ${mode === "lines" ? "as you pasted them" : "built from your monthly figures by stream"}`, provenance: "Declared by you, so none of it counts as verified. Connected revenue (Stripe, AdSense, checked invoices) replaces it." },
-        { kind: "typed", label: `A ${f.margin.value}% profit margin and ${f.face.value}% reliance on you`, provenance: "Your own estimates." },
+        { kind: "typed", label: `${declared.length} revenue lines, ${sample ? "made up for the example, by stream" : pasted ? "as you pasted them" : "built from your monthly figures by stream"}`, provenance: sample ? "Invented for the example, and declared, so none of it counts as verified." : "Declared by you, so none of it counts as verified. Connected revenue (Stripe, AdSense, checked invoices) replaces it." },
+        { kind: "typed", label: `A ${margin}% profit margin and ${face}% reliance on the creator`, provenance: sample ? "Part of the made-up example." : "Your own estimates." },
         { kind: "engine", label: `Orbe's valuation model ${v.modelVersion}`, provenance: "Provisional multiples set from public comparables until Orbe's own completed deals replace them." },
       ]))}
     </div>
     ${fold("What moved the multiple", `${v.factors.length} factors`, `<div class="tbl-wrap"><table class="tbl"><tbody>${v.factors.map((x) => `<tr><td>${esc(FACTOR[x.key] ?? x.key)}</td><td class="r" style="white-space:nowrap">${x.key === "base" ? `${x.effect}×` : `${x.effect >= 0 ? "+" : "\u2212"}${Math.abs(x.effect).toFixed(2)}×`}</td><td class="small">${esc(nodash(x.reason))}</td></tr>`).join("")}</tbody></table></div>`)}
     ${w.range && v.range ? `<div class="panel stack"><h3 class="h3">If it were verified</h3><p>With the same figures read at source, the range would be <b style="font-weight:500">${esc(money(w.range.low))} to ${esc(money(w.range.high))}</b>, confidence ${esc(w.confidence)}. Connecting your revenue sources narrows the range and can lift the centre, because buyers pay for numbers they can trust.</p><p class="small">A what-if on your own figures, not a second valuation.</p></div>` : ""}
     <p class="small">${esc(INDICATIVE_LABEL)} Every multiple is provisional (model ${esc(v.modelVersion)}) until Orbe's own completed deals replace them, and your figures count as declared, not verified.</p>`;
-});
+}
+valueIt({ kind: EXAMPLE.kind, declared: linesFromStreams(EXAMPLE.streams, EXAMPLE.months, EXAMPLE.growth), margin: EXAMPLE.margin, face: EXAMPLE.face, sample: true });
 
 /* ---------- fees ---------- */
 const ff = $("[data-fee-form]");

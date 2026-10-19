@@ -3,7 +3,7 @@ import { example, benchmark, mathsFor } from "../assets/r5/examples.js";
 import { SPECS } from "../assets/engine/rating/browser.js";
 import { COLOURS as C } from "../assets/brand/brand.js";
 import { paintCanvas, PALETTES } from "../r6-g/painter.js";
-import { mount as mountTiles } from "../assets/fx/design-tiles.js";
+import { paintCanvas as paintStory, PALETTES as STORY_PALETTES } from "../r6-e/painter.js";
 import { mount as mountStamp } from "../assets/fx/stamptype.js";
 import { APPS, paint as paintApp, bandRule } from "./apps.js";
 import { PAIRS, HEX, ratio, grade } from "./contrast.js";
@@ -33,9 +33,17 @@ function story() {
     <p class="bk-st-h"><span>You beat</span><b>${reach.score}</b><span>in 100 ${ex.peers} your size.</span></p>
     <div class="bk-st-track" aria-hidden="true"><span class="bar"><i style="width:${reach.score}%"></i></span><span>Reach, one of ${WORDS[nParts]} parts</span><span>of 100</span></div>
     <p class="bk-st-p">A typical ${work} from ${ex.name} reaches ${reachRaw.raw} of its ${spec.audienceNoun}. The rating weighs all ${WORDS[nParts]}: ${minus(ex.signed)}, ${ex.band}.</p>`;
-  $("[data-archive]").innerHTML = `
-    <p class="bk-a-h">Your work, rated against creators your size.</p>
-    <p class="bk-a-r"><b>${minus(ex.signed)}</b><i>${ex.band}</i><span>${ex.name}, against ${ex.peers} ${ex.sizeBand}. A made-up example. Independently calculated by Orbe.</span></p>`;
+  const noun = ex.peers.replace(/s$/, "");
+  const said = `My ${noun} is rated ${minus(ex.signed)}, ${ex.band}, against ${ex.peers} my size.`;
+  $("[data-post-win]").innerHTML = `<p class="bk-pw-bar"><span>Orbe Rating</span><span>${ex.handle}</span></p><p class="bk-pw-fig"><b>${minus(ex.signed)}</b> <i>${ex.band}</i></p><p class="bk-pw-line">Independently calculated by Orbe.</p>`;
+  $("[data-said]").textContent = said;
+  $("[data-post-link]").textContent = `orbe.vc/${ex.handle}`;
+  const copied = $("[data-copied]");
+  $("[data-copy]").addEventListener("click", async () => {
+    let ok = false;
+    try { await navigator.clipboard.writeText(`${said} orbe.vc/${ex.handle}`); ok = true; } catch {}
+    copied.textContent = ok ? "Copied. Paste it under your next post." : `Select and copy: ${said}`;
+  });
   $("[data-fig]").innerHTML = `${minus(ex.signed)} <span class="o-band">${ex.band}</span>`;
 }
 
@@ -78,6 +86,7 @@ const INK = { ink: C.ink }, EMBER = { ink: C.ember };
 function paintAll() {
   for (const c of $$("canvas.bk-paint")) {
     const s = c.dataset.scene;
+    if (c.dataset.painter === "e") { paintStory(c, s, STORY_PALETTES[scheme], +c.dataset.seed || 7); continue; }
     paintCanvas(c, s, s === "underline" ? EMBER : s === "bar" ? INK : PALETTES[scheme], +c.dataset.seed || 7, c.dataset.score);
   }
 }
@@ -143,29 +152,44 @@ if (!reduce) {
 }
 
 /* ------------------------------------------------------------------ applications */
-const LAYOUT = [["hero", 12], ["social", 5], ["email", 7]];
+const LAYOUT = ["hero", "social", "email"];
+let appOn = "hero";
+const TAB = { hero: "Home page hero", social: "Social post", email: "Email header" };
 function apps() {
-  $("[data-apps]").innerHTML = LAYOUT.map(([k, span], i) => {
+  const tabs = `<div class="bk-apptabs" role="group" aria-label="Which application">${LAYOUT.map((k) => `<button type="button" data-app-set="${k}" aria-pressed="${k === appOn}">${TAB[k]}</button>`).join("")}</div>`;
+  $("[data-apps]").innerHTML = tabs + LAYOUT.map((k, i) => {
     const a = APPS[k];
-    return `<figure class="bk-app" style="--span:${span}"><div class="bk-app-frame" style="aspect-ratio:${a.w}/${a.h}"><div class="app" style="width:${a.w}px;height:${a.h}px" data-app="${k}" aria-hidden="true">${a.render(scheme)}</div></div>
+    return `<figure class="bk-app${k === appOn ? " is-on" : ""}" data-app-fig="${k}" style="--ar:${(a.w / a.h).toFixed(4)}"><div class="bk-app-frame" style="aspect-ratio:${a.w}/${a.h}"><div class="app" style="width:${a.w}px;height:${a.h}px" data-app="${k}" aria-hidden="true">${a.render(scheme)}</div></div>
       <figcaption><span class="o-label">${String(i + 1).padStart(2, "0")}</span><b>${a.name}</b><span>${a.note}</span></figcaption></figure>`;
   }).join("");
+  for (const b of $$("[data-app-set]")) b.addEventListener("click", () => {
+    appOn = b.dataset.appSet;
+    for (const t of $$("[data-app-set]")) t.setAttribute("aria-pressed", String(t === b));
+    for (const f of $$("[data-app-fig]")) f.classList.toggle("is-on", f.dataset.appFig === appOn);
+    fit();
+  });
   fit();
 }
 function fit() {
   for (const el of $$(".bk-app-frame")) {
     const app = el.firstElementChild;
+    if (!el.clientWidth) continue;
     app.style.transform = `scale(${el.clientWidth / parseFloat(app.style.width)})`;
   }
   for (const el of $$(".bk-app-frame .app")) paintApp(el, scheme);
 }
 
 /* ------------------------------------------------------------------ live pieces from the motion lab */
+let stamp = null;
+let stampWanted = false;
+function mountStampNow() {
+  if (!stampWanted) return;
+  try { if (stamp) stamp.destroy(); } catch {}
+  try { stamp = mountStamp($("[data-stamp]"), { scheme }); } catch { stamp = null; }
+}
 function fx() {
-  try { mountTiles($("[data-tiles]"), { words: ["rated", "against", "creators", "your", "size"] }); } catch {}
   const st = $("[data-stamp]");
-  let started = false;
-  const go = () => { if (started) return; started = true; try { mountStamp(st); } catch {} };
+  const go = () => { if (stampWanted) return; stampWanted = true; mountStampNow(); };
   if (!("IntersectionObserver" in window)) go();
   else { const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { go(); io.disconnect(); } }, { rootMargin: "200px" }); io.observe(st); }
 }
@@ -180,6 +204,7 @@ function setScheme(s, first = false) {
     try { const u = new URL(location.href); u.searchParams.set("scheme", s); history.replaceState(null, "", u); } catch {}
   }
   swatches(); motion(); apps(); paintAll();
+  if (!first) mountStampNow();
 }
 for (const b of $$("[data-scheme-set]")) b.addEventListener("click", () => setScheme(b.dataset.schemeSet));
 

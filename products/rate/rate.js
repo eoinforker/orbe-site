@@ -6,7 +6,9 @@
 */
 import { shell, $, $$, esc, count, day, today, readText, dropZone, segmented, store, nodash, icon, fold, sourcesList, ask } from "../assets/shell.js";
 import { rate, rateWorks, topStat, focusAreas, explain, personalBests, recordMetric, isRated, SPECS, signed as engineSigned, ratingNotice, RATING_LABEL, MODEL_VERSION } from "../../assets/engine/rating/browser.js";
+import { fixtureSnapshot, FIXTURE_NOW } from "../../assets/engine/rating/browser.js";
 import { readCreatorExport, EXPORT_FORMATS, accountIdFor, workIdFor } from "../../assets/engine/ingest/browser.js";
+import { example } from "../../assets/r5/examples.js";
 
 shell("rate");
 
@@ -168,10 +170,13 @@ function show(snapshot, at, meta) {
   const latestRecord = new Map();
   for (const pb of standing) latestRecord.set(pb.metric, pb);
   const records = [...latestRecord.values()];
+  const english = `<p>${esc(nodash(explain(result)))}</p>
+      ${top ? `<p class="note">${esc(nodash(top.line))}</p>` : ""}
+      ${focus.length ? `<ul class="reasons">${focus.map((f) => `<li><span><b style="font-weight:500">${esc(f.name)}.</b> ${esc(nodash(f.advice))}</span></li>`).join("")}</ul>` : ""}`;
 
   out.innerHTML = `
     <div class="panel stack">
-      ${meta.sample ? `<div class="sample"><span><b>Made-up file.</b> This creator and the numbers in the file are invented, for trying the tool.</span></div>` : ""}
+      ${meta.preload ? `<div class="sample"><span><b>A made-up YouTube channel.</b> Shown until you rate your own: upload an export or type your works and this is replaced.</span></div>` : meta.sample ? `<div class="sample"><span><b>Made-up file.</b> This creator and the numbers in the file are invented, for trying the tool.</span></div>` : ""}
       <div class="row" style="justify-content:space-between;align-items:flex-start">
         <div>
           <p class="small">${esc(snapshot.account.title)}</p>
@@ -196,19 +201,17 @@ function show(snapshot, at, meta) {
       ${d.unavailable?.length ? `<p class="note plain">Set aside for missing numbers: ${esc(d.unavailable.map((u) => u.name ?? u.key ?? u).join(", "))}. The rest were reweighted.</p>` : ""}
     </div>
 
-    <div class="panel stack">
+    ${meta.preload ? `<div class="panel stack">${fold("In plain English", "and what to work on", `<div class="stack">${english}</div>`, { open: innerWidth >= 900 })}</div>` : `<div class="panel stack">
       <h2 class="h3">In plain English</h2>
-      <p>${esc(nodash(explain(result)))}</p>
-      ${top ? `<p class="note">${esc(nodash(top.line))}</p>` : ""}
-      ${focus.length ? `<ul class="reasons">${focus.map((f) => `<li><span><b style="font-weight:500">${esc(f.name)}.</b> ${esc(nodash(f.advice))}</span></li>`).join("")}</ul>` : ""}
-    </div>
+      ${english}
+    </div>`}
 
-    <div class="panel stack">
+    ${meta.preload ? "" : `<div class="panel stack">
       <h2 class="h3">Your records</h2>
       ${fresh.length ? `<ul class="reasons">${fresh.map((p) => `<li><span><b style="font-weight:500">New personal best since your last file:</b> ${esc(label(p))}, ${count(p.value)}${p.previous !== null ? ` (was ${count(p.previous)})` : ""}, on “${esc(titles.get(p.workId) ?? "a work")}”.</span></li>`).join("")}</ul>` : `<p class="small">${prev ? "No new records since the last file you rated here." : meta.sample ? "Made-up files are never kept, so records here start from this file." : "Keep this file on this device below, then rate a newer export after your next post: new personal bests show here."}</p>`}
       ${records.length ? `<ul class="reasons">${records.map((p) => `<li><span>Best ${esc(label(p).replace(/^best /, ""))}: ${count(p.value)}, “${esc(titles.get(p.workId) ?? "a work")}”${p.previous !== null ? `, ahead of your next best ${count(p.previous)}` : ""}.</span></li>`).join("")}</ul>` : `<p class="small">Records need at least four works with the same number.</p>`}
       ${meta.sample ? "" : `<div data-keep id="keep-${esc(snapshot.account.id).replace(/[^a-z0-9-]/gi, "")}"></div>`}
-    </div>
+    </div>`}
 
     <div class="panel stack">
       ${fold(`Each ${esc(d.workNoun)} against your own typical`, `${Math.min(15, works.length)} ${esc(d.workNoun)}s`, `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${esc(d.workNoun[0].toUpperCase() + d.workNoun.slice(1))}</th><th>Published</th><th class="r">Rating</th><th class="r">× typical</th></tr></thead><tbody>
@@ -234,6 +237,7 @@ function show(snapshot, at, meta) {
   const now = new Date(at);
   const dayOfYear = (now - Date.UTC(now.getUTCFullYear(), 0, 1)) / 864e5;
   const best = works.filter((w) => w.matured).reduce((a, w) => (!a || w.multiple > a.multiple ? w : a), null);
+  if (meta.preload) return countUp($(".big", out), result.rating);
   store.session.put("orbe-products-card", {
     result, kind, name: snapshot.account.title, handle: `@${snapshot.account.title.toLowerCase().replace(/[^a-z0-9]+/g, "")}`.slice(0, 24),
     works: d.workRatings, personalBest, season: { name: `${now.getUTCFullYear()} so far`, works: works.filter((w) => (w.ageDays ?? 0) <= dayOfYear) },
@@ -251,7 +255,7 @@ function show(snapshot, at, meta) {
     denied: "Not kept. Nothing from this file stays on this device.",
     then: (ok, stored) => ok && stored && keptLine(keep, key, true),
   });
-  if (innerWidth < 900) out.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (innerWidth < 900) out.firstElementChild?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
 
 function warnings(list) {
@@ -269,3 +273,34 @@ function keptLine(el, key, focus = false) {
     el.firstElementChild.focus({ preventScroll: true });
   });
 }
+
+/* ---------- the opening result ----------
+   The page opens on the made-up YouTube channel the products page rates (examples.js),
+   rebuilt here with its works so every panel can show. If the rebuild ever drifts from
+   the example, the made-up YouTube Studio file is rated instead. */
+function countUp(el, target) {
+  if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const final = el.textContent;
+  const t0 = performance.now();
+  const tick = (now) => {
+    const t = Math.min(1, (now - t0) / 900);
+    el.textContent = t < 1 ? signed(target * (1 - (1 - t) ** 3)) : final;
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+async function preload() {
+  const ex = example("channel");
+  const snap = fixtureSnapshot({ kind: "youtube", noise: 0.25, audience: 412000, reach: 1.6, engagement: 1.6, hitEvery: 5, seed: 1, title: ex.name });
+  snap.account.handle = ex.handle;
+  if (Math.abs(rate(snap, FIXTURE_NOW).rating - ex.rating) < 1e-9) {
+    return show(snap, FIXTURE_NOW, {
+      preload: true, sample: true, warnings: [], source: `${ex.name}, a made-up YouTube channel.`,
+      sources: [{ kind: "file", label: `${ex.name}, a made-up YouTube channel`, provenance: "Generated from a fixed seed: the same made-up channel the products page rates. Nothing in it is real, and nothing is kept." }],
+    });
+  }
+  const text = await (await fetch("../fixtures/made-up-youtube-studio.csv")).text();
+  const read = await readCreatorExport(text, { exportedAt: "2026-10-18T23:00:00.000Z", audience: 84000, title: "Bench Notes (made up)" });
+  show(read.snapshot, "2026-10-18T23:00:00.000Z", { preload: true, sample: true, warnings: [], source: `${read.label} export, made up.`, sources: [{ kind: "file", label: "made-up-youtube-studio.csv, a made-up YouTube Studio export", provenance: `${read.used} works read. A made-up file.` }] });
+}
+preload().catch(() => {});

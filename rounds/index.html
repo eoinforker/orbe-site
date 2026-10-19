@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe design rounds</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+  :root { --field: #9ee9fb; --deep: #1f4bff; --ink: #121412; --paper: #f6f4ee; --soft: #4a5a5e; --line: rgba(18, 20, 18, 0.16); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 var(--sans, system-ui, sans-serif); -webkit-font-smoothing: antialiased; }
+  .top { background: var(--field); padding: 28px 16px 40px; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .wm { display: block; height: 28px; color: var(--ink); --wm-h: 28px; }
+  h1 { font: 800 clamp(44px, 10vw, 96px)/0.9 var(--sans); letter-spacing: -0.05em; margin: 36px 0 14px; }
+  .lede { max-width: 58ch; margin: 0; font-size: 17px; }
+  main { padding: 8px 16px 80px; }
+  h2 { font: 500 13px/1 var(--mono, ui-monospace, monospace); letter-spacing: 0.02em; color: var(--soft); margin: 44px 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  a.tile { display: flex; flex-direction: column; gap: 6px; padding: 18px; border: 1.5px solid var(--ink); border-radius: 14px; background: #fff; color: inherit; text-decoration: none; min-height: 150px; transition: transform .2s cubic-bezier(.23,1,.32,1); }
+  a.tile:hover, a.tile:focus-visible { transform: translateY(-2px); }
+  .k { font: 500 12px/1 var(--mono, monospace); color: var(--soft); }
+  .t { font: 700 22px/1.1 var(--sans); letter-spacing: -0.02em; }
+  .d { color: var(--soft); font-size: 15px; }
+  .row { display: flex; gap: 8px; margin-top: auto; font: 500 13px/1 var(--mono, monospace); }
+  .row span { padding: 6px 9px; border-radius: 99px; background: var(--paper); }
+  ul.plain { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+  ul.plain li { border-bottom: 1px solid var(--line); }
+  ul.plain a { display: block; padding: 14px 0; color: inherit; }
+  p.note { color: var(--soft); font-size: 14px; max-width: 66ch; margin-top: 36px; }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <span class="wm" data-wordmark aria-label="Orbe">Orbe</span>
+  <h1>Design rounds</h1>
+  <p class="lede">The site is chosen: <a href="../">the homepage</a> is r6-e, The story, with r6-a's yardstick window in its second moment. Below are the directions that led there, with the independent critic's round 9 scores.</p>
+</div></header>
+<main><div class="wrap">
+  <h2>Round 6, reworked</h2>
+  <div class="grid">
+    <a class="tile" href="../r6-e/"><span class="k">r6-e</span><span class="t">The story</span><span class="d">Tap through your rating like a story. Grain, a painted moment, every kind of creator.</span><span class="row"><span>9.1, chosen</span></span></a>
+    <a class="tile" href="../r6-g/"><span class="k">r6-g</span><span class="t">The archive</span><span class="d">Hand placed brush paintings, folders and a filed rating sheet.</span><span class="row"><span>8.9</span></span></a>
+    <a class="tile" href="../r6-a/"><span class="k">r6-a</span><span class="t">Field</span><span class="d">Short and confident: one stream, three yardsticks, word stickers you can fling.</span><span class="row"><span>8.9</span></span></a>
+  </div>
+  <p class="note">Cut: r6-d (the folk characters). Parked: r6-b (too simple), r6-c (lettering), r6-f (tactile, not for creators). Still online at r6-b/, r6-c/, r6-d/ and r6-f/.</p>
+
+  <h2>Motion lab</h2>
+  <ul class="plain">
+    <li><a href="../fx/">The motion lab: the pieces in use and the ones parked</a></li>
+  </ul>
+
+  <h2>Use the products</h2>
+  <ul class="plain">
+    <li><a href="../products/">Products: rate your work, podcasts (the Chartable replacement), sponsorships, selling, diligence</a></li>
+        <li><a href="../brand/">The brand book and icons</a></li>
+  </ul>
+
+  <h2>The identity work</h2>
+  <ul class="plain">
+    <li><a href="../assets/identity/a-lettering/board.html">Lettering A1 to A4 (A3 Carved chosen)</a></li>
+    <li><a href="../assets/identity/b-grotesque/board.html">Drawn sans B1 to B3</a></li>
+    <li><a href="../assets/identity/c-mark/board.html">Symbols C1 to C3</a></li>
+    <li><a href="../assets/identity/d-type/board.html">Typefaces (Masthead chosen)</a></li>
+  </ul>
+
+  <h2>Earlier rounds</h2>
+  <ul class="plain">
+    <li><a href="../r5-5/">r5-5 The method</a></li><li><a href="../r5-3/">r5-3 Two doors</a></li><li><a href="../r5-4/">r5-4 Not the top 1%</a></li>
+  </ul>
+
+  <p class="note">Scores are the independent critic's, round 9 (docs/handoff/CRITIC-R9.md). Every creator and figure is a made-up example, rated live by the Orbe engine.</p>
+</div></main>
+<script type="module">
+  try { const { mountWordmark } = await import("../assets/r5/wordmark.js"); mountWordmark(document.querySelector("[data-wordmark]"), { animate: true }); } catch {}
+</script>
+</body>
+</html>

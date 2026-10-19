@@ -29,36 +29,46 @@ if (rated?.result?.band && ["youtube", "substack", "podcast", "twitch"].includes
   pf.elements.band.value = rated.result.band;
   $("[data-band-hint]").textContent = `From your rating in Rate my work (${rated.result.band}). Calculated independently by Orbe.`;
 }
+/* The made-up example: a YouTube channel's recent uploads. It is priced on load, labelled, until you price your own. */
+const EXAMPLE = { kind: "youtube", audience: 85000, units: "21000, 18000, 25000, 19500, 30000, 17000, 22500", band: "Good" };
 $("[data-price-example]").addEventListener("click", () => {
-  pf.elements.kind.value = "youtube";
+  pf.elements.kind.value = EXAMPLE.kind;
   kindChanged();
-  pf.elements.audience.value = 85000;
-  pf.elements.units.value = "21000, 18000, 25000, 19500, 30000, 17000, 22500";
-  pf.elements.band.value = "Good";
+  pf.elements.audience.value = EXAMPLE.audience;
+  pf.elements.units.value = EXAMPLE.units;
+  pf.elements.band.value = EXAMPLE.band;
   pf.elements.price.value = "";
   pf.requestSubmit();
 });
+const parseUnits = (text) => text.split(/[\s,;]+/).map((x) => Number(x.replace(/[^\d.]/g, ""))).filter((n) => Number.isFinite(n) && n > 0);
+
+let priceSample = false;
+function priceIt({ kind, audience, units, band, listPrice, currency, rate }, sample = false) {
+  priceSample = sample;
+  const fx = currency === "GBP" ? (m, to) => (m.currency === to ? m : m.currency === "USD" && to === "GBP" ? { amount: Math.round(m.amount * rate), currency: "GBP" } : null) : undefined;
+  const price = listPrice > 0 ? { amount: Math.round(listPrice * 100), currency } : null;
+  const { inventory, note } = inventoryFromStats({ kind, audience, units, price, currency, fx, rating: band ? { band, rating: 0 } : null, at: new Date().toISOString() });
+  const label = sample ? `<div class="sample"><span><b>A made-up YouTube channel:</b> ${count(audience)} subscribers, ${units.length} recent uploads, rated ${esc(band)}. Shown until you price your own: type your figures and press Price it.</span></div>` : "";
+  $("[data-price-out]").innerHTML = inventory.items.map((item, i) => itemPanel(item, price, units.length, currency === "GBP" ? rate : null, i === 0 ? label : "")).join("") + `<p class="note plain">${esc(note)}</p>`;
+}
 
 pf.addEventListener("submit", (e) => {
   e.preventDefault();
   const err = $("[data-price-err]");
   err.textContent = "";
   const f = pf.elements;
-  const units = f.units.value.split(/[\s,;]+/).map((x) => Number(x.replace(/[^\d.]/g, ""))).filter((n) => Number.isFinite(n) && n > 0);
+  const units = parseUnits(f.units.value);
   const audience = Number(f.audience.value);
   if (!(audience > 0)) return void (err.textContent = "Add your audience size.");
   if (units.length < 3) return void (err.textContent = "Add at least three works' numbers.");
   const currency = f.currency.value;
   const rate = Number(f.fx.value);
   if (currency === "GBP" && !(rate > 0)) return void (err.textContent = "To quote in pounds, give the rate you use. Orbe does not guess exchange rates.");
-  const fx = currency === "GBP" ? (m, to) => (m.currency === to ? m : m.currency === "USD" && to === "GBP" ? { amount: Math.round(m.amount * rate), currency: "GBP" } : null) : undefined;
-  const price = Number(f.price.value) > 0 ? { amount: Math.round(Number(f.price.value) * 100), currency } : null;
-  const { inventory, note } = inventoryFromStats({ kind: f.kind.value, audience, units, price, currency, fx, rating: f.band.value ? { band: f.band.value, rating: 0 } : null, at: new Date().toISOString() });
-  $("[data-price-out]").innerHTML = inventory.items.map((item) => itemPanel(item, price, units.length, currency === "GBP" ? rate : null)).join("") + `<p class="note plain">${esc(note)}</p>`;
+  priceIt({ kind: f.kind.value, audience, units, band: f.band.value, listPrice: Number(f.price.value), currency, rate });
 });
 
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
-function itemPanel(item, price, typed, rate) {
+function itemPanel(item, price, typed, rate, label = "") {
   const s = item.suggestion;
   const fxNote = s?.low?.currency === "GBP" && rate ? ` Converted from the dollar rate card at ${rate} pounds per dollar.` : "";
   const w = item.stats.windows;
@@ -67,13 +77,14 @@ function itemPanel(item, price, typed, rate) {
   return `<div class="panel stack">
     <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 class="h3">${esc(item.name)}</h3><p class="small">${esc(item.description)}</p></div></div>
     ${s?.status === "suggested"
-      ? `<div><p class="small">Suggested price, ${per}</p><p class="big num" style="font-size:clamp(40px,8vw,64px)">${esc(money(s.low))} to ${esc(money(s.high))}</p>
+      ? `<div><p class="small">${label ? "A made-up example. " : ""}Suggested price, ${per}</p><p class="big num" style="font-size:clamp(40px,8vw,64px)">${esc(money(s.low))} to ${esc(money(s.high))}</p>
          <p class="small" style="margin-top:6px">${count(s.expected.units)} ${esc(s.expected.unit)} expected at ${s.expected.day} ${s.expected.day === 1 ? "day" : "days"}, at ${esc(money(s.cpm.low, { pence: true }))} to ${esc(money(s.cpm.high, { pence: true }))} per 1,000.${s.provisional ? " From a provisional rate card." : ""}${fxNote}</p></div>
+         ${label}
          ${fold("How Orbe priced it", `${s.reasons.length} reason${s.reasons.length === 1 ? "" : "s"}, ${s.sources.length + 1} source${s.sources.length ? "s" : ""}`, `<ul class="reasons">${s.reasons.map((r) => `<li><span>${esc(nodash(r.replace(/ read at source\./, ", from the figures you typed.")))}</span></li>`).join("")}</ul>
          <dl class="dl"><dt>Evidence</dt><dd>${esc({ own_history: "Your own completed sponsorships", comparables: "Creators your kind and size", rate_card: "Provisional rate card" }[s.basis])}</dd></dl>
          <p class="small">Delivery: ${w.filter((x) => x.n > 0).map((x) => x.median === null ? `${x.day} days: ${esc(x.note ?? "not enough")}` : `${x.day} days: median ${count(x.median)}, middle half ${count(x.p25)} to ${count(x.p75)} (${x.n} works)`).join("; ")}.${item.stats.consistency !== null ? ` Consistency ${Math.round(item.stats.consistency * 100)}%.` : ""}</p>
          ${sourcesList([
-           { kind: "typed", label: `Your ${typed} works and audience`, provenance: "Typed by you, not yet read at source. Brands see verified delivery once your accounts are connected." },
+           priceSample ? { kind: "typed", label: `${typed} made-up uploads and audience`, provenance: "Invented for the example. Your own figures replace them when you price yours." } : { kind: "typed", label: `Your ${typed} works and audience`, provenance: "Typed by you, not yet read at source. Brands see verified delivery once your accounts are connected." },
            ...s.sources.map((src) => ({ kind: "link", label: src.label, url: src.url, provenance: `${host(src.url)}. A third-party figure from a search snippet, not verified against the original. Rate card ${s.version || RATE_CARD_VERSION}.` })),
          ])}${s.sources.length ? `<p class="small">Replaced by realised rates from verified sponsorships through Orbe.</p>` : s.provisional ? `<p class="small">No published comparable was found for this format: the rate is a placeholder, the first to be replaced with realised rates.</p>` : ""}`)}`
       : `<p class="note warn">${esc(nodash(s?.reason ?? "No suggestion yet."))}</p>`}
@@ -121,3 +132,4 @@ bf.addEventListener("submit", (e) => {
 });
 pickSource("network");
 bf.requestSubmit();
+priceIt({ ...EXAMPLE, units: parseUnits(EXAMPLE.units), listPrice: 0, currency: "GBP", rate: Number(pf.elements.fx.value) || 0.75 }, true);

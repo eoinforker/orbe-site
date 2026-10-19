@@ -8,33 +8,43 @@
   - each tile's fill is built from per glyph rects that hug the letters'
     real ink (measured from the live font), so the top edge steps with
     the ascenders; hovering a letter lifts its rect a touch
-  - bold clashing swatches with the text colour baked in per swatch
+  - the brand's five colours (Ink, Cobalt, Sky, Ember, Paper; Claret and
+    Peony in place of Cobalt and Sky in pink), text colour baked in
   - fly in: each tile wipes open left to right with clip-path (never
     scaleX, so the type never distorts), a small rise and a fade, staggered
-  - idle shuffle: each tile re rolls on its own timer to a swatch no other
-    tile is wearing; hovering a tile re rolls it at once
+  - idle shuffle: each tile re rolls on its own timer by trading swatches
+    with another tile; hovering a tile re rolls it at once
   - reduced motion shows the assembled bar, still
 
   Usage: import { mount } from "./design-tiles.js";
-         const fx = mount(el, { words: ["rated", "against", ...] }); fx.destroy();
+         const fx = mount(el, { words, scheme: "blue" }); fx.destroy();
 */
 
 export const WORDS = ["rated", "against", "creators", "your", "size"];
 
-// Clashing and saturated, text colour baked in. Lilac and violet from the
-// source are replaced by cobalt, claret and peony.
+// The brand's five, text colour baked in: Ink, Cobalt, Sky, Ember, Paper.
+// No paint colours: Meadow, Straw, Water and the rest stay in the paintings.
 export const SWATCHES = [
-  { bg: "#141311", fg: "#F3F0E8" },
-  { bg: "#FF5A1F", fg: "#141311" },
-  { bg: "#F2879E", fg: "#141311" },
-  { bg: "#8E9A4A", fg: "#141311" },
-  { bg: "#1F4BFF", fg: "#FBFAF6" },
-  { bg: "#EED56A", fg: "#141311" },
-  { bg: "#4D9AD0", fg: "#141311" },
-  { bg: "#F3F0E8", fg: "#141311" },
-  { bg: "#6F1726", fg: "#FBD9E0" },
-  { bg: "#9EE9FB", fg: "#1F4BFF" },
+  { bg: "#141311", fg: "#F3F0E8" }, // Ink
+  { bg: "#1F4BFF", fg: "#FBFAF6" }, // Cobalt
+  { bg: "#9EE9FB", fg: "#141311" }, // Sky
+  { bg: "#FF5A1F", fg: "#141311" }, // Ember
+  { bg: "#F3F0E8", fg: "#141311" }, // Paper
 ];
+
+// The pink scheme swaps Cobalt and Sky for Claret and Peony. Cobalt never
+// appears here, so peony never sits beside it.
+export const SWATCHES_PINK = [
+  { bg: "#141311", fg: "#F3F0E8" }, // Ink
+  { bg: "#6F1726", fg: "#FBD9E0" }, // Claret
+  { bg: "#F2879E", fg: "#141311" }, // Peony
+  { bg: "#FF5A1F", fg: "#141311" }, // Ember
+  { bg: "#F3F0E8", fg: "#141311" }, // Paper
+];
+
+// The field each scheme sets the bar on. The tile that wears the field's own
+// colour reads as a word set straight on the field, so it never ends a row.
+export const GROUND = { blue: "#9EE9FB", pink: "#F2879E" };
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const REF_FS = 100;
@@ -75,16 +85,18 @@ function measureWord(word, family, weight) {
 
 /* Peony and cobalt never touch: BRAND keeps the two schemes' leads apart. */
 const CLASH = { "#F2879E": "#1F4BFF", "#1F4BFF": "#F2879E" };
-const clashes = (s, near) => near.some((n) => n && CLASH[s.bg] === n.bg);
+const bad = (x, y) => !!x && !!y && (x.bg === y.bg || CLASH[x.bg] === y.bg);
 
-function pickAvoiding(used, near = []) {
-  const free = SWATCHES.filter((s) => !used.includes(s) && !clashes(s, near));
-  const pool = free.length ? free : SWATCHES;
-  return pool[(Math.random() * pool.length) | 0];
-}
+const schemeOf = (opts) => {
+  const s = opts.scheme || document.documentElement.getAttribute("data-scheme");
+  return s === "pink" ? "pink" : "blue";
+};
 
 export function mount(el, opts = {}) {
   const words = opts.words || WORDS;
+  const scheme = schemeOf(opts);
+  const swatches = opts.swatches || (scheme === "pink" ? SWATCHES_PINK : SWATCHES);
+  const ground = opts.ground === undefined ? GROUND[scheme] : opts.ground;
   const family = opts.font || "\"Newsreader\", Georgia, serif";
   const weight = opts.weight || "560";
   const reduced =
@@ -102,6 +114,7 @@ export function mount(el, opts = {}) {
     userSelect: "none",
     webkitUserSelect: "none",
   });
+  if (ground) root.style.background = ground;
   root.setAttribute("role", "img");
   root.setAttribute("aria-label", words.join(" "));
 
@@ -118,10 +131,26 @@ export function mount(el, opts = {}) {
   root.appendChild(bar);
   el.appendChild(root);
 
-  const used = [];
+  // A row end is the first and last tile, plus either side of the fold.
+  let split = -1;
+  const isEnd = (i, n) => i === 0 || i === n - 1 || i === split || i === split - 1;
+  const fits = (arr, i) => {
+    const sw = arr[i];
+    if (ground && sw.bg.toLowerCase() === String(ground).toLowerCase() && isEnd(i, arr.length)) return false;
+    return !bad(sw, arr[i - 1]) && !bad(sw, arr[i + 1]);
+  };
+  const valid = (arr) => arr.every((_, i) => fits(arr, i));
+  // Start from the swatch order, rotated until the field colour sits inside a row.
+  const initial = () => {
+    for (let r = 0; r < swatches.length; r++) {
+      const arr = words.map((_, i) => swatches[(i + r) % swatches.length]);
+      if (valid(arr)) return arr;
+    }
+    return words.map((_, i) => swatches[i % swatches.length]);
+  };
+  const start = initial();
   const tiles = words.map((word, i) => {
-    const sw = SWATCHES[i] && !used.includes(SWATCHES[i]) ? SWATCHES[i] : pickAvoiding(used);
-    used.push(sw);
+    const sw = start[i];
     const outer = document.createElement("span");
     Object.assign(outer.style, {
       display: "block",
@@ -191,7 +220,7 @@ export function mount(el, opts = {}) {
     const maxW = el.clientWidth * 0.88;
     const maxH = Math.min(el.clientHeight * 0.34, 72);
     let hpx = Math.min(maxH, (maxW * vbH) / total);
-    let split = -1;
+    split = -1;
     if (hpx < 34 && tiles.length > 1) {
       let best = Infinity;
       let acc = 0;
@@ -211,6 +240,11 @@ export function mount(el, opts = {}) {
       bar.insertBefore(brk, tiles[split].outer);
       brk.style.display = "block";
     }
+    // A fold can move a row end onto the field coloured tile: trade it inward.
+    if (!valid(tiles.map((t) => t.swatch))) {
+      const fix = initial();
+      tiles.forEach((t, i) => paint(t, fix[i]));
+    }
     // Round the outer ends of each row, so each row reads as one unit.
     const rad = Math.round(hpx * 0.16);
     tiles.forEach((t, i) => {
@@ -226,13 +260,25 @@ export function mount(el, opts = {}) {
     });
   };
 
-  const recolor = (t) => {
-    const others = tiles.filter((o) => o !== t).map((o) => o.swatch);
-    const i = tiles.indexOf(t);
-    const sw = pickAvoiding(others.concat([t.swatch]), [tiles[i - 1]?.swatch, tiles[i + 1]?.swatch]);
+  const paint = (t, sw) => {
     t.swatch = sw;
     for (const r of t.rects) r.el.style.fill = sw.bg;
     t.text.style.fill = sw.fg;
+  };
+  // A re roll trades swatches with another tile, so every tile keeps its own
+  // colour and the rules (field colour inside a row, no clash) always hold.
+  const recolor = (t) => {
+    const i = tiles.indexOf(t);
+    const cur = tiles.map((o) => o.swatch);
+    const order = tiles.map((_, j) => j).filter((j) => j !== i).sort(() => Math.random() - 0.5);
+    for (const j of order) {
+      const next = cur.slice();
+      [next[i], next[j]] = [next[j], next[i]];
+      if (!valid(next)) continue;
+      paint(tiles[i], next[i]);
+      paint(tiles[j], next[j]);
+      return;
+    }
   };
 
   const hoverLetter = (t, e) => {

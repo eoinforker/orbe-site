@@ -96,12 +96,13 @@ h1 .l { display: block; }
 /* Reserve */
 .reserve { margin-top: 46px; }
 .r-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
-.r-field { display: flex; align-items: center; min-height: 52px; border: var(--b) solid var(--orbe-ink); border-radius: 14px; background: #fff; padding: 0 12px; min-width: 0; font: 400 16px/1 var(--mono); cursor: text; }
+.r-field { display: flex; align-items: stretch; height: 52px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 var(--b) var(--orbe-ink); padding: 0 12px; min-width: 0; font: 400 16px/1 var(--mono); cursor: text; }
+.r-pre { align-self: center; }
 .r-pre { color: var(--orbe-graphite); }
-.r-field input { all: unset; flex: 1; min-width: 0; font: inherit; color: var(--orbe-ink); padding: 14px 0; text-transform: lowercase; }
+.r-field input { all: unset; flex: 1; min-width: 0; height: 100%; font: inherit; color: var(--orbe-ink); padding: 0; text-transform: lowercase; }
 .r-field input::placeholder { color: var(--orbe-graphite); opacity: 1; text-transform: none; }
 .r-field:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
-.reserve button { border: var(--b) solid var(--orbe-ink); border-radius: 999px; background: var(--action); color: var(--on-action); font: 700 17px/1 var(--sans); letter-spacing: -0.01em; padding: 0 20px; cursor: pointer; box-shadow: 0 3px 0 var(--orbe-ink); transition: transform var(--dur-press) var(--ease-standard), box-shadow var(--dur-press) var(--ease-standard); }
+.reserve button { height: 52px; border: var(--b) solid var(--orbe-ink); border-radius: 999px; background: var(--action); color: var(--on-action); font: 700 17px/1 var(--sans); letter-spacing: -0.01em; padding: 0 20px; cursor: pointer; box-shadow: 0 3px 0 var(--orbe-ink); transition: transform var(--dur-press) var(--ease-standard), box-shadow var(--dur-press) var(--ease-standard); }
 .reserve button:hover { transform: translateY(-2px); box-shadow: 0 5px 0 var(--orbe-ink); }
 .reserve button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--orbe-ink); background: var(--action-press); }
 .r-kind { margin-top: 10px; font-size: 15px; }
@@ -141,10 +142,12 @@ h1 .l { display: block; }
 .scale .c:first-child { border-left: 0; padding-left: 0; }
 .scale .c.on { color: var(--orbe-ink); font-weight: 700; }
 .scale .you { position: absolute; top: -10px; width: 10px; height: 14px; margin-left: -5px; background: var(--strip); border: var(--b) solid var(--orbe-ink); left: var(--x); }
-.pre .scale .you { left: var(--x0); transition: left 0.9s var(--ease); }
+.pre .scale .you { left: var(--x0); transition: left 0.6s var(--ease); }
 .pre.counted .scale .you { left: var(--x); }
-.pre .rt-band { opacity: 0; transition: opacity 0.4s var(--ease) 0.7s; }
-.pre.counted .rt-band { opacity: 1; }
+/* Until the count lands, no band is named or bold: the figure and the band never disagree. */
+.pre:not(.landed) .scale .c.on { color: var(--orbe-graphite); font-weight: 400; }
+.pre .rt-band { opacity: 0; transition: opacity 0.25s var(--ease); }
+.pre.landed .rt-band { opacity: 1; }
 .rt-foot { margin-top: 14px; font-size: 12.5px; line-height: 1.45; color: var(--orbe-graphite); }
 
 .v-why { margin-top: 26px; font: 400 19px/1.32 var(--serif); max-width: 34ch; }
@@ -177,7 +180,20 @@ h1 .l { display: block; }
 .door { padding: 40px var(--g) 0; }
 .door h2 { font: 800 clamp(36px, 9.8vw, 92px)/0.9 var(--sans); letter-spacing: -0.058em; margin-left: -0.04em; max-width: 13ch; }
 .moat { margin-top: 16px; font: 400 21px/1.3 var(--serif); max-width: 26ch; }
-.d-who { margin-top: 10px; font-size: 15px; line-height: 1.45; color: var(--text-soft); max-width: 40ch; }
+.d-who { margin-top: 20px; font-size: 15px; line-height: 1.45; color: var(--text-soft); max-width: 40ch; }
+/* The buyer's list: every made-up example in a window, led by its size band. Three on the phone, five on desktop. */
+.roll { --ply: var(--field); --roll-rule: color-mix(in srgb, var(--orbe-ink) 16%, transparent); margin-top: calc(var(--tab-h) + 24px); }
+.roll-list { padding: 0 12px; }
+.roll-list li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--roll-rule); }
+.roll-list li:nth-child(n+4) { display: none; }
+.roll-list li:nth-child(3) { border-bottom: 0; }
+.rl-s { grid-row: span 2; font: 500 13px/1.15 var(--mono); }
+.rl-s small { display: block; margin-top: 3px; font-size: 12px; color: var(--orbe-graphite); }
+.rl-n { grid-row: span 2; font: 700 16px/1.15 var(--sans); letter-spacing: -0.015em; }
+.rl-n small { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--orbe-graphite); }
+.rl-r { justify-self: end; font: 700 24px/1 var(--sans); letter-spacing: -0.045em; font-feature-settings: var(--figures-display); }
+.rl-b { justify-self: end; font: italic 400 16px/1.1 var(--serif); }
+.roll-note { padding: 10px 12px 12px; font-size: 12px; line-height: 1.4; color: var(--orbe-graphite); }
 .terms { margin-top: 24px; border-top: var(--b) solid var(--rule-strong); }
 .terms div { display: grid; grid-template-columns: 88px 1fr; gap: 10px; padding: 10px 0 11px; border-bottom: 1px solid var(--rule); }
 .terms dt { font-size: 12px; line-height: 1.3; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding-top: 4px; }
@@ -226,8 +242,8 @@ h1 .l { display: block; }
   .hero-row { display: grid; grid-template-columns: minmax(0, 620px) minmax(0, 1fr); column-gap: 56px; align-items: stretch; }
   .reserve { margin-top: 60px; padding: 16px; }
   .r-row { gap: 10px; }
-  .r-field { min-height: 56px; font-size: 17px; padding: 0 16px; }
-  .reserve button { font-size: 18px; padding: 0 28px; min-height: 56px; }
+  .r-field { height: 56px; font-size: 17px; padding: 0 16px; }
+  .reserve button { font-size: 18px; padding: 0 28px; height: 56px; }
   .r-kind { margin-top: 14px; font-size: 16px; }
   .r-note { font-size: 15px; margin-top: 10px; }
   .fold-tab { font-size: 19px; }
@@ -267,14 +283,32 @@ h1 .l { display: block; }
   .tiers b { font-size: 34px; }
 
   .door { padding: 96px var(--g) 0; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); column-gap: 80px; align-items: start; }
-  .d-head { grid-column: 1; grid-row: 1; }
+  /* Two rows that pair up: the headline and the moat beside who it's for and the action, then the examples beside the terms. */
+  .d-head { display: contents; }
+  .door h2 { grid-column: 1; grid-row: 1; }
+  .moat { grid-column: 1; grid-row: 2; }
+  .roll { grid-column: 1; grid-row: 3; }
   .door h2 { font-size: clamp(56px, 4.9vw, 84px); max-width: 15ch; }
   .moat { font-size: 26px; margin-top: 24px; }
   .d-who { font-size: 17px; }
-  .terms { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+  .roll { margin-top: calc(var(--tab-h) + 32px); }
+  .roll-list { padding: 0 18px; }
+  .roll-list li:nth-child(n+4) { display: grid; }
+  .roll-list li:nth-child(3) { border-bottom: 1px solid var(--roll-rule); }
+  .roll-list li:last-child { border-bottom: 0; }
+  .roll-list li { grid-template-columns: 112px minmax(0, 1fr) auto 4.6em; grid-template-rows: auto; column-gap: 16px; padding: 13px 0; }
+  .rl-s, .rl-n { grid-row: auto; }
+  .rl-s { font-size: 14px; }
+  .rl-s small { font-size: 12px; }
+  .rl-n { font-size: 18px; }
+  .rl-r { font-size: 30px; }
+  .rl-b { font-size: 19px; }
+  .roll-note { padding: 12px 18px 14px; font-size: 13px; }
+  .terms { grid-column: 2; grid-row: 3; align-self: start; margin-top: calc(var(--tab-h) + 32px); }
+  .d-who { grid-column: 2; grid-row: 1; align-self: end; margin-top: 0; max-width: 36ch; }
   .terms div { grid-template-columns: 130px 1fr; padding: 18px 0; }
   .terms dd { font-size: 18px; letter-spacing: -0.01em; }
-  .door-go { grid-column: 1; grid-row: 2; justify-self: start; align-self: end; }
+  .door-go { grid-column: 2; grid-row: 2; justify-self: start; align-self: end; margin-top: 20px; }
   .foot { grid-column: 1 / -1; margin-top: 80px; padding-bottom: 32px; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 28px; }
   .foot-fine { text-align: right; justify-self: end; max-width: 64ch; }
 }

@@ -101,6 +101,13 @@ const WORDS = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven"];
 $("#rt-parts").textContent = `${WORDS[maths.length] ?? maths.length} parts, weighted: ${[...maths].sort((a, b) => b.weight - a.weight).map((m) => `${m.name.toLowerCase()} ${m.weight}%`).join(", ")}. Reach is one of them.`;
 $("#rt-foot").textContent = `${ex.name}, ${ex.sizeBand}. ${ratingNotice(ex.platform)} ${EXAMPLE_LINE}`;
 
+/* ---------- For buyers: every made-up example, led by its size band, rated live ---------- */
+$("#roll").innerHTML = ORDER.map((k) => {
+  const x = example(k);
+  const [, span = x.sizeBand, unit = ""] = x.sizeBand.match(/^(.*\d\S*)\s+(\D+)$/) ?? [];
+  return `<li><span class="rl-s">${span}<small>${unit}</small></span><span class="rl-n">${x.name}<small>${x.label}</small></span><b class="rl-r">${minus(x.signed)}</b><span class="rl-b">${x.band}</span></li>`;
+}).join("");
+
 $("#notice").textContent = `Every creator and figure on this page is a made-up example, rated live by the Orbe engine. ${RATING_NOTICE} YouTube, Substack and Twitch are trademarks of their owners.`;
 
 /*
@@ -145,10 +152,10 @@ function stickers() {
   const pink = pal === "pink";
   const deep = pink ? C.claret : C.cobalt;
   const wide = innerWidth >= 900;
-  /* Positions as fractions of the band: three rows of two on the phone, a looser field on desktop. The fair one sits in the middle. */
+  /* Positions as fractions of the band. On the phone the fair one shares the first row with "the top 1%", so the answer is on the first screen; on desktop it sits in the middle of a looser field. */
   const at = wide
     ? { "the top 1%": [0.26, 0.15], viral: [0.84, 0.18], [FAIR]: [0.34, 0.5], followers: [0.85, 0.5], "the charts": [0.18, 0.85], "vanity views": [0.7, 0.86] }
-    : { "the top 1%": [0.28, 0.15], viral: [0.82, 0.2], [FAIR]: [0.5, 0.5], followers: [0.25, 0.85], "the charts": [0.74, 0.84] };
+    : { "the top 1%": [0.27, 0.15], [FAIR]: [0.76, 0.17], viral: [0.24, 0.5], followers: [0.72, 0.52], "the charts": [0.5, 0.85] };
   const all = [
     { word: "the top 1%", font: SANS, weight: 800, style: "normal", base: C.chalk, fill: deep, rot: -7 },
     { word: "viral", font: MONO, weight: 600, style: "normal", base: C.ember, fill: C.ink, rot: 6 },
@@ -219,25 +226,28 @@ setPalette(pal, false);
 
 /*
   ---------- The one gesture on paper: as the window comes into view, each wrong verdict is
-  struck through in turn, then the rating counts up from zero (typical) to its own figure and
-  the marker slides along the scale. Reduced motion: already struck, already counted.
+  struck through in turn, then the rating counts up from zero (typical) to its own figure in
+  about 600ms while the marker slides along the scale. The band is named, and set bold on the
+  scale, only when the count lands, so the figure and the band never disagree.
+  Reduced motion: already struck, already counted.
   ----------
 */
 const yardEl = $("#yard");
 const numEl = $("#rt-num");
 function countIn() {
-  const to = ex.rating, t0 = performance.now(), dur = 900;
+  const to = ex.rating, t0 = performance.now(), dur = 600;
   const tick = (now) => {
     const k = Math.min(1, (now - t0) / dur);
     const e = 1 - Math.pow(1 - k, 3);
     numEl.textContent = k < 1 ? minus((to * e >= 0 ? "+" : "-") + Math.abs(to * e).toFixed(2)) : minus(ex.signed);
     if (k < 1) requestAnimationFrame(tick);
+    else root.classList.add("landed");
   };
   requestAnimationFrame(tick);
 }
 if (reduce || !("IntersectionObserver" in window)) {
   yardEl.classList.add("struck");
-  root.classList.add("ready", "counted");
+  root.classList.add("ready", "counted", "landed");
 } else {
   root.classList.add("pre");
   numEl.textContent = minus("+0.00");
@@ -245,8 +255,8 @@ if (reduce || !("IntersectionObserver" in window)) {
   const io = new IntersectionObserver((es) => {
     if (!es.some((e) => e.isIntersecting)) return;
     io.disconnect();
-    setTimeout(() => yardEl.classList.add("struck"), 250);
-    setTimeout(() => { root.classList.add("counted"); countIn(); }, 1250);
+    setTimeout(() => yardEl.classList.add("struck"), 150);
+    setTimeout(() => { root.classList.add("counted"); countIn(); }, 800);
   }, { threshold: 0.55 });
   io.observe(yardEl);
 }
