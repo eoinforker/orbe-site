@@ -145,6 +145,8 @@ $("[data-manual]").addEventListener("submit", (e) => {
 
 /* ---------- result ---------- */
 const out = $("[data-out]");
+// The per work table and the sources sit under both columns at desktop width, so an open table has the page to itself.
+const wide = $("[data-out-wide]");
 function show(snapshot, at, meta) {
   const kind = snapshot.account.kind;
   const spec = SPECS[kind];
@@ -156,6 +158,7 @@ function show(snapshot, at, meta) {
   const titles = new Map(snapshot.works.map((w) => [w.id, w.title]));
 
   if (!isRated(result)) {
+    wide.replaceChildren();
     out.innerHTML = `<div class="panel stack"><p class="tag warn">Not rated yet</p><h2 class="h2">${esc(nodash(result.message))}</h2>
       <p class="sub">Have ${result.have}, need ${result.need}. ${esc(meta.source)}</p>${warnings(meta.warnings)}</div>`;
     return;
@@ -213,19 +216,21 @@ function show(snapshot, at, meta) {
       ${meta.sample ? "" : `<div data-keep id="keep-${esc(snapshot.account.id).replace(/[^a-z0-9-]/gi, "")}"></div>`}
     </div>`}
 
-    <div class="panel stack">
+    <div class="panel stack" data-wide>
       ${fold(`Each ${esc(d.workNoun)} against your own typical`, `${Math.min(15, works.length)} ${esc(d.workNoun)}s`, `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${esc(d.workNoun[0].toUpperCase() + d.workNoun.slice(1))}</th><th>Published</th><th class="r">Rating</th><th class="r">× typical</th></tr></thead><tbody>
-        ${works.slice(0, 15).map((w) => `<tr><td>${esc(titles.get(w.workId) ?? "")}${w.matured ? "" : ' <span class="tag">early</span>'}</td><td>${esc(day(snapshot.works.find((x) => x.id === w.workId)?.publishedAt))}</td><td class="r">${esc(signed(w.rating))}</td><td class="r">${w.multiple.toFixed(2)}</td></tr>`).join("")}
+        ${works.slice(0, 15).map((w) => `<tr><td>${esc(titles.get(w.workId) ?? "")}${w.matured ? "" : ' <span class="tag">early</span>'}</td><td class="nw">${esc(day(snapshot.works.find((x) => x.id === w.workId)?.publishedAt))}</td><td class="r">${esc(signed(w.rating))}</td><td class="r">${w.multiple.toFixed(2)}</td></tr>`).join("")}
       </tbody></table></div>`)}
     </div>
 
-    <div class="panel stack">
+    <div class="panel stack" data-wide>
       ${fold("Where these numbers come from", `${(meta.sources?.length ?? 0) + 1} sources`, sourcesList([
         ...(meta.sources ?? [{ kind: "typed", label: meta.source }]),
         { kind: "engine", label: `The Orbe Rating, maths version ${result.modelVersion}`, provenance: `Independently calculated by Orbe against ${spec.peers} your size${d.provisional ? ", on provisional benchmarks" : ""}.` },
       ]))}
       ${warnings(meta.warnings)}
     </div>`;
+
+  wide.replaceChildren(...out.querySelectorAll(":scope > [data-wide]"));
 
   // The card's moments, from the engine, handed to the card page in this tab only.
   let personalBest = null;
@@ -237,7 +242,7 @@ function show(snapshot, at, meta) {
   const now = new Date(at);
   const dayOfYear = (now - Date.UTC(now.getUTCFullYear(), 0, 1)) / 864e5;
   const best = works.filter((w) => w.matured).reduce((a, w) => (!a || w.multiple > a.multiple ? w : a), null);
-  if (meta.preload) return countUp($(".big", out), result.rating);
+  if (meta.preload) return countUp($(".big", out), result.rating, $(".band", out));
   store.session.put("orbe-products-card", {
     result, kind, name: snapshot.account.title, handle: `@${snapshot.account.title.toLowerCase().replace(/[^a-z0-9]+/g, "")}`.slice(0, 24),
     works: d.workRatings, personalBest, season: { name: `${now.getUTCFullYear()} so far`, works: works.filter((w) => (w.ageDays ?? 0) <= dayOfYear) },
@@ -278,21 +283,34 @@ function keptLine(el, key, focus = false) {
    The page opens on the made-up YouTube channel the products page rates (examples.js),
    rebuilt here with its works so every panel can show. If the rebuild ever drifts from
    the example, the made-up YouTube Studio file is rated instead. */
-function countUp(el, target) {
+function countUp(el, target, band) {
   if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const final = el.textContent;
+  if (band) band.style.visibility = "hidden";
   const t0 = performance.now();
   const tick = (now) => {
-    const t = Math.min(1, (now - t0) / 900);
+    const t = Math.min(1, Math.max(0, (now - t0) / 600));
     el.textContent = t < 1 ? signed(target * (1 - (1 - t) ** 3)) : final;
     if (t < 1) requestAnimationFrame(tick);
+    else if (band) band.style.visibility = "";
   };
   requestAnimationFrame(tick);
 }
+const FIELD_TITLES = [
+  "The marsh at 4am", "Rain on a tin roof, Skye", "Rookery at dusk", "Under the pier at Hastings",
+  "Frost on the reed beds", "A beech wood in a gale", "Curlews over the Wash", "The last train out of Kemble",
+  "Ice cracking on Loch Lomond", "Dawn chorus, mid Wales", "Shingle in an easterly", "Bees in the lime trees",
+  "A thunderstorm comes up the valley", "Skylarks over Salisbury Plain", "Geese leaving the Solway",
+  "Snow falling on a pine forest", "The tide fills Morecambe Bay", "Nightjars on the heath", "Inside a hollow oak",
+  "Hail on a glasshouse", "Seals hauled out at Blakeney", "A brook after a week of rain", "Swifts over a market town",
+  "Wind through a field of barley", "The quietest place in England",
+];
 async function preload() {
   const ex = example("channel");
   const snap = fixtureSnapshot({ kind: "youtube", noise: 0.25, audience: 412000, reach: 1.6, engagement: 1.6, hitEvery: 5, seed: 1, title: ex.name });
   snap.account.handle = ex.handle;
+  // The engine names its generated works by number; the made-up channel gets titles of its own, newest first.
+  snap.works.forEach((w, i) => { w.title = FIELD_TITLES[i] ?? `Night walk, part ${i + 1}`; });
   if (Math.abs(rate(snap, FIXTURE_NOW).rating - ex.rating) < 1e-9) {
     return show(snap, FIXTURE_NOW, {
       preload: true, sample: true, warnings: [], source: `${ex.name}, a made-up YouTube channel.`,

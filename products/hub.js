@@ -8,23 +8,26 @@ shell("hub", 0);
 const ex = example("channel");
 const num = $("[data-num]");
 const final = ex.signed;
-$("[data-band]").textContent = ex.band;
+const band = $("[data-band]");
+band.textContent = ex.band;
 $("[data-parts]").innerHTML = ex.parts.map((p) => `<span>${esc(p.name)} <b>${p.score}</b></span>`).join("");
 $("[data-cap]").textContent = `${ex.name}: ${ex.parts[0].name.toLowerCase()} beats ${ex.parts[0].score} in 100 ${ex.peers} its size. Zero is typical. ${EXAMPLE_LINE} ${RATING_LABEL}.`;
 num.closest("figure").setAttribute("aria-label", `${ex.name}, a made-up YouTube channel: ${final}, ${ex.band}.`);
 
-// The number counts up once, from typical (zero) to the rating; still under reduced motion.
+// The number counts up once, from typical (zero) to the rating, and the band is set only when it lands; still under reduced motion.
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 if (still) num.textContent = final;
 else {
+  band.style.visibility = "hidden";
   const target = ex.rating;
   const t0 = performance.now();
-  const dur = 900;
+  const dur = 600;
   const tick = (now) => {
-    const t = Math.min(1, (now - t0) / dur);
+    const t = Math.min(1, Math.max(0, (now - t0) / dur));
     const v = target * (1 - (1 - t) ** 3);
     num.textContent = t < 1 ? `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}` : final;
     if (t < 1) requestAnimationFrame(tick);
+    else band.style.visibility = "";
   };
   requestAnimationFrame(tick);
 }

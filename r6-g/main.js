@@ -94,6 +94,8 @@ function fill(kind, animate) {
   $("[data-line-who]").textContent = e.handle;
   $("[data-line-band]").textContent = `${e.band}, against ${e.peers} with ${e.sizeBand}.`;
 
+  // paint the new bars and underline in the same frame as the swap, so no sheet is ever shown unpainted
+  paintAll();
   requestAnimationFrame(paintAll);
   countTo(e, animate);
 }
@@ -111,7 +113,7 @@ function countTo(e, animate) {
   score.classList.add("counting");
   const t0 = performance.now(), dur = 900;
   const tick = (t) => {
-    const k = Math.min(1, (t - t0) / dur);
+    const k = Math.min(1, Math.max(0, (t - t0) / dur));
     out.textContent = k < 1 ? fmt(e.rating * settle(k)) : e.signed;
     if (k < 1) raf = requestAnimationFrame(tick);
     else score.classList.remove("counting");
@@ -131,24 +133,18 @@ function open() {
   countTo(example(current), true);
 }
 
-/* Switching kind: the old sheet stays whole while the folder closes over it, then sheet, labels, neighbour
-   and flap all change in one frame, and the folder opens on the new sheet. Nothing mixes two kinds. */
-let swapT;
+/* Switching kind: the old folder stays whole until the new one is laid out; then the tabs, the neighbour,
+   the sheet with its finished figure and band, and the flap all change in one frame, and the new sheet
+   settles into the folder. No frame is blank, and no frame shows two kinds at once. */
 function switchKind(kind) {
   if (kind === current) return;
   current = kind;
   for (const t of $$(".kinds [role=tab]")) t.setAttribute("aria-selected", String(t.dataset.kind === kind));
-  clearTimeout(swapT);
-  if (reduce || !opened) { fill(kind, false); return; }
-  drawer.classList.remove("open");
-  drawer.classList.add("closing");
-  swapT = setTimeout(() => {
-    fill(kind, false);
-    drawer.classList.remove("closing");
-    void drawer.offsetWidth;
-    drawer.classList.add("open");
-    countTo(example(kind), true);
-  }, 380);
+  fill(kind, false);
+  if (reduce || !opened) return;
+  drawer.classList.remove("refile");
+  void drawer.offsetWidth;
+  drawer.classList.add("refile");
 }
 
 /* ---------------------------------------------------------------- boot */
@@ -190,7 +186,7 @@ function hero() {
   const run = () => {
     const t0 = performance.now(), dur = 700;
     const tick = (t) => {
-      const k = Math.min(1, (t - t0) / dur);
+      const k = Math.min(1, Math.max(0, (t - t0) / dur));
       out.textContent = k < 1 ? fmt(e.rating * settle(k)) : e.signed;
       if (k < 1) requestAnimationFrame(tick);
       else line.classList.remove("counting");
@@ -206,12 +202,29 @@ function hero() {
   if (document.fonts) document.fonts.ready.then(after); else after();
 }
 
+/* For buyers: three made-up examples, led by their size band, rated live */
+function roll() {
+  $("[data-roll]").replaceChildren(...["channel", "newsletter", "stream"].map((k) => {
+    const x = example(k);
+    const [, span = x.sizeBand, unit = ""] = x.sizeBand.match(/^(.*\d\S*)\s+(\D+)$/) ?? [];
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="rl-s"><span></span><small></small></span><span class="rl-n"><span></span><small></small></span><b class="rl-r"></b><i class="rl-b"></i>`;
+    const [s1, s2] = li.querySelectorAll(".rl-s > *"), [n1, n2] = li.querySelectorAll(".rl-n > *");
+    s1.textContent = span; s2.textContent = unit; n1.textContent = x.name; n2.textContent = x.label;
+    li.querySelector(".rl-r").textContent = x.signed.replace("-", "−");
+    li.querySelector(".rl-b").textContent = x.band;
+    return li;
+  }));
+}
+
 function forms() {
   for (const f of $$("[data-reserve]")) {
     const note = $("[data-note]", f), kind = $("select", f), input = $("input", f);
     f.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const h = cleanHandle(input.value).toLowerCase();
+      // the field shows exactly what will be sent
+      if (h) input.value = h;
       if (!h) { note.textContent = "Type the handle you’d like, and we’ll write the request out for you."; input.focus(); return; }
       const k = kind.value;
       const res = await reserve({ handle: h, kind: k });
@@ -248,6 +261,7 @@ function boot() {
   setScheme(scheme, false);
   for (const b of $$(".palette button")) b.addEventListener("click", () => setScheme(b.dataset.c, true));
   fill("channel", false);
+  roll();
   forms();
 
   for (const t of $$(".kinds [role=tab]")) t.addEventListener("click", () => switchKind(t.dataset.kind));

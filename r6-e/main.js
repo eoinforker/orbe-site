@@ -93,23 +93,35 @@ const phi = (z) => 0.5 * (1 + erf(z / Math.SQRT2));
 const say = (n, mine) => (mine ? "Ahead of most." : n >= 97 ? "Looks like genius." : n >= 75 ? "Looks great." : n >= 45 ? "Looks ordinary." : "Looks weak.");
 const VERDICT = { "Looks like genius.": "a genius", "Looks great.": "great", "Looks ordinary.": "ordinary", "Looks weak.": "weak" };
 const lower = (s) => s.replace(/^Under/, "under").replace(/^Over/, "over");
+/* The window reads the part moment 1 leads with, so "where I stand" is one number on both screens. */
+const leadKey = (k) => (k === "newsletter" ? "conversion" : "reach");
 function setYard(k) {
   const e = example(k);
   const spec = SPECS[e.platform];
-  const reach = e.result.detail.parts.find((p) => p.key === "reach");
-  const sigma = spec.parts.find((p) => p.key === "reach").prior.sigma;
-  const own = e.result.parts.find((p) => p.key === "reach").score;
+  const key = leadKey(k);
+  const part = e.result.detail.parts.find((p) => p.key === key);
+  const prior = spec.parts.find((p) => p.key === key).prior;
+  const own = e.result.parts.find((p) => p.key === key).score;
   const bm = benchmark(k);
+  /* Where the engine's typical changes with size, each row is read against that size's typical.
+     Where it does not (a newsletter's paid conversion is counted per 1,000 recipients), every size reads the same. */
+  const banded = typeof prior.median === "object";
+  const typical = (row) => (banded ? prior.median[row.key] : prior.median);
   /* A percentile: never "100 in 100", never "0 in 100". */
-  const beats = (row) => (row.key === bm.example ? own : Math.max(1, Math.min(99, Math.round(phi(Math.log(reach.measured / row.value) / sigma) * 100))));
+  const beats = (row) => (row.key === bm.example ? own : Math.max(1, Math.min(99, Math.round(phi(Math.log(part.measured / typical(row)) / prior.sigma) * 100))));
   const first = bm.rows[0], last = bm.rows[bm.rows.length - 1], mine = bm.rows.find((r) => r.key === bm.example);
-  $("[data-yard]").setAttribute("aria-label", `One ${e.word}'s reach, against three sizes of ${e.peers}`);
+  const what = part.name.toLowerCase();
+  $("[data-yard-part]").textContent = `Against ${e.peers}, ${what}`;
+  $("[data-yard]").setAttribute("aria-label", `One ${e.word}'s ${what}, against three sizes of ${e.peers}`);
   $("[data-yard]").innerHTML = [[first], [last], [mine, true]].map(([row, m]) => `<li class="y${m ? " mine" : ""}">
     <span class="y-vs">${m ? `Its size<small>${row.label}</small>` : row.label}</span>
-    <span class="y-say"><span class="y-w">${say(beats(row), m)}</span>${m ? "" : '<span class="vh"> Not a fair comparison.</span>'}</span>
+    <span class="y-say"><span class="y-w">${say(beats(row), m || !banded)}</span>${m || !banded ? "" : '<span class="vh"> Not a fair comparison.</span>'}</span>
     <b class="y-n">${beats(row)}</b>
   </li>`).join("");
-  $("[data-yard-why]").innerHTML = `Against small ${e.peers}, ${VERDICT[say(beats(first))]}. Against the giants, ${VERDICT[say(beats(last))]}. <b>Neither is&nbsp;fair.</b>`;
+  m2win.classList.toggle("flat", !banded);
+  $("[data-yard-why]").innerHTML = banded
+    ? `Against small ${e.peers}, ${VERDICT[say(beats(first))]}. Against the giants, ${VERDICT[say(beats(last))]}. <b>Neither is&nbsp;fair.</b>`
+    : `Size does not move paid conversion. <b>Every yardstick is fair&nbsp;here.</b>`;
 }
 /* The wrong verdicts are struck through in turn as the window arrives. */
 const m2win = document.querySelector(".m2 .win");
@@ -148,7 +160,7 @@ function countUp(el) {
   el.setAttribute("aria-label", final);
   const step = (now) => {
     if (el.dataset.final !== final) return;
-    const t = Math.min(1, (now - t0) / dur);
+    const t = Math.min(1, Math.max(0, (now - t0) / dur));
     el.textContent = sign + (target * ease(t)).toFixed(dp) + rest;
     if (t < 1) requestAnimationFrame(step); else { el.textContent = final; el.removeAttribute("aria-label"); }
   };
@@ -284,6 +296,9 @@ for (const k of $$("[data-kind]")) k.addEventListener("change", () => setKind(k.
 $("[data-jump]").addEventListener("submit", (ev) => {
   ev.preventDefault();
   const input = $("[data-handle]", ev.currentTarget);
+  /* the bar hands the cleaned handle over, so the last moment's field shows what will be sent */
+  const h = handleOf(input.value);
+  if (h) input.value = h;
   syncHandles(input);
   goPhone(N - 1);
   const target = $(".stack-form " + (handleOf(input.value) ? "button" : "input"));

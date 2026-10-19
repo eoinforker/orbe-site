@@ -58,7 +58,9 @@ const FLY_STAGGER = 130;
 const FLY_MS = 760;
 const SHUFFLE_MIN = 1300;
 const SHUFFLE_MAX = 3200;
-const COLOR_MS = 520;
+// A colour change is wiped in left to right, never interpolated: a blend of
+// Cobalt into Ember or Paper passes through lilac, and purple is banned.
+const COLOR_MS = 420;
 const EASE = "cubic-bezier(.16,1,.3,1)";
 
 // Glyph metrics from canvas: pen position by prefix width (keeps kerning),
@@ -154,6 +156,7 @@ export function mount(el, opts = {}) {
     const outer = document.createElement("span");
     Object.assign(outer.style, {
       display: "block",
+      position: "relative",
       flex: "0 0 auto",
       clipPath: "inset(0 100% 0 0)",
       transform: "translateY(10px)",
@@ -167,7 +170,6 @@ export function mount(el, opts = {}) {
     const text = document.createElementNS(SVGNS, "text");
     text.setAttribute("font-size", String(REF_FS));
     text.style.fill = sw.fg;
-    text.style.transition = `fill ${COLOR_MS}ms ease`;
     text.style.fontFamily = family;
     text.style.fontWeight = weight;
     text.style.letterSpacing = "0";
@@ -203,7 +205,7 @@ export function mount(el, opts = {}) {
           r.setAttribute("y", String(top));
           r.setAttribute("height", String(bandBottom - top));
           r.style.fill = t.swatch.bg;
-          r.style.transition = `fill ${COLOR_MS}ms ease, y 160ms ease, height 160ms ease`;
+          r.style.transition = "y 160ms ease, height 160ms ease";
           t.g.appendChild(r);
           t.rects.push({ el: r, x0: left, x1: right, baseY: top, baseH: bandBottom - top, hovered: false });
         }
@@ -260,10 +262,32 @@ export function mount(el, opts = {}) {
     });
   };
 
-  const paint = (t, sw) => {
+  const paint = (t, sw, wipe = false) => {
     t.swatch = sw;
-    for (const r of t.rects) r.el.style.fill = sw.bg;
-    t.text.style.fill = sw.fg;
+    const id = (t.wipeId = (t.wipeId ?? 0) + 1);
+    const apply = () => {
+      for (const r of t.rects) r.el.style.fill = sw.bg;
+      t.text.style.fill = sw.fg;
+    };
+    t.wipe?.remove();
+    t.wipe = null;
+    if (!wipe || reduced || !t.rects.length) return apply();
+    // The new colour arrives as a copy of the tile, uncovered left to right;
+    // the tile underneath takes the colour when the copy has fully landed.
+    const ov = t.svg.cloneNode(true);
+    for (const r of ov.querySelectorAll("rect")) Object.assign(r.style, { transition: "none", fill: sw.bg });
+    Object.assign(ov.querySelector("text").style, { transition: "none", fill: sw.fg });
+    Object.assign(ov.style, { position: "absolute", left: "0", top: "0", pointerEvents: "none", clipPath: "inset(0 100% 0 0)", transition: `clip-path ${COLOR_MS}ms cubic-bezier(.5,0,.2,1)` });
+    t.outer.appendChild(ov);
+    t.wipe = ov;
+    ov.getBoundingClientRect();
+    ov.style.clipPath = "inset(0 0 0 0)";
+    setTimeout(() => {
+      if (t.wipeId !== id) return;
+      apply();
+      ov.remove();
+      t.wipe = null;
+    }, COLOR_MS + 40);
   };
   // A re roll trades swatches with another tile, so every tile keeps its own
   // colour and the rules (field colour inside a row, no clash) always hold.
@@ -275,8 +299,8 @@ export function mount(el, opts = {}) {
       const next = cur.slice();
       [next[i], next[j]] = [next[j], next[i]];
       if (!valid(next)) continue;
-      paint(tiles[i], next[i]);
-      paint(tiles[j], next[j]);
+      paint(tiles[i], next[i], true);
+      paint(tiles[j], next[j], true);
       return;
     }
   };

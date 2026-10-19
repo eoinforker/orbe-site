@@ -176,6 +176,7 @@ html { scroll-snap-type: y proximity; }
 .m2 .bands { margin-top: auto; padding-top: 0; }
 
 /* One piece of work, three yardsticks (from r6-a): the wrong two struck through, its own size left standing. */
+.yard-h > span:last-child { white-space: nowrap; }
 .yard-h { display: flex; justify-content: space-between; gap: var(--g2); padding-bottom: var(--g1); border-bottom: 1.5px solid var(--ink); font: 500 12px / 1.2 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--orbe-graphite); }
 .yard { list-style: none; margin: 0; padding: 0; }
 .y { display: grid; grid-template-columns: calc(var(--u) * 23) minmax(0, 1fr) auto; align-items: center; column-gap: var(--g2); padding: calc(var(--u) * 1.7) 0; border-bottom: 1px solid var(--rule); }
@@ -190,6 +191,9 @@ html { scroll-snap-type: y proximity; }
 .y:not(.mine) .y-w, .y:not(.mine) .y-n { transition: color 400ms var(--ease-settle) 200ms; }
 .y:not(.mine):nth-child(2) .y-w, .y:not(.mine):nth-child(2) .y-n { transition-delay: 650ms; }
 .struck .y:not(.mine) .y-w, .struck .y:not(.mine) .y-n { color: var(--orbe-graphite); }
+/* A part that size does not move (a newsletter's paid conversion): nothing to strike. */
+.flat .y:not(.mine) .y-w::after { content: none; }
+.flat.struck .y:not(.mine) .y-w, .flat.struck .y:not(.mine) .y-n { color: inherit; }
 .y.mine { margin: 0 calc(-1 * var(--g2)); padding-inline: var(--g2); background: var(--ink); color: var(--paper); border-bottom: 0; }
 .y.mine .y-vs { color: var(--orbe-stone); }
 .y.mine .y-n { color: var(--night-accent); }

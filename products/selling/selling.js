@@ -77,6 +77,8 @@ vf.addEventListener("submit", (e) => {
   if (!declared.length) return void (err.textContent = "Add at least one stream with a monthly amount, or some revenue lines.");
   const f = vf.elements;
   valueIt({ kind: f.kind.value, declared, margin: f.margin.value, face: f.face.value, pasted: mode === "lines" });
+  // On a phone the result sits above the form, so bring it into view.
+  if (innerWidth < 900) $("[data-val-out]").firstElementChild?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 });
 function valueIt({ kind, declared, margin, face, pasted, sample = false }) {
   const err = $("[data-val-err]");

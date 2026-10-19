@@ -1,7 +1,8 @@
 /*
-  The three applications, each drawn at its native size from the parts the
-  site uses today: tokens, components, the Carved wordmark, the archive's
-  brush painter (r6-g) and the rating window with its band rule (r6-a).
+  The four applications. The first two are the homepage itself, loaded live
+  at its native size. The post and the email are drawn at native size from
+  the parts the site uses today: tokens, components, the Carved wordmark, the
+  brush painter and the rating window with its band rule.
   Every figure comes from the Orbe engine's made-up examples and says so.
   render(scheme) returns HTML; paint(root, scheme) lays the brush strokes
   into its canvases once the HTML is in the page.
@@ -23,38 +24,23 @@ export function bandPos(v) {
 /* The band rule: five bands on a heavy ink rule, a square marker where the rating sits. */
 export const bandRule = (e) => `<div class="ap-scale" aria-hidden="true">${BANDS.map((b) => `<span class="${b === e.band ? "on" : ""}">${b}</span>`).join("")}<i style="left:${bandPos(e.rating).toFixed(1)}%"></i></div>`;
 
-/* The rating window, as r6-a and r6-e set it: ink bar, the figure, the band word, the rule. */
-const ratingWindow = (e) => `
-  <figure class="o-window ap-win">
-    <figcaption class="o-window-bar"><span>Orbe Rating</span><span>${e.handle}</span></figcaption>
-    <div class="o-window-body">
-      <p class="ap-fig"><span>${minus(e.signed)}</span> <i>${e.band}</i></p>
-      ${bandRule(e)}
-      <p class="ap-winline">${e.name}, against ${e.peers} ${e.sizeBand}. Independently calculated by Orbe.</p>
-    </div>
-  </figure>`;
-
-/* ------------------------------------------------------------------ 1. home page hero */
+/* ------------------------------------------------------------------ 1 and 2. the homepage itself
+   Not redrawn: the homepage at / is loaded live at its own size and scaled, so the
+   book can never show a homepage that does not ship. The story is held on its first
+   moment once the count has landed, so the frame reads as the first screen. */
+const live = (w, h, label) => (scheme) => `<iframe class="ap-live" data-src="../?c=${scheme === "pink" ? "pink" : "blue"}" width="${w}" height="${h}" loading="lazy" tabindex="-1" title="${label}"></iframe>`;
+const phone = {
+  name: "The homepage on a phone", w: 390, h: 844,
+  note: "The homepage at 390, live. The headline, the tray of five made-up creators, then the figure at display size: You beat 93 in 100 channels your size. The reply bar waits at the foot.",
+  render: live(390, 844, "The homepage on a phone"),
+};
 const hero = {
-  name: "Home page hero", w: 1440, h: 900,
-  note: "The field and the giant grotesk carry the energy; the folder form and the painted ground carry the warmth; the rating window carries the figure.",
-  render: () => {
-    const e = example("channel");
-    return `
-  <div class="ap-hero" data-surface="field">
-    <canvas class="ap-paint ap-ground" data-scene="hero" data-seed="43"></canvas>
-    <nav class="ap-nav">${WM}<span><a class="o-pill">The rating</a><a class="o-pill">For buyers</a></span></nav>
-    <h1 class="o-display ap-h">Your work, rated against creators your size.</h1>
-    <div class="o-folder ap-form"><span class="o-folder-tab">Hold your handle</span>
-      <p class="o-lede">Free, for good. Ratings open with YouTube: connect your channel to see yours.</p>
-      <div class="ap-row"><label class="o-input"><span class="o-input-pre">orbe.vc/@</span><input placeholder="yourhandle" tabindex="-1"></label><span class="o-btn">Reserve</span></div>
-    </div>
-    <div class="ap-herowin">${ratingWindow(e)}<p class="ap-made">${EXAMPLE_LINE}</p></div>
-  </div>`;
-  },
+  name: "The homepage on a desktop", w: 1440, h: 900,
+  note: "The homepage at 1440, live. The headline and the reserve bar on the left; the story plays in a phone on the right, on its first moment here. Painted ground along the foot.",
+  render: live(1440, 900, "The homepage on a desktop"),
 };
 
-/* ------------------------------------------------------------------ 2. social post */
+/* ------------------------------------------------------------------ 3. social post */
 const social = {
   name: "Social post", w: 1080, h: 1350,
   note: "Instagram portrait. One idea set huge, the figure with one ember brush stroke under it, painted ground at the foot. Something a creator would repost.",
@@ -72,7 +58,7 @@ const social = {
   },
 };
 
-/* ------------------------------------------------------------------ 3. email header */
+/* ------------------------------------------------------------------ 4. email header */
 const email = {
   name: "Email header: the after-post report", w: 1200, h: 640,
   note: "600px wide at 2x. Paper for reading, the creator's own art in corner brackets with a tooltip naming it, the figure set large and exact.",
@@ -93,13 +79,40 @@ const email = {
   },
 };
 
-export const APPS = { hero, social, email };
+export const APPS = { phone, hero, social, email };
 
 /* Lay the brush strokes into every canvas under root, at its rendered size. */
 const EMBER = { ink: "#FF5A1F" };
 export function paint(root, scheme) {
+  for (const f of root.querySelectorAll("iframe.ap-live")) hold(f);
   for (const c of root.querySelectorAll("canvas.ap-paint")) {
     const scene = c.dataset.scene;
     paintCanvas(c, scene, scene === "underline" ? EMBER : PALETTES[scheme === "pink" ? "pink" : "blue"], +c.dataset.seed || 7);
   }
+}
+
+/* Hold the live homepage on its first moment: its progress fill stops, so the story never turns. */
+function hold(f) {
+  // A frame loads only once it is shown: a page loaded inside a hidden tab would
+  // start its count before it has frames to draw.
+  if (!f.getClientRects().length) return;
+  if (!f.getAttribute("src")) f.src = f.dataset.src;
+  if (f.dataset.held) return;
+  f.dataset.held = "1";
+  const freeze = () => {
+    try {
+      const d = f.contentDocument;
+      if (!d || d.querySelector("style[data-held]")) return;
+      const st = d.createElement("style");
+      st.dataset.held = "";
+      st.textContent = ".prog-fill { animation-play-state: paused !important; } .skip { display: none !important; }";
+      setTimeout(() => {
+        d.head.append(st);
+        // Every figure shows its final value, whatever the frame's clock did.
+        for (const n of d.querySelectorAll("[data-count][data-final]")) n.textContent = n.dataset.final;
+      }, 1400);
+    } catch {}
+  };
+  f.addEventListener("load", () => { freeze(); f.dataset.loaded = "1"; });
+  if (f.contentDocument?.readyState === "complete" && f.contentDocument.URL !== "about:blank") freeze();
 }

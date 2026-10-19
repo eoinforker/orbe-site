@@ -135,6 +135,13 @@ function caption() {
   if (left === 0) {
     cap.innerHTML = `<b>Only your size is left.</b> It&rsquo;s the one yardstick Orbe rates you against. <button type="button" class="y-again">Put them back</button>`;
     stickerHost.classList.add("won");
+    /* The fair one comes to the middle of the emptied band, so it never grows past the edge. */
+    const f = stickerHost.querySelector("canvas.fair");
+    if (f) {
+      const h = stickerHost.getBoundingClientRect(), r = f.getBoundingClientRect();
+      f.style.setProperty("--fx", `${Math.round(h.left + h.width / 2 - (r.left + r.width / 2))}px`);
+      f.style.setProperty("--fy", `${Math.round(h.top + h.height / 2 - (r.top + r.height / 2))}px`);
+    }
   } else {
     const verb = touch ? "Tap" : "Fling";
     cap.innerHTML = `<b>The wrong yardsticks.</b> ${verb} them away.${gone.size ? ` ${WORDS[left] ?? left} to go.` : ""}`;
@@ -237,7 +244,7 @@ const numEl = $("#rt-num");
 function countIn() {
   const to = ex.rating, t0 = performance.now(), dur = 600;
   const tick = (now) => {
-    const k = Math.min(1, (now - t0) / dur);
+    const k = Math.min(1, Math.max(0, (now - t0) / dur));
     const e = 1 - Math.pow(1 - k, 3);
     numEl.textContent = k < 1 ? minus((to * e >= 0 ? "+" : "-") + Math.abs(to * e).toFixed(2)) : minus(ex.signed);
     if (k < 1) requestAnimationFrame(tick);

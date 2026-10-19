@@ -4,36 +4,17 @@
 .app .mono { font-family: var(--font-mono); font-size: 14px; }
 .app canvas.ap-paint { display: block; }
 
-/* the rating window and its band rule, as on the site */
-.ap-win { margin: 0; }
-.ap-win .o-window-bar { font-size: 13px; padding: 8px 12px; }
-.ap-win .o-window-body { padding: 18px 18px 16px; }
-.ap-fig { margin: 0; display: flex; align-items: baseline; justify-content: space-between; }
-.ap-fig span { font: 700 132px/0.84 var(--font-display); letter-spacing: -0.065em; font-feature-settings: var(--figures-display); }
-.ap-fig i { font: italic 400 40px/1 var(--font-serif); }
+/* the band rule, as on the site */
 .ap-scale { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 24px; border-top: 6px solid var(--orbe-ink); height: 26px; }
 .ap-scale span { border-left: 1px solid rgba(20, 19, 17, 0.16); font: 400 13px/1 var(--font-mono); display: flex; align-items: flex-end; padding-left: 5px; color: var(--orbe-graphite); }
 .ap-scale span:first-child { border-left: 0; padding-left: 0; }
 .ap-scale span.on { color: var(--orbe-ink); font-weight: 600; }
 .ap-scale i { position: absolute; top: -11px; width: 12px; height: 16px; margin-left: -6px; background: var(--deep); border: 1.5px solid var(--orbe-ink); }
-.ap-winline { margin: 16px 0 0; font-size: 14px; line-height: 1.45; color: var(--orbe-graphite); }
 
-/* 1. hero */
-.ap-hero { position: absolute; inset: 0; }
-.ap-hero .ap-ground { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 300px; }
-.ap-nav { position: absolute; top: 28px; left: 64px; right: 64px; display: flex; justify-content: space-between; align-items: center; z-index: 3; }
-.ap-nav svg.wm { height: 34px; }
-.ap-nav span { display: flex; gap: 10px; align-items: center; }
-.ap-nav .o-pill { min-height: 36px; }
-.ap-hero .ap-h { position: absolute; left: 60px; top: 116px; width: 800px; font-size: 112px; line-height: 0.86; letter-spacing: -0.058em; z-index: 2; margin: 0; }
-.ap-hero .ap-form { position: absolute; left: 64px; top: 560px; width: 620px; padding: 22px 24px 24px; z-index: 4; }
-.ap-hero .ap-form .o-lede { font-size: 20px; margin: 0 0 16px; }
-.ap-row { display: flex; gap: 10px; }
-.ap-row .o-input { flex: 1; }
-.ap-herowin { position: absolute; right: 72px; top: 150px; width: 470px; z-index: 3; }
-.ap-made { margin: 14px 0 0; font-size: 14px; color: var(--text-soft); }
+/* 1 and 2. the homepage, live */
+.ap-live { display: block; border: 0; background: var(--surface); pointer-events: none; }
 
-/* 2. social */
+/* 3. social */
 .ap-social { position: absolute; inset: 0; padding: 64px 72px; }
 .ap-social header { display: flex; justify-content: space-between; align-items: center; margin: 0 0 56px; }
 .ap-social header svg.wm { height: 56px; }
@@ -48,7 +29,7 @@
 .ap-under { position: relative; white-space: nowrap; z-index: 0; }
 .ap-under canvas { position: absolute; left: -2%; bottom: -0.12em; width: 104%; height: 0.28em; z-index: -1; }
 
-/* 3. email */
+/* 4. email */
 .ap-email { position: absolute; inset: 0; background: var(--orbe-paper); color: var(--orbe-ink); --text: var(--orbe-ink); --text-soft: var(--orbe-graphite); }
 .ap-email header { display: flex; justify-content: space-between; align-items: center; padding: 30px 64px; border-bottom: 1.5px solid var(--orbe-ink); }
 .ap-email header svg.wm { height: 44px; }

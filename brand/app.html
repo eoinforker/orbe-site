@@ -11,7 +11,7 @@
 <style>body{margin:0;background:#141311}</style>
 </head>
 <body>
-<!-- One application at its native size, for image exports: app.html?app=hero&scheme=blue (hero, social, email) -->
+<!-- One application at its native size, for image exports: app.html?app=hero&scheme=blue (phone, hero, social, email) -->
 <div id="app" class="app"></div>
 <script type="module">
   import { APPS, paint } from "./apps.js";
@@ -23,6 +23,9 @@
   el.innerHTML = a.render(s);
   await document.fonts.ready;
   paint(el, s);
+  // The homepage frames are live pages: ready once each has loaded and its story is held.
+  await Promise.all([...el.querySelectorAll("iframe")].map((f) => new Promise((ok) => (f.dataset.loaded ? ok() : f.addEventListener("load", ok, { once: true })))));
+  if (el.querySelector("iframe")) await new Promise((ok) => setTimeout(ok, 2400));
   document.body.dataset.ready = "1";
 </script>
 </body>

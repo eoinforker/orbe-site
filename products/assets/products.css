@@ -106,6 +106,11 @@ h3.h3 { font: 700 18px/1.25 var(--font-text); letter-spacing: -0.01em; }
 .figures > .panel:first-child, .panel.figures, .panel.primary { border-radius: var(--r-window); border: 1.5px solid var(--orbe-ink); box-shadow: var(--shadow-hard-s); background: var(--paper-hi); padding: 18px; }
 .figures > .panel:not(:first-child):not(.primary), .figures > .grid:not(:first-child) > .panel, .rows .panel { background: none; border: 0; border-top: 1.5px solid var(--orbe-ink); border-radius: 0; box-shadow: none; padding: 16px 0 0; }
 .figures > * + * { margin-top: 28px; }
+.tbl .nw { white-space: nowrap; }
+.wide-out:not(:empty) { margin-top: 28px; }
+.wide-out > * + * { margin-top: 28px; }
+.wide-out > .panel { background: none; border: 0; border-top: 1.5px solid var(--orbe-ink); border-radius: 0; box-shadow: none; padding: 16px 0 0; }
+.wide-out > .panel > .fold:first-child { border-top: 0; padding-top: 0; }
 .rows > * + * { margin-top: 24px; }
 .grid { display: grid; gap: 14px; }
 .figures .grid { gap: 18px; }
@@ -413,12 +418,12 @@ fieldset.stack > legend + * { clear: both; margin-top: 0; }
 /* Preloaded results: room is kept for the made-up result window so it lands without a shift. */
 [data-out] > [data-empty] { min-height: 330px; }
 @media (min-width: 900px) { [data-out] > [data-empty] { min-height: 300px; } }
-/* Rate on a phone: the made-up result window leads, then the form, then the rest of the result. */
+/* A tool on a phone: its result window leads, then the form, then the rest of the result. */
 @media (max-width: 899px) {
   .split.lead { display: flex; flex-direction: column; }
-  .split.lead > * { display: contents; }
-  .split.lead > [data-out] > :first-child { order: -1; margin-bottom: 28px; }
-  .split.lead > [data-out] > :nth-child(2) { margin-top: 32px; }
+  .split.lead > .figures { display: contents; }
+  .split.lead > .figures > :first-child { order: -1; margin-bottom: 28px; }
+  .split.lead > .figures > :nth-child(2) { margin-top: 32px; }
 }
 
 /* Desktop small print: nothing under 14px, so the honesty table and the helper text read without effort. */
@@ -426,5 +431,5 @@ fieldset.stack > legend + * { clear: both; margin-top: 0; }
   .mono { font-size: max(14px, 0.9em); }
   .live dt, .live dd { font-size: 15px; }
   .pal-k, .field small, .hint, .kpi .s, .tbl th, .sources .src-p, .ask-call, .state, .step-k, .copy code, .ep .m, .proof-parts { font-size: 14px; }
-  .sample::before, .hub-kick, .page-kick, .proof-k, .step-tag, .chart .ax { font-size: 14px; }
+  .sample::before, .hub-kick, .page-kick, .proof-k, .step-tag { font-size: 14px; }
 }

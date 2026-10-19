@@ -152,14 +152,14 @@ if (!reduce) {
 }
 
 /* ------------------------------------------------------------------ applications */
-const LAYOUT = ["hero", "social", "email"];
+const LAYOUT = ["phone", "hero", "social", "email"];
 let appOn = "hero";
-const TAB = { hero: "Home page hero", social: "Social post", email: "Email header" };
+const TAB = { phone: "Homepage, phone", hero: "Homepage, desktop", social: "Social post", email: "Email header" };
 function apps() {
   const tabs = `<div class="bk-apptabs" role="group" aria-label="Which application">${LAYOUT.map((k) => `<button type="button" data-app-set="${k}" aria-pressed="${k === appOn}">${TAB[k]}</button>`).join("")}</div>`;
   $("[data-apps]").innerHTML = tabs + LAYOUT.map((k, i) => {
     const a = APPS[k];
-    return `<figure class="bk-app${k === appOn ? " is-on" : ""}" data-app-fig="${k}" style="--ar:${(a.w / a.h).toFixed(4)}"><div class="bk-app-frame" style="aspect-ratio:${a.w}/${a.h}"><div class="app" style="width:${a.w}px;height:${a.h}px" data-app="${k}" aria-hidden="true">${a.render(scheme)}</div></div>
+    return `<figure class="bk-app${k === appOn ? " is-on" : ""}${a.w < 600 ? " is-tall" : ""}" data-app-fig="${k}" style="--ar:${(a.w / a.h).toFixed(4)}"><div class="bk-app-frame" style="aspect-ratio:${a.w}/${a.h}"><div class="app" style="width:${a.w}px;height:${a.h}px" data-app="${k}" aria-hidden="true" inert>${a.render(scheme)}</div></div>
       <figcaption><span class="o-label">${String(i + 1).padStart(2, "0")}</span><b>${a.name}</b><span>${a.note}</span></figcaption></figure>`;
   }).join("");
   for (const b of $$("[data-app-set]")) b.addEventListener("click", () => {

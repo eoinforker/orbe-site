@@ -25,8 +25,7 @@
   .k { font: 500 12px/1 var(--mono, monospace); color: var(--soft); }
   .t { font: 700 22px/1.1 var(--sans); letter-spacing: -0.02em; }
   .d { color: var(--soft); font-size: 15px; }
-  .row { display: flex; gap: 8px; margin-top: auto; font: 500 13px/1 var(--mono, monospace); }
-  .row span { padding: 6px 9px; border-radius: 99px; background: var(--paper); }
+  .sc { margin-top: auto; padding-top: 6px; font: 500 13px/1.2 var(--mono, monospace); color: var(--ink); }
   ul.plain { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
   ul.plain li { border-bottom: 1px solid var(--line); }
   ul.plain a { display: block; padding: 14px 0; color: inherit; }
@@ -37,14 +36,14 @@
 <header class="top"><div class="wrap">
   <span class="wm" data-wordmark aria-label="Orbe">Orbe</span>
   <h1>Design rounds</h1>
-  <p class="lede">The site is chosen: <a href="../">the homepage</a> is r6-e, The story, with r6-a's yardstick window in its second moment. Below are the directions that led there, with the independent critic's round 9 scores.</p>
+  <p class="lede">The site is chosen: <a href="../">the homepage</a> is r6-e (The story), with r6-a's yardstick window in its second moment. Below are the directions that led there, with the independent critic's round 10 scores.</p>
 </div></header>
 <main><div class="wrap">
   <h2>Round 6, reworked</h2>
   <div class="grid">
-    <a class="tile" href="../r6-e/"><span class="k">r6-e</span><span class="t">The story</span><span class="d">Tap through your rating like a story. Grain, a painted moment, every kind of creator.</span><span class="row"><span>9.1, chosen</span></span></a>
-    <a class="tile" href="../r6-g/"><span class="k">r6-g</span><span class="t">The archive</span><span class="d">Hand placed brush paintings, folders and a filed rating sheet.</span><span class="row"><span>8.9</span></span></a>
-    <a class="tile" href="../r6-a/"><span class="k">r6-a</span><span class="t">Field</span><span class="d">Short and confident: one stream, three yardsticks, word stickers you can fling.</span><span class="row"><span>8.9</span></span></a>
+    <a class="tile" href="../r6-e/"><span class="k">r6-e</span><span class="t">The story</span><span class="d">Tap through your rating like a story. Grain, a painted moment, every kind of creator.</span><span class="sc">9.2, chosen</span></a>
+    <a class="tile" href="../r6-g/"><span class="k">r6-g</span><span class="t">The archive</span><span class="d">Hand placed brush paintings, folders and a filed rating sheet.</span><span class="sc">9.0</span></a>
+    <a class="tile" href="../r6-a/"><span class="k">r6-a</span><span class="t">Field</span><span class="d">Short and confident: one stream, three yardsticks, word stickers you can fling.</span><span class="sc">9.0</span></a>
   </div>
   <p class="note">Cut: r6-d (the folk characters). Parked: r6-b (too simple), r6-c (lettering), r6-f (tactile, not for creators). Still online at r6-b/, r6-c/, r6-d/ and r6-f/.</p>
 
@@ -56,7 +55,7 @@
   <h2>Use the products</h2>
   <ul class="plain">
     <li><a href="../products/">Products: rate your work, podcasts (the Chartable replacement), sponsorships, selling, diligence</a></li>
-        <li><a href="../brand/">The brand book and icons</a></li>
+    <li><a href="../brand/">The brand book and icons</a></li>
   </ul>
 
   <h2>The identity work</h2>
@@ -72,7 +71,7 @@
     <li><a href="../r5-5/">r5-5 The method</a></li><li><a href="../r5-3/">r5-3 Two doors</a></li><li><a href="../r5-4/">r5-4 Not the top 1%</a></li>
   </ul>
 
-  <p class="note">Scores are the independent critic's, round 9 (docs/handoff/CRITIC-R9.md). Every creator and figure is a made-up example, rated live by the Orbe engine.</p>
+  <p class="note">Scores are the independent critic's, round 10 (docs/handoff/CRITIC-R10.md). Every creator and figure is a made-up example, rated live by the Orbe engine.</p>
 </div></main>
 <script type="module">
   try { const { mountWordmark } = await import("../assets/r5/wordmark.js"); mountWordmark(document.querySelector("[data-wordmark]"), { animate: true }); } catch {}

@@ -129,7 +129,7 @@ export function money(m, { pence = false } = {}) {
 }
 export const pct = (x, dp = 0) => (x === null || x === undefined ? "n/a" : `${(x * 100).toFixed(dp)}%`);
 export const bps = (b) => `${(b / 100).toLocaleString("en-GB", { maximumFractionDigits: 2 })}%`;
-export const day = (iso) => (iso ? new Date(iso.length <= 10 ? `${iso}T12:00:00Z` : iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "");
+export const day = (iso) => (iso ? new Date(iso.length <= 10 ? `${iso}T12:00:00Z` : iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace("Sept", "Sep") : "");
 export const today = () => new Date().toISOString().slice(0, 10);
 const regions = (() => { try { return new Intl.DisplayNames(["en-GB"], { type: "region" }); } catch { return null; } })();
 export const country = (code) => { if (!code || code === "Unknown" || code === "Other") return code || "Unknown"; try { return regions?.of(code.toUpperCase()) ?? code; } catch { return code; } };

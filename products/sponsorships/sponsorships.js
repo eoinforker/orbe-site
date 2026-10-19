@@ -1,5 +1,5 @@
 /* Sponsorships: the sponsor module's inventory, pricing and matching (site/assets/engine/sponsor), in the browser. */
-import { shell, $, $$, esc, count, money, bps, store, segmented, nodash, fold, sourcesList, icon } from "../assets/shell.js";
+import { shell, $, $$, esc, count, money, bps, store, segmented, nodash, fold, sourcesList, icon, day } from "../assets/shell.js";
 import { inventoryFromStats, previewBrief, TYPED_NOTE, SAMPLE_CREATORS_LABEL, DEFAULT_TAKE_RATE, feeTermsFor, fundingFor, specsForKind, RATE_CARD_VERSION, RATING_LABEL } from "../../assets/engine/sponsor/browser.js";
 
 shell("sponsorships");
@@ -27,7 +27,7 @@ if (rated?.result?.band && ["youtube", "substack", "podcast", "twitch"].includes
   pf.elements.kind.value = rated.kind;
   kindChanged();
   pf.elements.band.value = rated.result.band;
-  $("[data-band-hint]").textContent = `From your rating in Rate my work (${rated.result.band}). Calculated independently by Orbe.`;
+  $("[data-band-hint]").textContent = `From your rating in Rate my work (${rated.result.band}). Independently calculated by Orbe.`;
 }
 /* The made-up example: a YouTube channel's recent uploads. It is priced on load, labelled, until you price your own. */
 const EXAMPLE = { kind: "youtube", audience: 85000, units: "21000, 18000, 25000, 19500, 30000, 17000, 22500", band: "Good" };
@@ -65,6 +65,8 @@ pf.addEventListener("submit", (e) => {
   const rate = Number(f.fx.value);
   if (currency === "GBP" && !(rate > 0)) return void (err.textContent = "To quote in pounds, give the rate you use. Orbe does not guess exchange rates.");
   priceIt({ kind: f.kind.value, audience, units, band: f.band.value, listPrice: Number(f.price.value), currency, rate });
+  // On a phone the result sits above the form, so bring it into view.
+  if (innerWidth < 900) $("[data-price-out]").firstElementChild?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 });
 
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
@@ -128,7 +130,7 @@ bf.addEventListener("submit", (e) => {
     </div>
     <ul class="matches">${p.matches.map((m) => `<li><details class="fold"><summary>${icon("caret", { size: 16, className: "caret" })}<span class="m-sum"><span><b>${esc(m.displayName)}</b> <span class="small">(made up) ${m.format ? esc(FORMAT_NAME[m.format] ?? m.format) : "No matching format"}${m.price ? `, ${esc(money(m.price))}` : ""}</span></span>${m.excluded ? '<span class="tag bad">Left out</span>' : m.score > 0 ? `<span class="m-score">${m.score}</span>` : '<span class="m-miss small">Fits the budget, misses the brief</span>'}</span></summary>
       <div class="fold-body"><ul class="fits">${m.reasons.map((r) => `<li><span class="tag ${FIT[r.fit][1]}">${FIT[r.fit][0]}</span><span>${esc(nodash(r.sentence))}</span></li>`).join("")}</ul></div></details></li>`).join("")}</ul>
-    <p class="small">Scores out of 100 from provisional weights. Ratings shown are ${esc(RATING_LABEL.replace(/^I/, "i"))}. A creator who has not opted in never appears. Matched as of ${new Date(p.at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.</p>`;
+    <p class="small">Scores out of 100 from provisional weights. Ratings shown are ${esc(RATING_LABEL.replace(/^I/, "i"))}. A creator who has not opted in never appears. Matched as of ${day(p.at)}.</p>`;
 });
 pickSource("network");
 bf.requestSubmit();
