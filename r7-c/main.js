@@ -68,7 +68,7 @@ const THROW = {
 function buildStrokes(parts, weights) {
   fly.innerHTML = parts.map((p, i) => `<span class="sk p${i + 1}" data-i="${i}"><b>${p.name} ${p.score}</b></span>`).join("");
   barsEl.innerHTML = parts.map((p, i) => `<li class="bar">
-    <p class="bar-h"><b>${p.name}</b> <span class="bar-v">${p.value}</span> <span class="bar-w">${weights[p.name] ?? ""}% of the rating</span></p>
+    <p class="bar-h"><b>${p.name}</b><span class="vh">: beats ${p.score} in 100,</span> <span class="bar-v">${p.value}</span> <span class="bar-w">${weights[p.name] ?? ""}% of the rating</span></p>
     <div class="bar-slot"><span class="sk sk-bar p${i + 1}" style="--s:${p.score / 100}"><b>${p.name} ${p.score}</b></span></div>
   </li>`).join("");
   flyers = $$(".sk", fly).map((el, i) => ({ el, i, s: parts[i].score / 100 }));

@@ -43,7 +43,7 @@ a { color: inherit; }
 
 /* ---------------------------------------------------------------- header: pills */
 .top {
-  position: fixed; inset: 0 0 auto 0; z-index: 30;
+  position: absolute; inset: 0 0 auto 0; z-index: 30; /* scrolls away, so it never sits on a moment's type */
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 10px var(--gut); pointer-events: none;
 }
@@ -111,7 +111,7 @@ a { color: inherit; }
 .sc-e { right: 6%; top: 26%; --c: var(--claret); }
 .sc-c { right: 3%; bottom: 6%; --c: var(--straw); }
 .sc-d { right: 5%; top: 10%; --c: var(--sky); }
-@media (max-width: 759px) { .sc-a { top: auto; bottom: 36%; right: -6%; } .sc-b { bottom: auto; right: 4%; top: 40px; } .sc-c { bottom: auto; right: 2%; top: 40px; } .sc-e { top: 40px; right: 4%; } .sc-d { top: 30px; } .s-over { z-index: 2; } }
+@media (max-width: 759px) { .sc-a { display: none; } .sc-b { bottom: auto; right: 4%; top: 40px; } .sc-c { bottom: auto; right: 2%; top: 40px; } .sc-e { top: 40px; right: 4%; } .sc-d { top: 30px; } .s-over { z-index: 2; } }
 
 /* ---------------------------------------------------------------- 1. hero */
 .hero { padding-top: 6px; }
@@ -189,7 +189,8 @@ a { color: inherit; }
 
 /* phone: the giant number collides with the field, which slides under it */
 @media (max-width: 759px) {
-  .hundred-fig { margin-top: -20px; justify-self: end; }
+  /* the field clears the sentence, so every word and every square reads; the scatter does the colliding */
+  .hundred-fig { margin-top: 20px; justify-self: end; }
   .beat-n { position: relative; z-index: 3; }
 }
 @media (min-width: 760px) {

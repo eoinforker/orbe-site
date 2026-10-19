@@ -388,7 +388,7 @@ html.js:not(.rm) .win-stand.open .meter-bar i { transition: width 1s steps(12, e
 @media (min-width: 1024px) and (pointer: fine) { .hint { display: inline; } }
 @media (min-width: 1024px) {
   .rail {
-    display: block; position: absolute; z-index: 1; left: 12px; top: 40px; margin: 0;
+    display: block; position: absolute; z-index: 1; left: 12px; top: 40px; margin: 0; width: 18px; line-height: 18px;
     writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; color: var(--soft); text-transform: none;
     max-height: calc(100% - 80px); overflow: hidden;
   }

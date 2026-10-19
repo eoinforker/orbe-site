@@ -40,7 +40,8 @@ export function drawOrb(canvas, p, { rim = true, ambient = 0.05 } = {}) {
         const xt = h * (1 - 2 * q);
         const lam = Math.max(0, nx * L[0] + ny * L[1] + nz * L[2]);
         /* a short ramp at the terminator, so the edge reads as a curved surface, not a cut */
-        const t = h > 0 ? (nx - xt) / (h * 0.32 + px) : -1;
+        const ramp = Math.min(h * 0.32, Math.max(px, (h - xt) * 0.4));
+        const t = h > 0 ? (nx - xt) / (ramp + px) : -1;
         const lit = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
         const v = ambient * (0.4 + nz) + lit * (0.18 + 0.82 * Math.pow(lam, 0.8));
         on = v > (BAYER[(y & 7) * 8 + (x & 7)] + 0.5) / 64;

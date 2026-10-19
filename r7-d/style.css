@@ -197,18 +197,17 @@ h1, h2, h3, p, ol, ul, dl, dd, figure, blockquote { margin: 0; }
 /* ---------------------------------------------------------------- the hundred */
 .hund { display: grid; grid-template-columns: repeat(10, 1fr); gap: var(--g, 4px); aspect-ratio: 1; width: 100%; }
 .hund i { display: block; aspect-ratio: 1; background: var(--off); border-radius: var(--pr, 2px); }
-.hund i.on, .hund i.you { background: var(--off); }
-.hund.go i.on { background: var(--on); }
-.hund.go i.you { background: var(--you); }
-.js .hund.go.run i.on, .js .hund.go.run i.you { animation: pix 260ms var(--snap) both; animation-delay: var(--d, 0ms); }
-@keyframes pix { 0% { background: var(--off); transform: scale(0.3); } 1% { background: var(--on); } 100% { transform: scale(1); } }
-.js .hund.go.run i.you { animation-name: pixu; }
-@keyframes pixu { 0% { background: var(--off); transform: scale(0.3); } 1% { background: var(--you); } 60% { transform: scale(1.5); } 100% { transform: scale(1); } }
+.hund i.on.l { background: var(--on); }
+.hund i.you.l { background: var(--you); }
+.js .hund i.l { animation: pix 220ms var(--snap); }
+.js .hund i.you.l { animation-name: pixu; }
+@keyframes pix { from { transform: scale(0.4); } }
+@keyframes pixu { from { transform: scale(0.4); } 60% { transform: scale(1.5); } }
 
 .strip { display: grid; grid-template-columns: repeat(25, 1fr); gap: 2px; width: 100%; }
 .strip i { display: block; aspect-ratio: 1; background: var(--off); }
-.strip.go i.on { background: var(--on); }
-.js .strip.go.run i.on { animation: pix 240ms var(--snap) both; animation-delay: var(--d, 0ms); }
+.strip i.on.l { background: var(--on); }
+.js .strip i.l { animation: pix 220ms var(--snap); }
 
 /* ---------------------------------------------------------------- the stack */
 .stack { position: relative; padding: 0 8px; display: flex; flex-direction: column; gap: 14px; }

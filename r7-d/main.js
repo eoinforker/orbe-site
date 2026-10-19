@@ -41,11 +41,24 @@ function strip(el, n) {
   }
   el.innerHTML = html;
 }
-/* Light the pixels: with a snap the first time a panel arrives, still under reduced motion. */
+/* Light the pixels: a few at a time, frame by frame, so a snap never costs a slow frame. Still under reduced motion. */
 function light(el, replay = true) {
   el.classList.add("go");
-  if (reduce || !replay) return;
-  el.classList.remove("run"); void el.offsetWidth; el.classList.add("run");
+  const cells = [...el.children].filter((c) => c.className);
+  if (reduce || !replay) { for (const c of cells) c.classList.add("l"); return; }
+  const ds = cells.map((c) => parseFloat(c.style.getPropertyValue("--d")) || 0);
+  for (const c of cells) c.classList.remove("l");
+  const run = (el.__run = (el.__run || 0) + 1);
+  const t0 = performance.now();
+  let next = 0;
+  const order = cells.map((c, i) => i).sort((a, b) => ds[a] - ds[b]);
+  const step = (now) => {
+    if (el.__run !== run) return;
+    const t = now - t0;
+    while (next < order.length && ds[order[next]] <= t) cells[order[next++]].classList.add("l");
+    if (next < order.length) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 /* ---------- the brand colour ---------- */

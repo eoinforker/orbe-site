@@ -43,12 +43,11 @@
         <div class="side-copy">
           <p class="sub">Free for YouTubers, writers, streamers, podcasters and photographers.<span class="sub-more"> Tap through a creator's story, then reserve the handle for yours.</span></p>
           <form class="bar-form" data-reserve id="reserve-form" novalidate>
-            <label class="vh" for="d-kind">What you make</label>
-            <span class="bf-kind"><select id="d-kind" name="kind" data-kind>
+            <label class="bf-handle"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
+            <button type="submit">Reserve my handle</button>
+            <span class="bf-kind"><label for="d-kind">I make</label><select id="d-kind" name="kind" data-kind>
               <option value="channel" selected>YouTube</option><option value="newsletter">Substack</option><option value="stream">Twitch</option><option value="podcast">Podcast</option><option value="portfolio">Photography</option>
             </select></span>
-            <label class="bf-handle"><span class="vh">Your handle, at orbe.vc/@</span><span class="pre" aria-hidden="true">@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
-            <button type="submit">Reserve my handle</button>
             <p class="form-note" data-note>Free, for good. Ratings open with YouTube: connect your channel to see yours.</p>
           </form>
         </div>

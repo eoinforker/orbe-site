@@ -86,7 +86,7 @@ function setKind(k) {
   $("[data-copied]").textContent = "";
   hk.textContent = `100 ${e.peers} your size`;
   wantTok = e.peers;
-  enter(cur, true);
+  requestAnimationFrame(() => setTimeout(() => enter(cur, true), 0));
 }
 
 /* ---------- one piece of work, three yardsticks: the smallest, the biggest, and its own size ---------- */
@@ -131,7 +131,14 @@ function strike() {
   if (reduce) { yardWin.classList.add("struck"); return; }
   setTimeout(() => yardWin.classList.add("struck"), 450);
 }
-tray.addEventListener("click", (ev) => { const b = ev.target.closest("[data-tk]"); if (b) setKind(b.dataset.tk); });
+const later = (fn) => requestAnimationFrame(() => setTimeout(fn, 0));
+tray.addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-tk]");
+  if (!b) return;
+  /* the pressed creator answers at once; the story rebinds on the next frame */
+  for (const x of $$("[data-tk]")) x.setAttribute("aria-pressed", String(x === b));
+  later(() => setKind(b.dataset.tk));
+});
 
 /* ---------- the second door: every example, rated live ---------- */
 $("[data-roll]").innerHTML = ORDER.map((k) => {
@@ -258,14 +265,17 @@ function setScene(i) {
   document.body.dataset.scene = String(cur);
   moments.forEach((q, n) => { q.classList.toggle("is-on", n === cur); q.toggleAttribute("inert", n !== cur); q.setAttribute("aria-hidden", String(n !== cur)); });
   groups.forEach((g, n) => g.classList.toggle("is-on", n === cur));
-  bars.forEach((b, n) => { b.classList.toggle("done", n < cur); b.classList.remove("run"); });
-  void bars[cur].offsetWidth;
-  if (!reduce) bars[cur].classList.add("run");
-  else bars[cur].classList.add("done");
+  bars.forEach((b, n) => { b.classList.toggle("done", n < cur || (reduce && n === cur)); b.classList.remove("run"); });
   $("[data-pos]").textContent = String(cur + 1);
-  placeStrokes(cur);
-  enter(cur);
   syncPlay();
+  /* The press paints first; the strokes, the hundred and the counts follow on the next frame. */
+  const at = cur;
+  requestAnimationFrame(() => setTimeout(() => {
+    if (at !== cur) return;
+    if (!reduce) bars[cur].classList.add("run");
+    placeStrokes(cur);
+    enter(cur);
+  }, 0));
 }
 function syncPlay() {
   phone.classList.toggle("is-paused", paused || away);
