@@ -1,6 +1,6 @@
 /*
   Shared bones for the five Today screens: the bar with the Carved wordmark,
-  the Copy button, the footer, and Odin's rotating word from lab/desk.
+  the Copy button, the footer, and Odin's rotating word.
 */
 import { mountWordmark } from "../../../assets/r5/wordmark.js";
 import { ORDER, MADE_UP_LINE, NOW, dayName, today } from "./today.js";
@@ -54,7 +54,7 @@ export function mountCopy(btn, text, status) {
   });
 }
 
-/* ---------------------------------------------------------------- Odin's word change, measured (lab/desk/main.js) */
+/* ---------------------------------------------------------------- Odin's word change, measured */
 const EASE_W = "cubic-bezier(0.45, 0, 0.2, 1)";
 function chars(word) {
   const w = document.createElement("span");

@@ -109,7 +109,7 @@ function build(key) {
   const body = { works: snap.works.length, since: dateOf(oldest.publishedAt), total: snap.works.reduce((s, w) => s + (w.metrics[primary] ?? 0), 0), primary, hours: snap.works.reduce((s, w) => s + (w.durationSec ?? 0), 0) / 3600, totals: Object.fromEntries(spec.metrics.map((m) => [m.key, snap.works.reduce((s, w) => s + (w.metrics[m.key] ?? 0), 0)])) };
   return {
     key, ...c, body, spec, kind: c.o.kind, peers: spec.peers, audience: c.o.audience, audienceNoun: spec.audienceNoun,
-    sizeBand: `${r.sizeBand} ${spec.audienceNoun}`, rating: r.rating, signed: signed(r.rating), band: r.band,
+    sizeBand: `${r.sizeBand.replace(/^Under/, "under").replace(/^Over/, "over")} ${spec.audienceNoun}`, rating: r.rating, signed: signed(r.rating), band: r.band,
     parts: r.parts, part, top: topStat(r), explain: explain(r), result: r, typical: r.detail.typical,
     workNoun: r.detail.workNoun, works: r.detail.works, recent, latest, best, quiet, records,
   };

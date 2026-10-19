@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Orbe Studio</title>
-<meta name="description" content="Your work, rated against creators your size. Free for creators, for good.">
-<meta name="theme-color" content="#9EE9FB">
+<meta name="description" content="Your work, rated against creators your size. Read from payouts, not estimates. Free for creators, for good.">
+<meta name="theme-color" content="#141311">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
 <link rel="stylesheet" href="../assets/fonts.css">
@@ -15,110 +15,87 @@
 <script type="module" src="./studio.js"></script>
 </head>
 <body>
-<a class="skip" href="#main">Skip to the studio</a>
+<a class="skip" href="#main">Skip to the page</a>
 
-<header class="bar">
-  <button class="o-switch" type="button" data-switch aria-pressed="false">
-    <span class="sr" data-switch-label>Orbe. Switch between the example and your own numbers</span>
-    <svg class="wm" data-wm viewBox="0 -742 2040 755" aria-hidden="true" focusable="false"></svg>
-  </button>
-  <span class="bar-app mono">Studio</span>
-  <nav class="bar-areas" aria-label="Areas">
-    <button type="button" data-go="today">Today</button>
-    <button type="button" data-go="work">Work</button>
-    <button type="button" data-go="record">Record</button>
-    <button type="button" data-go="deals">Deals</button>
-    <button type="button" data-go="sell">Sell</button>
-  </nav>
-  <div class="bar-right">
-    <button class="who" type="button" data-go="people" aria-haspopup="dialog">
-      <span class="who-dot" aria-hidden="true"></span>
-      <span><span class="who-name" data-who-name>Field Recordings</span> <span class="who-tag" data-who-tag>made up</span></span>
-    </button>
-    <button class="btn btn-export" type="button" data-go="export"><span data-i="upload"></span><span>Use my export</span></button>
-    <button class="btn btn-ink" type="button" data-go="reserve"><span>Reserve my handle</span></button>
+<div class="sky">
+  <header class="nav">
+    <a class="nav-mark" href="#main" aria-label="Orbe, home"><svg class="wm" data-wm viewBox="0 -742 2040 755" aria-hidden="true" focusable="false"></svg></a>
+    <nav class="nav-links" aria-label="Page">
+      <a href="#wall">Everything Orbe does</a>
+      <a href="../products/">The tools</a>
+      <a class="btn btn-ink btn-s" href="#name">Put your name down</a>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="h1">
+      <!-- the work, on the desk: a file window with the creator's tool, breaking out of it -->
+      <div class="w w-obj" aria-hidden="true">
+        <div class="tb"><span class="tb-box"></span><span class="tb-t" data-obj-title>marsh_4am.wav</span></div>
+        <div class="wb"><canvas class="cells" data-cells></canvas></div>
+      </div>
+
+      <div class="hero-copy">
+        <h1 class="h1" id="h1"><span class="sr" data-h1-sr>Your field recording, rated against creators your size.</span><span aria-hidden="true"><span class="ln">Your <em class="slot" data-slot></em>,</span> <span class="ln">rated against</span> <span class="ln">creators your size.</span></span></h1>
+        <p class="lede">Hello, and welcome. Orbe rates your work against creators your size, free, for good. Zero is typical, and typical is a fine place to build from.</p>
+        <div class="ctas">
+          <a class="btn btn-ink" href="../products/rate/">Rate my work</a>
+          <a class="btn btn-line" href="#wall">See everything Orbe does</a>
+          <button class="pause" type="button" data-pause aria-pressed="false" hidden>Pause</button>
+        </div>
+      </div>
+
+      <!-- the rating: real product pieces, floating calmly -->
+      <section class="w w-term" aria-label="Orbe today, a terminal readout">
+        <div class="tb"><span class="tb-box" aria-hidden="true"></span><span class="tb-t">orbe today</span></div>
+        <pre class="wb term" data-term></pre>
+      </section>
+      <section class="w w-rate" aria-labelledby="rate-t">
+        <div class="tb"><span class="tb-box" aria-hidden="true"></span><h2 class="tb-t" id="rate-t">rating.txt</h2></div>
+        <div class="wb">
+          <div class="sel" data-sel>
+            <p class="px px-l num" data-rating>+1.23</p>
+            <i class="h h1c" aria-hidden="true"></i><i class="h h2c" aria-hidden="true"></i><i class="h h3c" aria-hidden="true"></i><i class="h h4c" aria-hidden="true"></i>
+            <span class="tag" data-tag>Field Recordings, made up, 93 in 100</span>
+          </div>
+          <p class="w-line" data-rate-line></p>
+          <a class="w-link" href="../products/rate/">Rate my work</a>
+        </div>
+      </section>
+      <p class="checksum" data-checksum aria-hidden="true"></p>
+    </section>
+  </main>
+</div>
+
+<section class="canvas" id="wall" aria-labelledby="h-wall">
+  <div class="canvas-in">
+    <header class="wall-head">
+      <h2 class="h2" id="h-wall">Everything Orbe does, <em>one window each.</em></h2>
+      <p class="wall-sub">Free unless money moves. Open any window for the detail.</p>
+    </header>
+    <div class="wall" data-wall></div>
+    <p class="wall-note" data-wall-note></p>
   </div>
-</header>
+</section>
 
-<main class="desk" id="main" tabindex="-1">
-  <section class="field" data-field aria-labelledby="h1">
-    <div class="hero">
-      <h1 id="h1"><span class="h1-a">Your work, rated against</span> <span class="h1-b">creators your size.</span></h1>
-      <p class="lede">Free for creators, for good. For the thing you're building, at any size. <span class="lede-soft">Nothing leaves this device.</span></p>
-      <p class="say" data-say aria-live="polite"></p>
-      <p class="bricks" data-bricks></p>
-    </div>
-    <div class="world" data-world></div>
-    <p class="world-key mono" data-world-key></p>
-    <ul class="icons" data-icons aria-label="Open a window"></ul>
-  </section>
-
-  <!-- Every area is a window on a desktop and a tab on a phone. -->
-  <section class="win" id="w-today" data-win="today" aria-labelledby="t-today">
-    <header class="tb"><h2 class="tb-t" id="t-today">Today</h2><span class="tb-meta" data-today-meta></span><button class="tb-x" type="button" data-close aria-label="Close Today"></button></header>
-    <div class="wb" data-today></div>
-  </section>
-
-  <section class="win" id="w-work" data-win="work" aria-labelledby="t-work" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-work">Work</h2><span class="tb-meta" data-work-meta></span><button class="tb-x" type="button" data-close aria-label="Close Work"></button></header>
-    <div class="wb" data-work></div>
-  </section>
-
-  <section class="win" id="w-record" data-win="record" aria-labelledby="t-record" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-record">Record</h2><span class="tb-meta">Only money fills it</span><button class="tb-x" type="button" data-close aria-label="Close Record"></button></header>
-    <div class="wb" data-record></div>
-  </section>
-
-  <section class="win" id="w-deals" data-win="deals" aria-labelledby="t-deals" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-deals">Deals</h2><span class="tb-meta">Price a sponsorship</span><button class="tb-x" type="button" data-close aria-label="Close Deals"></button></header>
-    <div class="wb" data-deals></div>
-  </section>
-
-  <section class="win" id="w-sell" data-win="sell" aria-labelledby="t-sell" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-sell">Sell</h2><span class="tb-meta">Optional, and quiet</span><button class="tb-x" type="button" data-close aria-label="Close Sell"></button></header>
-    <div class="wb" data-sell></div>
-  </section>
-
-  <section class="win win-sheet" id="w-week" data-win="week" aria-labelledby="t-week" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-week">The Sunday note</h2><span class="tb-meta">Written from your numbers</span><button class="tb-x" type="button" data-close aria-label="Close the Sunday note"></button></header>
-    <div class="wb" data-week></div>
-  </section>
-
-  <section class="win win-sheet" id="w-people" data-win="people" aria-labelledby="t-people" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-people">Someone like me</h2><span class="tb-meta">All made up</span><button class="tb-x" type="button" data-close aria-label="Close Someone like me"></button></header>
-    <div class="wb" data-people></div>
-  </section>
-
-  <section class="win win-sheet" id="w-export" data-win="export" aria-labelledby="t-export" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-export">Use my export</h2><span class="tb-meta">Stays on this device</span><button class="tb-x" type="button" data-close aria-label="Close Use my export"></button></header>
-    <div class="wb" data-export></div>
-  </section>
-
-  <section class="win win-sheet" id="w-reserve" data-win="reserve" aria-labelledby="t-reserve" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-reserve">Reserve my handle</h2><span class="tb-meta">Free</span><button class="tb-x" type="button" data-close aria-label="Close Reserve my handle"></button></header>
-    <div class="wb" data-reserve></div>
-  </section>
-
-  <section class="win win-sheet" id="w-earns" data-win="earns" aria-labelledby="t-earns" hidden>
-    <header class="tb"><h2 class="tb-t" id="t-earns">How Orbe earns</h2><span class="tb-meta">Only when money moves</span><button class="tb-x" type="button" data-close aria-label="Close How Orbe earns"></button></header>
-    <div class="wb" data-earns></div>
-  </section>
-</main>
-
-<footer class="status">
-  <p><b>Free for creators, for good.</b> Orbe earns only when money moves: <span class="nw">15% of a sponsorship when Orbe finds the brand,</span> <span class="nw">5% when you bring it,</span> <span class="nw">paid by the brand.</span> <span class="nw">8%, 5%, 3% of a sale, £4,000 minimum,</span> <span class="nw">nothing if it doesn't sell.</span></p>
-  <button class="status-btn" type="button" data-go="earns">How Orbe earns</button>
-</footer>
-
-<nav class="tabs" aria-label="Areas">
-  <button type="button" data-tab="today"><span class="px" data-px="today"></span><span>Today</span></button>
-  <button type="button" data-tab="work"><span class="px" data-px="work"></span><span>Work</span></button>
-  <button type="button" data-tab="record"><span class="px" data-px="record"></span><span>Record</span></button>
-  <button type="button" data-tab="deals"><span class="px" data-px="deals"></span><span>Deals</span></button>
-  <button type="button" data-tab="sell"><span class="px" data-px="sell"></span><span>Sell</span></button>
-</nav>
-
-<div class="toast" data-toast role="status" aria-live="polite"></div>
-<noscript><p class="noscript">Orbe Studio runs in your browser and needs JavaScript. Nothing you load into it leaves your device.</p></noscript>
+<section class="night" id="name" aria-labelledby="h-night">
+  <div class="night-in">
+    <h2 class="h-night" id="h-night">Build your <em>goliath.</em></h2>
+    <p class="night-sub">Whatever you are making, at whatever size, put your name down for when public ratings open. Free, and it stays free.</p>
+    <form class="res" data-res novalidate>
+      <label class="sr" for="handle">Your handle</label>
+      <div class="res-row">
+        <span class="res-at" aria-hidden="true">@</span>
+        <input class="res-in" id="handle" name="handle" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="yourhandle" maxlength="40" aria-describedby="res-status">
+        <button class="btn btn-paper" type="submit">Put my name down</button>
+      </div>
+      <p class="res-status" id="res-status" data-res-status role="status" aria-live="polite">We'll check it's yours when ratings open.</p>
+    </form>
+    <footer class="foot">
+      <p class="foot-money"><b>Free for creators, for good.</b> Orbe earns only when money moves: 15% of a sponsorship when Orbe finds the brand, 5% when you bring it, paid by the brand. 8% of a sale to £500k, 5% to £2M, 3% above, £4,000 minimum, nothing if it doesn't sell. A buyer's premium of 2%, 1% above £2M, £1,000 minimum.</p>
+      <p class="foot-small">Every creator and figure on this page is made up and rated live in your browser by the Orbe engine, model <span data-model></span>. Independently calculated by Orbe. Set in Schibsted Grotesk, Newsreader, Commit Mono and Departure Mono, all under the SIL Open Font License.</p>
+    </footer>
+  </div>
+</section>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /*
   Today, for a made-up coding Shorts channel. An Ink desktop with 1-bit windows
-  (the lab/desk chrome, drawn in HTML), a terminal that reads the record, and
+  (window chrome, drawn in HTML), a terminal that reads the record, and
   every figure from the Orbe engine on load.
 */
 import { $, esc, mountBar, mountFoot, mountCopy, STILL } from "../shared/ui.js";

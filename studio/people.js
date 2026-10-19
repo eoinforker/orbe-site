@@ -44,6 +44,12 @@ export const PEOPLE = [
     titles: ["CSS has: in 50 seconds", "The one git command I use daily", "Regex you can actually read", "Stop writing for loops like this", "Dark mode in three lines", "Why your array sort is lying", "Async, explained with toast", "The fastest way to dedupe a list", "Flexbox centring, finally", "What a hash map really is", "Your first SQL join", "Debugging with one print", "Promises in 45 seconds", "Big O on a napkin", "Keyboard shortcuts I wish I knew", "The bug that cost me a weekend", "Recursion without tears", "Tabs or spaces, a ruling", "How the browser paints a page", "Write a CLI in a minute", "Linting is kindness", "Types catch this bug", "Binary search, visually", "Ship it: deploy in 40 seconds", "Hello, world (again)"],
   },
   {
+    id: "stockpot", kind: "youtube", title: "Tuesday Stockpot", handle: "@tuesdaystockpot",
+    who: "Home cooking, one pan, weeknights", say: "One pan, twenty minutes, and the washing up is your problem.",
+    o: { audience: 31000, reach: 1.5, engagement: 1.7, hitEvery: 6, seed: 12 },
+    titles: ["Leek and potato, the lazy way", "A tray bake for a Tuesday", "Proper gravy from the roasting tin", "Lentils that taste of something", "The omelette I make every Sunday", "Fish finger sandwich, upgraded", "Rice that does not stick", "Soup from whatever is left", "Crumble with the windfall apples", "Dal for four, under a fiver", "Bread with no kneading", "Sausage casserole, slow"],
+  },
+  {
     id: "shed", kind: "youtube", title: "The Shed at No. 9", handle: "@shedatno9",
     who: "A dad, a shed, weekend builds", say: "Filmed on a phone propped on a tin of screws. Sorry about the sound.",
     o: { audience: 2400, reach: 1.4, engagement: 2.1, hitEvery: 7, seed: 21 },

@@ -1,4 +1,4 @@
-/* Semicolon Weather: an Ink desktop, 1-bit windows in Departure Mono (the lab/desk chrome), two inks only. */
+/* Semicolon Weather: an Ink desktop, 1-bit windows in Departure Mono, two inks only. */
 body[data-world="shorts"] {
   --bg: var(--orbe-ink);
   --ink: var(--orbe-paper);

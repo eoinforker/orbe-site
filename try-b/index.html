@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9EE9FB">
+<title>Orbe: your work, rated against creators your size</title>
+<meta name="description" content="A free rating of your work against creators your size, and a record read from what you were paid. Orbe earns only when money moves.">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/Newsreader-Italic-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="./sky.css">
+<script type="module" src="./sky.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" data-surface="field">
+  <div class="wrap nav-in">
+    <a class="nav-mark" href="./" aria-label="Orbe, home"><span data-wordmark>Orbe</span></a>
+    <nav class="nav-pill" aria-label="Main">
+      <a href="#tools">Products</a>
+      <a href="#tools-record">The Record</a>
+      <a href="#tools-middle">State of the Middle</a>
+      <a href="#goliath">Reserve</a>
+    </nav>
+    <a class="btn btn-ink btn-s" href="../products/rate/">Rate my work</a>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Screen one: the whole pitch, on the sky -->
+  <section class="hero" data-surface="field" aria-labelledby="h1">
+    <div class="hero-copy">
+      <h1 id="h1" class="h1 rise"><span class="l">Your work, rated against</span> <span class="l"><em>creators your size</em>.</span></h1>
+      <p class="lede rise">Hello &amp; welcome. A free rating of your work, where zero is typical, and a record read from what you were actually paid. Orbe earns only when money moves.</p>
+      <div class="ctas rise">
+        <a class="btn btn-ink" href="../products/rate/">Rate my work</a>
+        <a class="btn btn-quiet" href="#goliath">Reserve your handle</a>
+      </div>
+    </div>
+
+    <div class="stage">
+      <!-- Near: the rating -->
+      <article class="surface depth-1 c-rate rise" aria-label="The Orbe Rating, a made-up example">
+        <div class="tabs" role="tablist" aria-label="Kind of work">
+          <button role="tab" type="button" id="tab-channel" data-kind="channel" aria-selected="true" aria-controls="rate-panel">Channel</button>
+          <button role="tab" type="button" id="tab-newsletter" data-kind="newsletter" aria-selected="false" aria-controls="rate-panel" tabindex="-1">Letter</button>
+          <button role="tab" type="button" id="tab-stream" data-kind="stream" aria-selected="false" aria-controls="rate-panel" tabindex="-1">Stream</button>
+          <button role="tab" type="button" id="tab-podcast" data-kind="podcast" aria-selected="false" aria-controls="rate-panel" tabindex="-1">Podcast</button>
+          <button role="tab" type="button" id="tab-portfolio" data-kind="portfolio" aria-selected="false" aria-controls="rate-panel" tabindex="-1">Photos</button>
+        </div>
+        <div class="rate-body" id="rate-panel" role="tabpanel" aria-labelledby="tab-channel" tabindex="0">
+          <div class="who">
+            <span class="avatar" aria-hidden="true" data-r="initial">F</span>
+            <span class="who-t"><b data-r="name">Field Recordings</b><span class="soft" data-r="handle">@fieldrecordings</span></span>
+            <span class="tag">Made up</span>
+          </div>
+          <p class="figure"><span class="fig" data-r="signed">+1.23</span><span class="band" data-r="band">Good</span></p>
+          <p class="beat" data-r="beat">You beat 93 in 100 channels your size.</p>
+          <ul class="parts" data-r="parts"></ul>
+          <p class="say" data-r="say"></p>
+          <div class="fold" data-fold>
+            <button type="button" class="fold-btn" aria-expanded="false" aria-controls="maths">How it's worked out<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+            <div class="fold-body" id="maths" hidden>
+              <div class="fold-in">
+                <p class="small soft">Each part is compared with <span data-r="peers">channels</span> your size, then weighed. Zero is typical. Model <span data-mv>2026.10</span>.</p>
+                <ul class="weights" data-r="weights"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="foot"><span data-r="band-size">250k to 1M subscribers</span><span>Independently calculated by Orbe.</span></p>
+      </article>
+
+      <!-- Mid: estimate against payout, two 1-bit windows racing -->
+      <div class="race rise" data-race role="group" aria-label="The Record, a made-up example: YouTube estimated £6,474.47, AdSense paid £4,624.62. Your record uses what was paid.">
+        <section class="win w-est" aria-hidden="true">
+          <header class="win-bar"><span class="win-box"></span><span class="win-title">estimate.yt</span></header>
+          <div class="win-body">
+            <p class="win-k"><span>YouTube Analytics</span><span data-l="month">Sep 2026</span></p>
+            <p class="win-n"><span class="cnt" data-l="est">£6,474.47</span></p>
+            <div class="win-track"><i data-w="est"></i></div>
+            <p class="win-k"><span>Estimated</span><span>not money</span></p>
+          </div>
+        </section>
+        <section class="win w-paid" aria-hidden="true">
+          <header class="win-bar"><span class="win-box"></span><span class="win-title">payout.adsense</span></header>
+          <div class="win-body">
+            <p class="win-k"><span>AdSense, paid</span><span data-l="read">Read 17 Oct</span></p>
+            <p class="win-n"><span class="cnt" data-l="paid">£4,624.62</span></p>
+            <div class="win-track"><i data-w="paid"></i></div>
+            <p class="win-k"><span>Your record uses this one</span><span data-l="who">made up</span></p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Far: a sponsorship quote -->
+      <article class="surface depth-3 c-quote rise" aria-label="A sponsorship price, a made-up example">
+        <header class="s-head"><span class="s-title">Price a sponsorship</span><span class="soft">Made up</span></header>
+        <div class="s-pad">
+          <p class="small soft" data-q="name">Integrated sponsorship, a 60 to 90 second read</p>
+          <p class="quote num" data-q="range">£330 to £600</p>
+          <p class="small soft" data-q="basis">A placement, from 21,000 views at 30 days.</p>
+          <dl class="fees">
+            <div><dt>Orbe finds the brand</dt><dd class="num" data-q="net">15%</dd></div>
+            <div><dt>You bring the brand</dt><dd class="num" data-q="dir">5%</dd></div>
+          </dl>
+        </div>
+        <p class="foot"><span>Paid by the brand, never by you.</span></p>
+      </article>
+
+      <!-- The one big piece: a microphone on the 11.28px lattice. One Ember cell is you. -->
+      <figure class="mic" data-mic aria-label="A microphone drawn in cells. One orange cell is you.">
+        <svg data-mic-svg viewBox="0 0 451.2 789.6" shape-rendering="crispEdges" aria-hidden="true" focusable="false"></svg>
+        <figcaption class="mic-you" data-you><span data-you-t>You, ahead of 93 in 100</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Screen two: peony, then paper; all ten tools -->
+  <section class="tools-band" data-surface="peony" aria-labelledby="h2">
+    <div class="wrap band-in">
+      <h2 id="h2" class="h2">Ten tools around <em>one honest record</em>.</h2>
+      <p class="lede-s">Free for creators, for good. When a sponsor, a buyer or a lender pays, Orbe takes its share from them, and only once the money has moved.</p>
+      <div class="fold fold-c" data-fold>
+        <button type="button" class="btn btn-line" aria-expanded="false" aria-controls="earns">How Orbe earns, in full<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <div class="fold-body" id="earns" hidden>
+          <div class="fold-in">
+            <dl class="earns" data-earns></dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools" id="tools" data-surface="paper" aria-label="Every Orbe product">
+    <div class="wrap">
+      <ol class="grid" data-grid>
+        <li class="cell s3" id="tools-rate">
+          <p class="frame"><span>Rate my work</span><a href="../products/rate/">Open<span class="vh">: Rate my work</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></p>
+          <div class="surface t">
+            <p class="t-fig num" data-t="rate-fig">+1.23</p>
+            <p class="t-line" data-t="rate-line">Good. You beat 93 in 100 channels your size.</p>
+            <p class="t-foot">Your own export, read on this device. Nothing is uploaded.</p>
+          </div>
+        </li>
+        <li class="cell s3" id="tools-record">
+          <p class="frame"><span>The Record</span><span class="api">With the API</span></p>
+          <div class="surface t">
+            <div class="mini-ledger">
+              <p><span>Estimated</span><s class="num" data-t="rec-est">£6,474.47</s></p>
+              <p><span>Paid</span><b class="num" data-t="rec-paid">£4,624.62</b></p>
+            </div>
+            <p class="t-line">Read from payouts, not estimates, through a read-only Stripe App.</p>
+            <p class="t-foot">Seven read permissions. None of them writes.</p>
+          </div>
+        </li>
+        <li class="cell s2" id="tools-podcasts">
+          <p class="frame"><span>Podcasts</span><a href="../products/podcasts/">Open<span class="vh">: Podcasts</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></p>
+          <div class="surface t">
+            <p class="mono-chip" data-t="prefix">m.orbe.vc/p/thelongtable/</p>
+            <p class="t-line">Free measurement, for good. In place of Chartable.</p>
+            <p class="t-foot">Counted by IAB-style rules.</p>
+          </div>
+        </li>
+        <li class="cell s2" id="tools-plausibility">
+          <p class="frame"><span>Plausibility check</span><a href="../products/podcasts/#plausibility">Open<span class="vh">: Plausibility check</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></p>
+          <div class="surface t">
+            <div class="vs">
+              <p><span>Claimed</span><b class="num" data-t="pl-claim">310,000</b></p>
+              <p><span>Public count</span><b class="num" data-t="pl-public">52,000</b></p>
+            </div>
+            <p class="t-line"><b data-t="pl-verdict">Inconsistent</b>, <span data-t="pl-flags">6 flags</span>.</p>
+            <p class="t-foot">A made-up claim.</p>
+          </div>
+        </li>
+        <li class="cell s2" id="tools-sponsor">
+          <p class="frame"><span>Sponsorships</span><a href="../products/sponsorships/">Open<span class="vh">: Sponsorships</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></p>
+          <div class="surface t">
+            <p class="t-mid num" data-t="sp-range">£330 to £600</p>
+            <p class="t-line">Price a slot, match a brief.</p>
+            <p class="t-foot"><span data-t="sp-net">15%</span> if Orbe finds the brand, <span data-t="sp-dir">5%</span> if you do. The brand pays.</p>
+          </div>
+        </li>
+        <li class="cell s3" id="tools-selling">
+          <p class="frame"><span>Selling</span><a href="../products/selling/">Open<span class="vh">: Selling</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></p>
+          <div class="surface t">
+            <p class="t-mid num" data-t="sell-range">£128,000 to £265,000</p>
+            <p class="t-line">Indicative, <span data-t="sell-mult">1.5 to 3.1 times a year's profit</span>. If you ever want to sell, it's here.</p>
+            <p class="t-foot" data-t="sell-fee">8% to £500k, 5% to £2M, 3% above, £4,000 minimum. Nothing if it doesn't sell.</p>
+          </div>
+        </li>
+        <li class="cell s2" id="tools-diligence">
+          <p class="frame"><span>Diligence</span><a href="../products/diligence/">Open<span class="vh">: Diligence</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></p>
+          <div class="surface t">
+            <p class="t-mid num">£1,500</p>
+            <p class="t-line">The buyer's report, charged only if they walk away.</p>
+            <p class="t-foot">Never if it shows the listing was wrong.</p>
+          </div>
+        </li>
+        <li class="cell s2" id="tools-lending">
+          <p class="frame"><span>Lending</span><span class="api">With the API</span></p>
+          <div class="surface t">
+            <p class="t-mid">One fee a file</p>
+            <p class="t-line">A fixed fee, paid by the lender.</p>
+            <p class="t-foot">Never a percentage of a loan.</p>
+          </div>
+        </li>
+        <li class="cell s3" id="tools-guide">
+          <p class="frame"><span>The guide</span><span class="api">With the API</span></p>
+          <div class="surface t">
+            <p class="small soft">After every post, three next steps.</p>
+            <ol class="steps" data-t="steps"></ol>
+          </div>
+        </li>
+        <li class="cell s2" id="tools-middle">
+          <p class="frame"><span>The State of the Middle</span></p>
+          <div class="surface t">
+            <p class="small soft" data-t="bench-title">Typical reach, channels by size</p>
+            <ul class="bench" data-t="bench"></ul>
+            <p class="t-foot">Starting baselines, until the first season.</p>
+          </div>
+        </li>
+      </ol>
+      <p class="madeup">Every creator and figure on this page is made up, computed live by the Orbe engine. Independently calculated by Orbe.</p>
+    </div>
+  </section>
+
+  <!-- Screen three: ink -->
+  <section class="goliath" id="goliath" data-surface="night" aria-labelledby="h3">
+    <div class="wrap g-in">
+      <h2 id="h3" class="h1 h-g">Build your <em>goliath</em>.</h2>
+      <p class="letter">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts. Zero is typical, most weeks are, and that's how big things get built.</p>
+      <form class="reserve" data-reserve novalidate>
+        <label class="vh" for="handle">Your handle</label>
+        <div class="field">
+          <span class="pre" aria-hidden="true">orbe.vc/@</span>
+          <input id="handle" name="handle" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="yourhandle" aria-describedby="r-note">
+        </div>
+        <label class="vh" for="kind">Kind of work</label>
+        <select id="kind" name="kind">
+          <option value="channel">Channel</option>
+          <option value="newsletter">Newsletter</option>
+          <option value="stream">Stream</option>
+          <option value="podcast">Podcast</option>
+          <option value="portfolio">Photos</option>
+        </select>
+        <button class="btn btn-sky" type="submit">Reserve</button>
+      </form>
+      <p class="r-note" id="r-note" data-r-note aria-live="polite">Opens your email with the request written out. We hold the handle and check it's yours when ratings open.</p>
+      <p class="kinds">For the shed, the stream, the letter, the show, the frame and the 3am upload.</p>
+      <p class="sign"><span>Written 19 October 2026, London. See you Sunday.</span><span class="sig" data-wordmark-sig aria-label="Orbe">Orbe</span></p>
+    </div>
+    <footer class="wrap foot-in">
+      <nav aria-label="Footer"><a href="../products/">Products</a><a href="../brand/">Brand</a><a href="../legal/">Legal</a></nav>
+      <p>Model <span data-mv>2026.10</span>. Free for creators, for good.</p>
+    </footer>
+  </section>
+</main>
+</body>
+</html>

@@ -31,7 +31,7 @@ $("[data-plate-cap]").textContent = `Views on a typical upload, ${reach.value}, 
 const plate = $("[data-hero]");
 plate.setAttribute("role", "img");
 plate.setAttribute("aria-label", `A glass orb on paper, filled with blue to ${reach.score} in 100, above the line engraved at typical for your size.`);
-/* without WebGL: the same orb drawn flat, the line at typical and the blue at the score (lab/orb's level mapping) */
+/* the orb drawn flat, the line at typical and the blue at the score (the level mapping) */
 function drawDots() {
   const lv = (p) => (p <= 0.5 ? 0.965 * (2 * p - 1) : 0.6 * (2 * p - 1));
   const y = 50 - lv(reach.score / 100) * 48, h = Math.sqrt(Math.max(0, 48 * 48 - (50 - y) ** 2));
@@ -48,10 +48,8 @@ function placeSlot() {
 }
 placeSlot();
 addEventListener("resize", placeSlot);
-import("../shared/orb.js")
-  .then(({ mountOrb }) => mountOrb({ hero: plate, slot: $("[data-slot]"), canvas: $("[data-canvas]"), beats: reach.score, tags: { you: $("[data-tag=you]"), zero: $("[data-tag=zero]") }, still: STILL }))
-  .then((ok) => { plate.classList.add(ok ? "live" : "fallback"); if (!ok) drawDots(); })
-  .catch((err) => { console.warn("The orb fell back to dots.", err); plate.classList.add("fallback"); drawDots(); });
+plate.classList.add("fallback");
+drawDots();
 
 /* ---------------------------------------------------------------- the number and the latest upload */
 $("[data-rating]").textContent = t.signed;

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbe, the canvas</title>
+<meta name="description" content="Your work, rated against creators your size. Free for creators, for good. Orbe earns only when money moves.">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="canvas.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the rating</a>
+
+<header class="bar">
+  <a class="mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
+  <nav class="links" aria-label="Products">
+    <a href="../products/rate/">Rate my work</a>
+    <a href="../products/podcasts/">Podcasts</a>
+    <a href="../products/sponsorships/">Sponsorships</a>
+    <a href="../products/selling/">Selling</a>
+  </nav>
+  <a class="btn btn-ink btn-s" href="#reserve">Reserve your handle</a>
+</header>
+
+<main id="main">
+  <!-- Screen one: a Sky field, the sentence, the pixel piece and the instrument -->
+  <section class="hero" aria-labelledby="h1">
+    <div class="art-box" data-art-box aria-hidden="true"><canvas class="art" data-art></canvas></div>
+    <p class="checksum" aria-hidden="true"><span data-checksum>sha256</span></p>
+    <div class="hero-copy">
+      <p class="hello enter"><em>Hello &amp; welcome.</em> <time datetime="2026-10-19">Monday 19 October 2026</time></p>
+      <h1 id="h1" class="display enter">
+        <span class="h-line">Your <span class="slot" data-slot><span class="sr" data-slot-sr>explainer</span><span class="slot-word" aria-hidden="true" data-slot-word>explainer</span></span></span>
+        <span class="h-line">rated against</span>
+        <span class="h-line">creators</span>
+        <span class="h-line">your size.</span>
+      </h1>
+      <p class="lede enter">Free, for good. Zero is typical, and that’s how big things get built.</p>
+      <div class="ctas enter">
+        <a class="btn btn-cobalt" href="../products/rate/">Rate my work</a>
+        <a class="btn btn-line" href="#tools">See the other nine</a>
+      </div>
+    </div>
+
+    <div class="stage enter enter-late">
+      <div class="frame-name"><span data-frame-name>Rate my work / Field Recordings</span><span class="fn-right"><span>Made up</span><button class="link-btn" type="button" data-pause aria-pressed="false">Pause</button></span></div>
+      <article class="frame frame-hero" data-hero aria-label="The rating, live">
+        <div class="kind-list" role="group" aria-label="Kind of work" data-kinds></div>
+
+        <div class="who">
+          <p class="who-name" data-who-name>Field Recordings</p>
+          <p class="who-meta"><span data-who-handle>@fieldrecordings</span> · <span data-who-size>250k to 1M subscribers</span></p>
+        </div>
+
+        <div class="score" aria-live="polite">
+          <p class="figure"><span data-rating>+1.23</span></p>
+          <div class="score-side">
+            <p class="band" data-band>Good</p>
+            <p class="zero">Zero is typical.</p>
+          </div>
+        </div>
+
+        <figure class="hundred" aria-describedby="beats-line">
+          <div class="cells" data-cells aria-hidden="true">
+            <div class="select" data-select>
+              <i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i>
+              <span class="tag" data-tag>Field Recordings · 93 in 100</span>
+            </div>
+          </div>
+          <figcaption class="beats" id="beats-line">A typical <span data-noun>upload</span> reaches <b data-reach>37% of subscribers</b>. That beats <b data-beats>93</b> in 100 <span data-peers>channels</span> your size.</figcaption>
+        </figure>
+
+        <div class="drag">
+          <label for="views" class="drag-label">A typical <span data-noun-2>upload</span>’s <span data-unit>views</span></label>
+          <output for="views" class="drag-out" data-views-out>152,203</output>
+          <input id="views" class="range" type="range" min="-100" max="100" step="1" value="0" data-views>
+        </div>
+
+        <p class="foot">A made-up creator, rated live by the Orbe engine. Independently calculated by Orbe.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Screen two: nine windows on a Peony field -->
+  <section class="tools" id="tools" aria-labelledby="tools-h">
+    <div class="tools-head">
+      <h2 id="tools-h" class="h2">The other nine.</h2>
+      <p class="tools-lede">The rating is free, for good. Everything else costs nothing until money moves, and then it says exactly what, worked out live in each window. Every creator and figure here is made up.</p>
+    </div>
+
+    <div class="wall">
+      <!-- The Sunday note: the rating, as a letter -->
+      <article class="win c-note" aria-labelledby="note-t" data-note>
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="note-t">sunday_note.txt</span><a class="win-link" href="../products/rate/">Get yours</a></div>
+        <div class="win-body note-body" data-note-body>
+          <p class="n-date n-line" data-n="date">Sunday the eighteenth of October, 2026</p>
+          <h3 class="n-dear n-line">Dear <span data-n="name">Field Recordings</span>,</h3>
+          <p class="n-line" data-n="open">Your uploads, read properly this week.</p>
+          <div class="n-score n-line">
+            <p class="n-fig" data-n="signed">+1.23</p>
+            <p class="n-side"><span class="n-band" data-n="band">Good</span> <span class="n-zero">Zero is typical.</span></p>
+          </div>
+          <p class="n-line" data-n="beat">You beat 93 in 100 channels your size.</p>
+          <p class="n-line" data-n="detail"></p>
+          <p class="n-line" data-n="best"></p>
+          <p class="n-close n-line"><em>Nothing to fix. See you Sunday.</em></p>
+          <p class="n-sign n-line"><span class="sig" data-sig></span></p>
+          <p class="n-foot n-line">To <span data-n="handle">@fieldrecordings</span>, a made-up creator, rated by the Orbe engine. Independently calculated by Orbe.</p>
+        </div>
+      </article>
+
+      <!-- Selling -->
+      <article class="win c-sell" aria-labelledby="sell-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="sell-t">Selling / Price</span><a class="win-link" href="../products/selling/">Open</a></div>
+        <div class="win-body">
+          <p class="win-k">If it sold for</p>
+          <p class="big"><output data-sell-price for="sell">£220,000</output></p>
+          <input id="sell" class="range" type="range" min="0" max="1000" step="1" value="0" data-sell aria-label="Sale price">
+          <div class="split" aria-hidden="true"><i class="split-net" data-split-net></i><i class="split-fee stipple" data-split-fee></i></div>
+          <dl class="ledger">
+            <div class="sub-top"><dt>Seller’s fee, from the proceeds</dt><dd data-sell-fee>£17,600</dd></div>
+            <div class="sub"><dt data-sell-rate>8% on all of it</dt><dd></dd></div>
+            <div><dt>Buyer’s premium, paid by the buyer</dt><dd data-sell-prem>£4,400</dd></div>
+            <div class="total"><dt>You receive</dt><dd data-sell-net>£202,400</dd></div>
+          </dl>
+          <details class="more">
+            <summary>The working</summary>
+            <ol class="slices" data-sell-slices></ol>
+          </details>
+          <p class="note">8% to £500k, 5% to £2M, 3% above, £4,000 minimum. <em>Nothing if it doesn’t sell.</em> Buyer’s premium 2%, 1% above £2M, £1,000 minimum.</p>
+        </div>
+      </article>
+
+      <!-- The Record: two windows racing -->
+      <div class="c-record race" data-race>
+        <article class="win" aria-labelledby="est-t">
+          <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="est-t">estimate.win</span></div>
+          <div class="win-body">
+            <p class="win-k">YouTube Analytics, estimated</p>
+            <p class="big race-fig"><span data-race-est>£6,474.47</span></p>
+            <div class="track"><i class="stipple" data-race-est-bar></i></div>
+            <p class="race-line" data-race-est-line>Not what was paid.</p>
+          </div>
+        </article>
+        <article class="win" aria-labelledby="paid-t">
+          <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="paid-t">paid.win</span></div>
+          <div class="win-body">
+            <p class="win-k">AdSense, paid</p>
+            <p class="big race-fig"><b data-race-paid>£4,624.62</b></p>
+            <div class="track"><i class="solid" data-race-paid-bar></i></div>
+            <p class="race-line">Your record uses this one.</p>
+          </div>
+        </article>
+        <p class="race-cap"><b>The Record.</b> Read from payouts, not estimates: a made-up channel’s September ads, through a Stripe App with seven read-only permissions and none that writes. With the API.</p>
+      </div>
+
+      <!-- Sponsorships -->
+      <article class="win c-spon" aria-labelledby="spon-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="spon-t">Sponsorships / Quote</span><a class="win-link" href="../products/sponsorships/">Open</a></div>
+        <div class="win-body">
+          <p class="win-k"><output data-spon-views for="spon">155,000</output> views at 30 days</p>
+          <input id="spon" class="range" type="range" min="0" max="1000" step="1" value="500" data-spon aria-label="Typical views at 30 days">
+          <p class="mid" data-spon-int>£2,250 to £3,950</p>
+          <p class="note">An integrated read. 15% if Orbe finds the brand, 5% if you bring it, paid by the brand.</p>
+        </div>
+      </article>
+
+      <!-- Plausibility -->
+      <article class="win c-plaus" aria-labelledby="pl-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="pl-t">Plausibility / Claim</span><a class="win-link" href="../products/podcasts/#plausibility">Open</a></div>
+        <div class="win-body">
+          <p class="win-k">A claim of <output data-pl-claim for="pl">120,000</output> a month</p>
+          <input id="pl" class="range" type="range" min="0" max="1000" step="1" value="500" data-pl aria-label="Claimed downloads a month">
+          <p class="mid" data-pl-verdict aria-live="polite">Questions</p>
+          <p class="note" data-pl-why>Against a public count of 52,000.</p>
+        </div>
+      </article>
+
+      <!-- Podcasts -->
+      <article class="win c-pod" aria-labelledby="pod-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="pod-t">Podcasts / Prefix</span><a class="win-link" href="../products/podcasts/">Open</a></div>
+        <div class="win-body">
+          <label class="win-k" for="show">Free measurement, for good. Your show:</label>
+          <input id="show" class="field" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
+          <p class="mono-out" data-show-out>m.orbe.vc/p/thelongtable/…</p>
+          <p class="note">One prefix before each episode file, counted by IAB-style rules. Where Chartable used to be.</p>
+        </div>
+      </article>
+
+      <!-- State of the Middle -->
+      <article class="win c-state" aria-labelledby="st-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="st-t">State of the Middle</span></div>
+        <div class="win-body">
+          <p class="win-k">Typical reach for channels, by size</p>
+          <ul class="sizes" data-sizes></ul>
+          <p class="note">The engine’s starting baselines. Each season replaces them with consented data.</p>
+        </div>
+      </article>
+
+      <!-- Diligence -->
+      <article class="win c-dil" aria-labelledby="dil-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="dil-t">Diligence</span><a class="win-link" href="../products/diligence/">Open</a></div>
+        <div class="win-body">
+          <p class="win-k">The buyer’s report. The buyer:</p>
+          <div class="seg" role="group" aria-label="What the buyer does">
+            <button type="button" aria-pressed="true" data-dil="0">Buys</button>
+            <button type="button" aria-pressed="false" data-dil="1">Walks</button>
+          </div>
+          <p class="mid" data-dil-out>£0</p>
+          <p class="note">Charged only on walk-away.</p>
+        </div>
+      </article>
+
+      <!-- Lending -->
+      <article class="win c-lend" aria-labelledby="lend-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="lend-t">Lending</span></div>
+        <div class="win-body">
+          <p class="win-k">A fixed fee per file</p>
+          <p class="mid stipple-fig" data-lend>£250</p>
+          <p class="note">Not a cut of the loan. Proposed; with the API.</p>
+        </div>
+      </article>
+
+      <!-- The guide -->
+      <article class="win c-guide" aria-labelledby="guide-t">
+        <div class="win-bar"><i class="win-box" aria-hidden="true"></i><span class="win-title" id="guide-t">The guide</span></div>
+        <div class="win-body">
+          <p class="win-k">After every post</p>
+          <p class="mid" data-guide>1.1×</p>
+          <p class="note" data-guide-line>The newest upload against its own typical. Then three next steps.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Screen three: build your goliath -->
+  <section class="goliath canvas" id="reserve" aria-labelledby="gol-h">
+    <div class="frame-name on-canvas"><span>Goliath / Yours</span><span>Reserve</span></div>
+    <div class="block">
+      <div class="block-copy">
+        <h2 id="gol-h" class="giant">Build your goliath.</h2>
+        <p class="serif">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
+      </div>
+      <form class="reserve" data-reserve novalidate>
+        <label class="field-label" for="handle">Your handle</label>
+        <div class="handle">
+          <span class="handle-pre" aria-hidden="true">orbe.vc/@</span>
+          <input id="handle" class="field" name="handle" type="text" autocomplete="username" spellcheck="false" placeholder="yourname" required data-handle>
+        </div>
+        <label class="field-label" for="kind">What you make</label>
+        <select id="kind" class="field" name="kind" data-kind-select></select>
+        <button class="btn btn-chalk" type="submit">Reserve my handle</button>
+        <p class="form-note" data-reserve-note aria-live="polite">Held once your email arrives. We’ll check it’s yours when ratings open.</p>
+      </form>
+      <p class="sign">Free for creators, for good. Made by people who refresh the same pages you do. <span class="sign-by">The Orbe team, London, 19 October 2026.</span></p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot-bar canvas">
+  <span data-wordmark-small></span>
+  <span>Independently calculated by Orbe. Every creator on this page is made up.</span>
+  <a href="../legal/">Legal</a>
+</footer>
+
+<script type="module" src="canvas.js"></script>
+</body>
+</html>

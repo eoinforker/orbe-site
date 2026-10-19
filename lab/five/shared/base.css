@@ -61,7 +61,7 @@ button, input { font: inherit; }
 .foot nav { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 600 var(--t-small)/1.4 var(--font-mono); }
 .foot nav a[aria-current] { text-decoration: none; opacity: 0.6; }
 
-/* ---------------------------------------------------------------- the rotating word (Odin, from lab/desk) */
+/* ---------------------------------------------------------------- the rotating word (Odin) */
 .rot { display: inline-block; position: relative; vertical-align: top; overflow: hidden; padding: 0 0.04em 0.14em; margin: 0 -0.04em -0.14em; }
 .rot .w { display: inline-block; white-space: nowrap; }
 .rot .w.out { position: absolute; left: 0.04em; top: 0; }
