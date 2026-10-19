@@ -7,6 +7,7 @@ import { mountWordmark, wordmarkSVG } from "../assets/r5/wordmark.js";
 import { mountArt, ease, GW, GH } from "./pixels.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
 import { mountGiant } from "./footer.js";
+import { mountBlockArt } from "./block.js";
 import {
   KINDS, rated, sale, quote, plausible, prefixed, disagree,
   count, gbp, gbpExact, TAKE_RATE, OP3_SAMPLE, letterFor, noteDate, signed, minus,
@@ -18,7 +19,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 let reduce = false;
 try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
-const EASE = "cubic-bezier(0.45, 0, 0.2, 1)";
+const EASE = "cubic-bezier(0.6, 0.04, 0.3, 1)";
 
 mountWordmark($("[data-wordmark]"), { animate: !reduce });
 if (!reduce) document.documentElement.classList.add("motion");
@@ -223,14 +224,40 @@ function fillNote(key, animate) {
   if (animate && noteOpen && !reduce) noteBody.animate([{ opacity: 0.15 }, { opacity: 1 }], { duration: 260, easing: EASE });
 }
 
-/* ---------------------------------------------------------------- after_post.txt: pick a work, see how it did, then three next steps */
-const picks = $("[data-post-picks]");
-let postAt = 0;
+/* ---------------------------------------------------------------- after_post.txt: a small game, then how it did and three next steps
+  Above or below your typical? One of your last five works sits on a tile.
+  Drag it left or right (or press Below or Above) and the engine shows the
+  real multiple, with a short settle; the comparison and next steps then
+  follow that work. Next brings the following one.
+*/
+const game = $("[data-game]"), tile = $("[data-tile]"), tileMark = $("[data-tile-mark]");
+const gameNext = $("[data-game-next]"), gameCue = $("[data-game-cue]");
+let postAt = 0, works = [], called = null;
+const MARK = 9;
+function drawMark(m) {
+  tileMark.innerHTML = "";
+  /* nine cells; typical fills half of them, as zero is typical; before the call, only you */
+  const fill = m == null ? 0 : Math.max(1, Math.min(MARK, Math.round(m * 4.5)));
+  for (let i = 0; i < MARK; i++) {
+    const c = document.createElement("i");
+    if (m == null ? i === 4 : i < fill) c.className = m == null ? "you" : "on";
+    tileMark.appendChild(c);
+  }
+}
 function paintPost(key) {
   const a = afterPost(key, postAt);
-  $$("button", picks).forEach((b, i) => b.setAttribute("aria-pressed", String(i === postAt)));
-  $("[data-post-own]").textContent = a.own;
-  $("[data-post-own-line]").textContent = `${a.ownLine.charAt(0).toUpperCase()}${a.ownLine.slice(1)}, with ${a.soFar} ${a.unit.replace(/ in 7 days$/, "")} so far.`;
+  const shown = called !== null;
+  $("[data-game-n]").textContent = `${postAt + 1} of ${works.length}`;
+  $("[data-tile-name]").textContent = shown ? `${a.own} your typical` : `Your ${a.one} from ${a.label}`;
+  const right = called === (a.multiple >= 1 ? "above" : "below");
+  $("[data-tile-sub]").textContent = shown ? `${right ? "You called it" : "Not quite"}: ${a.ownLine}.` : `${a.soFar} ${a.unit.replace(/ in 7 days$/, "")} so far`;
+  tile.classList.toggle("shown", shown);
+  $("[data-post]").classList.toggle("called", shown);
+  drawMark(shown ? a.multiple : null);
+  gameNext.hidden = !shown; gameCue.hidden = shown;
+  $$("[data-guess]", game).forEach((b) => { b.disabled = shown; b.setAttribute("aria-pressed", String(called === b.dataset.guess)); });
+  $("[data-post-own]").textContent = shown ? a.own : "?";
+  $("[data-post-own-line]").textContent = shown ? `${a.ownLine.charAt(0).toUpperCase()}${a.ownLine.slice(1)}, with ${a.soFar} ${a.unit.replace(/ in 7 days$/, "")} so far.` : "Make your call above, and the engine shows its multiple.";
   $("[data-post-peers-k]").textContent = `Against ${a.peers} your size, at its age`;
   $("[data-post-peers]").textContent = `${a.peersBeat} in 100`;
   $("[data-post-peers-line]").textContent = `It reached ${a.share} of ${a.audienceNoun}. Typical at your size is ${a.typicalShare}.`;
@@ -244,19 +271,56 @@ function paintPost(key) {
   }
 }
 function fillPost(key) {
-  const list = recentWorks(key);
-  const one = list[0]?.one ?? "work";
+  works = recentWorks(key);
+  const one = works[0]?.one ?? "work";
   $("[data-post-one]").textContent = one;
-  $("[data-post-works]").textContent = `${one}s`;
-  postAt = 0;
-  picks.innerHTML = "";
-  list.forEach((w, i) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.textContent = w.label;
-    b.addEventListener("click", () => { postAt = i; paintPost(current); });
-    picks.appendChild(b);
-  });
+  gameNext.textContent = `Next ${one}`;
+  postAt = 0; called = null;
+  tile.style.transform = "";
   paintPost(key);
+}
+function guess(side) {
+  if (called !== null) return;
+  called = side;
+  const dx = side === "above" ? 1 : -1;
+  if (reduce) tile.style.transform = "";
+  else tile.animate([{ transform: tile.style.transform || "none" }, { transform: `translateX(${dx * 56}px)` }, { transform: "none" }], { duration: 500, easing: EASE });
+  tile.style.transform = "";
+  const fromKeys = document.activeElement?.matches?.("[data-guess]");
+  paintPost(current);
+  if (fromKeys) gameNext.focus();
+}
+$$("[data-guess]", game).forEach((b) => b.addEventListener("click", () => guess(b.dataset.guess)));
+gameNext.addEventListener("click", () => {
+  postAt = (postAt + 1) % works.length; called = null;
+  paintPost(current);
+  $("[data-guess=\"below\"]", game).focus();
+  if (!reduce) tile.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 450, easing: EASE });
+});
+/* the drag: the tile follows the pointer across its lane; past a third of the way, it is a call */
+{
+  let drag = null;
+  tile.addEventListener("pointerdown", (e) => {
+    if (called !== null || e.button !== 0) return;
+    e.preventDefault();
+    drag = { id: e.pointerId, x: e.clientX, max: (tile.parentElement.clientWidth - tile.offsetWidth) / 2 + 24 };
+    tile.setPointerCapture(e.pointerId); tile.classList.add("held");
+  });
+  tile.addEventListener("pointermove", (e) => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const dx = Math.max(-drag.max, Math.min(drag.max, e.clientX - drag.x));
+    tile.style.transform = `translateX(${dx}px) rotate(${dx / 40}deg)`;
+    drag.dx = dx;
+  });
+  const drop = () => {
+    if (!drag) return;
+    const dx = drag.dx || 0; drag = null; tile.classList.remove("held");
+    if (Math.abs(dx) > 40) guess(dx > 0 ? "above" : "below");
+    else if (!reduce) { tile.animate([{ transform: tile.style.transform || "none" }, { transform: "none" }], { duration: 450, easing: EASE }); tile.style.transform = ""; }
+    else tile.style.transform = "";
+  };
+  tile.addEventListener("pointerup", drop);
+  tile.addEventListener("pointercancel", drop);
 }
 
 function show(key, animateWord) {
@@ -281,8 +345,6 @@ function show(key, animateWord) {
   paint(r);
   fillNote(key, animateWord);
   fillPost(key);
-  const sel = $("[data-kind-select]");
-  if (sel) sel.value = key;
 }
 
 views.addEventListener("input", () => { stopCycle(); paint(rated(current, F(Number(views.value)))); });
@@ -333,6 +395,8 @@ function paintSale() {
   $("[data-sell-fee]").textContent = gbp(s.fee);
   $("[data-sell-rate]").textContent = s.minimum ? `The £4,000 minimum, ${s.feeRate.toFixed(1).replace(/\.0$/, "")}% of the price` : s.slices.length === 1 ? "8% on all of it" : `${s.feeRate.toFixed(2).replace(/0$/, "")}% overall, in tiers`;
   $("[data-sell-prem]").textContent = gbp(s.premium);
+  $("[data-sell-fee-s]").textContent = gbp(s.fee);
+  $("[data-sell-prem-s]").textContent = gbp(s.premium);
   stopCount($("[data-sell-net]"));
   $("[data-sell-net]").textContent = gbp(s.net);
   $("[data-sell-net-2]").textContent = gbp(s.net);
@@ -347,7 +411,7 @@ const d = disagree();
 const estEl = $("[data-race-est]"), paidEl = $("[data-race-paid]");
 const estBar = $("[data-race-est-bar]"), paidBar = $("[data-race-paid-bar]");
 const raceLine = $("[data-race-line]");
-const RACE_DONE = `${gbp(d.estimate - d.paid)} less was paid. Read from payouts. With the API.`;
+const RACE_DONE = `${gbp(d.estimate - d.paid)} less was paid.`;
 let raceRaf = 0;
 const finish = () => {
   estEl.innerHTML = `<s>${gbpExact(d.estimate)}</s>`; paidEl.textContent = gbpExact(d.paid);
@@ -470,20 +534,19 @@ $("[data-dil]").textContent = gbp(TAKE_RATE.buyers.report.standard);
 $("[data-lend]").textContent = gbp(TAKE_RATE.financingFilePrice);
 
 /* ---------------------------------------------------------------- reserve */
-const sel = $("[data-kind-select]");
-sel.innerHTML = KINDS.map((k) => `<option value="${k.key}">${k.label}</option>`).join("") + `<option value="other">Something else</option>`;
-sel.value = current;
+/* what you make follows the kind chosen in the instrument above */
+const NOTE_IDLE = "Free for creators, for good. Held once your email arrives; we check it’s yours when ratings open.";
 const form = $("[data-reserve]");
 const handleIn = $("[data-handle]");
 handleIn.addEventListener("input", () => {
   const h = cleanHandle(handleIn.value).toLowerCase();
-  $("[data-reserve-note]").textContent = h ? `orbe.vc/@${h}, held once your email arrives. We’ll check it’s yours when ratings open.` : "Held once your email arrives. We’ll check it’s yours when ratings open.";
+  $("[data-reserve-note]").textContent = h ? `orbe.vc/@${h}, held once your email arrives. We check it’s yours when ratings open.` : NOTE_IDLE;
 });
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const h = cleanHandle(handleIn.value).toLowerCase();
   if (!h) { $("[data-reserve-note]").textContent = "Type the handle you’d like first."; handleIn.focus(); return; }
-  const kind = sel.value === "other" ? "work" : KINDS.find((k) => k.key === sel.value)?.word ?? "work";
+  const kind = KINDS.find((k) => k.key === current)?.word ?? "work";
   const res = await reserve({ handle: h, kind });
   $("[data-reserve-note]").textContent = res.ok ? `Your email app has the request for orbe.vc/@${h}. Held once it arrives.` : "That handle is taken. Try another.";
 });
@@ -680,20 +743,22 @@ for (const a of $$("[data-aud] a")) {
 }
 
 /* ---------------------------------------------------------------- the pointer's trail, in the Sky hero
-  Where a mouse moves over the hero, cells of fal's 11.28px lattice light in
-  the chosen kind's colours and fade over 1.2s; a click stamps a small
-  cluster. At most 60 cells; drawn on one canvas under the words; nothing
-  runs once the last cell has gone. Off on touch and under reduced motion.
+  Where a mouse moves over the hero, a light confetti of the lattice follows
+  it: cells a little smaller than fal's 11.28px pitch, softly rounded, half
+  see-through, each lifted off the paper by a soft shadow. They fade and
+  drift up two pixels over 0.9s; a click scatters a small cluster. At most
+  40 at once, drawn on one canvas under the words, and nothing runs once
+  the last has gone. Off on touch and under reduced motion.
 */
 {
   const fine = (() => { try { return matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) { return false; } })();
   const cv = $("[data-trail]");
   if (fine && !reduce && cv) {
     const heroEl = $(".hero"), ctx = cv.getContext("2d");
-    const CELL = 11.28, LIFE = 1200, MAX = 60;
+    const CELL = 11.28, INSET = 1.6, LIFE = 900, MAX = 40, DRIFT = 2;
     const TRAIL = {
-      explainer: ["#EED56A", "#1F4BFF", "#141311"], devlog: ["#141311", "#EED56A"], podcast: ["#F2879E", "#6F1726", "#FBFAF6"],
-      letsplay: ["#1238D6", "#EED56A", "#141311"], recipe: ["#FBD9E0", "#1F4BFF", "#6F1726"], longexposure: ["#6F1726", "#FBD9E0"],
+      explainer: ["#EED56A", "#FBFAF6", "#1F4BFF"], devlog: ["#FBFAF6", "#141311", "#EED56A"], podcast: ["#F2879E", "#FBFAF6", "#6F1726"],
+      letsplay: ["#1238D6", "#FBFAF6", "#EED56A"], recipe: ["#FBD9E0", "#FBFAF6", "#1F4BFF"], longexposure: ["#6F1726", "#FBD9E0", "#FBFAF6"],
     };
     let cells = [], raf = 0, dpr = 1, last = "";
     const size = () => {
@@ -707,19 +772,25 @@ for (const a of $$("[data-aud] a")) {
     const draw = (now) => {
       ctx.clearRect(0, 0, cv.width, cv.height);
       cells = cells.filter((c) => now - c.t < LIFE);
+      ctx.shadowColor = "rgba(20, 19, 17, 0.16)";
+      ctx.shadowBlur = 4 * dpr; ctx.shadowOffsetY = 1 * dpr;
+      const s = (CELL - INSET * 2) * dpr, rad = 2 * dpr;
       for (const c of cells) {
-        const t = Math.max(0, (now - c.t) / LIFE);
-        ctx.globalAlpha = 1 - ease(t);
+        const t = Math.max(0, (now - c.t) / LIFE), e = ease(t);
+        ctx.globalAlpha = c.a * (1 - e);
         ctx.fillStyle = c.c;
-        const x0 = Math.round(c.x * CELL * dpr), y0 = Math.round(c.y * CELL * dpr);
-        ctx.fillRect(x0, y0, Math.round((c.x + 1) * CELL * dpr) - x0, Math.round((c.y + 1) * CELL * dpr) - y0);
+        const x = (c.x * CELL + INSET) * dpr, y = (c.y * CELL + INSET - DRIFT * e) * dpr;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x, y, s, s, rad); else ctx.rect(x, y, s, s);
+        ctx.fill();
       }
       ctx.globalAlpha = 1;
       raf = cells.length ? requestAnimationFrame(draw) : 0;
     };
     const add = (x, y, now) => {
       const pal = TRAIL[current] ?? TRAIL.explainer;
-      cells.push({ x, y, t: now, c: pal[(((x + y) % pal.length) + pal.length) % pal.length] });
+      const i = (((x * 7 + y * 3) % pal.length) + pal.length) % pal.length;
+      cells.push({ x, y, t: now, c: pal[i], a: 0.35 + (((x * 13 + y * 29) % 11) / 10) * 0.25 });
       if (cells.length > MAX) cells.splice(0, cells.length - MAX);
       if (!raf) raf = requestAnimationFrame(draw);
     };
@@ -729,20 +800,30 @@ for (const a of $$("[data-aud] a")) {
       if (!over(e) || e.buttons) return;
       const [x, y] = at(e), k = `${x},${y}`;
       if (k === last) return;
-      /* a fast move fills the cells between, up to eight, so the line stays whole */
+      /* a fast move fills a few cells between, every other one, so the line stays light */
       const now = performance.now(), [px, py] = last ? last.split(",").map(Number) : [x, y];
-      const n = Math.min(8, Math.max(Math.abs(x - px), Math.abs(y - py)));
-      for (let i = 1; i < n; i++) add(Math.round(px + ((x - px) * i) / n), Math.round(py + ((y - py) * i) / n), now - (n - i) * 8);
+      const n = Math.min(6, Math.max(Math.abs(x - px), Math.abs(y - py)));
+      for (let i = 2; i < n; i += 2) add(Math.round(px + ((x - px) * i) / n), Math.round(py + ((y - py) * i) / n), now - (n - i) * 8);
       last = k;
       add(x, y, now);
     });
     heroEl.addEventListener("pointerdown", (e) => {
       if (!over(e) || e.target.closest("a, button, input, select, label")) return;
       const [x, y] = at(e), now = performance.now();
-      for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [2, 0], [0, 2], [-1, 1]]) add(x + dx, y + dy, now - Math.abs(dx + dy) * 40);
+      for (const [dx, dy] of [[0, 0], [1, -1], [-1, 0], [1, 1], [-2, -1], [0, 2], [2, 0]]) add(x + dx, y + dy, now - Math.abs(dx + dy) * 40);
     });
     heroEl.addEventListener("pointerleave", () => { last = ""; });
   }
+}
+
+/* ---------------------------------------------------------------- the close: two lattice creatures settle in from the block's edges, once */
+mountBlockArt($("[data-block]"), $("[data-block-art]"), { reduce });
+for (const a of $$("[data-to-hero]")) {
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    hero.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    $("[data-kind][aria-pressed=\"true\"]", hero).focus({ preventScroll: true });
+  });
 }
 
 /* ---------------------------------------------------------------- the header's colours

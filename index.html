@@ -27,11 +27,9 @@
 <main id="main">
   <!-- Screen one: a Sky field, the sentence, the pixel piece and the instrument -->
   <section class="hero" data-head="light" aria-labelledby="h1">
-    <div class="frame" aria-hidden="true"><i></i><i></i><i></i><b class="tick p-tl"></b><b class="tick p-tr"></b></div>
     <canvas class="trail" data-trail aria-hidden="true"></canvas>
     <div class="art-box" data-art-box><canvas class="art" data-art aria-hidden="true"></canvas></div>
     <div class="hero-copy">
-      <p class="hello enter"><em>Hello &amp; welcome.</em> <time datetime="2026-10-19">Monday 19 October 2026</time></p>
       <h1 id="h1" class="display enter">
         <span class="h-line">Your <span class="slot" data-slot><span class="sr-inline" data-slot-sr>explainer</span><span class="slot-word" aria-hidden="true" data-slot-word></span></span></span>
         <span class="h-line">rated against</span>
@@ -42,7 +40,7 @@
       <p class="aud enter" data-aud><span class="aud-k">For</span> <a href="#main" data-to="hero">creators</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-managers" data-to="for-managers"><span class="ph-off">managers and </span>agencies</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-brands" data-to="for-brands">brands</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-buyers" data-to="for-buyers for-funds"><span class="ph-off">buyers and </span>funds</a></p>
       <div class="ctas enter">
         <a class="btn-go" href="./products/rate/"><span class="go" aria-hidden="true"></span>See where you stand</a>
-        <a class="lnk lnk-down" href="#tools">How it works</a>
+        <a class="btn-q" href="#tools">How it works<span class="q q-down" aria-hidden="true"></span></a>
       </div>
     </div>
 
@@ -50,7 +48,7 @@
       <article class="win win-hero" data-head="light" data-hero aria-labelledby="hero-t">
         <div class="win-bar">
           <span class="win-title" id="hero-t" data-frame-name data-grip>rating.txt / Field Recordings</span>
-          <span class="win-ctl"><span class="win-tag">Made up</span><button class="win-btn" type="button" data-pause aria-pressed="false">Pause</button></span>
+          <span class="win-ctl"><span class="chip chip-bar" data-i="record">Made up</span><button class="win-btn" type="button" data-pause aria-pressed="false">Pause</button></span>
         </div>
         <div class="win-body hero-body">
           <div class="kinds" data-kinds-wrap><div class="kind-list" role="group" aria-label="Kind of work" data-kinds></div></div>
@@ -93,9 +91,8 @@
   <!-- Screen two: what Orbe does, in three beats of windows you can move -->
   <section class="tools" data-head="light" id="tools" aria-labelledby="tools-h">
     <div class="tools-head">
-      <h2 id="tools-h" class="h2">Your work, read properly.</h2>
-      <p class="tools-lede">Every figure is worked out live by the engine. Every creator is made up.</p>
-      <p class="tidy-row" data-tidy-row hidden><span class="tidy-hint" id="tidy-hint">Drag a window by its title.</span><button class="win-btn tidy" type="button" data-tidy>Tidy</button><span class="sr" aria-live="polite" data-tidy-say></span></p>
+      <h2 id="tools-h" class="h2"><span class="h2-soft">Your work, read properly.</span> Every figure live, every creator made up.</h2>
+      <p class="tidy-row" data-tidy-row hidden><span class="cue" id="tidy-hint">→ Drag a window by its title</span><button class="win-btn tidy" type="button" data-tidy>Tidy</button><span class="sr" aria-live="polite" data-tidy-say></span></p>
     </div>
 
     <div class="wall" data-wall>
@@ -125,15 +122,28 @@
         <div class="win-bar"><span class="win-title" id="post-t" data-grip>after_post.txt</span><a class="win-lnk" href="./products/rate/">Try yours</a></div>
         <div class="win-body">
           <p class="says">Know which <span data-post-one>upload</span> is quietly doing well.</p>
-          <div class="post-pick">
-            <p class="win-k" id="post-pick">The guide. Pick one of your last five <span data-post-works>uploads</span></p>
-            <div class="picks" role="group" aria-labelledby="post-pick" data-post-picks></div>
+          <div class="game" role="group" aria-labelledby="game-q" data-game>
+            <div class="game-head">
+              <p class="win-k" id="game-q">The guide. Above or below your typical? <span class="game-n" data-game-n>1 of 5</span></p>
+              <p class="cue" aria-hidden="true" data-game-cue>← Drag the tile →</p>
+              <button class="win-btn game-next" type="button" data-game-next hidden>Next upload</button>
+            </div>
+            <div class="game-row">
+              <button class="game-side" type="button" data-guess="below">Below</button>
+              <div class="game-lane">
+                <div class="tile" data-tile>
+                  <span class="tile-mark" aria-hidden="true" data-tile-mark></span>
+                  <span class="tile-t"><b data-tile-name>Your upload from 3 days ago</b><span data-tile-sub>47,581 views so far</span></span>
+                </div>
+              </div>
+              <button class="game-side" type="button" data-guess="above">Above</button>
+            </div>
           </div>
           <div class="vs" aria-live="polite" data-post-out>
             <div class="vs-row">
               <p class="vs-k">Against your own typical</p>
-              <p class="vs-fig" data-post-own>1.1×</p>
-              <p class="vs-line" data-post-own-line>Above your typical upload, with 47,581 views so far.</p>
+              <p class="vs-fig" data-post-own>?</p>
+              <p class="vs-line" data-post-own-line>Make your call above, and the engine shows its multiple.</p>
             </div>
             <div class="vs-row">
               <p class="vs-k" data-post-peers-k>Against channels your size, at its age</p>
@@ -143,7 +153,7 @@
           </div>
           <h4 class="steps-h">Three next steps</h4>
           <ol class="steps" data-post-steps></ol>
-          <p class="note win-end post-end">Worked out here, by rule. The full guide, after every post: <span class="api">With the API</span></p>
+          <p class="note win-end post-end">Worked out here, by rule. The full guide, after every post. <span class="chip" data-i="source">With the API</span></p>
         </div>
       </article>
 
@@ -186,7 +196,7 @@
           <div class="picks" role="group" aria-label="Size band" data-mid-bands></div>
           <p class="mid" data-mid-fig>10%</p>
           <p class="note" data-mid-what aria-live="polite">Typical reach for channels with 250k to 1M subscribers.</p>
-          <p class="note win-end">The engine’s starting baselines, until the first season. <span class="api">Seasons with the API</span></p>
+          <p class="note win-end">The engine’s starting baselines, until the first season. <span class="chip" data-i="source">Seasons with the API</span></p>
         </div>
       </article>
 
@@ -195,7 +205,7 @@
       <div class="beat-side beat-3">
         <h3 class="beat-h"><span class="beat-n">3</span>When money moves, Orbe can help.</h3>
         <p class="beat-p">Optional, and free until money moves. Brands and buyers pay the fees; a sale’s fee comes out of the sale.</p>
-        <p class="lend"><a href="./products/">Lending</a> A fixed <span data-lend>£250</span> a file, never a cut. <span class="api">With the API</span></p>
+        <p class="lend"><a href="./products/">Lending</a> A fixed <span data-lend>£250</span> a file, never a cut. <span class="chip" data-i="source">With the API</span></p>
       </div>
 
       <div class="row row-3">
@@ -204,10 +214,12 @@
         <div class="win-bar"><span class="win-title" id="spon-t" data-grip>sponsorship_quote.txt</span><a class="win-lnk" href="./products/sponsorships/">Open</a></div>
         <div class="win-body">
           <p class="says">Know what a slot is worth.</p>
-          <p class="win-k">Sponsorships. An integrated read</p>
-          <p class="mid" data-spon-int>£2,250 to £3,950</p>
-          <label class="win-k" for="spon"><output data-spon-views for="spon">155,000</output> views at 30 days</label>
-          <input id="spon" class="range" type="range" min="0" max="1000" step="1" value="500" data-spon>
+          <div class="card">
+            <p class="win-k">Sponsorships. An integrated read</p>
+            <p class="mid" data-spon-int>£2,250 to £3,950</p>
+            <label class="win-k" for="spon"><output data-spon-views for="spon">155,000</output> views at 30 days</label>
+            <input id="spon" class="range" type="range" min="0" max="1000" step="1" value="500" data-spon>
+          </div>
           <p class="note win-end">15% if Orbe finds the brand, 5% if you bring it. The brand pays.</p>
         </div>
       </article>
@@ -217,18 +229,20 @@
         <div class="win-bar"><span class="win-title" id="rec-t" data-grip>estimate_vs_paid.txt</span><button class="win-btn" type="button" data-race-go>Replay</button></div>
         <div class="win-body">
           <p class="says">See what was paid, not estimated.</p>
-          <p class="win-k">The Record. September’s ads</p>
-          <div class="race-row">
-            <p class="race-k">Estimated</p>
-            <p class="race-fig"><span data-race-est>£6,474.47</span></p>
-            <div class="track"><i class="ghost" data-race-est-bar></i></div>
+          <div class="card">
+            <p class="win-k">The Record. September’s ads</p>
+            <div class="race-row">
+              <p class="race-k">Estimated</p>
+              <p class="race-fig"><span data-race-est>£6,474.47</span></p>
+              <div class="track"><i class="ghost" data-race-est-bar></i></div>
+            </div>
+            <div class="race-row">
+              <p class="race-k">Paid</p>
+              <p class="race-fig"><b data-race-paid>£4,624.62</b></p>
+              <div class="track"><i class="solid" data-race-paid-bar></i></div>
+            </div>
           </div>
-          <div class="race-row">
-            <p class="race-k">Paid</p>
-            <p class="race-fig"><b data-race-paid>£4,624.62</b></p>
-            <div class="track"><i class="solid" data-race-paid-bar></i></div>
-          </div>
-          <p class="note win-end" data-race-line aria-live="polite">Read from payouts, not estimates, through a read-only Stripe App. With the API.</p>
+          <p class="note win-end"><span data-race-line aria-live="polite">Read from payouts, not estimates.</span> <span class="chips"><span class="chip" data-i="payout">Read-only Stripe App</span><span class="chip" data-i="source">With the API</span></span></p>
         </div>
       </article>
 
@@ -237,10 +251,16 @@
         <div class="win-bar"><span class="win-title" id="sell-t" data-grip>selling.txt</span><a class="win-lnk" href="./products/selling/">Open</a></div>
         <div class="win-body">
           <p class="says">Know what you’d keep if you sold.</p>
-          <label class="win-k" for="sell">Selling. If it sold for</label>
-          <p class="mid"><output data-sell-price for="sell">£220,000</output></p>
-          <input id="sell" class="range" type="range" min="0" max="1000" step="1" value="0" data-sell>
-          <p class="win-line">You keep <b data-sell-net>£202,400</b>.</p>
+          <div class="card">
+            <label class="win-k" for="sell">Selling. If it sold for</label>
+            <p class="mid"><output data-sell-price for="sell">£220,000</output></p>
+            <input id="sell" class="range" type="range" min="0" max="1000" step="1" value="0" data-sell>
+            <dl class="strip">
+              <div><dt>Fee</dt><dd data-sell-fee-s>£17,600</dd></div>
+              <div><dt>Buyer adds</dt><dd data-sell-prem-s>£4,400</dd></div>
+              <div><dt>You keep</dt><dd><b data-sell-net>£202,400</b></dd></div>
+            </dl>
+          </div>
           <details class="more">
             <summary>Every fee, and diligence</summary>
             <dl class="ledger">
@@ -292,23 +312,22 @@
 
   <!-- Screen three: build your goliath -->
   <section class="goliath" data-head="light" id="reserve" aria-labelledby="gol-h">
-    <div class="block" data-head="dark">
+    <div class="block" data-head="dark" data-block>
+      <canvas class="block-art" data-block-art aria-hidden="true"></canvas>
       <div class="block-copy">
         <h2 id="gol-h" class="giant">Build your goliath.</h2>
-        <p class="serif">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
+        <p class="block-lede">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
+        <form class="reserve" data-reserve novalidate>
+          <label class="sr" for="handle">Your handle</label>
+          <div class="handle">
+            <span class="handle-pre" aria-hidden="true">orbe.vc/@</span>
+            <input id="handle" class="field" name="handle" type="text" autocomplete="username" spellcheck="false" placeholder="yourname" required aria-describedby="reserve-note" data-handle>
+          </div>
+          <button class="btn-go btn-light" type="submit"><span class="go" aria-hidden="true"></span>Reserve my handle</button>
+          <a class="btn-q" href="#main" data-to-hero>See where you stand<span class="q q-up" aria-hidden="true"></span></a>
+        </form>
+        <p class="form-note" id="reserve-note" data-reserve-note aria-live="polite">Free for creators, for good. Held once your email arrives; we check it’s yours when ratings open.</p>
       </div>
-      <form class="reserve" data-reserve novalidate>
-        <label class="field-label" for="handle">Your handle</label>
-        <div class="handle">
-          <span class="handle-pre" aria-hidden="true">orbe.vc/@</span>
-          <input id="handle" class="field" name="handle" type="text" autocomplete="username" spellcheck="false" placeholder="yourname" required data-handle>
-        </div>
-        <label class="field-label" for="kind">What you make</label>
-        <select id="kind" class="field" name="kind" data-kind-select></select>
-        <button class="btn-go btn-wide" type="submit"><span class="go" aria-hidden="true"></span>Reserve my handle</button>
-        <p class="form-note" data-reserve-note aria-live="polite">Held once your email arrives. We’ll check it’s yours when ratings open.</p>
-      </form>
-      <p class="sign">Free for creators, for good. Made by people who refresh the same pages you do. <span class="sign-by">The Orbe team, London, 19 October 2026.</span></p>
     </div>
   </section>
 </main>
@@ -348,7 +367,7 @@
       </ul>
     </div>
   </nav>
-  <p class="foot-line">Independently calculated by Orbe. Every creator on this page is made up.</p>
+  <p class="foot-line"><span>Independently calculated by Orbe. Every creator on this page is made up.</span> <span class="foot-sign">Made by people who refresh the same pages you do. The Orbe team, London.</span></p>
   <div class="giant-mark" data-head="light" data-giant aria-hidden="true">
     <p class="giant-cap" data-giant-cap>Field Recordings · 93 in 100 · made up</p>
     <div class="giant-svg" data-giant-svg></div>
