@@ -1,9 +1,10 @@
 /*
-  r7-c stickers: the wrong verdicts as die-cut vinyl, flung onto the yardstick window.
+  r7-c stickers: the wrong verdicts as die-cut vinyl, flung onto the yardstick plate.
   Adapted from ../assets/fx/word-stickers.js (same die-cut: the word's silhouette dilated
-  by the border, the word on top, a flat hard ink shadow). What changes here:
-  - the entrance is a throw: each sticker flies in from outside the window, spinning,
-    and lands on its row with a slap (an overshoot and a squash), one after another;
+  by the border, the word on top). What changes here:
+  - the entrance is a throw: each sticker flies in from outside the plate, turning,
+    and lands on its row with ease-out-quad (no overshoot, no squash), one after another;
+  - the die-cut is print, not a UI shadow: Ink word, colour plate, Chalk kiss-cut edge;
   - the size follows the host, so a phone gets stickers that fit its rows;
   - reduced motion places every sticker where it lands, still, and dragging still works.
   Drag and fling them away like the original: momentum, friction, bounce off the edges.
@@ -16,19 +17,21 @@ const FRICTION = 0.92;
 const BOUNCE = 0.55;
 const MIN_VEL = 0.05;
 const THROW_SCALE = 0.7;
-const GRAB_SCALE = 1.1;
+const GRAB_SCALE = 1.04;
 const DRAG_EASE = 0.28;
 const SPIN_FROM_THROW = 0.18;
 const SPIN_FRICTION = 0.9;
-const FLIGHT_MS = 520;
+const FLIGHT_MS = 420;
 const STAGGER_MS = 260;
 const TAP_SLOP = 5;
 
 const fontString = (d, size) => `${d.style || "normal"} ${d.weight} ${size}px ${d.font}`;
 
 function renderSticker(d, size, dpr) {
-  const border = Math.max(4, Math.round(size * 0.14));
-  const off = Math.max(3, Math.round(size * 0.09));
+  /* a kiss-cut vinyl sticker: the word in Ink on a colour plate that follows its letters,
+     and a Chalk die-cut edge around that, as a printed sticker sits on its backing. No shadow. */
+  const plate = Math.max(3, Math.round(size * 0.12));
+  const edge = Math.max(3, Math.round(size * 0.1));
   const font = fontString(d, size);
   const meas = document.createElement("canvas").getContext("2d");
   meas.font = font;
@@ -37,53 +40,42 @@ function renderSticker(d, size, dpr) {
   const descent = Math.max(m.actualBoundingBoxDescent || 0, size * 0.16);
   const left = Math.max(0, m.actualBoundingBoxLeft || 0);
   const textW = Math.max(m.width, left + (m.actualBoundingBoxRight || m.width));
-  const pad = border + 2;
+  const pad = plate + edge + 2;
   const sW = Math.ceil(textW + pad * 2);
   const sH = Math.ceil(ascent + descent + pad * 2);
   const bx = pad + left;
   const by = pad + ascent;
 
-  const base = document.createElement("canvas");
-  base.width = Math.ceil(sW * dpr);
-  base.height = Math.ceil(sH * dpr);
-  const b = base.getContext("2d");
-  b.scale(dpr, dpr);
-  b.font = font;
-  b.fillStyle = d.base;
-  for (let r = border; r > 0.5; r -= 1) {
-    const n = Math.max(16, Math.ceil(r * Math.PI * 2 * dpr * 0.6));
-    for (let a = 0; a < n; a++) {
-      const ang = (a / n) * Math.PI * 2;
-      b.fillText(d.word, bx + Math.cos(ang) * r, by + Math.sin(ang) * r);
-    }
-  }
-  b.fillText(d.word, bx, by);
-  b.fillStyle = d.fill;
-  b.fillText(d.word, bx, by);
-
-  const cssW = sW + off * 2;
-  const cssH = sH + off * 2;
   const out = document.createElement("canvas");
-  out.width = Math.ceil(cssW * dpr);
-  out.height = Math.ceil(cssH * dpr);
+  out.width = Math.ceil(sW * dpr);
+  out.height = Math.ceil(sH * dpr);
   const o = out.getContext("2d");
-  const s = document.createElement("canvas");
-  s.width = base.width; s.height = base.height;
-  const sc = s.getContext("2d");
-  sc.drawImage(base, 0, 0);
-  sc.globalCompositeOperation = "source-in";
-  sc.fillStyle = d.shadow || "#141311";
-  sc.fillRect(0, 0, s.width, s.height);
-  o.drawImage(s, off * 2 * dpr, off * 2 * dpr);
-  o.drawImage(base, off * dpr, off * dpr);
-  return { canvas: out, w: cssW, h: cssH, inset: off };
+  o.scale(dpr, dpr);
+  o.font = font;
+  const dilate = (r, colour) => {
+    o.fillStyle = colour;
+    for (let k = r; k > 0.5; k -= 1) {
+      const n = Math.max(16, Math.ceil(k * Math.PI * 2 * dpr * 0.6));
+      for (let a = 0; a < n; a++) {
+        const ang = (a / n) * Math.PI * 2;
+        o.fillText(d.word, bx + Math.cos(ang) * k, by + Math.sin(ang) * k);
+      }
+    }
+    o.fillText(d.word, bx, by);
+  };
+  dilate(plate + edge, d.edge || "#FBFAF6");
+  dilate(plate, d.base);
+  o.fillStyle = d.fill;
+  o.fillText(d.word, bx, by);
+  return { canvas: out, w: sW, h: sH, inset: 0 };
 }
 
-const backOut = (t) => { const c = 1.9; const u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u; };
+/* ease-out-quad, the page's one curve: no overshoot on the landing */
+const easeOut = (t) => t * (2 - t);
 
 export function mount(el, opts = {}) {
   const defs = opts.stickers || [];
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduced = !!opts.still || matchMedia("(prefers-reduced-motion: reduce)").matches;
   const host = el;
   const dpr = Math.min(devicePixelRatio || 1, 2);
   let W = host.clientWidth || 1;
@@ -121,13 +113,13 @@ export function mount(el, opts = {}) {
     if (it.fly < 1) {
       /* in flight: from outside the window to home, spinning down to its resting angle */
       const t = it.flyAt ? Math.max(0, it.fly) : 0;
-      const k = backOut(t);
+      const k = easeOut(t);
       const from = it.def.from || "left";
       const fx = from === "left" ? -it.w - 40 : from === "right" ? W + 40 : it.hx;
       const fy = from === "top" ? -it.h - 60 : it.hy - H * 0.35;
       x = fx + (it.hx - fx) * k;
       y = fy + (it.hy - fy) * k;
-      rot = it.rot + (1 - k) * (from === "right" ? 70 : -70);
+      rot = it.rot + (1 - k) * (from === "right" ? 40 : -40);
       s = it.flyAt ? 1 : 0;
     }
     const sx = s * (1 + it.sq), sy = s * (1 - it.sq);
@@ -169,7 +161,7 @@ export function mount(el, opts = {}) {
       try { it.el.releasePointerCapture(e.pointerId); } catch {}
       drag = null;
       if (reduced) { it.vx = it.vy = 0; return; }
-      if (tap) { it.vx = it.vy = 0; it.sq = 0.12; }
+      if (tap) { it.vx = it.vy = 0; }
       else { it.vx *= THROW_SCALE; it.vy *= THROW_SCALE; it.vr = it.vx * SPIN_FROM_THROW; }
       wake();
     };
@@ -190,7 +182,7 @@ export function mount(el, opts = {}) {
       if (it.fly < 1) {
         if (it.flyAt && now >= it.flyAt) {
           it.fly = Math.min(1, (now - it.flyAt) / FLIGHT_MS);
-          if (it.fly >= 1) { it.x = it.hx; it.y = it.hy; it.sq = 0.16; it.el.style.zIndex = String(++zTop); }
+          if (it.fly >= 1) { it.x = it.hx; it.y = it.hy; it.el.style.zIndex = String(++zTop); }
         }
         busy = true; place(it); continue;
       }
@@ -232,7 +224,11 @@ export function mount(el, opts = {}) {
     }
     wake();
   };
-  const stop = () => { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; };
+  const stop = () => {
+    running = false; if (raf) cancelAnimationFrame(raf); raf = 0; last = 0;
+    /* a throw cut short by scrolling away lands at once, so nobody comes back to a sticker stuck mid-air */
+    for (const it of items) if (it.flyAt && it.fly < 1) { it.fly = 1; it.x = it.hx; it.y = it.hy; place(it); }
+  };
   const sync = () => { if (reduced) return; if (onScreen && !hidden) start(); else stop(); };
   const io = new IntersectionObserver((es) => { onScreen = es[0] ? es[0].isIntersecting : false; sync(); }, { threshold: 0.45 });
   io.observe(host);

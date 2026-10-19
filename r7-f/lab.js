@@ -3,6 +3,8 @@
 import { rate, rateWorks, fixtureSnapshot, FIXTURE_NOW, SPECS, signed } from "../assets/engine/rating/browser.js";
 import { successFee, buyerPremium, TAKE_RATE, formatMoney } from "../assets/engine/market/browser.js";
 import { example, benchmark, BANDS, BENCHMARK_LINE } from "../assets/r5/examples.js";
+import { drawBlock } from "../fx/halftone.js";
+import { createHundred } from "./hundred.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -20,9 +22,9 @@ const MADE = {
 
 /* ---------------------------------------------------------------- size and reach */
 const sSize = $("[data-sl-size]"), sReach = $("[data-sl-reach]");
-const grid = $("[data-lab-hundred]");
-grid.innerHTML = Array.from({ length: 100 }, (_, i) => `<i style="--i:${i}"></i>`).join("");
-const cells = [...grid.children];
+const C = { ink: "#141311", cobalt: "#1F4BFF", claret: "#6F1726", ember: "#FF5A1F" };
+const accent = () => (document.documentElement.dataset.scheme === "pink" ? C.claret : C.cobalt);
+const labField = createHundred($("[data-lab-hundred]"), { cols: 10, rows: 10, cell: 14, palette: () => ({ lit: accent(), dots: C.ink, you: C.ember }) });
 let kind = "channel", spec, lo, hi, base, bm;
 const RMIN = 0.2, RMAX = 4;
 const R = 200;
@@ -53,6 +55,8 @@ export function labKind(k) {
   $("[data-ups-noun]").textContent = `Each ${noun}`;
   reset();
 }
+/* The webkit track paints its filled part from --p. */
+const fillRanges = () => { for (const r of $$(".range")) r.style.setProperty("--p", `${((r.value - r.min) / (r.max - r.min)) * 100}%`); };
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const platformWord = (p) => ({ youtube: "YouTube", substack: "Substack", twitch: "Twitch", podcast: "podcast", photography: "photography" })[p] ?? p;
 
@@ -82,7 +86,7 @@ function run(exact = false) {
   $("[data-lab-signed]").textContent = signed(r.rating);
   $("[data-lab-band]").textContent = r.band;
   $("[data-lab-bands]").innerHTML = BANDS.map((b) => `<li${b === r.band ? ' class="is" aria-current="true"' : ""}>${b}</li>`).join("");
-  cells.forEach((c, i) => { c.classList.toggle("on", i < beat); c.classList.toggle("you", i === beat); });
+  labField.show({ n: beat, you: beat });
 
   /* Chart one: typical reach for each size, yours drawn across it. */
   /* Hard scales that still show the move: the size chart grows to fit yours, the uploads chart is set by typical for your size. */
@@ -90,16 +94,30 @@ function run(exact = false) {
   const yH = Math.max(hMax, part.measured * 1.12);
   const pct = (v, m = yH) => `${Math.min(100, (v / m) * 100).toFixed(2)}%`;
   const fmt = (v) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
-  $("[data-hist]").innerHTML = bm.rows.map((row) => `<div class="hb${row.key === r.detail.bandKey ? " mine" : ""}"><span class="hb-v">${fmt(row.value)}</span><i style="height:${pct(row.value)}"></i><span class="hb-l">${row.label}</span></div>`).join("")
+  $("[data-hist]").innerHTML = bm.rows.map((row) => `<div class="hb${row.key === r.detail.bandKey ? " mine" : ""}"><span class="hb-v">${fmt(row.value)}</span><canvas style="height:${pct(row.value)}"></canvas><span class="hb-l">${row.label}</span></div>`).join("")
     + `<div class="you-line" style="bottom:${pct(part.measured)}"><span>Yours ${fmt(part.measured)}</span></div>`;
 
   /* Chart two: the last twelve against typical for this size. */
   const typical = bm.rows.find((x) => x.key === r.detail.bandKey)?.value ?? 0;
   const works = rateWorks(snap, FIXTURE_NOW).filter((w) => w.matured).slice(0, 12).reverse();
   const uMax = typical * 7;
-  $("[data-ups]").innerHTML = works.map((w) => { const v = w.multiple * part.measured; return `<i class="${v > typical ? "up" : ""}${v > uMax ? " over" : ""}" style="height:${pct(v, uMax)}"></i>`; }).join("")
+  $("[data-ups]").innerHTML = works.map((w) => { const v = w.multiple * part.measured; return `<canvas class="${v > typical ? "up" : ""}" style="height:${pct(v, uMax)}"></canvas>`; }).join("")
     + `<div class="ty-line" style="bottom:${pct(typical, uMax)}"></div>`;
+  paintBars();
+  fillRanges();
 }
+
+/* Each bar is one halftone ramp on the 45 degree screen: Ink dots thinning upward, yours and the
+   uploads above typical closed to the solid accent. One pitch for every bar. */
+function paintBars() {
+  for (const cv of $$("[data-hist] canvas, [data-ups] canvas")) {
+    const on = cv.classList.contains("up") || cv.parentElement.classList.contains("mine");
+    drawBlock(cv, on
+      ? { base: null, ink: accent(), pitch: 4, angle: 45, dir: 90, from: 1, to: 1 }
+      : { base: null, ink: C.ink, pitch: 4, angle: 45, dir: 90, from: 0.12, to: 0.6 });
+  }
+}
+export function labRedraw() { labField.redraw(); paintBars(); }
 let raf = 0;
 const onInput = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; run(); }); };
 sSize.addEventListener("input", onInput);
@@ -122,6 +140,7 @@ function deal() {
   sDeal.setAttribute("aria-valuetext", money(v * 100));
   const tot = v * 100 + fee;
   $("[data-deal-bar]").innerHTML = `<i class="s-you" style="flex-grow:${v * 100 / tot}"><span>You</span></i><i class="s-fee" style="flex-grow:${fee / tot}"></i>`;
+  fillRanges();
   $("[data-deal-out]").innerHTML = `The brand pays Orbe <b>${money(fee)}</b>, ${bps / 100}% on top. You get <b>${money(v * 100)}</b>, all of it.`;
 }
 sDeal.addEventListener("input", deal);
@@ -151,6 +170,7 @@ function sale() {
     ? [`<li><span class="k s-fee s-t0"></span>The £4,000 minimum: ${money(f.fee.amount)}</li>`]
     : f.slices.map((s, i) => `<li><span class="k s-fee s-t${i}"></span>${s.rateBps / 100}% on ${money(s.from)} to ${money(s.to)}: ${money(s.fee)}</li>`))
     .concat(`<li><span class="k s-buy"></span>Buyer's premium, on top: ${money(p.fee.amount)}${p.minimumApplied ? " (the £1,000 minimum)" : ""}</li>`).join("");
+  fillRanges();
   $("[data-sale-out]").innerHTML = `Orbe's fee <b>${money(f.fee.amount)}</b>, ${(f.effectiveRateBps / 100).toFixed(1)}% of the price, from the proceeds. You keep <b>${money(keep)}</b>.`;
 }
 sSale.addEventListener("input", sale);

@@ -1,56 +1,69 @@
-/* Orbe r7-f: the story in a phone, in a loud world. Every rating figure comes from the engine via examples.js. */
+/* Orbe r7-f: the story in a phone, on a field that changes with each moment. Every rating figure comes from the engine via examples.js. */
 import { example, benchmark, ORDER, BANDS, EXAMPLE_LINE, mathsFor } from "../assets/r5/examples.js";
 import { ratingNotice } from "../assets/engine/rating/label.js";
 import { SPECS } from "../assets/engine/rating/kinds.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
-import { labKind } from "./lab.js";
+import { drawOrb } from "../r8-b/orb.js";
+import { createHundred, drawMini, easeUi } from "./hundred.js";
+import { labKind, labRedraw } from "./lab.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-let reduce = false;
-try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
+const root = document.documentElement;
+const reduce = !root.classList.contains("move");
 const handleOf = (v) => cleanHandle(v).toLowerCase();
 const N = 4;
 let cur = 0;
 let kind = "channel";
 let said = "";
 
-/* ---------- the hundred: one pixel per creator your size ---------- */
-const grid = $("[data-hundred]");
-grid.innerHTML = Array.from({ length: 100 }, (_, i) => `<i style="--i:${i};--dx:${0}px;--dy:${0}px"></i>`).join("");
-const cells = [...grid.children];
-/* a fixed scatter, so the pixels fly the same way every time */
-let seed = 11;
-const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-cells.forEach((c, i) => {
-  const col = i % 10, row = Math.floor(i / 10);
-  const ang = Math.atan2(row - 4.5, col - 4.5) + (rnd() - 0.5) * 1.2;
-  const d = 0.6 + rnd() * 1.6;
-  c.style.setProperty("--dx", `${(Math.cos(ang) * d).toFixed(2)}`);
-  c.style.setProperty("--dy", `${(Math.sin(ang) * d).toFixed(2)}`);
-});
-function light(n, you = n) {
-  cells.forEach((c, i) => { c.classList.toggle("on", i < n); c.classList.toggle("you", i === you); });
+/* ---------- colour: the field per moment, and what the art draws in on it ---------- */
+const C = { ink: "#141311", chalk: "#FBFAF6", cobalt: "#1F4BFF", claret: "#6F1726", ember: "#FF5A1F" };
+const scheme = () => (root.dataset.scheme === "pink" ? "pink" : "blue");
+const accent = () => (scheme() === "pink" ? C.claret : C.cobalt);
+const scenePal = () => (cur === N - 1 ? { lit: C.chalk, dots: C.chalk, you: C.ember } : { lit: accent(), dots: C.ink, you: C.ember });
+
+/* ---------- the hundred: one cell per creator your size ---------- */
+const hCanvas = $("[data-hundred]");
+const wide = matchMedia("(min-width: 768px)");
+const desk = matchMedia("(min-width: 1280px)");
+let hundred = null;
+let hState = { n: 93, you: 93 };
+function buildHundred() {
+  if (hundred) hundred.destroy();
+  hundred = wide.matches
+    ? createHundred(hCanvas, { cols: 10, rows: 10, cell: desk.matches ? 14 : 20, palette: scenePal })
+    : createHundred(hCanvas, { cols: 20, rows: 5, cell: 17, palette: scenePal, shape: "strip" });
+  hundred.show(hState, false);
 }
+buildHundred();
+wide.addEventListener?.("change", buildHundred);
+desk.addEventListener?.("change", buildHundred);
+function light(next, animate = true) { hState = next; hundred.show(next, animate, reduce); }
 const hk = $("[data-hk]"), hv = $("[data-hv]");
 let seqT = [];
 function clearSeq() { seqT.forEach(clearTimeout); seqT = []; }
 
-/* the zero, at the close */
-$("[data-zero]").innerHTML = Array.from({ length: 100 }, () => "<i></i>").join("");
+/* the zero, at the close: a hundred creators, none of them paying */
+const zero = createHundred($("[data-zero]"), { cols: 10, rows: 10, cell: wide.matches ? 20 : 16, palette: () => ({ lit: accent(), dots: C.ink, you: C.ember }) });
+zero.show({ n: 0, you: -1 });
 
 /* little hundreds in the windows: a fee is so many in 100 */
-for (const m of $$("[data-mini]")) {
-  const a = +m.dataset.mini, b = +(m.dataset.mini2 || 0);
-  m.innerHTML = Array.from({ length: 100 }, (_, i) => `<i class="${i < a ? "on" : i < a + b ? "on2" : ""}"></i>`).join("");
+const minis = $$("[data-mini]").map((m) => drawMini(m, +m.dataset.mini, +(m.dataset.mini2 || 0), { ink: C.ink }));
+
+/* ---------- small orbs: each creator filled to the score their story leads with ---------- */
+const leadOf = (k) => { const e = example(k); return k === "newsletter" ? e.result.parts.find((p) => p.key === "conversion") : e.parts[0]; };
+function drawOrbs() {
+  for (const cv of $$("[data-tk] canvas")) drawOrb(cv, { fill: leadOf(cv.dataset.k).score / 100, pitch: 4, ink: accent(), rim: C.ink });
+  drawOrb($("[data-orb-post]"), { fill: leadOf(kind).score / 100, pitch: 4, ink: accent(), rim: C.ink });
+  drawOrb($("[data-orb-next]"), { fill: 0, pitch: 4, ink: C.chalk, rim: C.chalk });
 }
 
 /* ---------- every kind can play the story ---------- */
-const initials = { channel: "FR", newsletter: "MN", stream: "NS", podcast: "LT", portfolio: "LP" };
 const trayLabel = { channel: "YouTube", newsletter: "Substack", stream: "Twitch", podcast: "Podcast", portfolio: "Photos" };
 const tray = $("[data-tray]");
-tray.innerHTML = ORDER.map((k) => `<button type="button" data-tk="${k}" aria-pressed="false"><span class="tr-av" aria-hidden="true">${initials[k]}</span><span class="tr-k">${trayLabel[k]}</span></button>`).join("");
+tray.innerHTML = ORDER.map((k) => `<button type="button" data-tk="${k}" aria-pressed="false"><canvas data-k="${k}" aria-hidden="true"></canvas><span>${trayLabel[k]}</span></button>`).join("");
 
 const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 function firstSentence(e, lead) {
@@ -63,7 +76,7 @@ function setKind(k) {
   kind = k;
   const e = example(k);
   /* Newsletters lead with new paying subscribers, not opens: tracked opens include machine opens. */
-  const lead = k === "newsletter" ? e.result.parts.find((p) => p.key === "conversion") : e.parts[0];
+  const lead = leadOf(k);
   leadScore = lead.score;
   const count = WORDS[mathsFor(k).length] ?? String(mathsFor(k).length);
   said = `My ${e.word} is rated ${e.signed}, ${e.band}, against ${e.peers} my size.`;
@@ -85,7 +98,7 @@ function setKind(k) {
   $("[data-peers-you]").textContent = e.peers;
   $("[data-copied]").textContent = "";
   hk.textContent = `100 ${e.peers} your size`;
-  wantTok = e.peers;
+  drawOrbs();
   requestAnimationFrame(() => setTimeout(() => { enter(cur, true); labKind(k); }, 0));
 }
 
@@ -114,10 +127,9 @@ function setYard(k) {
   $("[data-yard-part]").textContent = `Against ${e.peers}, ${what}`;
   $("[data-yard]").setAttribute("aria-label", `One ${e.word}'s ${what}, against three sizes of ${e.peers}`);
   $("[data-yard]").innerHTML = [[first], [last], [mine, true]].map(([row, m]) => `<li class="y${m ? " mine" : ""}">
-    <span class="y-vs">${m ? `Its size<small>${row.label}</small>` : row.label}</span>
+    <span class="y-vs">${m ? `Its size, ${row.label}` : row.label}</span>
     <span class="y-say"><span class="y-w">${say(beats(row), m || !banded)}</span>${m || !banded ? "" : '<span class="vh"> Not a fair comparison.</span>'}</span>
     <b class="y-n">${beats(row)}</b>
-    <span class="y-bar" aria-hidden="true"><i style="width:${beats(row)}%"></i></span>
   </li>`).join("");
   yardWin.classList.toggle("flat", !banded);
   $("[data-yard-why]").innerHTML = banded
@@ -130,7 +142,7 @@ function setYard(k) {
 function strike() {
   yardWin.classList.remove("struck"); void yardWin.offsetWidth;
   if (reduce) { yardWin.classList.add("struck"); return; }
-  setTimeout(() => yardWin.classList.add("struck"), 450);
+  setTimeout(() => yardWin.classList.add("struck"), 300);
 }
 const later = (fn) => requestAnimationFrame(() => setTimeout(fn, 0));
 tray.addEventListener("click", (ev) => {
@@ -144,16 +156,15 @@ tray.addEventListener("click", (ev) => {
 /* ---------- the second door: every example, rated live ---------- */
 $("[data-roll]").innerHTML = ORDER.map((k) => {
   const x = example(k);
-  const [, span = x.sizeBand, unit = ""] = x.sizeBand.match(/^(.*\d\S*)\s+(\D+)$/) ?? [];
-  return `<li><span class="rl-s">${span}<small>${unit}</small></span><span class="rl-n">${x.name}<small>${x.label}</small></span><b class="rl-r">${x.signed}</b><span class="rl-b">${x.band}</span></li>`;
+  return `<li><span class="rl-n">${x.name}<small>${x.label}, ${x.sizeBand}</small></span><span class="rl-r"><b>${x.signed}</b><small>${x.band}</small></span></li>`;
 }).join("");
 
-/* ---------- wordmarks ---------- */
+/* ---------- wordmarks, still ---------- */
 const wm = $("[data-wordmark]");
-if (wm) mountWordmark(wm, { animate: !reduce });
+if (wm) mountWordmark(wm, { animate: false });
 for (const el of $$("[data-wordmark-small]")) mountWordmark(el, { animate: false });
 
-/* ---------- numbers that arrive: once, from zero, no bounce ---------- */
+/* ---------- numbers that arrive: once, from zero, ease-out, no bounce ---------- */
 function countUp(el) {
   const final = el.dataset.final ?? (el.dataset.final = el.textContent.trim());
   const m = final.match(/^([+\-−]?)(\d+(?:\.\d+)?)(.*)$/);
@@ -162,36 +173,14 @@ function countUp(el) {
   const dp = (num.split(".")[1] || "").length;
   const target = parseFloat(num);
   const t0 = performance.now();
-  const ease = (t) => 1 - Math.pow(1 - t, 4);
   el.setAttribute("aria-label", final);
   const step = (now) => {
     if (el.dataset.final !== final) return;
     const t = Math.min(1, Math.max(0, (now - t0) / 900));
-    el.textContent = sign + (target * ease(t)).toFixed(dp) + rest;
+    el.textContent = sign + (target * easeUi(t)).toFixed(dp) + rest;
     if (t < 1) requestAnimationFrame(step); else { el.textContent = final; el.removeAttribute("aria-label"); }
   };
   requestAnimationFrame(step);
-}
-
-/* ---------- the giant statement: Odin's typed token, one kind of creator at a time ---------- */
-const tok = $("[data-tok]");
-const TOKS = ["creators", ...ORDER.map((k) => example(k).peers)];
-let wantTok = null;
-if (!reduce) {
-  let ti = 0;
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  (async () => {
-    await sleep(4200);
-    for (;;) {
-      const next = wantTok ?? TOKS[(ti = (ti + 1) % TOKS.length)];
-      wantTok = null;
-      if (next !== tok.textContent) {
-        while (tok.textContent.length) { tok.textContent = tok.textContent.slice(0, -1); await sleep(38); }
-        for (const ch of next) { tok.textContent += ch; await sleep(62); }
-      }
-      for (let w = 0; w < 26 && !wantTok; w++) await sleep(100);
-    }
-  })();
 }
 
 /* ---------- the story ---------- */
@@ -201,28 +190,24 @@ const groups = $$(".pg");
 const phone = $("[data-phone]");
 let paused = reduce;
 let away = false;
-const DUR = 7000;
 
 function enter(i, again = false) {
   const p = moments[i];
   clearSeq();
-  grid.classList.remove("scatter", "ask");
   if (i === 0) {
-    light(leadScore);
+    light({ n: leadScore, you: leadScore });
     hv.textContent = `You beat ${leadScore}`;
     p.classList.remove("fill"); void p.offsetWidth; p.classList.add("fill");
   } else if (i === 1) {
     strike();
-    const show = ([label, n]) => { light(n); hv.textContent = `${label}: ${n}`; };
-    if (reduce) show(yardSeq[yardSeq.length - 1]);
-    else yardSeq.forEach((s, n) => seqT.push(setTimeout(() => show(s), n * 1100)));
+    const show = ([label, n], anim) => { light({ n, you: n }, anim); hv.textContent = `${label}: ${n}`; };
+    if (reduce) show(yardSeq[yardSeq.length - 1], false);
+    else yardSeq.forEach((s, n) => seqT.push(setTimeout(() => show(s, true), n * 1100)));
   } else if (i === 2) {
-    light(leadScore);
+    light({ n: leadScore, you: leadScore });
     hv.textContent = `Posted: ${example(kind).signed}, ${example(kind).band}`;
-    grid.classList.add("scatter");
   } else {
-    light(0, 44);
-    grid.classList.add("ask");
+    light({ n: 0, you: 44, ask: true });
     hv.textContent = "You beat ? in 100";
   }
   if (!again || i < 2) for (const el of $$("[data-count]", p)) countUp(el);
@@ -231,12 +216,13 @@ function enter(i, again = false) {
 function setScene(i) {
   cur = ((i % N) + N) % N;
   document.body.dataset.scene = String(cur);
+  hundred.redraw();
   moments.forEach((q, n) => { q.classList.toggle("is-on", n === cur); q.toggleAttribute("inert", n !== cur); q.setAttribute("aria-hidden", String(n !== cur)); });
   groups.forEach((g, n) => g.classList.toggle("is-on", n === cur));
   bars.forEach((b, n) => { b.classList.toggle("done", n < cur || (reduce && n === cur)); b.classList.remove("run"); });
   $("[data-pos]").textContent = String(cur + 1);
   syncPlay();
-  /* The press paints first; the strokes, the hundred and the counts follow on the next frame. */
+  /* The press paints first; the hundred and the counts follow on the next frame. */
   const at = cur;
   requestAnimationFrame(() => setTimeout(() => {
     if (at !== cur) return;
@@ -276,6 +262,17 @@ if ("IntersectionObserver" in window) {
 setKind("channel");
 setScene(0);
 requestAnimationFrame(() => document.body.classList.add("ready"));
+
+/* ---------- the scheme: blue or pink, remembered ---------- */
+function setScheme(c) {
+  root.dataset.scheme = c;
+  try { localStorage.setItem("orbe-r7f-scheme", c); } catch {}
+  for (const b of $$("[data-scheme-set]")) b.setAttribute("aria-pressed", String(b.dataset.schemeSet === c));
+  $('meta[name="theme-color"]').setAttribute("content", c === "pink" ? "#F2879E" : "#9EE9FB");
+  hundred.redraw(); zero.redraw(); minis.forEach((m) => m.draw()); drawOrbs(); labRedraw();
+}
+for (const b of $$("[data-scheme-set]")) b.addEventListener("click", () => setScheme(b.dataset.schemeSet));
+for (const b of $$("[data-scheme-set]")) b.setAttribute("aria-pressed", String(b.dataset.schemeSet === scheme()));
 
 /* ---------- the rating is the post: copy the line ---------- */
 $("[data-copy]").addEventListener("click", async () => {

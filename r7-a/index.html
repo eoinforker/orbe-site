@@ -4,19 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Orbe, your work rated</title>
-<meta name="description" content="Orbe rates your work against creators your size. Free, for good.">
+<meta name="description" content="Orbe rates your work against creators your size. Free for creators. Orbe earns a percentage only when money moves.">
 <meta name="theme-color" content="#9EE9FB">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
-<script>
-  /* Motion is opt-in: only a browser that runs this and allows motion gets the starting poses. */
-  (function () {
-    var d = document.documentElement;
-    d.classList.add("js");
-    var still = false;
-    try { still = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
-    if (!still) d.classList.add("move");
-  })();
-</script>
 <link rel="stylesheet" href="../assets/fonts.css">
 <link rel="stylesheet" href="../assets/brand/tokens.css">
 <link rel="stylesheet" href="style.css">
@@ -25,161 +15,168 @@
 <body>
 <a class="skip" href="#reserve">Skip to reserving your handle</a>
 
-<header class="top">
-  <a class="mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
-  <nav class="nav" aria-label="Main">
-    <a class="nav-w" href="#money">When money moves</a>
-    <a class="nav-w" href="#buyers">For buyers</a>
-    <a class="nav-cta" href="#reserve">Reserve<span class="nav-w">&nbsp;your handle</span></a>
-  </nav>
+<header class="nav" data-nav>
+  <div class="wrap nav-in">
+    <a class="nav-mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#beat">How the rating works</a>
+      <a href="#money">When money moves</a>
+      <a href="#buyers">For buyers</a>
+      <a class="nav-cta" href="#reserve">Reserve your handle</a>
+    </nav>
+    <button class="nav-menu" type="button" aria-expanded="false" aria-controls="sheet" data-menu><span class="vh">Menu</span><i aria-hidden="true"></i></button>
+  </div>
+  <div class="sheet" id="sheet" hidden data-sheet>
+    <a href="#beat">How the rating works</a>
+    <a href="#money">When money moves</a>
+    <a href="#buyers">For buyers</a>
+    <a href="#reserve">Reserve your handle</a>
+  </div>
 </header>
 
 <main>
 
-  <!-- 1. SKY. What it is, who it is for, what to do; then the hundred, which you can drag. -->
+  <!-- 1. SKY. The H1 over the hundred, then the hundred you can re-rate by size. -->
   <section class="panel p-sky" aria-labelledby="h1">
-    <div class="scatter sc-a" data-scatter="14" aria-hidden="true"></div>
-    <div class="hundred hundred-hero" data-hundred-hero aria-hidden="true"></div>
-
     <div class="hero">
-      <h1 id="h1" class="mega" data-words>Your work, rated against creators your&nbsp;size<span class="dot" aria-hidden="true"></span><span class="vh">.</span></h1>
-      <p class="lede">Free for YouTubers, writers, streamers, podcasters and photographers. Reserve the handle for yours.</p>
-      <form class="res res-hero" data-reserve novalidate>
-        <label class="res-in"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
-        <label class="res-sel"><span class="vh">What you make</span><select name="kind" data-kind>
-          <option value="channel" selected>YouTube</option><option value="newsletter">Substack</option><option value="stream">Twitch</option><option value="podcast">Podcast</option><option value="portfolio">Photography</option>
-        </select></label>
-        <button type="submit" class="go">Reserve my handle</button>
-        <p class="note" data-note aria-live="polite">Free, for good. Ratings open with YouTube first.</p>
-      </form>
-    </div>
-
-    <div class="beat-wrap" id="beat">
-      <p class="kick"><span class="kick-sq" aria-hidden="true"></span>Where <b data-b="handle">@fieldrecordings</b> stands</p>
-      <div class="tray" role="group" aria-label="Whose example to show" data-tray></div>
-      <div class="beat">
-        <div class="beat-l">
-          <h2 class="beat-h">
-            <span class="bw">You beat</span>
-            <span class="beat-n" data-beat-n>93</span>
-            <span class="bw">in 100 <span data-b="peers">channels</span> <span data-size-say>your&nbsp;size</span>.</span>
-          </h2>
-        </div>
-        <figure class="hundred-fig">
-          <div class="hundred" data-hundred role="img" aria-label="A hundred channels your size, one square each"></div>
-          <figcaption class="mono cap"><span class="key k-beat"></span><span data-beat-cap>93</span> beaten <span class="key k-you"></span>you <span class="key k-up"></span>ahead</figcaption>
-        </figure>
-        <div class="beat-ctl">
-          <div class="ctl" data-ctl="size">
-            <div class="ctl-top">
-              <label class="ctl-l mono" for="sl-size">Same <span data-b="works">uploads</span>. Drag the <span data-b="audNoun">subscribers</span>.</label>
-              <button type="button" class="ctl-reset mono" data-reset="size">Reset</button>
-            </div>
-            <output class="ctl-out" for="sl-size" data-out="size">412,000</output>
-            <p class="ctl-sub mono" data-out="sizeBand">250k to 1M subscribers</p>
-            <input id="sl-size" class="slider" type="range" min="0" max="1000" step="10" value="500" data-slider="size" aria-describedby="sl-size-d">
-            <div class="ticks mono" data-ticks="size" aria-hidden="true"></div>
-            <p id="sl-size-d" class="ctl-d">The same uploads, read against a different size. The engine re-rates them each time you move it.</p>
-          </div>
+      <div class="hero-art">
+        <div class="hero-field"><canvas data-hero-field role="img" aria-label=""></canvas></div>
+        <p class="hero-cap"><span class="hero-n" data-hero-n>93</span><span class="hero-t">in 100 <span data-hero-peers>channels</span> its size. <span data-hero-name>Field Recordings</span>, reach.</span></p>
+      </div>
+      <div class="wrap hero-in">
+        <h1 id="h1" class="h1">Your work,<br> rated against<br> creators your size.</h1>
+        <p class="lede">Free for YouTubers, writers, streamers, podcasters and photographers. Reserve the handle for yours.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#reserve">Reserve my handle</a>
+          <a class="btn btn-secondary" href="#beat">How the rating works</a>
         </div>
       </div>
-      <p class="fact"><span data-b="fact">A typical upload from Field Recordings reaches 152,203 people, 37% of its subscribers.</span> <span data-b="weighs">The rating weighs all five: +1.23, Good.</span></p>
-      <p class="fine">Independently calculated by Orbe. <span data-b="line">A made-up creator, rated live by the Orbe engine.</span></p>
+    </div>
+
+    <div class="wrap beat" id="beat" aria-labelledby="beat-h">
+      <div class="beat-top">
+        <p class="h5">Where <span data-b="handle">@fieldrecordings</span> stands</p>
+        <div class="tray" role="group" aria-label="Whose example to show" data-tray></div>
+      </div>
+      <div class="beat-grid">
+        <figure class="beat-fig">
+          <div class="fieldwrap"><canvas data-hundred role="img" aria-label=""></canvas></div>
+          <figcaption class="key small"><span><i class="sw sw-beat" aria-hidden="true"></i><span data-beat-cap>93</span> beaten</span><span><i class="sw sw-you" aria-hidden="true"></i>You</span><span><i class="sw sw-up" aria-hidden="true"></i>Ahead</span></figcaption>
+        </figure>
+        <div class="beat-copy">
+          <h2 id="beat-h" class="dl beat-h">You beat <span data-beat-n>93</span> in&nbsp;100 <span data-b="peers">channels</span> <span data-size-say>your&nbsp;size</span>.</h2>
+          <div class="ctl" data-ctl="size">
+            <div class="ctl-top">
+              <label class="ctl-l" for="sl-size">Same <span data-b="works">uploads</span>. Drag the <span data-b="audNoun">subscribers</span>.</label>
+              <button type="button" class="reset" data-reset="size">Reset</button>
+            </div>
+            <p class="ctl-out"><output for="sl-size" data-out="size">412,000</output> <span class="ctl-sub" data-out="sizeBand">250k to 1M subscribers</span></p>
+            <input id="sl-size" type="range" min="0" max="1000" step="1" value="500" data-slider="size" aria-describedby="sl-size-d">
+            <div class="ticks" data-ticks="size" aria-hidden="true"></div>
+            <p id="sl-size-d" class="small soft">The same <span data-b="works">uploads</span>, read against a different size. The engine re-rates them each time you move it.</p>
+          </div>
+          <p class="body-p"><span data-b="fact">A typical upload from Field Recordings reaches 152,203 people, 37% of its subscribers.</span> <span data-b="weighs">The rating weighs all five: +1.23, Good.</span></p>
+          <p class="small soft">Independently calculated by Orbe. <span data-b="line">A made-up creator, rated live by the Orbe engine.</span></p>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- 2. COBALT. The rating: drag the reach, watch it move. -->
   <section class="panel p-cobalt" aria-labelledby="zero-h">
-    <div class="scatter sc-b" data-scatter="10" aria-hidden="true"></div>
-    <div class="in">
-      <p class="kick kick-on-deep"><span class="kick-sq" aria-hidden="true"></span>The Orbe Rating</p>
-      <h2 id="zero-h" class="mega mega-2" data-words>Zero is typical.</h2>
-
-      <div class="rate-grid">
-        <div class="ctl ctl-deep" data-ctl="reach">
-          <div class="ctl-top">
-            <label class="ctl-l mono" for="sl-reach">Drag how many people a typical <span data-b="work">upload</span> reaches</label>
-            <button type="button" class="ctl-reset mono" data-reset="reach">Reset</button>
+    <div class="wrap split">
+      <div class="rail">
+        <p class="kick small">The Orbe Rating</p>
+        <h2 id="zero-h" class="dm">Zero<br>is<br>typical.</h2>
+      </div>
+      <div class="content">
+        <div class="pair">
+          <div class="ctl" data-ctl="reach">
+            <div class="ctl-top">
+              <label class="ctl-l" for="sl-reach">Drag how many people a typical <span data-b="work">upload</span> reaches</label>
+              <button type="button" class="reset" data-reset="reach">Reset</button>
+            </div>
+            <p class="ctl-out"><output for="sl-reach" data-out="reach">152,203</output> <span class="ctl-sub"><span data-b="countNoun">views</span>, <span data-out="share">37% of subscribers</span></span></p>
+            <input id="sl-reach" type="range" min="0" max="1000" step="1" value="500" data-slider="reach" aria-describedby="sl-reach-d">
+            <div class="ticks" data-ticks="reach" aria-hidden="true"></div>
+            <p id="sl-reach-d" class="small soft">Every <span data-b="work">upload</span> scaled together. The rating, the band and the hundred are recalculated by the engine.</p>
           </div>
-          <output class="ctl-out" for="sl-reach" data-out="reach">152,203</output>
-          <p class="ctl-sub mono"><span data-b="countNoun">views</span> a typical <span data-b="work">upload</span>, <span data-out="share">37% of subscribers</span></p>
-          <input id="sl-reach" class="slider" type="range" min="0" max="1000" step="10" value="500" data-slider="reach" aria-describedby="sl-reach-d">
-          <div class="ticks mono" data-ticks="reach" aria-hidden="true"></div>
-          <p id="sl-reach-d" class="ctl-d">Every upload scaled together. The rating, the band and the hundred are recalculated by the engine.</p>
+          <figure class="rating" aria-live="polite">
+            <p class="score"><span class="vh">The Orbe Rating: </span><span class="dm" data-out="signed">+1.23</span> <span class="h4" data-out="band">Good</span></p>
+            <div class="scale" data-scale aria-hidden="true"></div>
+            <figcaption class="small soft">Zero is the typical <span data-b="peerOne">channel</span> your size.</figcaption>
+          </figure>
         </div>
 
-        <figure class="rating-fig" aria-live="polite">
-          <p class="fig"><span class="vh">The Orbe Rating: </span><span class="fig-n" data-out="signed">+1.23</span> <i data-out="band">Good</i></p>
-          <div class="scale" data-scale aria-hidden="true"></div>
-          <p class="scale-cap mono">Zero is the typical <span data-b="peerOne">channel</span> your size</p>
-        </figure>
-      </div>
+        <div class="pair pair-figs">
+          <figure class="fig">
+            <figcaption class="h5">The hundred, by <span data-b="partLow">reach</span></figcaption>
+            <div class="histwrap">
+              <div class="fieldwrap"><canvas data-hist role="img" aria-label=""></canvas></div>
+              <span class="typ small" data-typ>Typical</span>
+            </div>
+            <p class="axis small" data-axis></p>
+            <p class="small soft" data-hist-cap>Each cell is one channel your size.</p>
+          </figure>
+          <figure class="fig">
+            <figcaption class="h5" data-yard-part>Against channels, reach: beats, in 100</figcaption>
+            <ol class="yard" data-yard></ol>
+            <p class="body-p" data-yard-why>Against small channels, ordinary. Against the giants, a genius. Neither is fair.</p>
+          </figure>
+        </div>
 
-      <div class="two">
-        <figure class="panel-chart">
-          <figcaption class="chart-h mono">The hundred, by <span data-b="partLow">reach</span></figcaption>
-          <div class="hist" data-hist role="img" aria-label=""></div>
-          <div class="hist-axis mono" data-axis></div>
-          <p class="chart-cap" data-hist-cap>Each square is one channel your size.</p>
-        </figure>
-
-        <figure class="panel-chart">
-          <figcaption class="chart-h mono"><span data-yard-part>Against channels, reach</span>: beats, in 100</figcaption>
-          <ol class="yard" data-yard></ol>
-          <p class="yard-why" data-yard-why>Against small channels, ordinary. Against the giants, a genius. <b>Neither is fair.</b></p>
-          <ul class="parts" data-parts></ul>
-        </figure>
+        <ul class="parts" data-parts></ul>
+        <p class="small soft"><span data-b="weights">The weights for channels: Reach 30%, Momentum 25%, Hit rate 20%, Engagement 15%, Cadence 10%.</span> <span data-b="notice">Independently calculated by Orbe.</span></p>
       </div>
-      <p class="fine fine-deep"><span data-b="weights">The weights for channels: Reach 30%, Momentum 25%, Hit rate 20%, Engagement 15%, Cadence 10%.</span> <span data-b="notice">Independently calculated by Orbe.</span></p>
     </div>
   </section>
 
   <!-- 3. STRAW. The rating you post, the uploads behind it, then your own handle. -->
-  <section class="panel p-straw" aria-labelledby="post-h" id="reserve">
-    <div class="in">
-      <p class="kick"><span class="kick-sq" aria-hidden="true"></span>The one you post</p>
-      <h2 id="post-h" class="mega mega-2" data-words>Your rating is the post.</h2>
-
-      <div class="post">
-        <figure class="win win-post" aria-label="The rating, as posted">
-          <figcaption class="bar"><span>Orbe Rating</span><span data-b="handle">@fieldrecordings</span></figcaption>
-          <div class="win-body post-body">
-            <div class="pixnum" data-pixnum aria-hidden="true"></div>
-            <p class="post-fig"><span class="vh" data-out="signed">+1.23</span> <b data-out="band">Good</b> <span data-b="against">against channels its size</span></p>
-            <p class="post-line">Independently calculated by Orbe.</p>
-          </div>
-        </figure>
-        <div class="post-side">
-          <blockquote class="said"><p data-said>“My channel is rated +1.23, Good, against channels my size.”</p></blockquote>
-          <div class="post-row">
-            <button type="button" class="go go-ink" data-copy>Copy the line</button>
-            <span class="pill">orbe.vc/<span data-b="handle">@fieldrecordings</span></span>
-          </div>
-          <p class="copied mono" data-copied aria-live="polite"></p>
-          <p class="fine"><span data-b="line">A made-up creator, rated live by the Orbe engine.</span></p>
-        </div>
+  <section class="panel p-straw" aria-labelledby="post-h">
+    <div class="wrap split">
+      <div class="rail">
+        <p class="kick small">The one you post</p>
+        <h2 id="post-h" class="dm">Your<br>rating is<br>the post.</h2>
       </div>
+      <div class="content">
+        <div class="pair post-pair">
+          <div class="post-col">
+            <figure class="post" aria-label="The rating, as posted">
+              <div class="fieldwrap pixwrap"><canvas data-pix aria-hidden="true"></canvas></div>
+              <figcaption class="post-fig"><span class="vh" data-out="signed">+1.23</span><span class="h4" data-out="band">Good</span> <span class="body-p"><span data-b="against">against channels its size</span>.</span> <span class="small">Independently calculated by Orbe.</span></figcaption>
+            </figure>
+            <blockquote class="said"><p class="h4" data-said>“My channel is rated +1.23, Good, against channels my size.”</p></blockquote>
+            <div class="post-row">
+              <button type="button" class="btn btn-primary btn-s" data-copy>Copy the line</button>
+              <span class="small">orbe.vc/<span data-b="handle">@fieldrecordings</span></span>
+            </div>
+            <p class="small" data-copied aria-live="polite"><span data-b="line">A made-up creator, rated live by the Orbe engine.</span></p>
+          </div>
 
-      <figure class="strip-fig">
-        <figcaption class="chart-h mono">The last twelve <span data-b="works">uploads</span>, against its own typical</figcaption>
-        <div class="strip" data-strip role="img" aria-label=""></div>
-        <p class="chart-cap" data-strip-cap>Squares above the line beat the channel's own typical upload. Ember did twice it or better.</p>
-      </figure>
+          <figure class="fig strip-fig">
+            <figcaption class="h5">The last twelve <span data-b="works">uploads</span>, against its own typical</figcaption>
+            <div class="stripwrap">
+              <div class="fieldwrap"><canvas data-strip role="img" aria-label=""></canvas></div>
+              <ol class="strip-x" data-strip-x aria-hidden="true"></ol>
+            </div>
+            <p class="small" data-strip-cap>Cells above the line beat the channel's own typical upload.</p>
+          </figure>
+        </div>
 
-      <div class="next">
-        <div class="hundred hundred-q" data-qfield aria-hidden="true"></div>
-        <div class="next-copy">
-          <h2 class="next-h" id="next-h"><span>Your story is next.</span></h2>
-          <p class="next-handle" aria-hidden="true">@<b data-mirror>yourhandle</b></p>
-          <p class="next-line">You beat ? in 100 <span data-peers-you>channels</span> your size. Reserve your handle and find out first.</p>
-          <form class="res res-stack" data-reserve novalidate aria-labelledby="next-h">
-            <label class="res-in"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
-            <label class="res-sel"><span class="vh">What you make</span><select name="kind" data-kind>
-              <option value="channel" selected>A YouTube channel</option><option value="newsletter">A newsletter</option><option value="stream">A Twitch stream</option><option value="podcast">A podcast</option><option value="portfolio">Photography</option>
-            </select></label>
-            <button type="submit" class="go go-ink">Reserve my handle</button>
-            <p class="note" data-note aria-live="polite">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
-          </form>
+        <div class="next" id="reserve">
+          <div class="fieldwrap qwrap"><canvas data-q aria-hidden="true"></canvas></div>
+          <div class="next-copy">
+            <h2 class="h4" id="next-h">Your story is next.</h2>
+            <p class="body-p">You beat ? in 100 <span data-peers-you>channels</span> your size. Reserve your handle and find out first.</p>
+            <form class="reserve" data-reserve novalidate aria-labelledby="next-h">
+              <label class="field-in"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
+              <label class="field-sel"><span class="vh">What you make</span><select name="kind" data-kind>
+                <option value="channel" selected>A YouTube channel</option><option value="newsletter">A newsletter</option><option value="stream">A Twitch stream</option><option value="podcast">A podcast</option><option value="portfolio">Photography</option>
+              </select></label>
+              <button type="submit" class="btn btn-primary">Reserve my handle</button>
+            </form>
+            <p class="small" data-note aria-live="polite">Free, for good. Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -187,100 +184,100 @@
 
   <!-- 4. EMBER. When money moves: drag the deal, watch the fee. -->
   <section class="panel p-ember" id="money" aria-labelledby="money-h">
-    <div class="scatter sc-c" data-scatter="12" aria-hidden="true"></div>
-    <div class="in">
-      <p class="kick"><span class="kick-sq" aria-hidden="true"></span>After the rating</p>
-      <h2 id="money-h" class="mega mega-2" data-words>Then, when money moves.</h2>
+    <div class="wrap split">
+      <div class="rail">
+        <p class="kick small">After the rating</p>
+        <h2 id="money-h" class="dm">Then,<br>when money<br>moves.</h2>
+        <div class="rec">
+          <h3 class="h5">Read from payouts, not estimates.</h3>
+          <p class="body-p">Every verified figure shows its source and the day we read it. Where a platform does not report payouts, we say so.</p>
+        </div>
+      </div>
+      <div class="content">
+        <div class="pair cards">
+          <article class="card" aria-labelledby="spon-h">
+            <p class="small soft">Sponsorships</p>
+            <h3 class="h4" id="spon-h">Sponsors, at a fair rate.</h3>
+            <p class="body-p"><b>15%</b> when Orbe finds the brand, <b>5%</b> when you bring your own. Paid by the brand, never by you, only when the sponsorship completes.</p>
+            <div class="seg" role="radiogroup" aria-label="Who found the brand">
+              <button type="button" role="radio" aria-checked="true" data-who="network">Orbe found it</button>
+              <button type="button" role="radio" aria-checked="false" data-who="direct">You brought it</button>
+            </div>
+            <div class="ctl" data-ctl="spon">
+              <div class="ctl-top"><label class="ctl-l" for="sl-spon">Drag the sponsorship</label></div>
+              <p class="ctl-out"><output for="sl-spon" data-out="spon">£10,000</output></p>
+              <input id="sl-spon" type="range" min="0" max="1000" step="1" value="500" data-slider="spon">
+              <div class="ticks" data-ticks="spon" aria-hidden="true"></div>
+            </div>
+            <figure class="money-fig">
+              <div class="fieldwrap"><canvas data-spon-field role="img" aria-label=""></canvas></div>
+              <figcaption class="small soft" data-spon-cap>What the brand pays, in a hundred cells.</figcaption>
+            </figure>
+            <dl class="rows" data-spon-sums aria-live="polite"></dl>
+          </article>
 
-      <div class="money">
-        <article class="m-box m-rec">
-          <p class="mono m-k">01 Your record</p>
-          <h3>Read from payouts, not estimates.</h3>
-          <p>Every verified figure shows its source and the day we read it. Where a platform does not report payouts, we say so.</p>
-        </article>
-
-        <article class="m-box m-spon">
-          <p class="mono m-k">02 Sponsorships</p>
-          <h3>Sponsors, at a fair rate.</h3>
-          <p class="fee"><b>15%</b> when Orbe finds the brand, <b>5%</b> when you bring your own. Paid by the brand, never by you, only when the sponsorship completes.</p>
-          <div class="ctl ctl-box" data-ctl="spon">
-            <label class="ctl-l mono" for="sl-spon">Drag the sponsorship</label>
-            <output class="ctl-out" for="sl-spon" data-out="spon">£10,000</output>
-            <input id="sl-spon" class="slider" type="range" min="0" max="1000" step="10" value="500" data-slider="spon">
-            <div class="ticks mono" data-ticks="spon" aria-hidden="true"></div>
-          </div>
-          <div class="seg" role="radiogroup" aria-label="Who found the brand">
-            <button type="button" role="radio" aria-checked="true" data-who="network">Orbe found it</button>
-            <button type="button" role="radio" aria-checked="false" data-who="direct">You brought it</button>
-          </div>
-          <div class="stack" data-spon-stack aria-hidden="true"></div>
-          <dl class="sums" data-spon-sums aria-live="polite"></dl>
-        </article>
-
-        <article class="m-box m-sell">
-          <p class="mono m-k">03 Selling</p>
-          <h3>A fair sale, when you want one.</h3>
-          <p class="fee"><b>8%</b> up to £500k, <b>5%</b> from £500k to £2M, <b>3%</b> above, £4,000 minimum. From the proceeds, only if it sells. Nothing if it doesn't.</p>
-          <div class="ctl ctl-box" data-ctl="sale">
-            <label class="ctl-l mono" for="sl-sale">Drag the sale price</label>
-            <output class="ctl-out" for="sl-sale" data-out="sale">£250,000</output>
-            <input id="sl-sale" class="slider" type="range" min="0" max="1000" step="10" value="500" data-slider="sale">
-            <div class="ticks mono" data-ticks="sale" aria-hidden="true"></div>
-          </div>
-          <div class="tiers" data-tiers aria-hidden="true"></div>
-          <dl class="sums" data-sale-sums aria-live="polite"></dl>
-          <p class="fine">Computed live by the Orbe fee engine. Before VAT.</p>
-        </article>
+          <article class="card" aria-labelledby="sale-h">
+            <p class="small soft">Selling</p>
+            <h3 class="h4" id="sale-h">A fair sale, when you want one.</h3>
+            <p class="body-p"><b>8%</b> up to £500k, <b>5%</b> from £500k to £2M, <b>3%</b> above, £4,000 minimum. From the proceeds, only if it sells. Nothing if it doesn't.</p>
+            <div class="ctl" data-ctl="sale">
+              <div class="ctl-top"><label class="ctl-l" for="sl-sale">Drag the sale price</label></div>
+              <p class="ctl-out"><output for="sl-sale" data-out="sale">£250,000</output></p>
+              <input id="sl-sale" type="range" min="0" max="1000" step="1" value="500" data-slider="sale">
+              <div class="ticks" data-ticks="sale" aria-hidden="true"></div>
+            </div>
+            <figure class="money-fig">
+              <div class="fieldwrap"><canvas data-sale-field role="img" aria-label=""></canvas></div>
+              <figcaption class="small soft" data-sale-cap>The sale price, in a hundred cells.</figcaption>
+            </figure>
+            <ul class="tier-list small" data-tiers></ul>
+            <dl class="rows" data-sale-sums aria-live="polite"></dl>
+            <p class="small soft">Computed live by the Orbe fee engine. Before VAT.</p>
+          </article>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- 5. PEONY. The second door. -->
   <section class="panel p-peony" id="buyers" aria-labelledby="buyers-h">
-    <div class="scatter sc-e" data-scatter="10" aria-hidden="true"></div>
-    <div class="in">
-      <p class="kick"><span class="kick-sq" aria-hidden="true"></span>For buyers and lenders</p>
-      <h2 id="buyers-h" class="mega mega-2" data-words>Buying or lending?</h2>
-      <div class="two two-b">
-        <div>
-          <p class="body">Creator businesses, rated against their size and read from payouts. Every creator who connects adds consented figures to the benchmark, so it sharpens with each one, and an estimate built from views cannot copy it.</p>
-          <dl class="terms">
-            <div><dt class="mono">Buy</dt><dd>Free, vetted access. A <b>2%</b> buyer's premium at completion, <b>1%</b> above £2M, £1,000 minimum. Diligence reports included; <b>£1,500</b> only if you walk away after one, never if it shows the listing was wrong.</dd></div>
-            <div><dt class="mono">Lend</dt><dd>A fixed fee per file, paid by the lender.</dd></div>
-          </dl>
-          <a class="go go-ink door" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
-        </div>
-        <figure class="win win-roll">
-          <figcaption class="bar"><span>Made-up examples, by size</span><span>Rating</span></figcaption>
-          <ul class="roll" data-roll></ul>
-          <p class="roll-note mono">Zero is typical for its size. Rated live by the Orbe engine. Independently calculated by Orbe.</p>
-        </figure>
+    <div class="wrap split">
+      <div class="rail">
+        <p class="kick small">For buyers and lenders</p>
+        <h2 id="buyers-h" class="dm">Buying<br>or lending?</h2>
+      </div>
+      <div class="content">
+        <p class="h5 buyers-lede">Creator businesses, rated against their size and read from payouts. Every creator who connects adds consented figures to the benchmark, so it sharpens with each one, and an estimate built from views cannot copy it.</p>
+        <dl class="terms">
+          <div><dt class="h5">Buy</dt><dd class="body-p">Free, vetted access. A <b>2%</b> buyer's premium at completion, <b>1%</b> above £2M, £1,000 minimum. Diligence reports included; <b>£1,500</b> only if you walk away after one, never if it shows the listing was wrong.</dd></div>
+          <div><dt class="h5">Lend</dt><dd class="body-p">A fixed fee per file, paid by the lender.</dd></div>
+        </dl>
+        <a class="btn btn-primary btn-s" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
+        <table class="table">
+          <caption class="small">Made-up examples, by size. Zero is typical for its size. Rated live by the Orbe engine. Independently calculated by Orbe.</caption>
+          <thead><tr><th scope="col">Size</th><th scope="col">Creator</th><th scope="col" class="num">Rating</th></tr></thead>
+          <tbody data-roll></tbody>
+        </table>
       </div>
     </div>
   </section>
-
-  <!-- Close, on ink. -->
-  <section class="panel p-ink" aria-labelledby="close-h">
-    <div class="scatter sc-d" data-scatter="16" aria-hidden="true"></div>
-    <div class="in">
-      <p class="kick kick-on-deep"><span class="kick-sq" aria-hidden="true"></span>Free, for good</p>
-      <h2 id="close-h" class="mega mega-2" data-words>Creators never pay.</h2>
-      <p class="body body-deep">Orbe earns a percentage when money moves.</p>
-      <form class="res res-end" data-reserve novalidate aria-labelledby="close-h">
-        <label class="res-in"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
-        <label class="res-sel"><span class="vh">What you make</span><select name="kind" data-kind>
-          <option value="channel" selected>A YouTube channel</option><option value="newsletter">A newsletter</option><option value="stream">A Twitch stream</option><option value="podcast">A podcast</option><option value="portfolio">Photography</option>
-        </select></label>
-        <button type="submit" class="go go-sky">Reserve my handle</button>
-        <p class="note" data-note aria-live="polite">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
-      </form>
-    </div>
-    <footer class="legal">
-      <span class="legal-mark" data-wordmark-small></span>
-      <p>Every creator and figure on this page is a made-up example, rated live by the Orbe engine. Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google. YouTube, Substack and Twitch are trademarks of their owners.</p>
-      <p class="legal-links"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a><a href="../products/">Products</a><a href="../legal/privacy.html">Privacy</a><a href="../legal/terms.html">Terms</a></p>
-    </footer>
-  </section>
 </main>
+
+<!-- SKY footer: the bookend, and the close. -->
+<footer class="panel foot" aria-labelledby="close-h">
+  <div class="wrap split">
+    <div class="rail">
+      <p class="kick small">Free, for good</p>
+      <h2 id="close-h" class="dm">Creators<br>never pay.</h2>
+    </div>
+    <div class="content">
+      <p class="lede">Orbe earns a percentage when money moves.</p>
+      <a class="btn btn-primary" href="#reserve">Reserve my handle</a>
+      <p class="small soft legal">Every creator and figure on this page is a made-up example, rated live by the Orbe engine. Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google. YouTube, Substack and Twitch are trademarks of their owners.</p>
+      <p class="links small"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a><a href="../products/">Products</a><a href="../legal/privacy.html">Privacy</a><a href="../legal/terms.html">Terms</a></p>
+    </div>
+  </div>
+  <div class="wrap foot-mark" aria-hidden="true"><span data-wordmark-foot></span></div>
+</footer>
 </body>
 </html>
