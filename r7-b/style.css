@@ -23,7 +23,7 @@
   --fld: var(--orbe-sky);
   --deep: var(--orbe-cobalt);
   --dot: #1F4BFF;
-  --orb-field: #6A86FF;        /* a lighter cobalt, so ink type over the orb keeps 6:1 */
+  --orb-field: #528AFF;        /* cobalt mixed 60:40 with sky, so ink type over the orb keeps 5.6:1 */
   --tint: var(--orbe-mist);
   --grid: rgba(31, 75, 255, 0.18);
   --soft: #24464D;

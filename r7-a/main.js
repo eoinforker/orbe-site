@@ -285,9 +285,10 @@ function drawPixnum(text) {
 }
 
 /* ---------- the last twelve, against its own typical: a pixel strip chart ---------- */
+const WORKS_CACHE = {};
 function drawStrip() {
   const k = S.kind, e = example(k);
-  const works = rateWorks(baseSnap(k), FIXTURE_NOW).filter((w) => w.matured).slice(0, 12).reverse();
+  const works = (WORKS_CACHE[k] ??= rateWorks(baseSnap(k), FIXTURE_NOW).filter((w) => w.matured).slice(0, 12).reverse());
   const U = 4; /* squares per doubling */
   const cols = works.map((w) => {
     const raw = Math.round(Math.log2(w.multiple) * U);
