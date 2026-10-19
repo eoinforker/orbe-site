@@ -10,6 +10,7 @@ import { mountGiant } from "./footer.js";
 import {
   KINDS, rated, sale, quote, plausible, prefixed, disagree,
   count, gbp, gbpExact, TAKE_RATE, OP3_SAMPLE, letterFor, noteDate, signed, minus,
+  recentWorks, afterPost, middle, benchKinds, podcastSample,
 } from "./canvas-data.js";
 
 document.documentElement.classList.add("js");
@@ -198,6 +199,42 @@ function fillNote(key, animate) {
   if (animate && noteOpen && !reduce) noteBody.animate([{ opacity: 0.15 }, { opacity: 1 }], { duration: 260, easing: EASE });
 }
 
+/* ---------------------------------------------------------------- after_post.txt: pick a work, see how it did, then three next steps */
+const picks = $("[data-post-picks]");
+let postAt = 0;
+function paintPost(key) {
+  const a = afterPost(key, postAt);
+  $$("button", picks).forEach((b, i) => b.setAttribute("aria-pressed", String(i === postAt)));
+  $("[data-post-own]").textContent = a.own;
+  $("[data-post-own-line]").textContent = `${a.ownLine.charAt(0).toUpperCase()}${a.ownLine.slice(1)}, with ${a.soFar} ${a.unit.replace(/ in 7 days$/, "")} so far.`;
+  $("[data-post-peers-k]").textContent = `Against ${a.peers} your size, at its age`;
+  $("[data-post-peers]").textContent = `${a.peersBeat} in 100`;
+  $("[data-post-peers-line]").textContent = `It reached ${a.share} of ${a.audienceNoun}. Typical at your size is ${a.typicalShare}.`;
+  $("[data-post-steps]").innerHTML = "";
+  for (const s of a.steps) {
+    const li = document.createElement("li");
+    const d = document.createElement("b"); d.textContent = s.do;
+    const w = document.createElement("span"); w.textContent = ` ${s.why}`;
+    li.append(d, w);
+    $("[data-post-steps]").appendChild(li);
+  }
+}
+function fillPost(key) {
+  const list = recentWorks(key);
+  const one = list[0]?.one ?? "work";
+  $("[data-post-one]").textContent = one;
+  $("[data-post-works]").textContent = `${one}s`;
+  postAt = 0;
+  picks.innerHTML = "";
+  list.forEach((w, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = w.label;
+    b.addEventListener("click", () => { postAt = i; paintPost(current); });
+    picks.appendChild(b);
+  });
+  paintPost(key);
+}
+
 function show(key, animateWord) {
   current = key;
   const k = KINDS.find((x) => x.key === key);
@@ -217,6 +254,7 @@ function show(key, animateWord) {
   setWord(k.word, animateWord);
   paint(r);
   fillNote(key, animateWord);
+  fillPost(key);
   const sel = $("[data-kind-select]");
   if (sel) sel.value = key;
 }
@@ -282,7 +320,7 @@ const d = disagree();
 const estEl = $("[data-race-est]"), paidEl = $("[data-race-paid]");
 const estBar = $("[data-race-est-bar]"), paidBar = $("[data-race-paid-bar]");
 const raceLine = $("[data-race-line]");
-const RACE_DONE = `${gbp(d.estimate - d.paid)} less was paid than estimated. Your record uses what was paid, read through a read-only Stripe App. With the API.`;
+const RACE_DONE = `${gbp(d.estimate - d.paid)} less was paid. Read from payouts. With the API.`;
 let raceRaf = 0;
 const finish = () => {
   estEl.innerHTML = `<s>${gbpExact(d.estimate)}</s>`; paidEl.textContent = gbpExact(d.paid);
@@ -350,10 +388,55 @@ function paintPrefix() {
   const id = showIn.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40) || "yourshow";
   let url;
   try { url = prefixed(id, "https://media.example.com/ep1.mp3"); } catch (e) { url = `https://m.orbe.vc/p/${id}/media.example.com/ep1.mp3`; }
-  $("[data-show-out]").textContent = url.replace(/^https:\/\//, "");
+  const shown = url.replace(/^https:\/\//, "");
+  $("[data-show-out]").textContent = shown;
+  $("[data-show-out]").title = shown;
 }
 showIn.addEventListener("input", paintPrefix);
 paintPrefix();
+
+/* ---------------------------------------------------------------- Podcasts / what you get back: the podcast page's own made-up sample */
+const podBars = $("[data-pod-bars]");
+fetch("./products/fixtures/made-up-feed.xml")
+  .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+  .then((xml) => {
+    const p = podcastSample(xml, "thelongtable");
+    const max = Math.max(...p.byDay.map((d) => d.downloads));
+    podBars.innerHTML = p.byDay.map((d) => `<i style="height:${Math.max(4, Math.round((d.downloads / max) * 100))}%"></i>`).join("");
+    const top = p.byDay.reduce((a, d) => (d.downloads > a.downloads ? d : a));
+    podBars.setAttribute("aria-label", `Downloads by day for 28 days, made up. The busiest day had ${count(top.downloads)}.`);
+    $("[data-pod-total]").textContent = count(p.total);
+    $("[data-pod-apps]").textContent = p.apps.slice(0, 3).map(([n, v]) => `${n} ${count(v)}`).join(", ");
+  })
+  .catch(() => { podBars.hidden = true; });
+
+/* ---------------------------------------------------------------- where_you_sit.txt: pick a size, see typical */
+const midKind = $("[data-mid-kind]"), midBands = $("[data-mid-bands]");
+midKind.innerHTML = benchKinds().map((k) => `<option value="${k.key}">${k.label === "Photography" ? "Photographer" : k.label}</option>`).join("");
+let midBand = null;
+function paintMid() {
+  const m = middle(midKind.value);
+  if (!m.rows.some((r) => r.key === midBand)) midBand = m.at;
+  const row = m.rows.find((r) => r.key === midBand);
+  $$("button", midBands).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.band === midBand)));
+  $("[data-mid-fig]").textContent = row.value;
+  const mine = midBand === m.at && m.own ? ` ${m.name}, made up: ${m.own}, better than ${m.beats} in 100.` : "";
+  $("[data-mid-what]").textContent = `Typical reach for ${m.peers} with ${row.label.replace(/^Under/, "under").replace(/^Over/, "over")} ${m.audienceNoun}.${mine}`;
+}
+function fillMid() {
+  const m = middle(midKind.value);
+  midBand = null;
+  midBands.innerHTML = "";
+  for (const r of m.rows) {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = r.label; b.dataset.band = r.key;
+    b.addEventListener("click", () => { midBand = r.key; paintMid(); });
+    midBands.appendChild(b);
+  }
+  paintMid();
+}
+midKind.addEventListener("change", fillMid);
+fillMid();
 
 /* ---------------------------------------------------------------- Diligence and Lending, from the engine's fee table */
 $("[data-dil]").textContent = gbp(TAKE_RATE.buyers.report.standard);

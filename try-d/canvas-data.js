@@ -8,10 +8,10 @@
 */
 import { rate, rateWorks, fixtureSnapshot, FIXTURE_NOW, SPECS, signed, RATING_LABEL } from "../assets/engine/rating/browser.js";
 import { normalCdf } from "../assets/engine/rating/stats.js";
-import { mathsFor, benchmark, BENCHMARK_LINE, EXAMPLE_LINE } from "../assets/r5/examples.js";
+import { mathsFor, benchmark, example, ORDER as BENCH_KINDS, BENCHMARK_LINE, EXAMPLE_LINE } from "../assets/r5/examples.js";
 import { successFee, buyerPremium, TAKE_RATE, formatMoney } from "../assets/engine/market/browser.js";
 import { inventoryFromStats } from "../assets/engine/sponsor/browser.js";
-import { assessPlausibility, prefixUrl, RULES_VERSION } from "../assets/engine/podcast/browser.js";
+import { assessPlausibility, prefixUrl, RULES_VERSION, sampleDashboard, readFeedDetails } from "../assets/engine/podcast/browser.js";
 import { suspiciousCreator } from "../assets/engine/record/browser.js";
 
 export { signed, RATING_LABEL, EXAMPLE_LINE, BENCHMARK_LINE, mathsFor, benchmark, TAKE_RATE, RULES_VERSION, FIXTURE_NOW };
@@ -182,4 +182,88 @@ export function letterFor(key) {
     detail,
     best: `The best of your last twelve ${works} did ${top.multiple.toFixed(1)} times your typical ${one}.`,
   };
+}
+
+/* ---------------------------------------------------------------- after_post.txt: the guide's in-browser part */
+
+const clamp99 = (n) => Math.max(1, Math.min(99, n));
+
+/** The made-up creator's five newest settled works, newest first, for the picker. */
+export function recentWorks(key) {
+  const { snap, spec } = base(key);
+  const [, one] = WORKS[key];
+  return rateWorks(snap, FIXTURE_NOW).filter((w) => w.matured).slice(0, 5).map((w) => {
+    const work = snap.works.find((x) => x.id === w.workId);
+    const days = Math.round(w.ageDays);
+    return { id: w.workId, days, label: `${days} ${days === 1 ? "day" : "days"} ago`, soFar: work.metrics[spec.work.primary], one };
+  });
+}
+
+/**
+  How one work did: against the creator's own typical (the engine's multiple,
+  adjusted for its age), against creators their size (its reach set on the
+  engine's prior for their band), then three next steps by rule, from those
+  figures and the rating's own advice.
+*/
+export function afterPost(key, i) {
+  const { k, snap, spec } = base(key);
+  const r = rated(key, 1).result;
+  const [works, one] = WORKS[key];
+  const all = rateWorks(snap, FIXTURE_NOW).filter((w) => w.matured);
+  const w = all[i];
+  const pick = recentWorks(key)[i];
+  const typical = r.detail.typical[spec.work.primary];
+  const audience = snap.account.audience;
+  const prior = r.detail.parts.find((p) => p.key === "reach").prior;
+  const share = (w.multiple * typical) / audience;
+  const peersBeat = clamp99(Math.round(normalCdf(Math.log(share / prior.median) / prior.sigma) * 100));
+  const pct = (x) => `${x * 100 < 10 ? (x * 100).toFixed(1) : Math.round(x * 100)}%`;
+  const mx = w.multiple.toFixed(1), m = Number(mx);
+  const twelve = all.slice(0, 12);
+  const top = twelve.reduce((a, x) => (x.multiple > a.multiple ? x : a));
+  const parts = [...r.parts].sort((a, b) => a.score - b.score || (a.key < b.key ? -1 : 1));
+  const weak = parts[0], strong = parts.at(-1);
+  const advice = r.detail.parts.find((p) => p.key === weak.key).advice;
+  const tail = advice.split(". ").slice(1).join(". ") || advice;
+  const steps = [
+    m >= 1.2 ? { do: `Make a follow-up while this ${one} is still being found.`, why: `It is running ${mx} times your typical ${one}.` }
+      : m <= 0.8 ? { do: "Give it a week before you change anything.", why: `It is at ${mx} times your typical ${one}, allowing for its age.` }
+      : { do: "Keep the format, and change one thing next time.", why: `It landed at ${mx} times your typical ${one}, so one change will show.` },
+    { do: `Work on ${weak.name.toLowerCase()}. ${tail.charAt(0).toUpperCase()}${tail.slice(1)}`, why: `It is your quietest part, better than ${weak.score} in 100 ${spec.peers} your size.` },
+    weak.key === "hits" || top.workId === w.workId
+      ? { do: `Protect your ${strong.name.toLowerCase()}.`, why: `It is your strongest part, better than ${strong.score} in 100 ${spec.peers} your size.` }
+      : { do: `Set it beside your best of the last twelve ${works}.`, why: `That one did ${top.multiple.toFixed(1)} times your typical ${one}.` },
+  ];
+  return {
+    name: k.name, one, unit: k.unit, label: pick.label, soFar: count(pick.soFar),
+    multiple: w.multiple, own: `${mx}×`, ownLine: m > 1 ? `above your typical ${one}` : m < 1 ? `below your typical ${one}` : `right at your typical ${one}`,
+    share: pct(share), typicalShare: pct(prior.median), audienceNoun: spec.audienceNoun, peers: spec.peers, peersBeat, steps,
+  };
+}
+
+/* ---------------------------------------------------------------- where_you_sit.txt: The State of the Middle */
+
+export const benchKinds = () => BENCH_KINDS.map((key) => ({ key, label: example(key).label }));
+/** The typical reach for every size band of one kind, and where its made-up creator sits. */
+export function middle(kind) {
+  const b = benchmark(kind);
+  const ex = example(kind);
+  const spec = SPECS[ex.platform];
+  const reach = ex.parts.find((p) => p.key === "reach");
+  const pct = (x) => `${x * 100 < 10 ? (x * 100).toFixed(1).replace(/\.0$/, "") : Math.round(x * 100)}%`;
+  return {
+    what: b.what, peers: spec.peers, audienceNoun: spec.audienceNoun, line: b.line,
+    rows: b.rows.map((r) => ({ key: r.key, label: r.label, value: pct(r.value) })),
+    at: b.example, name: ex.name, own: reach?.value, beats: reach?.score,
+  };
+}
+
+/* ---------------------------------------------------------------- podcast_prefix.txt: the made-up sample dashboard */
+
+/** The podcast page's own sample: made-up listening for the made-up feed, through the engine's counter. */
+export function podcastSample(xml, showId) {
+  const feed = readFeedDetails(xml);
+  const d = sampleDashboard({ feed, feedUrl: "https://example.invalid/long-table/feed.xml", showId, through: FIXTURE_NOW.slice(0, 10) }).dashboard;
+  const apps = Object.entries(d.downloads.byApp).sort((a, b) => b[1] - a[1]);
+  return { title: feed.title, total: d.downloads.total, byDay: d.downloads.byDay, apps };
 }

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en-GB" data-c="blue" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3F0E8">
+<title>Roster: Orbe</title>
+<meta name="description" content="For managers and media companies: every creator you look after, rated against creators their own size, with sponsorship prices you can defend and the Record where it is connected. Only what each creator shares. Free for managers.">
+<link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
+<link rel="stylesheet" href="../assets/products.css">
+<link rel="stylesheet" href="../../assets/r5/type.css">
+<link rel="stylesheet" href="./roster.css">
+<script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
+<script type="module" src="./roster.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="../../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="../">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products"><a href="../">All products</a><a href="../rate/">Rate my work</a><a href="../podcasts/">Podcasts</a><a href="../sponsorships/">Sponsorships</a><a href="../selling/">Selling</a><a href="../diligence/">Diligence report</a><a href="../roster/" aria-current="page">Roster</a></nav>
+</header>
+<main class="wrap page roster" id="main">
+  <p class="page-kick mono">For managers and media companies. Free.</p>
+  <h1 class="h1">Your roster, each against their own size.</h1>
+  <p class="lede">Every creator you look after, rated against creators their size, with sponsorship prices you can defend and the Record where it is connected. You see only what each creator chooses to share.</p>
+  <details class="fold live-fold" data-live><summary><span>What works today</span></summary>
+    <dl class="live">
+      <div><dt>Live now</dt><dd>The rating, the size bands, momentum, work ratings, sponsorship prices with their reasons and the Record's checks: the engine's own code, computed on this page.</dd></div>
+      <div><dt>In your browser</dt><dd>A roster of ten made-up creators, built from fixed seeds. The invite form adds a pending row on this device only. Nothing is sent anywhere.</dd></div>
+      <div><dt>With the API</dt><dd>Live connections read at source, real consent emails to the creators you invite, their own choice of what to share, team seats for your colleagues, and figures refreshed for you.</dd></div>
+    </dl></details>
+  <script>try{if(matchMedia("(min-width: 760px)").matches)document.currentScript.previousElementSibling.open=true}catch(e){}</script>
+
+  <section class="section" id="roster" aria-labelledby="roster-h">
+    <article class="win" aria-labelledby="roster-h">
+      <div class="win-bar">
+        <h2 class="win-title" id="roster-h">roster.csv <span class="win-sub">/ <span data-count>10</span> creators</span></h2>
+        <span class="win-ctl"><a class="win-btn" href="#rate-cards">Rate cards</a></span>
+      </div>
+      <div class="win-body">
+        <p class="made-up" data-made-up></p>
+        <div class="filters" role="group" aria-label="Filter and sort the roster">
+          <label class="field"><span>Kind</span><select class="input" data-f-kind><option value="">All kinds</option><option value="youtube">YouTube</option><option value="substack">Newsletter</option><option value="twitch">Twitch</option><option value="podcast">Podcast</option><option value="photography">Photography</option></select></label>
+          <label class="field"><span>Band</span><select class="input" data-f-band><option value="">All bands</option><option>Great</option><option>Good</option><option>Average</option><option>Subpar</option><option>Poor</option><option value="none">Not shared yet</option></select></label>
+          <label class="field sort-field"><span>Sort by</span><select class="input" data-f-sort></select></label>
+          <p class="filter-say small" aria-live="polite" data-say></p>
+        </div>
+        <div class="tbl-scroll" data-scroll>
+          <table class="rt" data-table>
+            <caption class="sr">The roster. Each rating is against creators the same size. Select a creator's name to open their detail in place.</caption>
+            <thead><tr data-head></tr></thead>
+            <tbody data-body></tbody>
+          </table>
+        </div>
+        <p class="note-line small" data-label-line></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section fair" id="fair" aria-labelledby="fair-h">
+    <div class="fair-say">
+      <h2 class="h2" id="fair-h">A fair comparison</h2>
+      <p class="sub">Each creator is rated against creators their own size, never against each other. Zero is typical for their size, so a channel of 4,200 and a channel of 395,000 sit fairly side by side: both are measured on how their work does for an audience like theirs.</p>
+      <p class="small" data-fair-foot></p>
+    </div>
+    <figure class="win sits" aria-labelledby="sits-t">
+      <div class="win-bar"><figcaption class="win-title" id="sits-t">where_the_roster_sits.txt</figcaption><span class="win-ctl"><span class="win-tag">Zero is typical</span></span></div>
+      <div class="win-body" data-sits></div>
+    </figure>
+  </section>
+
+  <section class="section" id="rate-cards" aria-labelledby="cards-h">
+    <div class="section-head"><h2 class="h2" id="cards-h">Rate cards you can defend</h2><span class="small">Every price with the delivery and the card behind it</span></div>
+    <div class="cards-act">
+      <p class="sub">One file for the whole roster: each creator's formats, the suggested range, the delivery it rests on, the evidence, and the rate card's version. Built on this page, from only what each creator shares.</p>
+      <div class="btns"><a class="btn" data-csv href="#" download="orbe-roster-rate-cards-made-up.csv">Download the CSV</a><button class="btn btn-ghost btn-sm" type="button" data-print>Print the summary</button></div>
+    </div>
+    <article class="win print-sum" data-pair="spon" aria-labelledby="sum-t">
+      <div class="win-bar"><h3 class="win-title" id="sum-t">rate_card_summary.txt</h3><span class="win-ctl"><span class="win-tag" data-sum-date></span></span></div>
+      <div class="win-body" data-summary></div>
+    </article>
+  </section>
+
+  <section class="section consent" id="consent" aria-labelledby="consent-h">
+    <div class="consent-say">
+      <h2 class="h2" id="consent-h">Consent first</h2>
+      <p class="lede small-lede">Creators own their data. They choose what a roster sees, and they can leave a roster at any time. When they leave, their figures leave with them.</p>
+      <dl class="states">
+        <div><dt><span class="cs cs-accepted">Accepted</span></dt><dd>Shares the rating, prices and the Record (where connected).</dd></div>
+        <div><dt><span class="cs cs-rating">Rating only</span></dt><dd>Shares the rating and nothing else.</dd></div>
+        <div><dt><span class="cs cs-invited">Invited</span></dt><dd>Nothing is shown until they accept.</dd></div>
+      </dl>
+    </div>
+    <form class="win invite" data-pair="note" data-invite novalidate aria-labelledby="invite-t">
+      <div class="win-bar"><h3 class="win-title" id="invite-t">invite_a_creator.txt</h3><span class="win-ctl"><span class="win-tag">On this device</span></span></div>
+      <div class="win-body stack">
+        <label class="field"><span>Their name or channel</span><input class="input" name="name" autocomplete="off" placeholder="A made-up name" required></label>
+        <label class="field"><span>Their email</span><input class="input" type="email" name="email" autocomplete="off" placeholder="name@example.com" required><small>With the API, Orbe emails the invite and the creator decides what to share. Here, nothing is sent.</small></label>
+        <label class="field"><span>Kind of work</span><select class="input" name="kind"><option value="youtube">YouTube</option><option value="substack">Newsletter</option><option value="twitch">Twitch</option><option value="podcast">Podcast</option><option value="photography">Photography</option></select></label>
+        <div class="btns"><button class="btn" type="submit">Invite</button></div>
+        <p class="err" role="alert" data-invite-err></p>
+        <p class="ok small" aria-live="polite" data-invite-ok></p>
+      </div>
+    </form>
+  </section>
+
+  <section class="section money" aria-labelledby="money-h">
+    <h2 class="h2" id="money-h">What it costs</h2>
+    <dl class="dl money-dl">
+      <dt>The roster view, for managers</dt><dd>Free</dd>
+      <dt>A sponsorship Orbe's matching found</dt><dd data-net></dd>
+      <dt>A sponsorship you or the creator brought</dt><dd data-dir></dd>
+      <dt>Who pays</dt><dd>The brand, on completion</dd>
+    </dl>
+    <p class="small">Orbe earns only when money moves, as everywhere else on the site. The creator keeps 100% of their price. Selling has its own fees, on the <a href="../selling/">Selling</a> page.</p>
+  </section>
+</main>
+</body>
+</html>

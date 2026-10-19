@@ -15,6 +15,7 @@ export const TOOLS = [
   { key: "sponsorships", href: "sponsorships/", label: "Sponsorships" },
   { key: "selling", href: "selling/", label: "Selling" },
   { key: "diligence", href: "diligence/", label: "Diligence report" },
+  { key: "roster", href: "roster/", label: "Roster" },
 ];
 
 /* The header's markup. Each page carries it in its HTML (so nothing moves at first paint);

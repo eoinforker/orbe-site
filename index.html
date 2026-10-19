@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orbe, the canvas</title>
-<meta name="description" content="Your work, rated against creators your size. Free for creators, for good. Orbe earns only when money moves.">
+<meta name="description" content="Understand your work, know where you stand against creators your size, and get better. Free for creators, for good.">
 <link rel="icon" href="./assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/fonts.css">
 <link rel="stylesheet" href="./assets/brand/tokens.css">
@@ -36,10 +36,10 @@
         <span class="h-line">creators</span>
         <span class="h-line">your size.</span>
       </h1>
-      <p class="lede enter">Free, for good. Zero is typical, and that’s how big things get built.</p>
+      <p class="lede enter">Orbe is the intelligence layer for the creator economy: free, honest numbers for creators, the tools the people around them use, and help when money moves.</p>
       <div class="ctas enter">
         <a class="btn btn-cobalt" href="./products/rate/">Rate my work</a>
-        <a class="btn btn-line" href="#tools">What Orbe does</a>
+        <a class="btn btn-line" href="#tools">See how it works</a>
       </div>
     </div>
 
@@ -87,21 +87,24 @@
     </div>
   </section>
 
-  <!-- Screen two: what Orbe does, as five windows you can move -->
+  <!-- Screen two: what Orbe does, in three beats of windows you can move -->
   <section class="tools" id="tools" aria-labelledby="tools-h">
     <div class="tools-head">
       <h2 id="tools-h" class="h2">What Orbe does for you.</h2>
-      <p class="tools-lede">Free until money moves. Every figure is worked out live; every creator is made up.</p>
+      <p class="tools-lede">Every figure is worked out live by the engine. Every creator is made up.</p>
       <p class="tidy-row" data-tidy-row hidden><span class="tidy-hint" id="tidy-hint">Drag a window by its title.</span><button class="win-btn tidy" type="button" data-tidy>Tidy</button><span class="sr" aria-live="polite" data-tidy-say></span></p>
     </div>
 
     <div class="wall" data-wall>
+      <h3 class="beat-h b-1"><span class="beat-n">1</span>Understand your work.</h3>
+
       <!-- The Sunday note: the rating, as a letter -->
       <article class="win c-note" data-pair="note" aria-labelledby="note-t" data-note data-win>
         <div class="win-bar"><span class="win-title" id="note-t" data-grip>sunday_note.txt</span><a class="win-btn" href="./products/rate/">Get yours</a></div>
         <div class="win-body note-body" data-note-body>
+          <p class="says n-line">Your Sunday note, written from your numbers.</p>
           <p class="n-date n-line" data-n="date">Sunday the eighteenth of October, 2026</p>
-          <h3 class="n-dear n-line">Dear <span data-n="name">Field Recordings</span>,</h3>
+          <h4 class="n-dear n-line">Dear <span data-n="name">Field Recordings</span>,</h4>
           <p class="n-line" data-n="open">Your uploads, read properly this week.</p>
           <div class="n-score n-line">
             <p class="n-fig" data-n="signed">+1.23</p>
@@ -110,37 +113,94 @@
           <p class="n-line" data-n="beat">You beat 93 in 100 channels your size.</p>
           <p class="n-line" data-n="detail"></p>
           <p class="n-close n-line"><em>Nothing to fix. See you Sunday.</em> <span class="sig" data-sig></span></p>
-          <p class="n-foot n-line">To <span data-n="handle">@fieldrecordings</span>, made up. Independently calculated by Orbe.</p>
+          <p class="n-foot n-line">To <span data-n="handle">@fieldrecordings</span>, made up. Calculated by Orbe.</p>
         </div>
       </article>
 
-      <!-- Selling, with every fee and diligence -->
-      <article class="win c-sell" data-pair="sell" aria-labelledby="sell-t" data-win>
-        <div class="win-bar"><span class="win-title" id="sell-t" data-grip>selling.txt</span><a class="win-btn" href="./products/selling/">Open</a></div>
+      <!-- The guide, after a post: one work against your typical and your size, then three next steps -->
+      <article class="win c-post" data-pair="note" aria-labelledby="post-t" data-win data-post>
+        <div class="win-bar"><span class="win-title" id="post-t" data-grip>after_post.txt</span><a class="win-btn" href="./products/rate/">Try yours</a></div>
         <div class="win-body">
-          <label class="win-k" for="sell">Selling. If it sold for</label>
-          <p class="big"><output data-sell-price for="sell">£220,000</output></p>
-          <input id="sell" class="range" type="range" min="0" max="1000" step="1" value="0" data-sell>
-          <p class="win-line">You receive <b data-sell-net>£202,400</b>. <em>Nothing if it doesn’t sell.</em></p>
-          <details class="more">
-            <summary>Every fee</summary>
-            <dl class="ledger">
-              <div><dt>Seller’s fee, from the proceeds</dt><dd data-sell-fee>£17,600</dd></div>
-              <div class="sub"><dt data-sell-rate>8% on all of it</dt><dd></dd></div>
-              <div><dt>Buyer’s premium, paid by the buyer</dt><dd data-sell-prem>£4,400</dd></div>
-              <div class="total"><dt>You receive</dt><dd data-sell-net-2>£202,400</dd></div>
-            </dl>
-            <ol class="slices" data-sell-slices></ol>
-            <p class="note">8% to £500k, 5% to £2M, 3% above, £4,000 minimum. Buyer’s premium 2%, 1% above £2M, £1,000 minimum.</p>
-          </details>
-          <p class="note win-end"><a href="./products/diligence/">Diligence</a>, the buyer’s report: <span data-dil>£1,500</span>, charged only if they walk away.</p>
+          <p class="says">Know which <span data-post-one>upload</span> is quietly doing well.</p>
+          <div class="post-pick">
+            <p class="win-k" id="post-pick">The guide. Pick one of your last five <span data-post-works>uploads</span></p>
+            <div class="picks" role="group" aria-labelledby="post-pick" data-post-picks></div>
+          </div>
+          <div class="vs" aria-live="polite" data-post-out>
+            <div class="vs-row">
+              <p class="vs-k">Against your own typical</p>
+              <p class="vs-fig" data-post-own>1.1×</p>
+              <p class="vs-line" data-post-own-line>Above your typical upload, with 47,581 views so far.</p>
+            </div>
+            <div class="vs-row">
+              <p class="vs-k" data-post-peers-k>Against channels your size, at its age</p>
+              <p class="vs-fig" data-post-peers>94 in 100</p>
+              <p class="vs-line" data-post-peers-line>It reached 41% of subscribers. Typical at your size is 10%.</p>
+            </div>
+          </div>
+          <h4 class="steps-h">Three next steps</h4>
+          <ol class="steps" data-post-steps></ol>
+          <p class="note win-end post-end">Worked out here, by rule. The full guide, after every post: <span class="api">With the API</span></p>
         </div>
       </article>
 
+      <h3 class="beat-h b-2"><span class="beat-n">2</span>Measure it properly.</h3>
+
+      <div class="row row-2">
+      <!-- Podcasts, with what you get back and the plausibility check -->
+      <article class="win c-pod" data-pair="pod" aria-labelledby="pod-t" data-win>
+        <div class="win-bar"><span class="win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="win-btn" href="./products/podcasts/">Open</a></div>
+        <div class="win-body">
+          <div class="pod-in">
+            <p class="says">Know who’s listening, for free.</p>
+            <label class="win-k" for="show">Podcasts. Your show</label>
+            <input id="show" class="field" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
+            <p class="mono-out" data-show-out>m.orbe.vc/p/thelongtable/…/ep1.mp3</p>
+            <div class="claim">
+              <label class="win-k" for="pl">Plausibility. A claim of <output data-pl-claim for="pl">120,000</output> a month</label>
+              <input id="pl" class="range" type="range" min="0" max="1000" step="1" value="500" data-pl>
+              <p class="claim-v"><b data-pl-verdict aria-live="polite">Questions</b> <span data-pl-why>2.3× a public count of 52,000.</span></p>
+            </div>
+          </div>
+          <div class="pod-get">
+            <p class="win-k">You get back <b data-pod-total>4,773</b> downloads in 28 days</p>
+            <div class="bars" role="img" aria-label="Downloads by day for the made-up sample" data-pod-bars></div>
+            <p class="note" data-pod-apps>Apple Podcasts 1,961, Spotify 1,280, Overcast 369</p>
+            <p class="note win-end">Sample listening for a made-up show. Free, where Chartable used to be.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- The State of the Middle: where you sit -->
+      <article class="win c-mid" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
+        <div class="win-bar"><span class="win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="win-btn" href="./products/">Open</a></div>
+        <div class="win-body">
+          <p class="says">Know what typical looks like at your size.</p>
+          <div class="mid-pick">
+            <label class="win-k" for="mid-kind">The State of the Middle, for a</label>
+            <select id="mid-kind" class="field" data-mid-kind></select>
+          </div>
+          <div class="picks" role="group" aria-label="Size band" data-mid-bands></div>
+          <p class="mid" data-mid-fig>10%</p>
+          <p class="note" data-mid-what aria-live="polite">Typical reach for channels with 250k to 1M subscribers.</p>
+          <p class="note win-end">The engine’s starting baselines, until the first season. <span class="api">Seasons with the API</span></p>
+        </div>
+      </article>
+
+      </div>
+
+      <div class="beat-side beat-3">
+        <h3 class="beat-h"><span class="beat-n">3</span>When money moves, Orbe can help.</h3>
+        <p class="beat-p">Optional, and free until money moves. Brands and buyers pay the fees; a sale’s fee comes out of the sale.</p>
+        <p class="lend"><a href="./products/">Lending</a> A fixed <span data-lend>£250</span> a file, never a cut. <span class="api">With the API</span></p>
+      </div>
+
+      <div class="row row-3">
       <!-- Sponsorships -->
       <article class="win c-spon" data-pair="spon" aria-labelledby="spon-t" data-win>
         <div class="win-bar"><span class="win-title" id="spon-t" data-grip>sponsorship_quote.txt</span><a class="win-btn" href="./products/sponsorships/">Open</a></div>
         <div class="win-body">
+          <p class="says">Know what a slot is worth.</p>
           <p class="win-k">Sponsorships. An integrated read</p>
           <p class="mid" data-spon-int>£2,250 to £3,950</p>
           <label class="win-k" for="spon"><output data-spon-views for="spon">155,000</output> views at 30 days</label>
@@ -153,6 +213,7 @@
       <article class="win c-record" data-pair="rec" aria-labelledby="rec-t" data-win data-race>
         <div class="win-bar"><span class="win-title" id="rec-t" data-grip>estimate_vs_paid.txt</span><button class="win-btn" type="button" data-race-go>Replay</button></div>
         <div class="win-body">
+          <p class="says">See what was paid, not estimated.</p>
           <p class="win-k">The Record. September’s ads</p>
           <div class="race-row">
             <p class="race-k">Estimated</p>
@@ -168,29 +229,54 @@
         </div>
       </article>
 
-      <!-- Podcasts, with the plausibility check -->
-      <article class="win c-pod" data-pair="pod" aria-labelledby="pod-t" data-win>
-        <div class="win-bar"><span class="win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="win-btn" href="./products/podcasts/">Open</a></div>
+      <!-- Selling, with every fee and diligence -->
+      <article class="win c-sell" data-pair="sell" aria-labelledby="sell-t" data-win>
+        <div class="win-bar"><span class="win-title" id="sell-t" data-grip>selling.txt</span><a class="win-btn" href="./products/selling/">Open</a></div>
         <div class="win-body">
-          <label class="win-k" for="show">Podcasts. Your show</label>
-          <input id="show" class="field" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
-          <p class="mono-out" data-show-out>m.orbe.vc/p/thelongtable/…</p>
-          <div class="claim">
-            <label class="win-k" for="pl">Plausibility. A claim of <output data-pl-claim for="pl">120,000</output> a month</label>
-            <input id="pl" class="range" type="range" min="0" max="1000" step="1" value="500" data-pl>
-            <p class="claim-v"><b data-pl-verdict aria-live="polite">Questions</b> <span data-pl-why>2.3× a public count of 52,000.</span></p>
-          </div>
-          <p class="note win-end">Free measurement, where Chartable used to be.</p>
+          <p class="says">Know what you’d keep if you sold.</p>
+          <label class="win-k" for="sell">Selling. If it sold for</label>
+          <p class="mid"><output data-sell-price for="sell">£220,000</output></p>
+          <input id="sell" class="range" type="range" min="0" max="1000" step="1" value="0" data-sell>
+          <p class="win-line">You keep <b data-sell-net>£202,400</b>.</p>
+          <details class="more">
+            <summary>Every fee, and diligence</summary>
+            <dl class="ledger">
+              <div><dt>Seller’s fee, from the proceeds</dt><dd data-sell-fee>£17,600</dd></div>
+              <div class="sub"><dt data-sell-rate>8% on all of it</dt><dd></dd></div>
+              <div><dt>Buyer’s premium, paid by the buyer</dt><dd data-sell-prem>£4,400</dd></div>
+              <div class="total"><dt>You keep</dt><dd data-sell-net-2>£202,400</dd></div>
+            </dl>
+            <ol class="slices" data-sell-slices></ol>
+            <p class="note">8% to £500k, 5% to £2M, 3% above, £4,000 minimum, nothing if it doesn’t sell. Buyer’s premium 2%, 1% above £2M, £1,000 minimum.</p>
+            <p class="note"><a href="./products/diligence/">Diligence</a>, the buyer’s report: <span data-dil>£1,500</span>, charged only if they walk away.</p>
+          </details>
         </div>
       </article>
+      </div>
     </div>
 
-    <div class="also" aria-labelledby="also-h">
-      <h3 class="also-h" id="also-h">Also</h3>
-      <p class="also-i"><a href="./products/">Lending</a> A fixed fee of <span data-lend>£250</span> a file, never a cut of the loan. <span class="api">With the API</span></p>
-      <p class="also-i"><a href="./products/rate/">The guide</a> After every post, three next steps. <span class="api">With the API</span></p>
-      <p class="also-i"><a href="./products/">The State of the Middle</a> Seasonal benchmarks for creators your size. <span class="api">With the API</span></p>
-    </div>
+    <!-- Who else it is for: one plain line each, and the tool that exists -->
+    <article class="win for" aria-labelledby="for-h">
+      <div class="win-bar"><h3 class="win-title" id="for-h">who_its_for.txt <span class="for-sub">Besides you</span></h3></div>
+      <div class="win-body for-body">
+        <div class="for-i">
+          <h4 class="for-k">Brands</h4>
+          <p class="for-t">Price a slot from what a creator’s work actually delivered, and get a shortlist for your brief. <a href="./products/sponsorships/">Sponsorships</a></p>
+        </div>
+        <div class="for-i">
+          <h4 class="for-k">Managers and media companies</h4>
+          <p class="for-t">Your whole roster, rated fairly against creators their size, with rate cards you can defend. <a href="./products/roster/">The roster</a></p>
+        </div>
+        <div class="for-i">
+          <h4 class="for-k">Buyers, M&amp;A and PE</h4>
+          <p class="for-t">Revenue read from payouts, a diligence report before any offer, and buyers matched by size. <a href="./products/diligence/">Diligence</a></p>
+        </div>
+        <div class="for-i">
+          <h4 class="for-k">Investors</h4>
+          <p class="for-t">The State of the Middle: honest seasonal benchmarks for the creators most data ignores. <a href="#benchmarks">The benchmarks</a></p>
+        </div>
+      </div>
+    </article>
   </section>
 
   <!-- Screen three: build your goliath -->
@@ -233,7 +319,7 @@
       <h3>Creators</h3>
       <ul>
         <li><a href="#reserve">Reserve your handle</a></li>
-        <li><a href="#tools">What Orbe does</a></li>
+        <li><a href="#tools">How it works</a></li>
         <li><a href="./products/">Every tool</a></li>
       </ul>
     </div>
