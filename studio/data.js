@@ -1,0 +1,278 @@
+/*
+  Orbe Studio, the data. Every figure the studio shows comes from here, and
+  everything here comes from the Orbe engine (site/assets/engine), the same
+  compiled engine the products pages and the API run. Nothing is sent anywhere.
+
+  A desk is one creator's numbers: either the made-up channel the studio opens
+  with (Field Recordings, from examples.js) or the creator's own export, read
+  on this device.
+*/
+import { rate, rateWorks, explain, topStat, focusAreas, personalBests, recordMetric, isRated, SPECS, signed as engineSigned, ratingNotice, fixtureSnapshot, FIXTURE_NOW, MODEL_VERSION, RATING_LABEL } from "../assets/engine/rating/browser.js";
+import { prepare, measurePart, toMs } from "../assets/engine/rating/measure.js";
+import { logZ, linearZ, normalCdf } from "../assets/engine/rating/stats.js";
+import { readCreatorExport, EXPORT_FORMATS } from "../assets/engine/ingest/browser.js";
+import { example } from "../assets/r5/examples.js";
+import { buildRecord, cleanCreator, suspiciousCreator, FIXTURE_NOW as RECORD_NOW } from "../assets/engine/record/browser.js";
+import { valuate, successFee, TAKE_RATE, INDICATIVE_LABEL, VALUATION_MODEL_VERSION } from "../assets/engine/market/browser.js";
+import { inventoryFromStats, feeTermsFor, fundingFor } from "../assets/engine/sponsor/browser.js";
+
+export { EXPORT_FORMATS, MODEL_VERSION, RATING_LABEL, TAKE_RATE, INDICATIVE_LABEL, VALUATION_MODEL_VERSION, successFee, feeTermsFor, fundingFor };
+
+/* A true minus on ratings, as the brand writes them. */
+export const signed = (x) => engineSigned(x).replace(/^-/, "−");
+const nf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+export const count = (n) => (n == null || !Number.isFinite(n) ? "n/a" : nf.format(Math.round(n)));
+export const compact = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1e4 ? `${Math.round(n / 1e3)}k` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : `${Math.round(n)}`);
+export const day = (iso) => (iso ? new Date(iso.length <= 10 ? `${iso}T12:00:00Z` : iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace("Sept", "Sep") : "");
+export const shortDay = (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).replace("Sept", "Sep");
+export const monthName = (m, o = { month: "long", year: "numeric" }) => new Date(m).toLocaleDateString("en-GB", { ...o, timeZone: "UTC" }).replace("Sept", "Sep");
+export function money(m, { pence = false } = {}) {
+  if (!m) return "n/a";
+  const sym = { GBP: "£", USD: "$", EUR: "€" }[m.currency] ?? "";
+  const v = m.amount / 100;
+  return `${v < 0 ? "−" : ""}${sym}${Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: pence ? 2 : 0, maximumFractionDigits: pence ? 2 : 0 })}`;
+}
+export const gbp = (pence, o) => money({ amount: pence, currency: "GBP" }, o);
+export const nodash = (s) => String(s ?? "").replace(/\s*[–—]\s*/g, ", ");
+
+/* What each platform calls things, for the studio's own sentences. */
+const WORDS = {
+  youtube: { kind: "channel", peers: "channels", aud: "subscribers", platform: "YouTube" },
+  substack: { kind: "newsletter", peers: "newsletters", aud: "subscribers", platform: "Substack" },
+  podcast: { kind: "podcast", peers: "podcasts", aud: "followers", platform: "your podcast host" },
+  twitch: { kind: "stream", peers: "streams", aud: "followers", platform: "Twitch" },
+  photography: { kind: "portfolio", peers: "photographers", aud: "followers", platform: "your portfolio" },
+};
+
+/* The made-up channel's uploads get titles of their own, newest first: the same list the Rate tool uses. */
+const FIELD_TITLES = [
+  "The marsh at 4am", "Rain on a tin roof, Skye", "Rookery at dusk", "Under the pier at Hastings",
+  "Frost on the reed beds", "A beech wood in a gale", "Curlews over the Wash", "The last train out of Kemble",
+  "Ice cracking on Loch Lomond", "Dawn chorus, mid Wales", "Shingle in an easterly", "Bees in the lime trees",
+  "A thunderstorm comes up the valley", "Skylarks over Salisbury Plain", "Geese leaving the Solway",
+  "Snow falling on a pine forest", "The tide fills Morecambe Bay", "Nightjars on the heath", "Inside a hollow oak",
+  "Hail on a glasshouse", "Seals hauled out at Blakeney", "A brook after a week of rain", "Swifts over a market town",
+  "Wind through a field of barley", "The quietest place in England",
+];
+
+/** The made-up channel the studio opens with: examples.js's Field Recordings, rebuilt with its works. */
+export function madeUpDesk() {
+  const ex = example("channel");
+  const snap = fixtureSnapshot({ kind: "youtube", noise: 0.25, audience: 412000, reach: 1.6, engagement: 1.6, hitEvery: 5, seed: 1, title: ex.name });
+  snap.account.handle = ex.handle;
+  snap.works.forEach((w, i) => { w.title = FIELD_TITLES[i] ?? `Night walk, part ${i + 1}`; });
+  const d = deskFrom(snap, FIXTURE_NOW, {
+    madeUp: true,
+    source: { label: `${ex.name}, a made-up YouTube channel`, provenance: "Generated by the Orbe engine from a fixed seed: the same made-up channel the products pages rate. Nothing in it is real, and nothing is kept." },
+  });
+  // Guard: the studio's Field Recordings must be the products pages' Field Recordings.
+  if (d.rated && Math.abs(d.result.rating - ex.rating) > 1e-9) d.drift = true;
+  return d;
+}
+
+/** The creator's own export, read on this device. Throws with a plain message when the file is not one Orbe knows. */
+export async function deskFromExport(text, { fileName, audience, exportedOn, title, sample = false }) {
+  const at = `${exportedOn}T23:00:00.000Z`;
+  const read = await readCreatorExport(text, { exportedAt: at, audience, title: title || undefined });
+  return deskFrom(read.snapshot, at, {
+    madeUp: sample,
+    format: read.label,
+    warnings: read.warnings,
+    source: { label: `${fileName}, a ${read.label} export`, provenance: `${read.used} works read, ${read.skipped} left out. Read on this device; exported ${day(exportedOn)}.${sample ? " A made-up file." : ""}` },
+    audienceSource: sample ? `${count(audience)} ${WORDS[read.snapshot.account.kind].aud}, part of the made-up file` : `${count(audience)} ${WORDS[read.snapshot.account.kind].aud}, typed by you`,
+  });
+}
+
+function deskFrom(snapshot, at, meta) {
+  const kind = snapshot.account.kind;
+  const spec = SPECS[kind];
+  const w = WORDS[kind];
+  const result = rate(snapshot, at);
+  const base = {
+    ...meta, kind, spec, words: w, snapshot, at, result,
+    name: snapshot.account.title, handle: snapshot.account.handle || `@${snapshot.account.title.toLowerCase().replace(/[^a-z0-9]+/g, "")}`.slice(0, 24),
+    audience: snapshot.account.audience, primary: spec.work.primary,
+    primaryName: spec.metrics.find((m) => m.key === spec.work.primary)?.name ?? spec.work.primary,
+    notice: ratingNotice(kind),
+  };
+  const rated = isRated(result);
+  base.rated = rated;
+  // Every work, rated against the creator's own typical, with its own reach against creators this size.
+  const rws = new Map(rateWorks(snapshot, at).map((r) => [r.workId, r]));
+  const prepared = prepare(spec, snapshot.works, toMs(at));
+  const reachPart = spec.parts.find((p) => p.key === "reach");
+  const reachPrior = rated ? result.detail.parts.find((p) => p.key === "reach")?.prior : null;
+  const typical = rated ? result.detail.typical : {};
+  const works = prepared.map((p) => {
+    const r = rws.get(p.work.id);
+    let reach = null, reachPct = null;
+    if (reachPart && reachPrior) {
+      const got = measurePart(spec, { ...reachPart, minAgeDays: undefined }, [p], [p], snapshot.account.audience);
+      if (got) {
+        reach = got.value;
+        const z = reachPart.scale === "log" ? logZ(got.value, reachPrior.median, reachPrior.sigma) : linearZ(got.value, reachPrior.median, reachPrior.sigma);
+        reachPct = Math.round(normalCdf(z) * 100);
+      }
+    }
+    const metrics = p.work.metrics;
+    const eng = engagementOf(metrics, spec);
+    return {
+      id: p.work.id, title: p.work.title || "Untitled", publishedAt: p.work.publishedAt, ageDays: p.ageDays, format: p.format,
+      value: metrics[spec.work.primary], projected: p.matured[spec.work.primary], metrics, eng,
+      rating: r?.rating ?? null, multiple: r?.multiple ?? null, matured: r?.matured ?? false, reach, reachPct,
+    };
+  });
+  base.works = works;
+  base.typical = typical;
+  base.typicalValue = typical?.[spec.work.primary] ?? null;
+  base.typicalEng = engagementOf(typical ?? {}, spec);
+  base.latest = works[0] ?? null;
+  base.best = works.filter((x) => x.matured && x.multiple != null).reduce((a, x) => (!a || x.multiple > a.multiple ? x : a), null);
+  if (!rated) return base;
+
+  base.rating = result.rating;
+  base.signed = signed(result.rating);
+  base.band = result.band;
+  base.sizeBand = result.sizeBand;
+  base.peersLine = `${w.peers} with ${result.sizeBand} ${spec.audienceNoun}`;
+  base.parts = result.parts;
+  base.reachScore = result.parts.find((p) => p.key === "reach")?.score ?? null;
+  base.explain = nodash(explain(result));
+  base.top = topStat(result);
+  base.focus = focusAreas(result);
+  base.provisional = result.detail.provisional;
+  base.workNoun = result.detail.workNoun;
+
+  // Personal bests: the standing record on each count, and whether the latest work set one.
+  const standing = personalBests(snapshot, { includeBaseline: true });
+  const label = (pb) => spec.records.find((r) => recordMetric(r) === pb.metric)?.label ?? pb.metric;
+  const byMetric = new Map();
+  for (const pb of standing) byMetric.set(pb.metric, pb);
+  base.bests = [...byMetric.values()].map((pb) => ({ ...pb, label: label(pb), title: works.find((x) => x.id === pb.workId)?.title ?? "a work" }));
+  // Most recent record set, newest first: the one Today celebrates.
+  base.freshBest = [...base.bests].filter((b) => b.previous != null && spec.metrics.find((m) => m.key === b.metric.split("@")[0])?.unit === "count")
+    .sort((a, b) => (works.findIndex((x) => x.id === a.workId) - works.findIndex((x) => x.id === b.workId)))[0] ?? null;
+
+  base.line = postLine(base);
+  return base;
+}
+
+function engagementOf(m, spec) {
+  if (!m) return null;
+  if (spec.kind === "youtube" && m.views) return ((m.likes ?? 0) + (m.comments ?? 0)) / m.views;
+  if (spec.kind === "substack" && m.recipients) return (m.opens ?? 0) / m.recipients;
+  return null;
+}
+
+/** The line to post: true to the engine, short enough to paste anywhere. */
+function postLine(d) {
+  const L = d.latest;
+  const tail = `Independently calculated by Orbe.`;
+  const first = `My ${d.words.kind} is rated ${d.signed}, ${d.band}, against ${d.words.peers} my size.`;
+  if (L?.multiple != null && L.matured) return `${first} My latest, "${L.title}", did ${L.multiple.toFixed(1)}× my typical ${d.workNoun}. ${tail}`;
+  return `${first} ${tail}`;
+}
+
+/** Why a work did well, in sentences built from its own figures against the creator's typical. */
+export function whyItWorked(d, w) {
+  const out = [];
+  if (w.multiple != null) out.push(`${w.multiple >= 1 ? `${w.multiple.toFixed(2)}×` : `${Math.round(w.multiple * 100)}% of`} your typical ${d.workNoun}: ${count(w.projected)} ${d.primaryName.toLowerCase()} ${w.ageDays < 30 ? "projected to maturity" : "read"} against a typical ${count(d.typicalValue)}.`);
+  if (w.reach != null && w.reachPct != null) out.push(`Reached ${Math.round(w.reach * 100)}% of your ${d.words.aud}, which on its own beats ${w.reachPct} in 100 ${d.peersLine}.`);
+  if (w.eng != null && d.typicalEng) {
+    const r = w.eng / d.typicalEng;
+    out.push(`${d.kind === "substack" ? "Opens came to" : "Likes and comments came to"} ${(w.eng * 100).toFixed(1)}% ${d.kind === "substack" ? "of recipients" : "of views"}, ${r >= 1.05 ? `${Math.round((r - 1) * 100)}% above` : r <= 0.95 ? `${Math.round((1 - r) * 100)}% below` : "level with"} your typical ${(d.typicalEng * 100).toFixed(1)}%.`);
+  }
+  if (w.metrics.durationSec) out.push(`${Math.round(w.metrics.durationSec / 60)} minutes long.`);
+  return out;
+}
+
+/* ---------------------------------------------------------------- the week */
+/** The creator's week, as of the desk's date: works published in the seven days before it. */
+export function weekOf(d) {
+  const inWeek = d.works.filter((w) => w.ageDays <= 7);
+  return { works: inWeek, from: new Date(toMs(d.at) - 7 * 864e5).toISOString(), to: d.at };
+}
+
+/* ---------------------------------------------------------------- the record */
+const SOURCE = { adsense: "Google AdSense", youtube_analytics: "YouTube Analytics", stripe: "Stripe", invoice_upload: "Uploaded invoice" };
+const STREAM = { ads: "Ads", products: "Shop sales", sponsorship: "Sponsorship", other: "Payout", subscriptions: "Subscriptions", memberships: "Memberships", licensing: "Licensing", tips: "Tips" };
+export { STREAM };
+
+/** The record engine's made-up channel: every payout month by month, estimates set beside what was paid. */
+export function madeUpRecord() {
+  const creator = cleanCreator();
+  const rec = buildRecord(creator, { now: RECORD_NOW });
+  const name = creator.creator.displayName.replace(/\s*\(fixture\)/, "");
+  const accountTitle = creator.accounts[0].title.replace(/\s*\(fixture\)/, "");
+  const months = rec.history.map((m) => {
+    const lines = rec.lines.filter((l) => l.month === m).map((l) => ({
+      id: l.line.id, stream: l.line.stream, amount: l.amount, role: l.role, measure: l.measure,
+      source: SOURCE[l.source] ?? l.source, sourceKey: l.source, checkedAt: l.line.provenance.checkedAt,
+      counterparty: (l.line.counterparty ?? "").replace(/\bLimited\b/, "Ltd"),
+    }));
+    const counted = lines.filter((l) => l.role === "counted");
+    const by = {};
+    for (const l of counted) by[l.stream] = (by[l.stream] ?? 0) + l.amount;
+    return { m, lines, counted, total: counted.reduce((a, l) => a + l.amount, 0), by };
+  });
+  const counted = new Set(rec.lines.filter((l) => l.role === "counted").map((l) => l.line.id));
+  const revenue = creator.revenue.filter((l) => counted.has(l.id));
+  // The record engine's second made-up channel, built to disagree: what YouTube estimated against what AdSense paid.
+  const nova = suspiciousCreator();
+  const last = [...new Set(nova.revenue.map((l) => l.month))].sort().at(-1);
+  const ads = nova.revenue.filter((l) => l.month === last && l.stream === "ads");
+  const est = ads.find((l) => l.provenance.source === "youtube_analytics");
+  const paid = ads.find((l) => l.provenance.source === "adsense");
+  return {
+    madeUp: true, name, accountTitle, months, revenue, provenance: rec.provenance, checks: rec.checks,
+    asOf: RECORD_NOW, kind: "youtube",
+    disagree: est && paid ? { name: nova.creator.displayName.replace(/\s*\(fixture\)/, ""), month: last, estimate: est.gross.amount, paid: paid.gross.amount } : null,
+  };
+}
+
+/** Revenue lines the creator pastes ("2026-09, ads, 6200"), declared by them, never verified. */
+export function declaredRecord(text) {
+  const STREAMS = ["ads", "sponsorship", "subscriptions", "memberships", "products", "licensing", "tips", "other"];
+  const lines = text.split(/\n+/).map((l) => l.split(/[,;\t]+/).map((x) => x.trim())).filter((p) => p.length >= 3).map((p, i) => {
+    const m = /^(\d{4})-(\d{1,2})/.exec(p[0]);
+    const stream = STREAMS.includes(p[1]?.toLowerCase()) ? p[1].toLowerCase() : "other";
+    const amount = Math.round(Number(String(p[2]).replace(/[£,\s]/g, "")) * 100);
+    if (!m || !(amount > 0)) return null;
+    return { month: `${m[1]}-${m[2].padStart(2, "0")}-01`, gross: { amount, currency: "GBP" }, stream, counterparty: p[3] || undefined, i };
+  }).filter(Boolean);
+  if (!lines.length) return null;
+  const ms = [...new Set(lines.map((l) => l.month))].sort();
+  const months = ms.map((m) => {
+    const ls = lines.filter((l) => l.month === m).map((l) => ({ id: `d${l.i}`, stream: l.stream, amount: l.gross.amount, role: "declared", source: "Typed by you", checkedAt: null, counterparty: l.counterparty ?? "" }));
+    const by = {};
+    for (const l of ls) by[l.stream] = (by[l.stream] ?? 0) + l.amount;
+    return { m, lines: ls, counted: ls, total: ls.reduce((a, l) => a + l.amount, 0), by };
+  });
+  return { madeUp: false, declared: lines, name: "Your record", months, revenue: [], asOf: new Date().toISOString(), kind: "youtube" };
+}
+
+/** Indicative value for a record: connected lines count as verified, declared ones never do. */
+export function valueOf(record, { margin, face }) {
+  const input = { kind: record.kind, revenue: record.revenue, declared: record.declared ?? [], costs: { basis: "declared_margin", margin: Math.min(0.99, Math.max(0.01, margin)) }, faceDependence: face };
+  return valuate(input);
+}
+
+/* ---------------------------------------------------------------- deals */
+const SPONSOR_METRIC = { youtube: "views", substack: "opens", podcast: "downloads_30d" };
+/** The creator's own delivery, for pricing a sponsorship: works at least 30 days old, as read. */
+export function deliveryOf(d) {
+  const key = SPONSOR_METRIC[d.kind];
+  if (!key) return null;
+  const alt = d.kind === "podcast" ? "downloads_7d" : null;
+  const old = d.works.filter((w) => w.ageDays >= 30);
+  const pool = (old.length >= 3 ? old : d.works).slice(0, 10);
+  const units = pool.map((w) => w.metrics[key] ?? (alt ? w.metrics[alt] : undefined)).filter((n) => Number.isFinite(n) && n > 0).map(Math.round);
+  if (units.length < 3) return null;
+  return { units, works: pool, metric: key, older: old.length >= 3 };
+}
+export function priceDeal(d) {
+  const del = deliveryOf(d);
+  if (!del) return null;
+  const { inventory, note } = inventoryFromStats({ kind: d.kind, audience: d.audience, units: del.units, price: null, currency: "USD", rating: d.rated ? { band: d.band, rating: d.rating } : null, at: d.at });
+  return { del, items: inventory.items, note };
+}

@@ -96,7 +96,6 @@ function swapWord(word) {
 const canvas = $("[data-desk]");
 const stage = $("[data-stage]");
 const hint = $("[data-hint]");
-const stillImg = $("[data-still-img]");
 let desk = null;
 
 function describe(d) {
@@ -110,12 +109,19 @@ function show(key, { instant = false } = {}) {
   describe(d);
   labelFor(d);
   desk?.setKind(d, { instant });
-  if (!hasGL) { stillImg.src = `assets/still-${key}.webp`; $("[data-still-phone]").srcset = `assets/still-${key}-phone.webp`; }
+  if (!hasGL) stillFor(key);
 }
 
 const ASKED = (() => { try { const k = new URLSearchParams(location.search).get("kind"); return k && DATA[k] ? k : null; } catch { return null; } })();
+/* without WebGL the desk is a rendered still per kind, painted as the hero's background so it always sits under the type */
+const heroEl = $("[data-hero]");
+function stillFor(key) {
+  heroEl.style.setProperty("--still-d", `url("assets/still-${key}.webp")`);
+  heroEl.style.setProperty("--still-m", `url("assets/still-${key}-phone.webp")`);
+}
 async function boot() {
   describe(DATA.channel);
+  if (!hasGL) stillFor(ASKED ?? "channel");
   labelFor(DATA.channel);
   for (const k of [...new Set(ROUND)]) if (tags["rack-" + k]) tags["rack-" + k].textContent = DATA[k].n;
   if (!hasGL) return;
@@ -146,6 +152,7 @@ async function boot() {
   } catch (err) {
     console.warn("The desk could not be drawn; showing the still.", err);
     root.classList.remove("gl"); root.classList.add("nogl");
+    stillFor(ASKED ?? "channel");
     canvas.dispatchEvent(new Event("desk:ready"));
   }
 }
