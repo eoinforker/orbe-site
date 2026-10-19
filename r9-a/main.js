@@ -96,8 +96,9 @@ function tick(gain, freq, dur = 0.012) {
 function placeLabels(st) {
   if (!tray) return;
   const g = tray.geo();
-  const L = g.x0, Rx = g.x0 + 100 * g.p, X = (n) => g.x0 + n * g.p;
-  const pos = (n) => X(n - 0.5);
+  const L = g.x0, Rx = g.xi(99) + g.p / 2;
+  const X = (n) => (n <= 0 ? L : n >= 100 ? Rx : (g.xi(n - 1) + g.xi(n)) / 2);
+  const pos = (n) => g.xi(n - 1);
   const youX = g.vx(st.n);
   const ticks = [1, 25, 50, 75, 100];
   const near = (x, d) => Math.abs(x - youX) < d;
@@ -142,7 +143,16 @@ function writeReadout(st) {
 }
 
 let pending = null;
+let prepared = 0;
+function prepareAll() {
+  // each kind's drop is solved while the page is idle, one per idle slot
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 120));
+  const todo = ORDER.filter((k) => k !== current);
+  const next = () => { const k = todo.shift(); if (!k) return; tray.prepare(standing(k).n); idle(next); };
+  idle(next);
+}
 function onSettle() {
+  if (prepared !== innerWidth) { prepared = innerWidth; prepareAll(); }
   trayFig.classList.add("settled");
   placeLabels(standing(current));
   tick(0.5, 1700, 0.03); setTimeout(() => tick(0.3, 900, 0.03), 18);

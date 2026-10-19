@@ -53,6 +53,9 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
     dip: new Float32Array(100), dipV: new Float32Array(100),
     passAt: new Int32Array(100), lastIdx: 0, impactSeen: 0,
     raf: 0, pal: palette(host), visible: false,
+    gapK: 0, open: 0,
+    /* where orb i is drawn: the orbs ahead stand back by the gap as your orb arrives */
+    rx(i) { const L = this.L; return L.x0 + (i + 0.5) * L.p + (this.gapK > 0 && i >= this.gapK ? L.p * 0.7 * this.open : 0); },
   };
   let gl = null;
   if (!force2d) { try { gl = makeGL(canvas, S); } catch (e) { gl = null; } }
@@ -61,7 +64,7 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
 
   function size() {
     const W = Math.round(host.clientWidth);
-    const L = layout(W);
+    const L = layout(W, { k: S.k });
     const D = L.R * 0.95, thick = L.phone ? 5 : 7;
     const H = Math.round(L.phone ? 136 : 210);
     const rowY = H - (L.bed * L.cos + D * L.sin + thick * L.cos) - 1;
@@ -88,6 +91,8 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
   function settleNow() {
     const { L } = S;
     S.playing = false; S.settled = true; S.path = null; S.lift = 0;
+    S.gapK = S.k; S.open = 1;
+    if (S.nextFill != null) { S.youFill = S.nextFill; S.nextFill = null; }
     S.x = valleyX(L, S.k); S.h = ground(L, S.x)[0]; S.vx = 0; S.tilt = 0; S.tiltV = 0;
     for (let i = 0; i < 100; i++) { S.beatTo[i] = i < S.k ? 1 : 0; S.beat[i] = S.beatTo[i]; S.dip[i] = 0; S.dipV[i] = 0; }
     draw();
@@ -105,7 +110,7 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
     const Sr = L.R + L.r, A = L.r * 0.32, kk = 1100, c = 2 * 0.32 * Math.sqrt(kk);
     let busy = Math.abs(S.tilt) > 0.002 || Math.abs(S.tiltV) > 0.01;
     for (let i = 0; i < 100; i++) {
-      const dx = Math.abs(S.x - L.xi(i));
+      const dx = Math.abs(S.x - S.rx(i));
       let rest = 0;
       if (contact && dx < Sr && S.lift === 0) rest = A * Math.pow(1 - dx / Sr, 2) * 2.2;
       if (impact && dx < Sr) S.dipV[i] += impact * Math.pow(1 - dx / Sr, 1.5);
@@ -129,7 +134,7 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
       const u = Math.min(1, (now - S.liftAt) / 220);
       S.h = S.liftFrom + (S.H + S.L.R * 2) / S.L.cos * u * u;
       busy = true;
-      if (u >= 1) { S.lift = 0; S.t0 = now; S.playing = true; S.lastIdx = 0; S.impactSeen = 0; for (let i = 0; i < 100; i++) S.beatTo[i] = 0; const s0 = start(S.L, S.rowY); S.x = s0.x; S.h = s0.h0; }
+      if (u >= 1) { S.lift = 0; S.t0 = now; S.playing = true; S.lastIdx = 0; S.impactSeen = 0; for (let i = 0; i < 100; i++) S.beatTo[i] = 0; const s0 = start(S.L, S.rowY); S.x = s0.x; S.h = s0.h0; if (S.nextFill != null) { S.youFill = S.nextFill; S.nextFill = null; } }
     } else if (S.playing) {
       const f = S.path.frames;
       const t = (now - S.t0) / 1000;
@@ -148,11 +153,19 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
         }
       }
       if (S.lastIdx === 0 && idx > 0) { /* first frame */ }
-      for (let i = 0; i < S.k; i++) if (!S.beatTo[i] && S.x >= S.L.xi(i)) { S.beatTo[i] = 1; onPass(i, Math.abs(S.vx)); }
+      for (let i = 0; i < S.k; i++) if (!S.beatTo[i] && S.x >= S.rx(i)) { S.beatTo[i] = 1; onPass(i, Math.abs(S.vx)); }
       S.lastIdx = Math.floor(idx);
       contact = contact || (S.h - ground(S.L, S.x)[0] < 0.6);
       busy = true;
       if (idx >= f.length - 1) { S.playing = false; S.settled = true; S.x = valleyX(S.L, S.k); onSettle(); }
+    }
+    // the gap: closes while the old orb lifts out, opens as the new one comes near
+    if (S.lift > 0) { S.open = Math.max(0, S.open - dt / 0.2); busy = true; }
+    else if (S.playing) {
+      if (S.gapK !== S.k) { S.gapK = S.k; S.open = 0; }
+      const near = (valleyX(S.L, S.k) - S.x) / (S.L.p * 14);
+      const want = Math.max(0, Math.min(1, 1 - near));
+      S.open = Math.max(S.open, want * want * (3 - 2 * want));
     }
     const springs = physics(dt, ax, contact || S.settled, impact);
     draw();
@@ -171,7 +184,7 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
     set({ k, fill }, { animate = true } = {}) {
       S.k = Math.max(1, Math.min(99, k));
       S.youFill = fill;
-      if (!S.L) size();
+      size();
       if (gl) gl.colors();
       S.prev = true;
       const path = animate ? solve(S.L, S.k, S.rowY) : null;
@@ -184,7 +197,8 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
       return true;
     },
     redrop({ k, fill }) {
-      S.k = Math.max(1, Math.min(99, k)); S.youFill = fill;
+      S.k = Math.max(1, Math.min(99, k)); S.nextFill = fill;
+      S.L = layout(S.W, { k: S.k });
       const path = solve(S.L, S.k, S.rowY);
       if (!path) { settleNow(); onSettle(); return false; }
       S.path = path; S.settled = false; S.playing = false;
@@ -192,6 +206,8 @@ export function createTray(canvas, { onSettle = () => {}, onPass = () => {}, onI
       kick();
       return true;
     },
+    /** Solve a rank ahead of time, so a later drop starts without work on the click. */
+    prepare(k) { if (!S.L) size(); solve(layout(S.W, { k }), Math.max(1, Math.min(99, k)), S.rowY); },
     recolor() { S.pal = palette(host); if (gl) gl.colors(); draw(); },
     size,
     draw,
@@ -221,7 +237,7 @@ function draw2d(ctx, canvas, S) {
   // the row
   for (let i = 0; i < 100; i++) {
     const fill = (i + 1) / 100;
-    disc(ctx, L.xi(i), Y(-S.dip[i]), L.r, levelFor(fill), 0, mixHex(pal.ahead, pal.beaten, S.beat[i]), pal, Math.min(1, L.r * 0.28), false);
+    disc(ctx, S.rx(i), Y(-S.dip[i]), L.r, levelFor(fill), 0, mixHex(pal.ahead, pal.beaten, S.beat[i]), pal, Math.min(1, L.r * 0.28), false);
   }
   // your orb
   if (S.x) disc(ctx, S.x, Y(S.h), L.R, levelFor(S.youFill), S.tilt, pal.you, pal, 1.5, true);
@@ -375,7 +391,7 @@ function makeGL(canvas, S) {
       if (!built) return;
       const { L } = S;
       for (let i = 0; i < 100; i++) {
-        m4.makeScale(L.r, L.r, L.r); m4.setPosition(L.xi(i), -S.dip[i], 0);
+        m4.makeScale(L.r, L.r, L.r); m4.setPosition(S.rx(i), -S.dip[i], 0);
         row.setMatrixAt(i, m4); aBeat.array[i] = S.beat[i];
       }
       row.instanceMatrix.needsUpdate = true; aBeat.needsUpdate = true;

@@ -141,17 +141,23 @@ export function solve(L, k, rowY) {
   const restAt = (v0, mu) => run(L, { v0, mu, ...s0 });
   /* the lowest launch speed that rests at valley j or beyond: rest is monotonic in speed */
   const lowest = (j, mu) => {
-    let lo = 1, hi = 20 * d + 400;
-    for (let n = 0; n < 28; n++) { const m = (lo + hi) / 2; const r = restAt(m, mu).rest; if (r >= j || r < 0) hi = m; else lo = m; }
+    let lo = 1, hi = (4 * d) / TARGET + 300;
+    for (let n = 0; n < 22; n++) { const m = (lo + hi) / 2; const r = restAt(m, mu).rest; if (r >= j || r < 0) hi = m; else lo = m; }
     return hi;
   };
-  let best = null, mu = mu0;
-  for (let round = 0; round < 6; round++) {
-    const v0 = (lowest(k, mu) + lowest(k + 1, mu)) / 2;
+  let best = null;
+  const consider = (v0, mu) => {
     const res = restAt(v0, mu);
-    if (res.rest === k && res.stop <= MAX && (!best || Math.abs(res.stop - TARGET) < Math.abs(best.stop - TARGET))) best = { v0, mu, ...res };
-    if (best && Math.abs(best.stop - TARGET) < 0.1) break;
-    mu *= res.stop > 0 ? Math.pow(res.stop / TARGET, 1.5) : 1.4;
+    if (res.rest !== k || res.stop > MAX || res.stop < 1.3) return;
+    if (!best || Math.abs(res.stop - TARGET) < Math.abs(best.stop - TARGET)) best = { v0, mu, ...res };
+  };
+  for (const m of [1, 1.25, 0.8, 1.55, 0.65, 1.9, 0.5, 2.4]) {
+    const mu = mu0 * m;
+    const e1 = lowest(k - 4, mu), e2 = lowest(k + 4, mu);
+    const a0 = Math.min(e1, e2), b0 = Math.max(e1, e2) * 1.01;
+    // scan the window around the valley finely: nearly monotonic, so the hits are in here
+    for (let n = 0; n <= 64; n++) consider(a0 + (b0 - a0) * n / 64, mu);
+    if (best && Math.abs(best.stop - TARGET) < 0.15) break;
   }
   if (!best) { CACHE.set(key, null); return null; }
   const out = { ...run(L, { v0: best.v0, mu: best.mu, ...s0, keep: true }), v0: best.v0, mu: best.mu, k };
