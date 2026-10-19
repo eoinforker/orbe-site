@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en-GB" data-c="pink" data-scheme="pink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe, your work rated</title>
+<meta name="description" content="Orbe rates your work against creators your size. Free, for good.">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<script>
+  /* The brand colour, before first paint: ?c=pink or ?c=blue, else the last choice, else pink. */
+  (function () {
+    var c = null;
+    try { c = new URLSearchParams(location.search).get("c"); } catch (e) {}
+    if (c !== "blue" && c !== "pink") { try { c = localStorage.getItem("orbe-r7e-colour"); } catch (e) {} }
+    c = c === "blue" ? "blue" : "pink";
+    document.documentElement.dataset.c = c;
+    document.documentElement.dataset.scheme = c;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<a class="skip" href="#reserve">Skip to reserving your handle</a>
+
+<header class="top">
+  <a class="pill pill-mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
+  <nav class="pill pill-nav" aria-label="Main">
+    <a href="#times">The Times</a>
+    <a href="#money">Money</a>
+    <a href="#buyers">Buyers</a>
+  </nav>
+  <a class="pill pill-go" href="#reserve">Reserve<span class="go-wide"> your handle</span></a>
+</header>
+
+<main>
+  <!-- 1. What it is, who it is for, what to do: the first phone screen. -->
+  <section class="hero" aria-labelledby="h1">
+    <h1 id="h1" class="h1">
+      <span class="vh">Your work, rated against creators your size.</span>
+      <span class="h1-show" aria-hidden="true"><span class="ln">Your <span class="cyc-w"><span data-cyc>work</span><i class="caret"></i>,</span></span> <span class="ln2">rated against creators your&nbsp;size.</span></span>
+    </h1>
+    <p class="sub">Free for YouTubers, writers, streamers, podcasters and photographers. See where you stand, then reserve your handle.</p>
+    <form class="res" data-reserve novalidate>
+      <label class="res-in"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
+      <label class="res-sel"><span class="vh">What you make</span><select name="kind" data-kind>
+        <option value="channel" selected>YouTube</option><option value="newsletter">Substack</option><option value="stream">Twitch</option><option value="podcast">Podcast</option><option value="portfolio">Photography</option>
+      </select></label>
+      <button type="submit">Reserve my handle</button>
+      <p class="note" data-note>Free, for good. Ratings open with YouTube: connect your channel to see yours.</p>
+    </form>
+  </section>
+
+  <!-- 2. The product, in a phone, in the dark deck. -->
+  <section class="deck" id="story" aria-labelledby="m1-h">
+    <div class="deck-plate">
+      <div class="tabs" role="group" aria-label="Whose rating to show">
+        <div class="tabs-row" data-tray></div>
+      </div>
+      <div class="deck-grid">
+        <div class="deck-copy">
+          <p class="lab">Where <span data-b="handle">@fieldrecordings</span> stands</p>
+          <h2 id="m1-h" class="beat"><span>You beat</span> <span class="beat-n" data-b="lead">93</span> <span>in 100 <span data-b="peers">channels</span> your size.</span></h2>
+          <p class="body"><span data-b="fact">A typical upload reaches 37% of its subscribers.</span> <span data-b="weighs">The rating weighs all five.</span></p>
+          <p class="fine">Independently calculated by Orbe. <span data-b="line1">A made-up creator, rated live by the Orbe engine.</span></p>
+        </div>
+        <div class="stage-wrap">
+        <button type="button" class="tab-pause" data-pause aria-pressed="false"><span class="vh">Pause the examples</span></button>
+        <div class="stage" aria-hidden="true">
+          <canvas class="orb orb-hero" width="168" height="168" data-orb="lead"></canvas>
+          <div class="phone">
+            <div class="screen">
+              <div class="sb"><span>9:41</span><span class="island"></span><span>orbe.vc</span></div>
+              <div class="app-h"><span class="av" data-b="initials">FR</span><span class="app-who"><b data-b="handle">@fieldrecordings</b><small data-b="size">250k to 1M subscribers</small></span></div>
+              <p class="app-k">You beat</p>
+              <p class="app-n" data-b="lead">93</p>
+              <p class="app-of">in 100 <span data-b="peers">channels</span> your size</p>
+              <div class="hundred" data-hundred></div>
+              <ul class="app-parts" data-app-parts></ul>
+              <div class="app-r"><span>Orbe Rating</span><b data-b="signed">+1.23</b><i data-b="band">Good</i></div>
+              <p class="app-fine">Independently calculated by Orbe.</p>
+            </div>
+          </div>
+          <figure class="win win-a">
+            <figcaption class="bar"><span>rating.orb</span><span class="bx"><i></i><i></i></span></figcaption>
+            <div class="win-b"><p class="wa-n"><b data-b="signed">+1.23</b> <i data-b="band">Good</i></p><ol class="bands" data-bands></ol></div>
+          </figure>
+          <figure class="win win-b2">
+            <figcaption class="bar"><span>best.log</span><span class="bx"><i></i><i></i></span></figcaption>
+            <div class="win-b"><p data-b="best">Best of the last twelve: 3.0× a typical upload.</p></div>
+          </figure>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div class="deck-under" aria-hidden="true"><i></i><i></i></div>
+  </section>
+
+  <!-- 3. The yardstick, the rating, and the post: a pink desktop of hard windows. -->
+  <section class="field" id="rating" aria-labelledby="m2-h">
+    <div class="field-in">
+      <p class="lab">The Orbe Rating</p>
+      <h2 id="m2-h" class="big">Zero is typical.</h2>
+      <div class="desk">
+        <figure class="win win-yard" data-yardwin>
+          <figcaption class="bar"><span data-yard-part>Against channels, reach</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b">
+            <ol class="yard" data-yard></ol>
+            <p class="yard-why" data-yard-why>Against small channels, ordinary. Against the giants, a genius. <b>Neither is fair.</b></p>
+          </div>
+        </figure>
+        <figure class="win win-rate">
+          <figcaption class="bar"><span>Orbe Rating, <span data-b="handle">@fieldrecordings</span></span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b">
+            <p class="rate-n"><span class="vh">The Orbe Rating: </span><span data-b="signed">+1.23</span> <i data-b="band">Good</i></p>
+            <ol class="scale" aria-label="The five bands, with zero as typical" data-scale></ol>
+            <ul class="parts" data-parts></ul>
+            <p class="win-fine"><span data-b="weights">The weights.</span> <span data-b="notice">Independently calculated by Orbe.</span></p>
+          </div>
+        </figure>
+        <figure class="win win-post">
+          <figcaption class="bar"><span>The one you post</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b">
+            <h3 class="post-h">Your rating is the post.</h3>
+            <blockquote class="said"><p data-b="said">My channel is rated +1.23, Good, against channels my size.</p><footer>Independently calculated by Orbe.</footer></blockquote>
+            <div class="post-row">
+              <button type="button" class="btn" data-copy>Copy the line</button>
+              <span class="link-pill">orbe.vc/<span data-b="handle">@fieldrecordings</span></span>
+            </div>
+            <p class="copied" data-copied aria-live="polite"></p>
+            <p class="win-fine" data-b="line3">A made-up creator, rated live by the Orbe engine.</p>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. The Orbe Times: the State of the Middle. Every story made up; every figure from the engine. -->
+  <section class="times" id="times" aria-labelledby="times-h">
+    <div class="times-in">
+      <div class="mast">
+        <p class="mast-k"><span>Made-up edition</span><span data-times-date>Vol. 0</span><span>Free, for good</span></p>
+        <h2 id="times-h" class="mast-h">The Orbe Times</h2>
+        <p class="mast-s">The State of the Middle. News about creators your size, none of them real. Every figure is computed live by the Orbe engine.</p>
+      </div>
+      <article class="lead" data-lead></article>
+      <div class="cols" data-stories></div>
+      <p class="times-fine" data-times-fine></p>
+    </div>
+  </section>
+
+  <!-- 5. The money, and the second door. -->
+  <section class="night" id="money" aria-labelledby="money-h">
+    <div class="night-in">
+      <p class="lab">After the rating</p>
+      <h2 id="money-h" class="big">Then, when money moves.</h2>
+      <div class="fees">
+        <figure class="win win-fee">
+          <figcaption class="bar"><span>01 Your record</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b">
+            <h3>Read from payouts, not estimates.</h3>
+            <p>Every verified figure shows its source and the day we read it. Where a platform does not report payouts, we say so.</p>
+          </div>
+        </figure>
+        <figure class="win win-fee">
+          <figcaption class="bar"><span>02 Sponsorships</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b fee-b">
+            <canvas class="orb orb-fee" width="72" height="72" data-fee="15" aria-hidden="true"></canvas>
+            <div>
+              <h3>Sponsors, at a fair rate.</h3>
+              <p class="fee"><b>15%</b> when Orbe finds the brand, <b>5%</b> when you bring your own.</p>
+              <p>Paid by the brand, never by you, only when the sponsorship completes.</p>
+            </div>
+          </div>
+        </figure>
+        <figure class="win win-fee">
+          <figcaption class="bar"><span>03 Selling</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b fee-b">
+            <canvas class="orb orb-fee" width="72" height="72" data-fee="8" aria-hidden="true"></canvas>
+            <div>
+              <h3>A fair sale, when you want one.</h3>
+              <p class="fee"><b>8%</b> up to £500k, <b>5%</b> from £500k to £2M, <b>3%</b> above, £4,000 minimum.</p>
+              <p>From the proceeds, only if it sells. Nothing if it doesn't.</p>
+            </div>
+          </div>
+        </figure>
+      </div>
+
+      <div class="buyers" id="buyers">
+        <div class="buyers-copy">
+          <p class="lab">For buyers and lenders</p>
+          <h2 class="mid">Buying or lending?</h2>
+          <p class="body">Creator businesses, rated against their size and read from payouts. Every creator who connects adds consented figures to the benchmark, so it sharpens with each one, and an estimate built from views cannot copy it.</p>
+          <dl class="terms">
+            <div><dt>Buy</dt><dd>Free, vetted access. A <b>2%</b> buyer's premium at completion, <b>1%</b> above £2M, £1,000 minimum. Diligence reports included; £1,500 only if you walk away after one, never if it shows the listing was wrong.</dd></div>
+            <div><dt>Lend</dt><dd>A fixed fee per file, paid by the lender.</dd></div>
+          </dl>
+          <a class="btn btn-light" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
+        </div>
+        <figure class="win win-roll">
+          <figcaption class="bar"><span>Made-up examples, by size</span><span>Rating</span></figcaption>
+          <ul class="roll" data-roll></ul>
+          <p class="win-fine roll-fine">Each moon is lit by its reach score. Rated live by the Orbe engine. Independently calculated by Orbe.</p>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Close: the dark moon, waiting for your handle. -->
+  <section class="close" id="reserve" aria-labelledby="close-h">
+    <div class="close-in">
+      <div class="next" aria-hidden="true">
+        <canvas class="orb orb-next" width="96" height="96" data-next></canvas>
+        <span class="q">?</span>
+      </div>
+      <p class="lab">Up next</p>
+      <h2 id="close-h" class="big">Your story is next.</h2>
+      <p class="next-h" aria-hidden="true">@<b data-mirror>yourhandle</b></p>
+      <p class="body next-line">You beat ? in 100 <span data-peers-you>channels</span> your size. Reserve your handle and find out first.</p>
+      <form class="res res-end" data-reserve novalidate>
+        <label class="res-in"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
+        <label class="res-sel"><span class="vh">What you make</span><select name="kind" data-kind>
+          <option value="channel" selected>YouTube</option><option value="newsletter">Substack</option><option value="stream">Twitch</option><option value="podcast">Podcast</option><option value="portfolio">Photography</option>
+        </select></label>
+        <button type="submit">Reserve my handle</button>
+        <p class="note" data-note>Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+      </form>
+      <p class="never"><b>Creators never pay.</b> Orbe earns a percentage when money moves.</p>
+    </div>
+  </section>
+
+  <footer class="legal">
+    <div class="legal-in">
+      <p class="legal-mark" data-wordmark-big></p>
+      <p>Every creator, story, figure and picture on this page is a made-up example, rated live by the Orbe engine. Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google. YouTube, Substack and Twitch are trademarks of their owners.</p>
+      <div class="legal-row">
+        <p class="legal-links"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a><a href="../products/">Products</a><a href="../legal/privacy.html">Privacy</a><a href="../legal/terms.html">Terms</a></p>
+        <div class="swatch" role="group" aria-label="Brand colour">
+          <button type="button" data-c="pink" aria-pressed="true">Pink</button>
+          <button type="button" data-c="blue" aria-pressed="false">Blue</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+</main>
+</body>
+</html>
