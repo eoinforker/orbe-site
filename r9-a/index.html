@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe: rated against creators your size</title>
+<meta name="description" content="Orbe rates your work against the hundred creators nearest your size, reads your record from payouts, and earns only when money moves.">
+<meta name="theme-color" content="#9EE9FB">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<script>
+  /* Before first paint: the scheme (?c=pink is the alternative) and whether anything moves. */
+  (function () {
+    var d = document.documentElement, q = null;
+    try { q = new URLSearchParams(location.search); } catch (e) {}
+    if (q && q.get("c") === "pink") d.dataset.scheme = "pink";
+    d.classList.add("js");
+    var still = false;
+    try { still = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+    if (q && q.has("still")) still = true;
+    if (!still) d.classList.add("move");
+  })();
+</script>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="style.css">
+<link rel="modulepreload" href="../assets/vendor/three-0.160.0.module.min.js">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<a class="skip" href="#reserve">Skip to reserving your handle</a>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="nav-mark" href="./" aria-label="Orbe, home"><span data-wordmark>Orbe</span></a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#hundred">The hundred</a>
+      <a href="#months">The months</a>
+      <a href="#fees">Fees</a>
+    </nav>
+    <a class="btn btn-nav" href="#reserve">Reserve your handle</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- 1. The hundred: the whole pitch, and it works at once. -->
+  <section class="hero" id="hundred" data-surface="field" aria-labelledby="h1">
+    <div class="wrap">
+      <div class="hero-top">
+        <h1 id="h1">Your work, rated<br> against creators<br class="ph"> your size.</h1>
+        <div class="hero-side">
+          <p class="lede">Orbe drops you among the hundred creators nearest your size, reads your record from what was paid out, and earns only when money moves.</p>
+          <div class="kinds" role="group" aria-label="Kind of work" data-kinds></div>
+        </div>
+      </div>
+
+      <figure class="tray" data-tray>
+        <div class="tray-box" data-tray-box>
+          <canvas data-tray-canvas role="img" aria-label="A tray of 100 orbs in rank order."></canvas>
+          <div class="you-tag" data-you-tag aria-hidden="true"><span data-you-name>Field Recordings</span> <b data-you-signed>+1.23</b> <span data-you-band>Good</span></div>
+          <div class="scale" data-scale aria-hidden="true"></div>
+        </div>
+        <figcaption class="readout">
+          <p class="verdict" data-verdict aria-live="polite"><span data-v-name>Field Recordings</span> beats <b data-v-n>93</b> in 100 <span data-v-peers>channels</span> its size.</p>
+          <p class="verdict-sub" data-v-sub>On reach, among channels with 250k to 1M subscribers. Orbe Rating <b>+1.23</b>, Good. Zero is typical.</p>
+          <p class="yards" data-yards></p>
+        </figcaption>
+      </figure>
+
+      <div class="hero-foot">
+        <div class="ctas">
+          <a class="btn btn-primary" href="#reserve">Reserve your handle</a>
+          <a class="btn btn-secondary" href="#months">See the record</a>
+        </div>
+        <p class="fine"><span data-example-line>A made-up channel, rated live by the Orbe engine.</span> <span data-attrib>Independently calculated by Orbe.</span> <button type="button" class="sound" data-sound aria-pressed="false">Sound off</button></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. The months: the record, one orb per month of payouts, with the fee where money moved. -->
+  <section class="months" id="months" data-surface="paper" aria-labelledby="h-months">
+    <div class="wrap">
+      <div class="rail">
+        <h2 id="h-months">Your record,<br> month<br class="dk"> by month.</h2>
+        <div class="rail-text">
+          <p>Twenty-four months, read from what was paid out: AdSense, Stripe, and invoices matched to the payments that cleared them. Orbe takes nothing from ads or shop sales. When a sponsor books through Orbe, the brand pays the fee on top.</p>
+          <p class="est" data-est>Estimates are not a record.</p>
+        </div>
+      </div>
+
+      <div class="record">
+        <div class="pick" aria-hidden="true">
+          <svg class="pick-orb" data-pick-orb viewBox="0 0 120 120"></svg>
+        </div>
+        <div class="pick-text" aria-live="polite" data-pick>
+          <p class="pick-month" data-pick-month>September 2026</p>
+          <p class="pick-total" data-pick-total>£16,485.83 paid out</p>
+          <ul class="pick-lines" data-pick-lines></ul>
+          <p class="pick-fee" data-pick-fee></p>
+        </div>
+        <div class="row-wrap">
+          <div class="row" data-row tabindex="0" role="slider" aria-label="Month of the record" aria-valuemin="1" aria-valuemax="24" aria-valuenow="24">
+            <svg data-row-svg aria-hidden="true"></svg>
+          </div>
+          <p class="row-hint" data-row-hint>Drag across the months, or use the arrow keys.</p>
+        </div>
+        <p class="record-sum" data-record-sum></p>
+        <p class="fine" data-record-line></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. The close: every fee, and the form. -->
+  <section class="close" id="fees" data-surface="field" aria-labelledby="h-fees">
+    <div class="wrap">
+      <div class="rail">
+        <h2 id="h-fees">Free until<br> money moves.</h2>
+        <div class="rail-text">
+          <table class="fees" data-fees>
+            <caption class="vh">What Orbe charges</caption>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <form class="reserve" id="reserve" data-reserve novalidate>
+        <h3>Reserve your handle</h3>
+        <p class="reserve-why">Rating and record are free. We open handles in the order they were reserved.</p>
+        <div class="fields">
+          <div class="field f-handle">
+            <label for="handle">Your handle or link</label>
+            <input id="handle" name="handle" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@yourname" required aria-describedby="reserve-status">
+          </div>
+          <div class="field f-kind">
+            <label for="kind">Kind of work</label>
+            <select id="kind" name="kind" data-kind-select></select>
+          </div>
+          <button class="btn btn-primary" type="submit">Reserve</button>
+        </div>
+        <p class="status" id="reserve-status" role="status" aria-live="polite" data-status></p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot" data-surface="field">
+  <div class="wrap foot-in">
+    <span class="foot-mark" data-wordmark-foot>Orbe</span>
+    <p>Independently calculated by Orbe. Every figure on this page is computed in your browser by the Orbe engine from made-up creators.</p>
+    <nav aria-label="Legal"><a href="../legal/privacy.html">Privacy</a> <a href="../legal/terms.html">Terms</a></nav>
+  </div>
+</footer>
+</body>
+</html>

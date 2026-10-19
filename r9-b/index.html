@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe</title>
+<meta name="description" content="A free rating of your work against creators your size, read from what you were paid. Orbe earns only when money moves.">
+<meta name="theme-color" content="#F3F0E8">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<script>
+  /* Before first paint: ?c=pink for the alternative scheme; ?still (or reduced motion) for the still version. */
+  (function () {
+    var d = document.documentElement, q = null;
+    try { q = new URLSearchParams(location.search); } catch (e) {}
+    if (q && q.get("c") === "pink") d.dataset.scheme = "pink";
+    d.classList.add("js");
+    var still = false;
+    try { still = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+    if (q && q.has("still")) still = true;
+    if (still) d.classList.add("still");
+  })();
+</script>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<a class="skip" href="#handle-2">Skip to reserving your handle</a>
+
+<header class="top">
+  <nav aria-label="Main">
+    <a href="#money">How Orbe is paid</a>
+    <a href="#fees">Fees</a>
+  </nav>
+</header>
+
+<main>
+  <!-- 1. The O. The wordmark is the whole first screen; its O is the rating. -->
+  <section class="hero" data-hero aria-labelledby="h1">
+    <canvas class="hero-cv" data-hero-cv aria-hidden="true"></canvas>
+
+    <div class="stage" data-stage>
+    <div class="word" data-word>
+      <h1 id="h1" class="mark-h">
+        <span class="vh">Orbe. </span>
+        <svg class="mark" data-mark viewBox="0 -742 2040 755" role="img" aria-label="Orbe" focusable="false">
+          <path class="m-o" data-m-o></path>
+          <g class="m-rest" data-m-rest><path data-m-r></path><path data-m-b></path><path data-m-e></path></g>
+        </svg>
+      </h1>
+      <button type="button" class="o-slot" data-o-slot aria-expanded="false" aria-controls="reading">
+        <span class="vh">The O is a rating. Open it.</span>
+      </button>
+    </div>
+
+    <div class="lede" data-lede>
+      <p class="lede-1">A free rating of your work against creators your&nbsp;size, read from what you were paid. Zero is&nbsp;typical.</p>
+      <p class="lede-2"><button type="button" class="btn btn-quiet" data-open>Open the O</button> <span class="lede-note" data-lede-note>The line through the O is typical for your size. The blue is a made-up channel, rated live by the Orbe engine: it beats <span data-b="beats">93</span> in 100 its&nbsp;size.</span></p>
+    </div>
+    </div>
+
+    <div class="reading" id="reading" data-reading inert>
+      <button type="button" class="o-target" data-o-target aria-label="Put the O back"></button>
+      <div class="r-txt">
+        <p class="label" data-b="band-line">Sample channel, 250k to 1M subscribers</p>
+        <h2 class="r-h" tabindex="-1" data-r-h>You beat <span data-b="beats">93</span> in 100 channels your&nbsp;size.</h2>
+        <p class="r-p">Rating <b data-b="signed">+1.23</b>, <span data-b="band">Good</span>. The line through the O is typical for your size, so zero is typical. Not measured against giants, or against the&nbsp;tiny.</p>
+        <form class="res" data-reserve novalidate>
+          <label class="field" for="handle"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input id="handle" name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" data-handle></label>
+          <button type="submit" class="btn btn-pri">Reserve my handle</button>
+        </form>
+        <p class="r-note" data-note aria-live="polite">Free. Reserve your handle now; ratings open with YouTube channels first.</p>
+        <p class="r-fine"><button type="button" class="link" data-close>Put the O back</button> <span>Independently calculated by Orbe.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Only money fills it, and Orbe is paid when you are. -->
+  <section class="money" id="money" aria-labelledby="money-h">
+    <div class="m-a">
+      <h2 id="money-h" class="h2">Only money fills&nbsp;it.</h2>
+      <p class="p">Estimates pass through the O as mist. Payouts fall in and stay. Your record is read from what you were paid, never from what a dashboard&nbsp;guessed.</p>
+      <dl class="ledger" aria-label="A made-up channel's ad revenue for September 2026">
+        <div class="row est"><dt>YouTube's estimate</dt><dd data-b="est">£6,474.47</dd><dd class="st">Not counted</dd></div>
+        <div class="row paid"><dt>Paid by AdSense</dt><dd data-b="paid">£4,624.62</dd><dd class="st">Counted</dd></div>
+      </dl>
+      <p class="fine" data-b="nova-line">Nova Plays, a made-up channel from the Orbe record engine. Ad revenue for September&nbsp;2026.</p>
+    </div>
+    <div class="m-b">
+      <h3 class="h3">Orbe is paid when you&nbsp;are.</h3>
+      <p class="p">Drag a deal into your O. Orbe's share flows into Orbe's own small O, exactly. With no deal, it stays&nbsp;dry.</p>
+      <div class="deals" role="group" aria-label="Example deals">
+        <button type="button" class="deal" data-deal="sponsor"><span class="d-amt">£3,000</span> <span class="d-what">sponsorship, Orbe found the brand</span></button>
+        <button type="button" class="deal" data-deal="sale"><span class="d-amt">£60,000</span> <span class="d-what">sale of your channel</span></button>
+      </div>
+      <p class="fine">Example deals. <button type="button" class="link" data-pour-out hidden>Pour them out</button></p>
+    </div>
+
+    <figure class="m-fig" data-fig>
+      <canvas class="m-cv" data-money-cv aria-hidden="true"></canvas>
+      <div class="jug jug-you" data-jug="you"></div>
+      <div class="jug jug-orbe" data-jug="orbe"></div>
+      <figcaption class="cap-you"><span class="label">Paid to you</span> <b class="fig-n" data-you>£0.00</b></figcaption>
+      <figcaption class="cap-orbe"><span class="label">Orbe</span> <b class="fig-n" data-orbe>£0</b> <span class="cap-line" data-orbe-line>No deal, no fee.</span></figcaption>
+      <p class="vh" aria-live="polite" data-money-live></p>
+    </figure>
+  </section>
+
+  <!-- 3. The fees, in full. -->
+  <section class="close" id="fees" data-surface="field" aria-labelledby="fees-h">
+    <div class="c-in">
+      <h2 id="fees-h" class="h2">Orbe earns only when money&nbsp;moves.</h2>
+      <dl class="fees">
+        <div><dt>Your rating</dt><dd>Free, for good.</dd></div>
+        <div><dt>Sponsorships</dt><dd>15% when Orbe finds the brand, 5% when you bring it. Paid by the brand, on top of your&nbsp;price.</dd></div>
+        <div><dt>Selling your channel</dt><dd>8% up to £500,000, 5% from £500,000 to £2M, 3% above. £4,000 minimum. Paid from the proceeds, and nothing if it doesn't&nbsp;sell.</dd></div>
+        <div><dt>Buying one</dt><dd>A 2% buyer's premium, 1% above £2M, with a £1,000&nbsp;minimum.</dd></div>
+      </dl>
+      <form class="res res-close" data-reserve novalidate>
+        <label class="field" for="handle-2"><span class="vh">Your handle</span><span class="pre" aria-hidden="true">orbe.vc/@</span><input id="handle-2" name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle"></label>
+        <button type="submit" class="btn btn-pri">Reserve my handle</button>
+      </form>
+      <p class="r-note" aria-live="polite" data-note>Free. Ratings open with YouTube channels first.</p>
+      <footer class="legal">
+        <p>Every creator and figure on this page is a made-up example. The rating is a made-up channel rated live by the Orbe engine; the payouts come from the record engine's made-up channel. Independently calculated by Orbe. Not a YouTube metric, and not provided or endorsed by YouTube or Google.</p>
+        <p class="links"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a><a href="../legal/privacy.html">Privacy</a><a href="../legal/terms.html">Terms</a></p>
+      </footer>
+    </div>
+  </section>
+</main>
+</body>
+</html>
