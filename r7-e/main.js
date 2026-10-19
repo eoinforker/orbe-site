@@ -5,6 +5,7 @@ import { SPECS } from "../assets/engine/rating/kinds.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
 import { drawOrb, mountOrb, setOrb } from "./orb.js";
+import { rate, rateWorks, explain, signed as signedOf, fixtureSnapshot, FIXTURE_NOW } from "../assets/engine/rating/browser.js";
 
 const root = document.documentElement;
 root.classList.add("js");
@@ -119,7 +120,7 @@ function setKind(k, { from = "ui" } = {}) {
 const EDGES = [-3, -2, -0.8, 0.8, 2, 3];
 function setScale(e) {
   const at = (v) => ((Math.max(-3, Math.min(3, v)) + 3) / 6) * 100;
-  $("[data-scale]").innerHTML = BANDS.map((b, i) => `<li class="${b === e.band ? "is" : ""}" style="--a:${at(EDGES[i])}%;--b:${at(EDGES[i + 1])}%"><span>${b}</span></li>`).join("")
+  $("[data-scale]").innerHTML = BANDS.map((b, i) => `<li class="${b === e.band ? "is" : ""}"${b === e.band ? ' aria-current="true"' : ""} style="--a:${at(EDGES[i])}%;--b:${at(EDGES[i + 1])}%"><span>${b}</span></li>`).join("")
     + `<li class="zero" aria-hidden="true" style="--a:50%"><span>0 typical</span></li><li class="you" aria-hidden="true" style="--a:${at(e.rating)}%"><span>${esc(e.signed)}</span></li>`;
 }
 
@@ -151,6 +152,7 @@ function setYard(k) {
     <span class="y-vs">${m ? `Its size, ${esc(row.label)}` : `Against ${esc(row.label)}`}</span>
     <span class="y-say"><span class="y-w">${say(beats(row), m || !banded)}</span>${m || !banded ? "" : '<span class="vh"> Not a fair comparison.</span>'}</span>
     <b class="y-n">${beats(row)}<small> in 100</small></b>
+    <span class="y-bar" aria-hidden="true"><i style="--w:${beats(row)}%"></i></span>
   </li>`).join("");
   for (const c of $$("canvas[data-y]", yard)) mountOrb(c, +c.dataset.y / 100, { reduce, dur: 900 });
   yardWin.classList.toggle("flat", !banded);
@@ -179,17 +181,22 @@ let paused = reduce;
 let inView = true;
 let timer = 0;
 const pauseBtn = $("[data-pause]");
+/* hold the cycle while keyboard focus or a pointer is inside the deck, so nothing moves under the hand */
+let held = false;
+const plate = $(".deck-plate");
+plate.addEventListener("focusin", () => { held = true; schedule(); });
+plate.addEventListener("focusout", (e) => { if (!plate.contains(e.relatedTarget)) { held = false; schedule(); } });
 function setPaused(v) {
   paused = v;
   pauseBtn.setAttribute("aria-pressed", String(v));
-  pauseBtn.querySelector(".vh").textContent = v ? "Play the examples" : "Pause the examples";
+  
   root.classList.toggle("paused", v);
   schedule();
 }
 function schedule() {
   clearTimeout(timer);
   for (const p of $$(".tab-pill i")) p.classList.remove("run");
-  if (paused || !inView || document.hidden) return;
+  if (paused || !inView || document.hidden || held) return;
   const pill = $(`[data-tk="${kind}"] .tab-pill i`);
   void pill.offsetWidth; pill.classList.add("run");
   timer = setTimeout(() => {
@@ -248,7 +255,7 @@ function times() {
   const nl = example("newsletter"), st = example("stream"), pd = example("podcast"), pf = example("portfolio");
   const reachOf = (x) => x.result.parts.find((p) => p.key === "reach").score;
   const out = [];
-  if (nl.card.sizeUp) out.push(story("newsletter", `${nl.name} moves up a size.`, `From ${nl.card.sizeUp.from} to ${nl.card.sizeUp.to} ${SPECS.substack.audienceNoun}. Against its new rivals, it beats ${reachOf(nl)} in 100 on reach.`));
+  if (nl.card.sizeUp) out.push(story("newsletter", `${nl.name} moves up a size.`, `It now sits with newsletters of ${nl.card.sizeUp.to} ${SPECS.substack.audienceNoun}, one band up from ${nl.card.sizeUp.from}. Against its new rivals, it beats ${reachOf(nl)} in 100 on reach.`));
   if (st.card.personalBest) out.push(story("stream", `${st.name} breaks its own record.`, `Its ${st.card.personalBest.label}: ${st.card.personalBest.value}, up from ${st.card.personalBest.previous}. Rated ${st.signed}, ${st.band}.`));
   const mult = (pd.best.match(/([\d.]+)×/) || [])[1];
   if (mult) out.push(story("podcast", `One episode of ${pd.name} did ${mult}× a typical one.`, `The show is rated ${pd.signed}, ${pd.band}. ${firstSentence(pd, pd.parts[0])}`));
@@ -265,7 +272,7 @@ $("[data-roll]").innerHTML = ORDER.map((k) => {
   const x = example(k);
   const [, span = x.sizeBand, unit = ""] = x.sizeBand.match(/^(.*\d\S*)\s+(\D+)$/) ?? [];
   const reach = x.result.parts.find((p) => p.key === "reach").score;
-  return `<li><canvas class="orb orb-roll" width="40" height="40" data-roll-p="${reach}" aria-hidden="true"></canvas><span class="rl-s">${esc(span)}<small>${esc(unit)}</small></span><span class="rl-n">${esc(x.name)}<small>${esc(x.label)}</small></span><b class="rl-r">${esc(x.signed)}</b><span class="rl-b">${esc(x.band)}</span></li>`;
+  return `<li><canvas class="orb orb-roll" width="40" height="40" data-roll-p="${reach}" aria-hidden="true"></canvas><span class="rl-s">${esc(span)} <small>${esc(unit)}</small></span><span class="rl-n">${esc(x.name)} <small>${esc(x.label)}</small></span><b class="rl-r">${esc(x.signed)}</b><span class="rl-b">${esc(x.band)}</span></li>`;
 }).join("");
 for (const c of $$("canvas[data-roll-p]")) mountOrb(c, +c.dataset.rollP / 100, { reduce });
 
@@ -282,6 +289,8 @@ if (!reduce && "IntersectionObserver" in window) {
     for (const e of es) if (e.isIntersecting) { e.target.classList.add("in"); wio.unobserve(e.target); }
   }, { threshold: 0.15 });
   for (const w of $$(".win, .story, .lead")) wio.observe(w);
+  /* a window that takes focus before it has scrolled in opens at once, so the keyboard never lands on nothing */
+  document.addEventListener("focusin", (e) => { const w = e.target.closest?.(".win, .story, .lead"); if (w) w.classList.add("in"); });
 } else for (const w of $$(".win, .story, .lead")) w.classList.add("in");
 
 /* ---------- start ---------- */
@@ -328,3 +337,89 @@ for (const form of $$("[data-reserve]")) {
       : `Your email has opened with the request for @${h}. Send it and the handle is held. We'll check it's yours when ratings open.`;
   });
 }
+
+/* ---------- rating.lab: drag a made-up channel; the engine re-rates it on every move ---------- */
+const nf = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+const short = (n) => (n >= 1e6 ? `${+(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n)));
+const sig = (n, d = 2) => { const p = Math.pow(10, Math.floor(Math.log10(n)) - d + 1); return Math.round(n / p) * p; };
+const LAB = { base: { kind: "youtube", noise: 0.25, engagement: 1.6, hitEvery: 5, seed: 1, title: "Your channel" } };
+/* the typical views the engine reads at reach 1, per subscriber, so the slider sets the typical itself */
+LAB.perSub = rate(fixtureSnapshot({ ...LAB.base, audience: 100000, reach: 1 }), FIXTURE_NOW).detail.typical.views / 100000;
+const audAt = (t) => sig(Math.pow(10, 3 + 4 * t), 2);
+const viewsAt = (t) => sig(Math.pow(10, 2 + 4.7 * t), 2);
+const audSl = $("[data-lab='aud']"), viewsSl = $("[data-lab='views']");
+audSl.value = String(Math.round(((Math.log10(412000) - 3) / 4) * 1000));
+viewsSl.value = String(Math.round(((Math.log10(150000) - 2) / 4.7) * 1000));
+const bmRows = benchmark("channel").rows;
+const hist = $("[data-hist]");
+hist.innerHTML = bmRows.map((r) => `<div class="hc" data-k="${r.key}"><b>${pct(r.value)}</b><span class="hc-col"><i></i></span><small>${esc(r.label)}</small></div>`).join("") + `<span class="h-you" aria-hidden="true"><span>you</span></span>`;
+const ups = $("[data-ups]");
+let sayT = 0;
+function fill(sl) { sl.style.setProperty("--p", `${(+sl.value / +sl.max) * 100}%`); }
+function runLab() {
+  const aud = audAt(+audSl.value / 1000);
+  const views = viewsAt(+viewsSl.value / 1000);
+  const snap = fixtureSnapshot({ ...LAB.base, audience: aud, reach: views / (aud * LAB.perSub) });
+  const r = rate(snap, FIXTURE_NOW);
+  const reach = r.parts.find((p) => p.key === "reach");
+  const measured = r.detail.parts.find((p) => p.key === "reach").measured;
+  $("[data-out='aud']").textContent = nf.format(aud);
+  $("[data-out='views']").textContent = nf.format(r.detail.typical.views);
+  audSl.setAttribute("aria-valuetext", `${nf.format(aud)} subscribers`);
+  viewsSl.setAttribute("aria-valuetext", `${nf.format(r.detail.typical.views)} views`);
+  fill(audSl); fill(viewsSl);
+  $("[data-lab-band]").textContent = r.sizeBand;
+  /* a percentile reads 1 to 99: never "100 in 100", never "0 in 100" */
+  $("[data-lab-beat]").textContent = String(Math.max(1, Math.min(99, reach.score)));
+  $("[data-lab-rating]").textContent = signedOf(r.rating);
+  $("[data-lab-bandname]").textContent = r.band;
+  $("[data-lab-reach]").textContent = pct(measured);
+  /* the size histogram: each band's typical reach, yours as a line across */
+  const max = Math.max(measured, ...bmRows.map((x) => x.value)) * 1.08;
+  for (const c of $$(".hc", hist)) {
+    const row = bmRows.find((x) => x.key === c.dataset.k);
+    c.style.setProperty("--h", `${(row.value / max) * 100}%`);
+    c.classList.toggle("is", row.label === r.sizeBand);
+  }
+  hist.style.setProperty("--you", `${Math.min(1, measured / max) * 100}%`);
+  /* the last twelve uploads against the channel's own typical */
+  const ws = rateWorks(snap, FIXTURE_NOW).filter((w) => w.matured).slice(0, 12).reverse();
+  const top = Math.max(...ws.map((w) => w.multiple), 1) * 1.1;
+  const best = ws.reduce((a, w) => (w.multiple > a.multiple ? w : a), ws[0]);
+  $("[data-lab-typ]").textContent = `1× = ${short(r.detail.typical.views)} views`;
+  ups.style.setProperty("--one", `${(1 / top) * 100}%`);
+  ups.innerHTML = ws.map((w) => `<span class="uc${w === best ? " best" : ""}${w.multiple >= 1 ? " up" : ""}" style="--h:${(w.multiple / top) * 100}%">${w === best ? `<b>${w.multiple.toFixed(1)}×, ${short(w.multiple * r.detail.typical.views)}</b>` : ""}</span>`).join("") + `<span class="u-one" aria-hidden="true"><span>1× typical</span></span>`;
+  clearTimeout(sayT);
+  sayT = setTimeout(() => { $("[data-lab-say]").textContent = `${explain(r).split(/(?<=\.)\s/)[0]} Rated ${signedOf(r.rating)}, ${r.band}.`.replace("Your channel", "your channel"); }, 350);
+}
+for (const sl of [audSl, viewsSl]) sl.addEventListener("input", runLab);
+runLab();
+
+/* ---------- sale.calc: drag a sale price; the fee schedule computes ---------- */
+const gbp = (n) => `£${nf.format(Math.round(n))}`;
+const priceSl = $("[data-calc]");
+const priceAt = (t) => { const v = Math.pow(10, 4.699 + 2.301 * t); return v < 1e6 ? Math.round(v / 1e4) * 1e4 : Math.round(v / 5e4) * 5e4; };
+priceSl.value = String(Math.round(((Math.log10(1.2e6) - 4.699) / 2.301) * 1000));
+const TIERS = [[0, 5e5, 0.08, "8% to £500k"], [5e5, 2e6, 0.05, "5% from £500k to £2M"], [2e6, Infinity, 0.03, "3% above £2M"]];
+function runCalc() {
+  const P = priceAt(+priceSl.value / 1000);
+  const parts = TIERS.map(([a, b, r, name]) => ({ name, r, v: Math.max(0, Math.min(P, b) - a) * r }));
+  const tiered = parts.reduce((s, x) => s + x.v, 0);
+  const fee = Math.max(4000, tiered);
+  const prem = Math.max(1000, Math.min(P, 2e6) * 0.02 + Math.max(0, P - 2e6) * 0.01);
+  $("[data-calc-out]").textContent = gbp(P);
+  priceSl.setAttribute("aria-valuetext", gbp(P));
+  fill(priceSl);
+  $("[data-c='net']").textContent = gbp(P - fee);
+  $("[data-c='fee']").textContent = gbp(fee);
+  $("[data-c='prem']").textContent = gbp(prem);
+  $("[data-c='eff']").textContent = `${((fee / P) * 100).toFixed(1)}% to Orbe`;
+  $("[data-c='min']").textContent = fee > tiered ? "the £4,000 minimum applies" : gbp(fee);
+  $("[data-stack-price]").innerHTML = `<span class="sk sk-net" style="--w:${((P - fee) / P) * 100}%"><b>You ${short(P - fee)}</b></span><span class="sk sk-fee" style="--w:${(fee / P) * 100}%"></span>`;
+  const segs = parts.filter((x) => x.v > 0).map((x, i) => ({ ...x, cls: `t${i}` }));
+  if (fee > tiered) segs.push({ name: "minimum top-up", v: fee - tiered, cls: "tmin" });
+  $("[data-stack-tier]").innerHTML = segs.map((x) => `<span class="sk ${x.cls}" style="--w:${(x.v / fee) * 100}%"></span>`).join("");
+  $("[data-key]").innerHTML = segs.map((x) => `<li><i class="${x.cls}"></i>${esc(x.name)}<b>${gbp(x.v)}</b></li>`).join("");
+}
+priceSl.addEventListener("input", runCalc);
+runCalc();

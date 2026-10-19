@@ -25,8 +25,6 @@
 <body>
 <a class="skip" href="#reserve">Skip to reserving your handle</a>
 
-<!-- The score strokes fly in this layer: every stroke's length is a score out of 100. -->
-<div class="fly" data-fly aria-hidden="true"></div>
 
 <main>
   <!-- 1. The print shop: what it is, who it is for, what to do. -->
@@ -60,35 +58,54 @@
         <p class="rsv-kind"><label for="k1">I make</label> <select id="k1" name="kind" data-kind>
           <option value="channel" selected>a YouTube channel</option><option value="newsletter">a newsletter</option><option value="stream">a Twitch stream</option><option value="podcast">a podcast</option><option value="portfolio">photography</option>
         </select></p>
-        <p class="form-note" data-note>Free, for good. Ratings open with YouTube: connect your channel to see yours.</p>
+        <p class="form-note" data-note aria-live="polite">Free, for good. Ratings open with YouTube: connect your channel to see yours.</p>
       </form>
     </div>
   </section>
 
-  <!-- 2. Where the creator stands: a hundred creators their size, and the five strokes land as score bars. -->
+
+  <!-- 2. Where the creator stands. Drag the size: same uploads, a different yardstick. -->
   <section class="slab s-stand" id="standing" aria-labelledby="stand-h">
     <div class="in">
       <p class="tag"><span class="tag-n">01</span> Where <b data-b="handle">@fieldrecordings</b> stands</p>
       <div class="stand-grid">
-        <h2 id="stand-h" class="beat">
+        <h2 id="stand-h" class="beat" aria-live="polite">
           <span class="beat-l">You beat</span>
-          <span class="beat-n" data-count data-b="lead">93</span>
+          <span class="beat-n" data-lead>93</span>
           <span class="beat-r">in 100 <span data-b="peers">channels</span> your&nbsp;size.</span>
         </h2>
         <figure class="pix-wrap">
           <div class="pix" data-pix role="img" aria-label="A hundred channels your size, one square each."></div>
-          <figcaption class="pix-key"><span class="k-beat"><i></i><b data-b="lead">93</b> you beat</span><span class="k-you"><i></i>you</span><span class="k-ahead"><i></i><b data-b="ahead">6</b> ahead</span></figcaption>
-          <p class="pix-cap" data-b="sizeLine">Channels 250k to 1M subscribers.</p>
+          <figcaption class="pix-key"><span class="k-beat"><i></i><b data-lead>93</b> you beat</span><span class="k-you"><i></i>you</span><span class="k-ahead"><i></i><b data-ahead>6</b> ahead</span></figcaption>
+          <p class="pix-cap" data-band-line>Channels 250k to 1M subscribers.</p>
         </figure>
       </div>
-      <p class="fact"><span data-b="fact">A typical upload from Field Recordings reaches 152,203 people, 37% of its subscribers.</span></p>
-      <h3 class="weighs" data-b="weighs">The rating weighs all five: +1.23, Good.</h3>
-      <ol class="bars" data-bars aria-label="Every part of the rating, scored out of 100"></ol>
-      <p class="note"><span data-b="weights">The weights for channels: Reach 30%, Momentum 25%, Hit rate 20%, Engagement 15%, Cadence 10%.</span> Independently calculated by Orbe.</p>
+
+      <div class="dial dial-aud">
+        <p class="dial-top"><label class="dial-k" for="aud">Drag the size. Same uploads, same views.</label><output class="dial-v" for="aud" data-aud-v>412,000 subscribers</output></p>
+        <input class="slider" type="range" id="aud" min="0" max="1000" step="1" value="500" data-aud>
+        <p class="dial-ends" aria-hidden="true"><span data-aud-min>165k</span><span data-aud-max>4.9M</span></p>
+      </div>
+
+      <div class="charts">
+        <figure class="win chart-size">
+          <figcaption class="win-bar"><span data-hist-title>Typical reach for channels, by size</span><span data-hist-you>You: 37%</span></figcaption>
+          <div class="hist" data-hist role="img"></div>
+          <p class="win-foot" data-hist-foot>The engine's starting baselines. The first season replaces them with consented data.</p>
+        </figure>
+        <figure class="win chart-parts">
+          <figcaption class="win-bar"><span data-weighs>The rating weighs all five: +1.23, Good.</span><span>Beats, in 100</span></figcaption>
+          <ol class="hbars" data-bars aria-label="Every part of the rating, scored out of 100"></ol>
+          <div class="hb-axis" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+          <p class="win-foot" data-b="weights">The weights for channels: Reach 30%, Momentum 25%, Hit rate 20%, Engagement 15%, Cadence 10%.</p>
+        </figure>
+      </div>
+      <p class="fact" data-fact aria-live="polite">A typical upload from Field Recordings reaches 152,203 people, 37% of its subscribers.</p>
+      <p class="note">Independently calculated by Orbe. <span data-b="line1">A made-up creator, rated live by the Orbe engine.</span></p>
     </div>
   </section>
 
-  <!-- 3. The rating: the wrong yardsticks, flung on as stickers; zero is typical; the rating is the post. -->
+  <!-- 3. The rating: the wrong yardsticks flung on as stickers; drag the views and watch the rating move. -->
   <section class="slab s-rate" id="rating" aria-labelledby="rate-h">
     <div class="in">
       <p class="tag"><span class="tag-n">02</span> The Orbe Rating</p>
@@ -100,22 +117,30 @@
             <ol class="yard" data-yard></ol>
           </div>
           <p class="yard-why" data-yard-why>Against small channels, ordinary. Against the giants, a genius. <b>Neither is fair.</b></p>
-          <p class="win-foot win-foot-d">Drag the stickers off. Independently calculated by Orbe.</p>
+          <p class="win-foot win-foot-d"><span data-drag>Drag the stickers off. </span>Independently calculated by Orbe.</p>
         </figure>
         <figure class="win win-zero">
           <figcaption class="win-bar"><span>Orbe Rating</span><span class="win-h" data-b="handle">@fieldrecordings</span></figcaption>
           <div class="zero-body">
-            <p class="zero-fig"><span class="vh">The Orbe Rating: </span><span data-count data-b="signed">+1.23</span> <i data-b="band">Good</i></p>
-            <div class="axis" data-axis aria-hidden="true">
-              <span class="ax-track"></span>
-              <span class="ax-zero"><b>0</b></span>
-              <span class="sk sk-rate" data-rate-stroke></span>
-            </div>
+            <p class="zero-fig" aria-live="polite"><span class="vh">The Orbe Rating: </span><span data-rating>+1.23</span> <i data-band>Good</i></p>
+            <div class="scale" data-scale aria-hidden="true"></div>
             <ol class="bands" aria-label="The five bands" data-bands></ol>
-            <p class="win-foot" data-b="notice">Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google.</p>
+            <div class="dial dial-views">
+              <p class="dial-top"><label class="dial-k" for="views">Drag a typical upload's views.</label><output class="dial-v" for="views" data-views-v>1.0× its own</output></p>
+              <input class="slider" type="range" id="views" min="0" max="1000" step="1" value="500" data-views>
+              <p class="dial-ends" aria-hidden="true"><span>¼×</span><span>Its own</span><span>4×</span></p>
+            </div>
+            <p class="dial-read" data-views-read>Reach 37% of subscribers: beats 93 in 100.</p>
           </div>
+          <p class="win-foot" data-b="notice">Independently calculated by Orbe. It is not a YouTube metric, and it is not provided or endorsed by YouTube or Google.</p>
         </figure>
       </div>
+
+      <figure class="win win-ups">
+        <figcaption class="win-bar"><span data-ups-title>The last twelve uploads, against its own typical</span><span data-ups-best>Best: 2.9×</span></figcaption>
+        <div class="ups" data-ups role="img"></div>
+        <p class="win-foot">1× is its own typical. Ember marks a hit: twice its typical or better. Independently calculated by Orbe.</p>
+      </figure>
 
       <div class="post">
         <p class="tag"><span class="tag-n">03</span> The one you post</p>
@@ -124,14 +149,14 @@
           <figure class="win win-post" aria-label="The rating, as posted">
             <figcaption class="win-bar"><span>Orbe Rating</span><span class="win-h" data-b="handle">@fieldrecordings</span></figcaption>
             <div class="post-body">
-              <p class="post-fig"><span data-b="signed">+1.23</span></p>
-              <p class="post-band"><i data-b="band">Good</i> <span>against <span data-b="peers">channels</span> <span data-b="sizeShort">250k to 1M</span></span></p>
-              <span class="sk sk-post" data-post-stroke aria-hidden="true"></span>
+              <p class="post-fig"><span data-rating>+1.23</span></p>
+              <p class="post-band"><i data-band>Good</i> <span>against <span data-b="peers">channels</span> <span data-size-short>250k to 1M</span></span></p>
+              <div class="scale scale-s" data-scale aria-hidden="true"></div>
               <p class="win-line">Independently calculated by Orbe.</p>
             </div>
           </figure>
           <div class="post-copy">
-            <blockquote class="said"><p data-b="said">“My channel is rated +1.23, Good, against channels my size.”</p></blockquote>
+            <blockquote class="said"><p data-said>“My channel is rated +1.23, Good, against channels my size.”</p></blockquote>
             <div class="post-row">
               <button type="button" class="btn-line" data-copy>Copy the line</button>
               <span class="link-pill">orbe.vc/<span data-b="handle">@fieldrecordings</span></span>
@@ -144,39 +169,41 @@
     </div>
   </section>
 
-  <!-- 4. The money: every fee is a stroke on one yardstick, 15% at full length. -->
+  <!-- 4. The money: drag a deal and the engine computes every fee. -->
   <section class="slab s-money" id="money" aria-labelledby="money-h">
     <div class="in">
       <p class="tag"><span class="tag-n">04</span> After the rating</p>
       <h2 id="money-h" class="mega2">Then, when money moves.</h2>
-      <p class="money-lede"><b>Creators never pay.</b> Orbe earns a percentage when money moves. Every stroke below is drawn to one scale: the outline is 15%.</p>
-      <ol class="ledger">
-        <li class="lg">
-          <p class="lg-k"><span class="tag-n">01</span> Your record</p>
-          <h3>Read from payouts, not estimates.</h3>
-          <p>Every verified figure shows its source and the day we read it. Where a platform does not report payouts, we say so.</p>
-        </li>
-        <li class="lg">
+      <p class="money-lede"><b>Creators never pay.</b> Orbe earns a percentage when money moves. Drag a deal: the fees below are computed by Orbe's own fee code.</p>
+      <div class="lg lg-rec">
+        <p class="lg-k"><span class="tag-n">01</span> Your record</p>
+        <h3>Read from payouts, not estimates.</h3>
+        <p>Every verified figure shows its source and the day we read it. Where a platform does not report payouts, we say so.</p>
+      </div>
+      <div class="ledger">
+        <div class="lg">
           <p class="lg-k"><span class="tag-n">02</span> Sponsorships</p>
-          <h3>Sponsors, at a fair rate.</h3>
-          <ul class="fees" aria-label="Sponsorship fees">
-            <li class="fee" style="--v:15"><span class="sk sk-fee c-straw"></span><span class="fee-t"><b class="fee-n">15%</b> <span class="fee-l">when Orbe finds the brand</span></span></li>
-            <li class="fee" style="--v:5"><span class="sk sk-fee c-sky"></span><span class="fee-t"><b class="fee-n">5%</b> <span class="fee-l">when you bring your own</span></span></li>
-          </ul>
+          <h3>Sponsors, at a fair rate: <b class="hot">15%</b> when Orbe finds the brand, <b class="hot">5%</b> when you bring your own.</h3>
+          <div class="dial dial-dark">
+            <p class="dial-top"><label class="dial-k" for="spon">A sponsorship worth</label><output class="dial-v" for="spon" data-spon-v>£10,000</output></p>
+            <input class="slider" type="range" id="spon" min="0" max="1000" step="1" value="500" data-spon>
+            <p class="dial-ends" aria-hidden="true"><span>£500</span><span>£100,000</span></p>
+          </div>
+          <div class="stack" data-spon-chart></div>
           <p>Paid by the brand, never by you, only when the sponsorship completes.</p>
-        </li>
-        <li class="lg">
+        </div>
+        <div class="lg">
           <p class="lg-k"><span class="tag-n">03</span> Selling</p>
-          <h3>A fair sale, when you want one.</h3>
-          <ul class="fees" aria-label="Seller fees">
-            <li class="fee" style="--v:8"><span class="sk sk-fee c-ember"></span><span class="fee-t"><b class="fee-n">8%</b> <span class="fee-l">up to £500k</span></span></li>
-            <li class="fee" style="--v:5"><span class="sk sk-fee c-ember"></span><span class="fee-t"><b class="fee-n">5%</b> <span class="fee-l">from £500k to £2M</span></span></li>
-            <li class="fee" style="--v:3"><span class="sk sk-fee c-ember"></span><span class="fee-t"><b class="fee-n">3%</b> <span class="fee-l">above £2M</span></span></li>
-            <li class="fee fee-zero" style="--v:0"><span class="sk sk-fee c-ring"></span><span class="fee-t"><b class="fee-n">0%</b> <span class="fee-l">Nothing if it doesn't sell</span></span></li>
-          </ul>
-          <p>£4,000 minimum, from the proceeds, only if it sells.</p>
-        </li>
-      </ol>
+          <h3>A fair sale, when you want one: <b class="hot">8%</b> up to £500k, <b class="hot">5%</b> from £500k to £2M, <b class="hot">3%</b> above, £4,000 minimum.</h3>
+          <div class="dial dial-dark">
+            <p class="dial-top"><label class="dial-k" for="sale">A sale price of</label><output class="dial-v" for="sale" data-sale-v>£220,000</output></p>
+            <input class="slider" type="range" id="sale" min="0" max="1000" step="1" value="500" data-sale>
+            <p class="dial-ends" aria-hidden="true"><span>£25,000</span><span>£10M</span></p>
+          </div>
+          <div class="stack" data-sale-chart></div>
+          <p>From the proceeds, only if it sells. <b>Nothing if it doesn't.</b></p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -189,26 +216,24 @@
         <div class="buy-copy">
           <p class="sec-p">Creator businesses, rated against their size and read from payouts. Every creator who connects adds consented figures to the benchmark, so it sharpens with each one, and an estimate built from views cannot copy it.</p>
           <figure class="win win-terms">
-            <figcaption class="win-bar"><span>Terms</span><span>Paid by you</span></figcaption>
+            <figcaption class="win-bar"><span>Terms for buyers and lenders</span><span>At completion</span></figcaption>
             <dl class="terms">
-              <div><dt>Buy</dt><dd><ul class="fees fees-s" aria-label="Buyer's premium">
-                <li class="fee" style="--v:2"><span class="sk sk-fee c-cobalt"></span><span class="fee-t"><b class="fee-n">2%</b> <span class="fee-l">buyer's premium at completion</span></span></li>
-                <li class="fee" style="--v:1"><span class="sk sk-fee c-cobalt"></span><span class="fee-t"><b class="fee-n">1%</b> <span class="fee-l">above £2M</span></span></li>
-              </ul><p>£1,000 minimum. Free, vetted access.</p></dd></div>
+              <div><dt>Buy</dt><dd><p><b class="big-n">2%</b> buyer's premium at completion, <b class="big-n">1%</b> above £2M, £1,000 minimum. Free, vetted access.</p></dd></div>
               <div><dt>Diligence</dt><dd><p><b class="big-n">£1,500</b> only if you walk away after a report, never if it shows the listing was wrong. Reports included.</p></dd></div>
               <div><dt>Lend</dt><dd><p>A fixed fee per file, paid by the lender.</p></dd></div>
             </dl>
           </figure>
         </div>
         <figure class="win win-roll">
-          <figcaption class="win-bar"><span>Made-up examples, by size</span><span>Rating</span></figcaption>
+          <figcaption class="win-bar"><span>Made-up examples, by size</span><span>Rating, zero is typical</span></figcaption>
           <ul class="roll" data-roll></ul>
-          <p class="win-foot">Rated live by the Orbe engine. Independently calculated by Orbe. Zero is typical for each size.</p>
+          <p class="win-foot">Rated live by the Orbe engine. Independently calculated by Orbe. Each against its own size.</p>
         </figure>
       </div>
       <a class="door" href="mailto:hello@orbe.vc?subject=Buyer%20access">Request buyer access</a>
     </div>
   </section>
+
 
   <!-- Coda: your story is next. -->
   <section class="slab s-close" id="reserve" aria-labelledby="close-h">
@@ -226,7 +251,7 @@
           <p class="rsv-kind"><label for="k2">I make</label> <select id="k2" name="kind" data-kind>
             <option value="channel" selected>a YouTube channel</option><option value="newsletter">a newsletter</option><option value="stream">a Twitch stream</option><option value="podcast">a podcast</option><option value="portfolio">photography</option>
           </select></p>
-          <p class="form-note" data-note>Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
+          <p class="form-note" data-note aria-live="polite">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
         </form>
         <p class="close-free"><b>Creators never pay.</b> Orbe earns a percentage when money moves.</p>
       </div>

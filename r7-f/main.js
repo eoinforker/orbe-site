@@ -4,12 +4,12 @@ import { ratingNotice } from "../assets/engine/rating/label.js";
 import { SPECS } from "../assets/engine/rating/kinds.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
+import { labKind } from "./lab.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 let reduce = false;
 try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
-const wide = matchMedia("(min-width: 1024px)");
 const handleOf = (v) => cleanHandle(v).toLowerCase();
 const N = 4;
 let cur = 0;
@@ -86,7 +86,7 @@ function setKind(k) {
   $("[data-copied]").textContent = "";
   hk.textContent = `100 ${e.peers} your size`;
   wantTok = e.peers;
-  requestAnimationFrame(() => setTimeout(() => enter(cur, true), 0));
+  requestAnimationFrame(() => setTimeout(() => { enter(cur, true); labKind(k); }, 0));
 }
 
 /* ---------- one piece of work, three yardsticks: the smallest, the biggest, and its own size ---------- */
@@ -117,6 +117,7 @@ function setYard(k) {
     <span class="y-vs">${m ? `Its size<small>${row.label}</small>` : row.label}</span>
     <span class="y-say"><span class="y-w">${say(beats(row), m || !banded)}</span>${m || !banded ? "" : '<span class="vh"> Not a fair comparison.</span>'}</span>
     <b class="y-n">${beats(row)}</b>
+    <span class="y-bar" aria-hidden="true"><i style="width:${beats(row)}%"></i></span>
   </li>`).join("");
   yardWin.classList.toggle("flat", !banded);
   $("[data-yard-why]").innerHTML = banded
@@ -180,7 +181,7 @@ if (!reduce) {
   let ti = 0;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   (async () => {
-    await sleep(2600);
+    await sleep(4200);
     for (;;) {
       const next = wantTok ?? TOKS[(ti = (ti + 1) % TOKS.length)];
       wantTok = null;
@@ -191,39 +192,6 @@ if (!reduce) {
       for (let w = 0; w < 26 && !wantTok; w++) await sleep(100);
     }
   })();
-}
-
-/* ---------- the fat strokes: where each one lies in each moment ---------- */
-/* [centre x %, centre y %, length % of width, angle] for the three bars, then the arc [x %, y %, size %, angle] */
-const SK_WIDE = [
-  [[60, 30, 22, -35], [98, 12, 26, 30], [14, 99, 30, -8], [47, 98, 16, 20]],
-  [[50, 85, 120, -3], [94, 94, 24, -38], [97, 8, 22, 62], [52, 1, 14, 200]],
-  [[26, 102, 30, -62], [74, 0, 30, 14], [97, 66, 26, -66], [56, 97, 20, 300]],
-  [[88, 100, 34, -40], [4, 100, 30, 30], [52, 24, 16, -40], [30, 99, 22, 120]],
-];
-const SK_NARROW = [
-  [[94, 14, 46, -30], [0, 50, 70, 60], [96, 88, 60, -50], [6, 98, 40, 200]],
-  [[50, 27.5, 130, -4], [96, 90, 60, -40], [0, 60, 60, 32], [94, 15, 40, 60]],
-  [[2, 40, 60, -60], [98, 60, 60, 30], [40, 99, 70, -6], [92, 14, 40, 300]],
-  [[98, 40, 60, -46], [2, 66, 60, 40], [90, 92, 60, 10], [94, 15, 40, 120]],
-];
-const world = $(".world");
-const sks = $$(".sk"), arc = $(".arc");
-function placeStrokes(i) {
-  const W = world.clientWidth, H = world.clientHeight;
-  const cfg = (wide.matches ? SK_WIDE : SK_NARROW)[i];
-  sks.forEach((el, n) => {
-    const [x, y, w, r] = cfg[n];
-    el.style.setProperty("--x", `${(x / 100) * W}px`);
-    el.style.setProperty("--y", `${(y / 100) * H}px`);
-    el.style.setProperty("--w", `${(w / 100) * W}px`);
-    el.style.setProperty("--r", `${r}deg`);
-  });
-  const [x, y, s, r] = cfg[3];
-  arc.style.setProperty("--x", `${(x / 100) * W}px`);
-  arc.style.setProperty("--y", `${(y / 100) * H}px`);
-  arc.style.setProperty("--s", `${(s / 100) * W}px`);
-  arc.style.setProperty("--r", `${r}deg`);
 }
 
 /* ---------- the story ---------- */
@@ -273,7 +241,6 @@ function setScene(i) {
   requestAnimationFrame(() => setTimeout(() => {
     if (at !== cur) return;
     if (!reduce) bars[cur].classList.add("run");
-    placeStrokes(cur);
     enter(cur);
   }, 0));
 }
@@ -305,14 +272,10 @@ phone.addEventListener("focusin", (ev) => { if (ev.target.matches("input, select
 if ("IntersectionObserver" in window) {
   new IntersectionObserver(([e]) => { away = !e.isIntersecting; syncPlay(); document.body.classList.toggle("past", !e.isIntersecting && e.boundingClientRect.top < 0); }, { threshold: 0.15 }).observe(phone);
 }
-let rz = 0;
-addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => placeStrokes(cur), 120); });
-wide.addEventListener?.("change", () => placeStrokes(cur));
 
 setKind("channel");
 setScene(0);
 requestAnimationFrame(() => document.body.classList.add("ready"));
-if (document.fonts) document.fonts.ready.then(() => placeStrokes(cur));
 
 /* ---------- the rating is the post: copy the line ---------- */
 $("[data-copy]").addEventListener("click", async () => {

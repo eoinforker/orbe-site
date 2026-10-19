@@ -85,6 +85,19 @@
 
     <div class="stack" data-yard aria-label="One piece of work, three yardsticks"></div>
 
+    <div class="win win-sizes" data-win style="--i:2">
+      <div class="tb" data-tb><span class="tb-box" aria-hidden="true"></span><span class="tb-t">sizes.chart</span><span class="tb-r">drag the yardstick</span></div>
+      <div class="wb">
+        <p class="mono k" data-sz-k>Reach, beats in 100, at every size</p>
+        <div class="chart sz-chart" data-sz-bars aria-hidden="true"></div>
+        <label class="slider">
+          <span class="sl-l">Drag the audience size it is measured against</span>
+          <input type="range" min="0" max="5" step="1" value="3" data-sz>
+        </label>
+        <p class="sz-out" data-sz-out aria-live="polite"></p>
+      </div>
+    </div>
+
     <div class="win win-rating" data-win style="--i:2">
       <div class="tb" data-tb><span class="tb-box" aria-hidden="true"></span><span class="tb-t">orbe_rating</span><span class="tb-r" data-b="handle">@fieldrecordings</span></div>
       <div class="wb">
@@ -95,6 +108,14 @@
           <p class="fig"><span class="vh">The Orbe Rating: </span><b data-count data-b="signed">+1.23</b> <i data-b="band">Good</i></p>
         </div>
         <div class="scale" aria-hidden="true"><span class="scale-line"><i class="scale-zero"></i><i class="scale-dot" data-dot></i></span><span class="mono scale-l"><span>&minus;3</span><span>0, typical</span><span>+3</span></span></div>
+        <div class="slider-box">
+          <label class="slider">
+            <span class="sl-l">Drag a typical upload's reach and the engine rates it again</span>
+            <input type="range" min="-100" max="100" step="1" value="0" data-reach>
+          </label>
+          <p class="reach-out" data-reach-out aria-live="polite"></p>
+          <button type="button" class="reset mono" data-reach-reset hidden>Back to the example</button>
+        </div>
         <ol class="bands mono" aria-label="The five bands" data-bands></ol>
         <ul class="parts" data-parts></ul>
         <p class="mono foot"><span data-b="weights">The weights.</span> <span data-b="notice">Independently calculated by Orbe.</span></p>
@@ -116,6 +137,12 @@
             <p class="fig fig-p"><b data-b="signed">+1.23</b> <i data-b="band">Good</i></p>
             <p class="mono">Independently calculated by Orbe.</p>
           </div>
+        </div>
+        <div class="works-box">
+          <p class="mono k">Its last twelve, against its own typical</p>
+          <div class="chart works" data-works aria-hidden="true"></div>
+          <p class="mono works-key">The line is its own typical. Above it, better than usual.</p>
+          <p class="works-cap" data-b="best">Best of the last twelve.</p>
         </div>
         <blockquote class="said"><p data-b="said">My channel is rated +1.23, Good, against channels my size.</p></blockquote>
         <div class="post-row">
@@ -140,6 +167,24 @@
         <li><p class="mono fk">02 Sponsorships</p><p class="pct"><b>15%</b><span>when Orbe finds the brand</span></p><p class="pct"><b>5%</b><span>when you bring your own</span></p><p class="small">Paid by the brand, never by you, only when the sponsorship completes.</p></li>
         <li><p class="mono fk">03 Selling</p><div class="tiers"><p class="pct"><b>8%</b><span>up to £500k</span></p><p class="pct"><b>5%</b><span>£500k to £2M</span></p><p class="pct"><b>3%</b><span>above £2M</span></p></div><p class="small">£4,000 minimum. From the proceeds, only if it sells. Nothing if it doesn't.</p></li>
       </ol>
+    </div>
+
+    <div class="win win-price" data-win style="--i:5">
+      <div class="tb" data-tb><span class="tb-box" aria-hidden="true"></span><span class="tb-t">price.calc</span><span class="tb-r">drag a sale price</span></div>
+      <div class="wb">
+        <p class="price-big"><span class="mono">If it sells for</span><b data-price>£1,200,000</b></p>
+        <div class="chart stairs" data-stairs aria-hidden="true"></div>
+        <label class="slider">
+          <span class="vh">Sale price</span>
+          <input type="range" min="0" max="300" step="1" value="150" data-price-in>
+        </label>
+        <dl class="price-out" aria-live="polite">
+          <div><dt class="mono">Orbe's fee, from the proceeds</dt><dd data-fee>£0</dd></div>
+          <div><dt class="mono">You keep</dt><dd data-keep>£0</dd></div>
+          <div><dt class="mono">Buyer's premium, paid by the buyer</dt><dd data-prem>£0</dd></div>
+        </dl>
+        <p class="mono foot" data-fee-note>Nothing if it doesn't sell.</p>
+      </div>
     </div>
 
     <div class="buyers" id="buyers">

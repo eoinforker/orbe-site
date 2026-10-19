@@ -39,9 +39,6 @@
   <!-- One statement, centred. The kind of work cycles; the page follows it. -->
   <section class="hero" aria-labelledby="hero-h">
     <div class="hero-art" aria-hidden="true">
-      <span class="bar bar-a"></span>
-      <span class="bar bar-b"></span>
-      <span class="bar bar-c"></span>
       <div class="drift drift-l" data-drift="l"></div>
       <div class="drift drift-r" data-drift="r"></div>
     </div>
@@ -71,13 +68,23 @@
   <div class="stack" data-stack>
 
     <section class="p p1" id="p-rating" aria-labelledby="p1-h">
-      <svg class="throw" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M640 120 C 470 160, 420 330, 500 640"/></svg>
       <div class="p-in">
         <div class="p-copy">
           <p class="kick"><span class="kn">01</span> Where <span data-b="handle">@fieldrecordings</span> stands</p>
           <h2 id="p1-h" class="p-h beat"><span>You beat</span> <span class="beat-n" data-count data-b="lead">93</span> <span>in 100 <span data-b="peers">channels</span> your size.</span></h2>
-          <p class="track" aria-hidden="true"><span data-b="partOf">Reach, one of five parts</span><span class="tk-r"><b data-b="lead">93</b> of 100</span></p>
           <p class="p-p"><span data-b="fact">A typical upload reaches people.</span> <span data-b="weighs">The rating weighs all five.</span></p>
+          <div class="ctl">
+            <div class="ctl-top">
+              <label class="ctl-l" for="s-reach" data-reach-label>Drag a typical upload's reach</label>
+              <button type="button" class="ctl-reset" data-reset hidden>Back to the example</button>
+            </div>
+            <input class="range" type="range" id="s-reach" min="0" max="100" step="1" value="67" data-s-reach>
+            <div class="ctl-out" aria-live="polite">
+              <span class="co-a"><span data-b="reachName">Reach</span> <b data-reach-n>93</b> of 100</span>
+              <span class="co-b">Rating <b data-b="signed">+1.23</b> <span data-b="band">Good</span></span>
+            </div>
+            <p class="ctl-v" data-b="reachValue">37% of subscribers</p>
+          </div>
           <p class="small">Independently calculated by Orbe. <span data-b="line">A made-up creator, rated live by the Orbe engine.</span></p>
         </div>
         <div class="p-art">
@@ -88,13 +95,20 @@
     </section>
 
     <section class="p p2" id="p-yard" aria-labelledby="p2-h">
-      <svg class="throw" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M-40 520 C 120 470, 200 600, 260 660"/></svg>
       <div class="p-in">
         <div class="p-copy">
           <p class="kick"><span class="kn">02</span> The yardsticks</p>
           <h2 id="p2-h" class="p-h p-h-s" data-yard-why>Against small channels, ordinary. Against the giants, a genius. <b>Neither is fair.</b></h2>
         </div>
-        <ol class="yard" data-yard aria-label="Three yardsticks"></ol>
+        <div class="yc">
+          <p class="kick yc-k" data-yc-k>Reach, beats in 100, against each size</p>
+          <div class="ybars" data-ybars aria-hidden="true"></div>
+          <div class="ctl ctl-y">
+            <label class="ctl-l" for="s-yard">Drag the yardstick</label>
+            <input class="range" type="range" id="s-yard" min="0" max="5" step="1" value="3" data-s-yard>
+            <p class="yc-out" aria-live="polite" data-yc-out>Against 250k to 1M: beats 93 in 100. Its size. Fair.</p>
+          </div>
+        </div>
         <div class="zero">
           <p class="kick zk">The Orbe Rating</p>
           <h3 class="zero-h">Zero is typical.</h3>
@@ -110,7 +124,6 @@
     </section>
 
     <section class="p p3" id="p-post" aria-labelledby="p3-h">
-      <svg class="throw" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M660 380 C 520 360, 470 470, 520 660"/></svg>
       <div class="p-in">
         <div class="p-copy">
           <p class="kick"><span class="kn">03</span> The one you post</p>
@@ -133,6 +146,10 @@
                 <p class="win-line">Independently calculated by Orbe.</p>
               </div>
             </div>
+            <div class="ups">
+              <p class="ups-k"><span data-ups-k>The last 12 uploads, against its own typical</span><span>1&times; = typical</span></p>
+              <div class="ups-ch" data-ups role="img" aria-label="The last 12 uploads against the channel's own typical"></div>
+            </div>
           </figure>
           <p class="small" data-b="line">A made-up creator, rated live by the Orbe engine.</p>
         </div>
@@ -140,12 +157,23 @@
     </section>
 
     <section class="p p4" id="p-money" aria-labelledby="p4-h">
-      <svg class="throw" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M-60 560 C 60 520, 120 600, 110 680"/></svg>
       <div class="p-in">
         <div class="p-copy">
           <p class="kick"><span class="kn">04</span> After the rating</p>
           <h2 id="p4-h" class="p-h">Then, when money moves.</h2>
           <p class="p-p"><b>Creators never pay.</b> Orbe earns a percentage when money moves.</p>
+          <div class="ctl ctl-sale">
+            <label class="ctl-l" for="s-sale">Drag a sale price</label>
+            <input class="range" type="range" id="s-sale" min="0" max="100" step="1" value="45" data-s-sale>
+            <p class="sale-p"><b data-sale-price>£400,000</b> <span>sale price</span></p>
+            <div class="stackbar" data-stackbar aria-hidden="true"></div>
+            <dl class="sale-out" aria-live="polite">
+              <div><dt>Orbe's fee</dt><dd data-sale-fee>£32,000</dd></div>
+              <div><dt>You keep</dt><dd data-sale-keep>£368,000</dd></div>
+              <div><dt>Effective rate</dt><dd data-sale-rate>8.0%</dd></div>
+            </dl>
+            <p class="small" data-sale-note>8% up to £500k. Nothing if it doesn't sell.</p>
+          </div>
           <div class="rec">
             <p class="kick">Your record</p>
             <h3>Read from payouts, not estimates.</h3>
@@ -173,7 +201,6 @@
     </section>
 
     <section class="p p5" id="p-buyers" aria-labelledby="p5-h">
-      <svg class="throw" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M660 60 C 560 90, 520 -20, 470 -80"/></svg>
       <div class="p-in">
         <div class="p-copy">
           <p class="kick"><span class="kn">05</span> For buyers and lenders</p>
@@ -185,6 +212,11 @@
               <dd>
                 <div class="fee-row"><b class="fee-n">2%</b><div class="strip" data-strip="2" aria-hidden="true"></div><span class="fee-w">buyer's premium at completion</span></div>
                 <div class="fee-row"><b class="fee-n">1%</b><div class="strip" data-strip="1" aria-hidden="true"></div><span class="fee-w">above £2M</span></div>
+                <div class="ctl ctl-buy">
+                  <label class="ctl-l" for="s-sale-b">Drag a purchase price</label>
+                  <input class="range" type="range" id="s-sale-b" min="0" max="100" step="1" value="45" data-s-sale>
+                </div>
+                <p class="prem" aria-live="polite">At <b data-prem-price>£400,000</b>, the buyer's premium is <b data-prem>£8,000</b>.</p>
                 <p>Free, vetted access. £1,000 minimum. Diligence reports included; £1,500 only if you walk away after one, never if it shows the listing was wrong.</p>
               </dd>
             </div>

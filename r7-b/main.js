@@ -1,6 +1,9 @@
 /* Orbe r7-b: Orbe OS. Every figure comes from the engine via examples.js. */
 import { example, benchmark, ORDER, BANDS, EXAMPLE_LINE, mathsFor, MODEL_VERSION } from "../assets/r5/examples.js";
 import { ratingNotice } from "../assets/engine/rating/label.js";
+import { rate, rateWorks, explain, fixtureSnapshot, FIXTURE_NOW, signed as signOf } from "../assets/engine/rating/browser.js";
+import { successFee, buyerPremium } from "../assets/engine/market/browser.js";
+import { pounds, formatMoney } from "../assets/engine/market/money.js";
 import { SPECS } from "../assets/engine/rating/kinds.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
@@ -137,6 +140,7 @@ function setKind(k, { replay = true } = {}) {
     partOf: `${lead.name}, one of ${count} parts`,
     weighs: `The rating weighs all ${count}: ${e.signed}, ${e.band}.`,
     line: EXAMPLE_LINE,
+    best: e.best,
     orbline: `The orb is ${lead.score}% ink: its density is where this ${e.word} stands.`,
   };
   for (const el of $$("[data-b]")) if (bind[el.dataset.b] != null) { el.textContent = bind[el.dataset.b]; delete el.dataset.final; }
@@ -144,7 +148,7 @@ function setKind(k, { replay = true } = {}) {
   const pos = Math.max(0, Math.min(1, (e.rating + 3) / 6));
   $("[data-dot]").style.setProperty("--x", pos);
   $("[data-bands]").innerHTML = BANDS.map((b) => `<li${b === e.band ? ' class="is" aria-current="true"' : ""}>${b}</li>`).join("");
-  $("[data-parts]").innerHTML = parts.map((p) => `<li><b class="mono">${p.score}</b><span class="pt-bar" aria-hidden="true"><i style="--to:${p.score / 100}"></i></span><span class="pt-n">${p.name}<small>${p.value}</small></span></li>`).join("");
+  $("[data-parts]").innerHTML = partsHTML(parts);
   for (const b of $$("[data-tk]")) b.setAttribute("aria-pressed", String(b.dataset.tk === k));
   for (const s of $$("[data-kind]")) s.value = k;
   $("[data-peers-you]").textContent = e.peers;
@@ -157,6 +161,7 @@ function setKind(k, { replay = true } = {}) {
   setOrb($('[data-orb="rating"]'), ratingP, { cell: 3 });
   setOrb($('[data-orb="post"]'), ratingP, { cell: 3 });
   setYard(k);
+  setLive(k);
   if (replay) {
     for (const el of $$("[data-count]")) if (isSeen(el)) countUp(el);
     if (yardSeen) runYard();
@@ -200,6 +205,8 @@ function setYard(k) {
     </div>`;
   }).join("");
   $$(".yw", stack).forEach((w, i) => setOrb($("canvas", w), beats(rows[i][0]), { cell: 2 }));
+  sz = { rows: bm.rows, n: bm.rows.map(beats), mine: bm.rows.indexOf(mine), banded, part: part.name };
+  renderSizes();
   $("[data-yard-why]").textContent = banded
     ? `Against small ${e.peers}, ${VERDICT[say(beats(first))]}. Against the giants, ${VERDICT[say(beats(last))]}.`
     : "Size does not move paid conversion.";
@@ -324,6 +331,115 @@ for (const el of $$("[data-wordmark-small]")) mountWordmark(el, { animate: false
 const clock = $("[data-clock]");
 const tick = () => { try { clock.textContent = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date()).replace(",", ""); } catch {} };
 tick(); setInterval(tick, 30000);
+
+
+/* ================================================================ live: sliders and charts, every figure from the engine */
+const partsHTML = (parts) => parts.map((p) => `<li><b class="mono">${p.score}</b><span class="pt-bar" aria-hidden="true"><i style="--to:${p.score / 100}"></i></span><span class="pt-n">${p.name}<small>${p.value}</small></span></li>`).join("");
+
+/* The size chart: one piece of work, read against every size of its kind. */
+let sz = null;
+const szIn = $("[data-sz]");
+function renderSizes() {
+  if (!sz) return;
+  szIn.max = String(sz.rows.length - 1);
+  szIn.value = String(sz.mine);
+  $("[data-sz-k]").textContent = `${sz.part}, beats in 100, at every size`;
+  $("[data-sz-bars]").innerHTML = sz.rows.map((r, j) => `<div class="bar${j === sz.mine ? " mine" : ""}" style="--h:${sz.n[j] / 100}"><b class="mono">${sz.n[j]}</b><i></i><span class="mono">${j === sz.mine ? "its size" : r.label}</span></div>`).join("");
+  pickSize();
+}
+function pickSize() {
+  const j = +szIn.value;
+  const r = sz.rows[j], n = sz.n[j];
+  $$("[data-sz-bars] .bar").forEach((b, i) => b.classList.toggle("on", i === j));
+  const tail = !sz.banded ? "Size does not move this part, so every size reads the same." : j === sz.mine ? "Its own size: the fair yardstick." : `${say(n)} Not a fair comparison.`;
+  $("[data-sz-out]").innerHTML = `<b>${j === sz.mine ? `Its size, ${r.label}` : `Against ${r.label}`}: beats ${n} in 100.</b> ${tail}`;
+  szIn.setAttribute("aria-valuetext", `${r.label}: beats ${n} in 100`);
+}
+szIn.addEventListener("input", pickSize);
+
+/* The made-up creators' fixture settings, so the engine can rate a changed copy. Checked against
+   examples.js below: if they ever drift, the reach slider hides rather than show a different creator. */
+const MADE = {
+  channel: { kind: "youtube", title: "Field Recordings", o: { audience: 412000, reach: 1.6, engagement: 1.6, hitEvery: 5, seed: 1 } },
+  newsletter: { kind: "substack", title: "Margin Notes", o: { audience: 24000, reach: 1.2, engagement: 1.5, hitEvery: 8, seed: 1 } },
+  stream: { kind: "twitch", title: "Night Shift", o: { audience: 21000, reach: 2.6, engagement: 2.2, hitEvery: 5, seed: 38 } },
+  podcast: { kind: "podcast", title: "The Long Table", o: { audience: 14000, reach: 1, engagement: 1.3, hitEvery: 6, seed: 3 } },
+  portfolio: { kind: "photography", title: "Low Tide Prints", o: { audience: 60000, reach: 1, engagement: 1, hitEvery: 5, seed: 1 } },
+};
+const snapFor = (k, mult = 1) => { const m = MADE[k]; return fixtureSnapshot({ kind: m.kind, noise: 0.25, ...m.o, reach: m.o.reach * mult, title: m.title }); };
+
+const reachIn = $("[data-reach]");
+const reachBox = $(".slider-box");
+let liveOK = false;
+function setLive(k) {
+  const e = example(k);
+  liveOK = Math.abs(rate(snapFor(k), FIXTURE_NOW).rating - e.rating) < 1e-9;
+  reachBox.hidden = !liveOK;
+  reachIn.value = "0";
+  $("[data-reach-reset]").hidden = true;
+  $("[data-reach-out]").textContent = `${firstSentence(e, leadOf(k))} Drag it and the engine rates it again.`;
+  reachIn.setAttribute("aria-valuetext", "its typical reach");
+  /* uploads against their own typical: the last twelve matured works, oldest first */
+  const ws = rateWorks(snapFor(k), FIXTURE_NOW).filter((w) => w.matured).slice(0, 12).reverse();
+  const top = Math.max(...ws.map((w) => Math.abs(Math.log2(w.multiple))), 1);
+  const best = ws.reduce((a, w) => (w.multiple > a.multiple ? w : a), ws[0]);
+  $("[data-works]").innerHTML = ws.map((w) => { const l = Math.log2(w.multiple) / top; return `<div class="wk${w === best ? " best" : ""}${l < 0 ? " down" : ""}" style="--h:${Math.abs(l)}"><i></i>${w === best ? `<b class="mono">${w.multiple.toFixed(1)}×</b>` : ""}</div>`; }).join("");
+}
+let reachRaf = 0;
+reachIn.addEventListener("input", () => {
+  cancelAnimationFrame(reachRaf);
+  reachRaf = requestAnimationFrame(() => {
+    if (!liveOK) return;
+    const v = +reachIn.value;
+    const mult = 2 ** (v / 50);
+    const e = example(kind);
+    const r = rate(snapFor(kind, mult), FIXTURE_NOW);
+    const win = $(".win-rating");
+    const sg = signOf(r.rating);
+    const fig = $('[data-b="signed"]', win); fig.textContent = sg; fig.dataset.final = sg;
+    $('[data-b="band"]', win).textContent = r.band;
+    $("[data-dot]").style.setProperty("--x", Math.max(0, Math.min(1, (r.rating + 3) / 6)));
+    $("[data-bands]").innerHTML = BANDS.map((b) => `<li${b === r.band ? ' class="is" aria-current="true"' : ""}>${b}</li>`).join("");
+    const keys = (kind === "newsletter" ? ["conversion", "engagement", "growth"] : e.parts.map((p) => p.key));
+    $("[data-parts]").innerHTML = partsHTML(keys.map((key) => r.parts.find((p) => p.key === key)).filter(Boolean));
+    setOrb($('[data-orb="rating"]'), Math.round(phi(r.rating) * 100));
+    const lead = r.parts.find((p) => p.key === leadKey(kind));
+    const times = mult >= 1 ? `${mult.toFixed(2)}×` : `${mult.toFixed(2)}×`;
+    $("[data-reach-out]").innerHTML = `<b>${times} the example's typical reach: rated ${sg}, ${r.band}.</b> ${firstSentence({ explain: explain(r) }, lead)}`;
+    reachIn.setAttribute("aria-valuetext", `${times} the example's reach, rated ${sg}, ${r.band}`);
+    $("[data-reach-reset]").hidden = v === 0;
+  });
+});
+$("[data-reach-reset]").addEventListener("click", () => { reachIn.value = "0"; reachIn.dispatchEvent(new Event("input")); reachIn.focus(); });
+
+/* The price calculator: the engine's own fee schedule, three tiers on one axis, each a third wide. */
+const priceIn = $("[data-price-in]");
+const TIERS = [[50000, 500000], [500000, 2000000], [2000000, 10000000]];
+const priceAt = (t) => { const i = Math.min(2, Math.floor(t / 100)); const [a, b] = TIERS[i]; const p = a + (b - a) * ((t - i * 100) / 100); const step = p < 1e6 ? 10000 : 50000; return Math.round(p / step) * step; };
+const money = (n) => formatMoney({ amount: n, currency: "GBP" });
+$("[data-stairs]").innerHTML = TIERS.map(([a, b], i) => {
+  const s = successFee({ amount: pounds(i === 2 ? 10000000 : b), currency: "GBP" }).slices[i];
+  const rateP = s ? s.rateBps / 100 : 0;
+  return `<div class="st" style="--r:${rateP / 8}"><b>${rateP}%</b><i></i><span class="mono">${["to £500k", "£500k to £2M", "above £2M"][i]}</span></div>`;
+}).join("");
+function setPrice() {
+  const t = +priceIn.value;
+  const p = priceAt(t);
+  const price = { amount: pounds(p), currency: "GBP" };
+  const f = successFee(price), b = buyerPremium(price);
+  $("[data-price]").textContent = money(price.amount);
+  $("[data-fee]").textContent = `${money(f.fee.amount)}, ${(f.effectiveRateBps / 100).toFixed(1)}%`;
+  $("[data-keep]").textContent = money(price.amount - f.fee.amount);
+  $("[data-prem]").textContent = money(b.fee.amount);
+  $$("[data-stairs] .st").forEach((el, i) => el.style.setProperty("--f", Math.max(0, Math.min(1, (t - i * 100) / 100))));
+  $("[data-stairs]").style.setProperty("--t", t / 300);
+  $("[data-fee-note]").textContent = f.minimumApplied
+    ? "At this price the £4,000 minimum applies. Nothing if it doesn't sell."
+    : "Charged on each slice of the price at that slice's rate. Nothing if it doesn't sell.";
+  priceIn.setAttribute("aria-valuetext", `${money(price.amount)}: Orbe's fee ${money(f.fee.amount)}`);
+}
+priceIn.addEventListener("input", setPrice);
+setPrice();
 
 /* ================================================================ start */
 setKind("channel", { replay: false });

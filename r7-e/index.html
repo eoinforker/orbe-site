@@ -104,6 +104,39 @@
       <p class="lab">The Orbe Rating</p>
       <h2 id="m2-h" class="big">Zero is typical.</h2>
       <div class="desk">
+        <figure class="win win-lab" aria-labelledby="lab-h">
+          <figcaption class="bar"><span>rating.lab, a made-up channel</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b lab-b">
+            <div class="lab-ctl">
+              <h3 id="lab-h" class="lab-h">Drag it. The engine rates it live.</h3>
+              <div class="sl">
+                <div class="sl-top"><label for="lab-aud">Subscribers</label><output for="lab-aud" data-out="aud">412,000</output></div>
+                <input type="range" id="lab-aud" min="0" max="1000" step="1" data-lab="aud">
+              </div>
+              <div class="sl">
+                <div class="sl-top"><label for="lab-views">Views on a typical upload</label><output for="lab-views" data-out="views">152,203</output></div>
+                <input type="range" id="lab-views" min="0" max="1000" step="1" data-lab="views">
+              </div>
+              <div class="lab-read">
+                <p class="lr-k">Reach, against <span data-lab-band>250k to 1M</span> subscribers</p>
+                <p class="lr-n"><span data-lab-beat>93</span><small> in 100</small></p>
+                <p class="lr-r">Orbe Rating <b data-lab-rating>+1.23</b> <i data-lab-bandname>Good</i></p>
+              </div>
+              <p class="lab-say" data-lab-say aria-live="polite"></p>
+            </div>
+            <div class="lab-charts">
+              <figure class="ch">
+                <figcaption><span>Typical reach, by size</span><span>your reach: <b data-lab-reach>37%</b></span></figcaption>
+                <div class="hist" data-hist></div>
+              </figure>
+              <figure class="ch">
+                <figcaption><span>The last twelve uploads, against your own typical</span><span data-lab-typ>1× = 150k views</span></figcaption>
+                <div class="ups" data-ups></div>
+              </figure>
+            </div>
+            <p class="win-fine lab-fine">A made-up channel, rated live by the Orbe engine on every move. The size bands' typical reach is the engine's starting baseline. Independently calculated by Orbe.</p>
+          </div>
+        </figure>
         <figure class="win win-yard" data-yardwin>
           <figcaption class="bar"><span data-yard-part>Against channels, reach</span><span class="bx"><i></i><i></i></span></figcaption>
           <div class="win-b">
@@ -184,6 +217,35 @@
               <p class="fee"><b>8%</b> up to £500k, <b>5%</b> from £500k to £2M, <b>3%</b> above, £4,000 minimum.</p>
               <p>From the proceeds, only if it sells. Nothing if it doesn't.</p>
             </div>
+          </div>
+        </figure>
+        <figure class="win win-calc" aria-labelledby="calc-h">
+          <figcaption class="bar"><span>sale.calc, a made-up sale</span><span class="bx"><i></i><i></i></span></figcaption>
+          <div class="win-b calc">
+            <div class="calc-ctl">
+              <h3 id="calc-h">Drag a sale price. Watch the fees.</h3>
+              <div class="sl">
+                <div class="sl-top"><label for="calc-price">Sale price</label><output for="calc-price" data-calc-out>£1,200,000</output></div>
+                <input type="range" id="calc-price" min="0" max="1000" step="1" data-calc>
+              </div>
+              <dl class="calc-dl">
+                <div><dt>You receive</dt><dd data-c="net">£0</dd></div>
+                <div><dt>Orbe's seller fee</dt><dd data-c="fee">£0</dd></div>
+                <div><dt>The buyer's premium</dt><dd data-c="prem">£0</dd></div>
+              </dl>
+            </div>
+            <div class="calc-charts">
+              <figure class="ch">
+                <figcaption><span>Where the price goes</span><span data-c="eff">5.2% to Orbe</span></figcaption>
+                <div class="stack" data-stack-price></div>
+              </figure>
+              <figure class="ch">
+                <figcaption><span>The seller fee, by tier</span><span data-c="min"></span></figcaption>
+                <div class="stack stack-tier" data-stack-tier></div>
+                <ul class="key" data-key></ul>
+              </figure>
+            </div>
+            <p class="win-fine">Seller fee 8% up to £500k, 5% from £500k to £2M, 3% above, £4,000 minimum, from the proceeds, only if it sells. Buyer's premium 2%, 1% above £2M, £1,000 minimum, paid by the buyer.</p>
           </div>
         </figure>
       </div>

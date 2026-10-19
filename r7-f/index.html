@@ -16,11 +16,6 @@
 <a class="skip" href="#close-form">Skip to reserving your handle</a>
 
 <div class="world">
-  <!-- The loud world: fat strokes that move with the moment. Decoration only. -->
-  <div class="strokes" aria-hidden="true">
-    <i class="sk sk-a"></i><i class="sk sk-b"></i><i class="sk sk-c"></i>
-    <svg class="arc" viewBox="0 0 200 200"><path d="M30 150 A 80 80 0 0 1 170 70"/></svg>
-  </div>
 
   <header class="top">
     <a class="mark" href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
@@ -175,6 +170,61 @@
 </div>
 
 <main>
+  <!-- The lab: drag the inputs, the engine rates again on every move. -->
+  <section class="panel lab" id="try" aria-labelledby="lab-h">
+    <div class="in">
+      <div class="lab-head">
+        <p class="mo-k">Rated live as you drag</p>
+        <h2 id="lab-h" class="ph">Drag it. Watch it move.</h2>
+        <p class="sec-p"><span data-lab-who>Field Recordings, a made-up YouTube channel.</span> Every figure here is worked out by the Orbe engine each time you move a slider.</p>
+      </div>
+      <div class="lab-grid">
+        <div class="win lab-ctl">
+          <p class="win-bar"><span>Orbe.Controls</span><span class="dots" aria-hidden="true"><i></i><i></i></span></p>
+          <div class="lab-body">
+            <div class="sl">
+              <div class="sl-top"><label for="sl-size" data-sl-size-l>Subscribers</label><output for="sl-size" data-sl-size-o>412,000</output></div>
+              <input type="range" id="sl-size" min="0" max="200" step="1" value="500" data-sl-size>
+              <p class="sl-hint" data-sl-size-h>250k to 1M subscribers</p>
+            </div>
+            <div class="sl">
+              <div class="sl-top"><label for="sl-reach" data-sl-reach-l>Reach of a typical upload</label><output for="sl-reach" data-sl-reach-o>37% of subscribers</output></div>
+              <input type="range" id="sl-reach" min="0" max="200" step="1" value="500" data-sl-reach>
+              <p class="sl-hint" data-sl-reach-h>152,203 people</p>
+            </div>
+            <button type="button" class="reset" data-lab-reset>Back to the example</button>
+          </div>
+        </div>
+        <figure class="win lab-out" aria-live="polite">
+          <figcaption class="win-bar"><span>Orbe.Rating</span><span class="win-h" data-lab-handle>@fieldrecordings</span></figcaption>
+          <div class="lab-body lab-rank">
+            <div>
+              <p class="lr-k">On reach, you beat</p>
+              <p class="lr-n"><b data-lab-n>93</b><span>in 100 <span data-lab-peers>channels</span> your size</span></p>
+              <p class="lr-fig"><span data-lab-signed>+1.23</span> <i data-lab-band>Good</i></p>
+              <ol class="bands lab-bands" aria-label="The five bands" data-lab-bands></ol>
+            </div>
+            <div class="h-grid lab-hundred" data-lab-hundred aria-hidden="true"></div>
+          </div>
+        </figure>
+        <figure class="win lab-chart">
+          <figcaption class="win-bar"><span data-hist-t>Typical reach, by size</span><span class="dots" aria-hidden="true"><i></i><i></i></span></figcaption>
+          <div class="lab-body">
+            <div class="hist" data-hist role="img" aria-label="Typical reach by size, with yours marked"></div>
+            <p class="chart-note" data-hist-note>The engine's starting baselines.</p>
+          </div>
+        </figure>
+        <figure class="win lab-chart">
+          <figcaption class="win-bar"><span data-ups-t>Your last 12 uploads</span><span class="dots" aria-hidden="true"><i></i><i></i></span></figcaption>
+          <div class="lab-body">
+            <div class="ups" data-ups role="img" aria-label="Reach of each of the last twelve, against typical for your size"></div>
+            <p class="chart-note"><span class="key key-line"></span> Typical for your size <span class="key key-bar"></span> <span data-ups-noun>Each upload</span></p>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
   <section class="panel money" id="money" aria-labelledby="money-h">
     <div class="in">
       <div class="ph-wrap">
@@ -185,9 +235,21 @@
         <li class="win led"><p class="win-bar"><span>01 Your record</span><span class="dots" aria-hidden="true"><i></i><i></i></span></p>
           <div class="led-body led-solo"><div><h3>Read from payouts, not estimates.</h3><p>Every verified figure shows its source and the day we read it. Where a platform does not report payouts, we say so.</p></div></div></li>
         <li class="win led"><p class="win-bar"><span>02 Sponsorships</span><span class="dots" aria-hidden="true"><i></i><i></i></span></p>
-          <div class="led-body"><div class="mini mini-l" data-mini="15" data-mini2="5" aria-hidden="true"></div><div><h3>Sponsors, at a fair rate.</h3><p class="fee"><b>15%</b> when Orbe finds the brand, <b>5%</b> when you bring your own.</p><p>Paid by the brand, never by you, only when the sponsorship completes.</p></div></div></li>
+          <div class="led-body led-solo"><div><h3>Sponsors, at a fair rate.</h3><p class="fee"><b>15%</b> when Orbe finds the brand, <b>5%</b> when you bring your own.</p><p>Paid by the brand, never by you, only when the sponsorship completes.</p>
+            <div class="calc">
+              <div class="seg" role="group" aria-label="Who found the brand"><button type="button" data-who="network" aria-pressed="true">Orbe found the brand</button><button type="button" data-who="direct" aria-pressed="false">I brought my own</button></div>
+              <div class="sl sl-dark"><div class="sl-top"><label for="sl-deal">The sponsorship</label><output for="sl-deal" data-deal-o>£2,500</output></div><input type="range" id="sl-deal" min="0" max="200" step="1" value="500" data-deal></div>
+              <div class="stack" data-deal-bar aria-hidden="true"></div>
+              <p class="calc-out" data-deal-out aria-live="polite"></p>
+            </div></div></div></li>
         <li class="win led"><p class="win-bar"><span>03 Selling</span><span class="dots" aria-hidden="true"><i></i><i></i></span></p>
-          <div class="led-body"><div class="mini mini-l" data-mini="8" aria-hidden="true"></div><div><h3>A fair sale, when you want one.</h3><p class="fee"><b>8%</b> up to £500k, <b>5%</b> from £500k to £2M, <b>3%</b> above, £4,000 minimum.</p><p>From the proceeds, only if it sells. Nothing if it doesn't.</p></div></div></li>
+          <div class="led-body led-solo"><div><h3>A fair sale, when you want one.</h3><p class="fee"><b>8%</b> up to £500k, <b>5%</b> from £500k to £2M, <b>3%</b> above, £4,000 minimum.</p><p>From the proceeds, only if it sells. Nothing if it doesn't.</p>
+            <div class="calc">
+              <div class="sl sl-dark"><div class="sl-top"><label for="sl-sale">Sale price</label><output for="sl-sale" data-sale-o>£220,000</output></div><input type="range" id="sl-sale" min="0" max="200" step="1" value="500" data-sale></div>
+              <div class="stack" data-sale-bar aria-hidden="true"></div>
+              <ul class="stack-key" data-sale-key></ul>
+              <p class="calc-out" data-sale-out aria-live="polite"></p>
+            </div></div></div></li>
       </ol>
     </div>
   </section>
