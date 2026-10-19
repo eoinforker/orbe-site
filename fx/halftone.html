@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe fx, halftone explainers</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Three Orbe explainer panels in the halftone illustration language: the fair yardstick, the 93 in 100 cell field and the payout diff, drawn live from the engine.">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<style>
+  :root {
+    --ink: #141311; --paper: #F3F0E8; --chalk: #FBFAF6; --linen: #E7E2D7; --graphite: #5D584F; --stone: #A29E95;
+    --sky: #9EE9FB; --mist: #D6F6FD; --cobalt: #1F4BFF; --straw: #EED56A; --ember: #FF5A1F;
+    --fixed: var(--cobalt); --on-fixed: var(--chalk);
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 var(--sans, system-ui, sans-serif); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  main { max-width: 1248px; margin: 0 auto; padding: 32px 16px 80px; }
+  .k { font: 500 12px/1 var(--mono, ui-monospace, monospace); color: var(--graphite); margin: 0 0 20px; letter-spacing: 0.02em; }
+  .k a { color: inherit; text-underline-offset: 3px; }
+  h1 { font: 500 clamp(26px, 3.4vw, 40px)/1.08 var(--sans); letter-spacing: -0.02em; margin: 0 0 12px; max-width: 26ch; }
+  h1 span, .cap span { color: var(--graphite); }
+  .lede { margin: 0 0 56px; max-width: 60ch; color: var(--graphite); }
+
+  .panels { display: grid; gap: 72px 48px; grid-template-columns: 1fr; }
+  @media (min-width: 960px) { .panels { grid-template-columns: repeat(3, 1fr); align-items: start; } }
+  .ex { margin: 0; container-type: inline-size; }
+
+  /* The ink-then-grey caption: the first phrase names the idea, the rest says what the picture does. */
+  .cap { font: 500 clamp(19px, 6.2cqi, 24px)/1.12 var(--sans); letter-spacing: -0.015em; margin: 0 0 40px; min-height: 3.4em; }
+
+  .plate { position: relative; background: var(--chalk); overflow: hidden; }
+
+  /* ghost numerals, behind everything */
+  .ghost { position: absolute; right: 0; top: 0; width: 72%; height: 44cqi; background: var(--linen); overflow: hidden; }
+  .ghost b { position: absolute; left: 6cqi; top: -7cqi; font: 500 var(--gs, 46cqi)/1 var(--sans); letter-spacing: -0.05em; color: var(--stone); font-variant-numeric: tabular-nums; white-space: nowrap; transition: opacity 900ms var(--ease) 700ms, transform 1400ms var(--ease) 500ms; }
+  .run .ghost b { opacity: 0.55; transform: translateX(-3cqi); }
+
+  .hblock { position: absolute; left: 12cqi; top: 10cqi; width: 18cqi; height: 34cqi; display: block; }
+
+  .stage { position: relative; padding-top: 22cqi; }
+
+  /* the title band: ink, with ruled hairlines on whole pixels */
+  .band { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; height: 60px; background: var(--ink); color: var(--paper); padding: 0 12px; }
+  .band span { font: 400 clamp(17px, 6cqi, 24px)/1 var(--mono); letter-spacing: 0.01em; }
+  .band i { display: block; height: 30px; background: repeating-linear-gradient(to bottom, #5D584F 0 2px, transparent 2px 6px); }
+
+  /* the diff */
+  .diff { list-style: none; margin: 0; padding: 0; font: 400 clamp(14px, 4.9cqi, 19px)/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .diff li { position: relative; height: 2.5em; display: flex; align-items: center; padding: 0 4cqi; background: var(--linen); white-space: nowrap; }
+  .diff li:nth-child(2n) { background: #EDE9E0; }
+  .diff .m { display: inline-block; width: 1.4em; flex: none; }
+  .diff .del { color: var(--graphite); transition: color 400ms var(--ease); }
+  .diff .del .t { position: relative; }
+  .diff .del .t::after { content: ""; position: absolute; left: -0.1em; right: -0.1em; top: calc(50% - 1px); height: 2px; background: var(--graphite); transform: scaleX(0); transform-origin: left center; transition: transform 420ms var(--ease); }
+  .run .diff .del .t::after { transform: scaleX(1); }
+  .run .diff .del:nth-child(3) .t::after { transition-delay: 160ms; }
+  .diff .add { background: var(--linen); color: var(--ink); }
+  .diff .add::before { content: ""; position: absolute; inset: 0; background: var(--fixed); clip-path: inset(0 100% 0 0); transition: clip-path 520ms var(--ease) 520ms; }
+  .run .diff .add::before { clip-path: inset(0 0 0 0); }
+  .diff .add > * { position: relative; transition: color 200ms linear 640ms; }
+  .run .diff .add > * { color: var(--on-fixed); }
+
+  /* tag strips: mono on solid colour, along the bottom */
+  .tags { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: auto auto 1fr; font: 500 clamp(11px, 3.4cqi, 13px)/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; }
+  .tags li { padding: 0 3.2cqi; height: 40px; display: flex; align-items: center; white-space: nowrap; }
+  .tags li:last-child { justify-content: flex-end; }
+  .t-straw { background: var(--straw); color: var(--ink); }
+  .t-ink { background: var(--ink); color: var(--paper); }
+  .t-fixed { background: var(--fixed); color: var(--on-fixed); }
+
+  /* the cell field */
+  /* the canvas measures the full column, then the field and its band share the canvas's whole-cell width, so their edges meet exactly */
+  .fieldwrap { line-height: 0; }
+  .fband, .ex#p-field .note { width: var(--fw, 100%); }
+  .fieldwrap canvas { display: block; }
+  .fband { background: var(--ink); color: var(--paper); padding: 20px 4cqi 22px; font: 500 clamp(19px, 6.2cqi, 24px)/1.12 var(--sans); letter-spacing: -0.015em; margin: 0; }
+  .fband span { color: var(--stone); }
+
+  .note { margin: 16px 0 0; font: 400 13px/1.45 var(--sans); color: var(--graphite); }
+  .replay { font: 500 12px/1 var(--mono); letter-spacing: 0.02em; color: var(--ink); background: none; border: 0; padding: 12px 0; min-height: 40px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+  .replay:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
+
+  /* the orb, the ownable device */
+  .orbs { margin-top: 96px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 720px; }
+  .orbs figure { margin: 0; }
+  .orbs canvas { display: block; width: 100%; aspect-ratio: 1; }
+  .orbs figcaption { font: 500 12px/1.3 var(--mono); color: var(--graphite); margin-top: 12px; letter-spacing: 0.02em; }
+  .orbs figcaption b { color: var(--ink); font-weight: 500; }
+
+  .foot { margin-top: 72px; padding-top: 14px; border-top: 1px solid rgba(20, 19, 17, 0.16); display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; }
+  .foot a { color: inherit; font-weight: 600; text-underline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="k"><a href="./">Motion lab</a> / Halftone explainers</p>
+  <h1>Explainer illustrations: <span>a diff for the record, a field for the rank, every figure from the engine.</span></h1>
+  <p class="lede" data-line></p>
+
+  <div class="panels">
+    <!-- 1. The fair yardstick -->
+    <figure class="ex" id="p-yard" aria-labelledby="cap-yard">
+      <figcaption class="cap" id="cap-yard"><b>Fair yardstick:</b> <span>two wrong sizes struck out, its own size in blue.</span></figcaption>
+      <div class="plate">
+        <div class="ghost" aria-hidden="true"><b data-ghost-yard></b></div>
+        <canvas class="hblock" data-block aria-hidden="true"></canvas>
+        <div class="stage">
+          <div class="band" aria-hidden="true"><i></i><span>reach.yardstick</span><i></i></div>
+          <ol class="diff" data-diff-yard></ol>
+        </div>
+      </div>
+      <ul class="tags" data-tags-yard></ul>
+      <button class="replay" type="button" data-replay="p-yard">Replay</button>
+    </figure>
+
+    <!-- 2. Beats 93 in 100 -->
+    <figure class="ex" id="p-field" aria-labelledby="cap-field">
+      <div class="fieldwrap"><canvas data-field role="img"></canvas></div>
+      <figcaption class="fband" id="cap-field" data-field-cap></figcaption>
+      <p class="note" data-field-note></p>
+      <button class="replay" type="button" data-replay="p-field">Replay</button>
+    </figure>
+
+    <!-- 3. Read from payouts -->
+    <figure class="ex" id="p-pay" aria-labelledby="cap-pay">
+      <figcaption class="cap" id="cap-pay"><b>Read from payouts:</b> <span>the estimate struck out, the money that arrived in blue.</span></figcaption>
+      <div class="plate">
+        <div class="ghost" aria-hidden="true"><b data-ghost-pay></b></div>
+        <canvas class="hblock" data-block aria-hidden="true"></canvas>
+        <div class="stage">
+          <div class="band" aria-hidden="true"><i></i><span>record.ads</span><i></i></div>
+          <ol class="diff" data-diff-pay></ol>
+        </div>
+      </div>
+      <ul class="tags" data-tags-pay></ul>
+      <p class="note" data-pay-note></p>
+      <button class="replay" type="button" data-replay="p-pay">Replay</button>
+    </figure>
+  </div>
+
+  <section class="orbs" aria-label="The orb, filled to each part's score" data-orbs></section>
+
+  <footer class="foot"><a href="./">Motion lab</a><a href="../brand/">Brand book</a></footer>
+</main>
+
+<script type="module">
+  import { example, benchmark, EXAMPLE_LINE } from "../assets/r5/examples.js";
+  import { SPECS } from "../assets/engine/rating/browser.js";
+  import { suspiciousCreator } from "../assets/engine/record/browser.js";
+  import { createField, spread, drawBlock, drawOrb, rng, mix, lerp } from "./halftone.js";
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const C = { ink: "#141311", paper: "#F3F0E8", chalk: "#FBFAF6", sky: "#9EE9FB", mist: "#D6F6FD", cobalt: "#1F4BFF", ember: "#FF5A1F", stone: "#A29E95" };
+
+  $("[data-line]").textContent = `${EXAMPLE_LINE} The payout panel uses the record engine's made-up channel with estimates that disagree with payouts.`;
+
+  /* ---------- 1. the yardstick diff, from the engine's own priors ---------- */
+  const e = example("channel");
+  const spec = SPECS[e.platform];
+  const part = e.result.detail.parts.find((p) => p.key === "reach");
+  const prior = spec.parts.find((p) => p.key === "reach").prior;
+  const own = e.result.parts.find((p) => p.key === "reach").score;
+  const bm = benchmark("channel");
+  const erf = (x) => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+  const phi = (z) => 0.5 * (1 + erf(z / Math.SQRT2));
+  const beats = (row) => (row.key === bm.example ? own : Math.max(1, Math.min(99, Math.round(phi(Math.log(part.measured / prior.median[row.key]) / prior.sigma) * 100))));
+  const first = bm.rows[0], last = bm.rows[bm.rows.length - 1], mine = bm.rows.find((r) => r.key === bm.example);
+  const row = (cls, mark, text) => `<li class="${cls}"><span class="m">${mark}</span><span class="t">${esc(text)}</span></li>`;
+  $("[data-diff-yard]").innerHTML = [
+    row("ctx", "", `"${e.name}": {`),
+    row("del", "-", `"${first.label}": ${beats(first)},`),
+    row("del", "-", `"${last.label}": ${beats(last)},`),
+    row("add", "+", `"${mine.label}": ${beats(mine)}`),
+    row("ctx", "", "}"),
+  ].join("");
+  $("[data-diff-yard]").setAttribute("aria-label", `Reach for ${e.name}: against ${first.label} ${e.peers} it beats ${beats(first)} in 100, against ${last.label} ${beats(last)} in 100; neither is fair. Against its own size, ${mine.label}, it beats ${beats(mine)} in 100.`);
+  $("[data-ghost-yard]").textContent = String(own);
+  $("[data-tags-yard]").innerHTML = `<li class="t-straw">${esc(part.name)}</li><li class="t-ink">${esc(mine.label)}</li><li class="t-fixed">${own} in 100</li>`;
+
+  /* ---------- 3. the payout diff, from the record engine ---------- */
+  const nova = suspiciousCreator();
+  const month = [...new Set(nova.revenue.map((l) => l.month))].sort().at(-1);
+  const ads = nova.revenue.filter((l) => l.month === month && l.stream === "ads");
+  const est = ads.find((l) => l.provenance.source === "youtube_analytics");
+  const paid = ads.find((l) => l.provenance.source === "adsense");
+  const gbp = (p) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(p / 100);
+  const monthName = new Date(month).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+  const ratio = est.gross.amount / paid.gross.amount;
+  $("[data-diff-pay]").innerHTML = [
+    row("ctx", "", `"ads, ${monthName}": {`),
+    row("del", "-", `"estimate": "${gbp(est.gross.amount)}",`),
+    row("add", "+", `"paid_out": "${gbp(paid.gross.amount)}",`),
+    row("ctx", "", `"source": "AdSense"`),
+    row("ctx", "", "}"),
+  ].join("");
+  $("[data-diff-pay]").setAttribute("aria-label", `Ad revenue for ${monthName}: YouTube's estimate of ${gbp(est.gross.amount)} is struck out; the AdSense payout of ${gbp(paid.gross.amount)} is the figure on the record.`);
+  $("[data-ghost-pay]").textContent = `${ratio.toFixed(1)}×`;
+  /* ghost numerals keep the same cap height for two characters; longer ones step down so the figure still reads above the band */
+  for (const g of document.querySelectorAll(".ghost b")) if (g.textContent.length > 2) g.style.setProperty("--gs", "32cqi");
+  $("[data-tags-pay]").innerHTML = `<li class="t-straw">${esc(monthName)}</li><li class="t-ink">AdSense</li><li class="t-fixed">Paid out</li>`;
+  $("[data-pay-note]").textContent = `${(nova.accounts.find((a) => a.kind === "youtube")?.title ?? "Nova Plays").replace(/\s*\(fixture\)/, "")}, a made-up channel from the record engine: YouTube's estimate ran ${ratio.toFixed(1)} times what AdSense paid.`;
+
+  /* the halftone blocks behind each title band: ink dots thinning downward */
+  const blocks = () => { for (const b of document.querySelectorAll("[data-block]")) drawBlock(b, { base: null, ink: C.ink, pitch: 4, angle: 45, dir: 90, from: 0.62, to: 0.04 }); };
+
+  /* ---------- 2. the cell field: beats 93 in 100 ---------- */
+  const COLS = 10, ROWS = 10, N = COLS * ROWS;
+  const beaten = own;
+  const rand = rng(93);
+  /* Rank order: nearest the bottom left first, with a little seeded jitter so the front is ragged, never a staircase. */
+  const cells = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) cells.push({ c, r, d: Math.hypot(c, ROWS - 1 - r) + rand() * 1.6 });
+  cells.sort((a, b) => a.d - b.d);
+  const DIRS = [45, 135, 315, 225, 90, 0];
+  const look = new Map();
+  cells.forEach((cell, k) => {
+    const pitchK = [0.1, 0.085, 0.12][Math.floor(rand() * 3)];
+    const dir = DIRS[Math.floor(rand() * DIRS.length)];
+    let fin;
+    if (k < beaten) {
+      const depth = k / (beaten - 1);
+      if (depth < 0.52) fin = { base: C.cobalt, ink: C.cobalt, from: 1, to: 1 };
+      else if (depth < 0.8) fin = { base: C.sky, ink: C.cobalt, from: 0.92, to: lerp(0.5, 0.2, (depth - 0.52) / 0.28) };
+      else fin = { base: C.mist, ink: C.cobalt, from: 0.55, to: 0.04 };
+      look.set(cell.c + "," + cell.r, { k, kind: "beaten", fin, pitchK, dir });
+    } else if (k === beaten) {
+      look.set(cell.c + "," + cell.r, { k, kind: "you", fin: { base: C.ember, ink: C.ember, from: 1, to: 1 }, pitchK, dir });
+    } else {
+      look.set(cell.c + "," + cell.r, { k, kind: "ahead", fin: null, pitchK, dir });
+    }
+  });
+  /* Before the spread every cell is "not yet counted": faint ink dots on chalk. */
+  const idle = (L, cell) => ({ base: C.chalk, ink: C.ink, pitch: cell * L.pitchK, angle: 45, dir: L.dir, from: L.kind === "ahead" ? 0.42 : 0.16, to: 0.02 });
+  let field;
+  const fieldLook = (c, r, p) => {
+    const L = look.get(c + "," + r);
+    const cell = field ? field.cell : 36;
+    const a = idle(L, cell);
+    if (!L.fin || p <= 0) return a;
+    const f = L.fin;
+    /* first half: the ink thins and the tint arrives; second half: cobalt dots grow to their final density */
+    const q = Math.min(1, p * 2), w = Math.max(0, p * 2 - 1);
+    return {
+      base: mix(C.chalk, f.base === f.ink ? (L.kind === "you" ? C.ember : C.sky) : f.base, q),
+      ink: mix(C.ink, f.ink, q),
+      pitch: a.pitch, angle: 45, dir: L.dir,
+      from: lerp(a.from * (1 - q), f.from, w),
+      to: lerp(a.to * (1 - q), f.to, w),
+      ...(p >= 1 ? { base: f.base } : null),
+    };
+  };
+  const canvas = $("[data-field]");
+  field = createField(canvas, { cols: COLS, rows: ROWS, look: fieldLook });
+  const fitBand = () => $("#p-field").style.setProperty("--fw", canvas.style.width);
+  fitBand();
+  new ResizeObserver(fitBand).observe(canvas);
+  canvas.setAttribute("aria-label", `A field of ${N} cells, one for every 100 ${e.peers} its size. ${beaten} fill in blue, one for each it beats; one orange cell is ${e.name}; ${N - beaten - 1} are ahead.`);
+  $("[data-field-cap]").innerHTML = `Beats ${beaten} in 100: <span>blue spreads cell by cell through the ${esc(e.peers)} its size, and stops at ${esc(e.name)}.</span>`;
+  $("[data-field-note]").textContent = `${e.name}, ${e.sizeBand}. ${e.parts[0].value}, a typical upload's reach.`;
+  const fieldOrder = cells.slice(0, beaten + 1).map((x) => [x.c, x.r]);
+  let fieldRun = null;
+  const playField = () => {
+    if (fieldRun) fieldRun.cancel();
+    field.setAll(0);
+    fieldRun = spread(field, { order: fieldOrder, to: 1, duration: 620, stagger: 17, reduce });
+  };
+
+  /* ---------- the orb row: one orb per shown part, filled to its score ---------- */
+  $("[data-orbs]").innerHTML = e.parts.map((p) => `<figure><canvas data-orb="${p.score}" aria-hidden="true"></canvas><figcaption><b>${esc(p.name)}</b> ${p.score} in 100</figcaption></figure>`).join("");
+  const orbs = [...document.querySelectorAll("[data-orb]")];
+  const drawOrbs = (t = 1) => { for (const o of orbs) drawOrb(o, { fill: (+o.dataset.orb / 100) * t, ink: C.cobalt, base: null }); };
+  const playOrbs = () => {
+    if (reduce) { drawOrbs(1); return; }
+    const start = performance.now(), dur = 1100;
+    const tick = (now) => { const t = Math.min(1, (now - start) / dur); drawOrbs(1 - Math.pow(1 - t, 4)); if (t < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  };
+
+  /* ---------- run each panel once when it comes into view ---------- */
+  const play = { "p-yard": (el) => restart(el), "p-pay": (el) => restart(el), "p-field": () => playField() };
+  function restart(el) { el.classList.remove("run"); void el.offsetWidth; requestAnimationFrame(() => el.classList.add("run")); }
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) if (en.isIntersecting) { const id = en.target.id; if (play[id]) play[id](en.target); else playOrbs(); io.unobserve(en.target); }
+  }, { threshold: 0.35 });
+  for (const id of Object.keys(play)) io.observe(document.getElementById(id));
+  io.observe($("[data-orbs]"));
+  for (const b of document.querySelectorAll("[data-replay]")) b.addEventListener("click", () => { const el = document.getElementById(b.dataset.replay); play[b.dataset.replay](el); });
+
+  const redrawStatic = () => { blocks(); drawOrbs(1); };
+  blocks(); drawOrbs(0);
+  let rt = 0;
+  window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(redrawStatic, 120); });
+  if (new URLSearchParams(location.search).has("still")) { for (const id of ["p-yard", "p-pay"]) document.getElementById(id).classList.add("run"); field.setAll(0); for (const [c, r] of fieldOrder) field.set(c, r, 1); drawOrbs(1); }
+</script>
+</body>
+</html>
