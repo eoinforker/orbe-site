@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe's desk</title>
+<meta name="description" content="Orbe rates your work against creators your size, and reads your record from what you were paid.">
+<meta name="theme-color" content="#9EE9FB">
+<link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<script>
+  /* Before first paint: does anything move (reduced motion or ?still keeps it still), and can this browser draw WebGL. */
+  (function () {
+    var d = document.documentElement, q = null, still = false, gl = false;
+    try { q = new URLSearchParams(location.search); } catch (e) {}
+    try { still = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+    if (q && q.has("still")) still = true;
+    try { var c = document.createElement("canvas"); gl = !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl"))); } catch (e) {}
+    if (q && q.has("nogl")) gl = false;
+    d.classList.add("js", still ? "still" : "move", gl ? "gl" : "nogl");
+  })();
+</script>
+<link rel="preload" href="assets/desk.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/fonts/DepartureMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+  { "imports": { "three": "../../assets/vendor/three-0.160.0.module.min.js" } }
+</script>
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<a class="skip" href="#r-handle">Skip to reserving your handle</a>
+
+<main class="hero" data-hero>
+  <header class="bar">
+    <a class="bar-mark" href="./" aria-label="Orbe, home"><span data-wordmark>Orbe</span></a>
+    <nav class="nav" aria-label="Products">
+      <button class="nav-menu" type="button" aria-expanded="false" aria-controls="nav-list" data-menu>Products</button>
+      <ul class="nav-list" id="nav-list" data-nav-list>
+        <li><a href="../../products/rate/">Rate</a></li>
+        <li><a href="../../products/podcasts/">Podcasts</a></li>
+        <li><a href="../../products/sponsorships/">Sponsorships</a></li>
+        <li><a href="../../products/selling/">Selling</a></li>
+        <li><a href="../../products/diligence/">Diligence</a></li>
+      </ul>
+    </nav>
+    <button class="bar-pause" type="button" data-pause aria-pressed="false" hidden>
+      <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path data-pause-icon d="M3 2h2v8H3zM7 2h2v8H7z"/></svg>
+      <span data-pause-label>Pause</span>
+    </button>
+  </header>
+
+  <h1 class="say" data-say>
+    <span class="say-line say-l1">Your <span class="slot" data-slot><span class="w" data-w>channel</span></span> <span class="say-rated">rated</span></span>
+    <span class="say-line say-l2"><span class="say-rated-m">rated </span>against <br class="br-m">creators your&nbsp;size.</span>
+  </h1>
+
+  <div class="stage" data-stage>
+    <canvas class="desk" data-desk role="img" aria-label="Orbe's desk: a monitor showing a rating, a glass orb filled to the score, and a stack of paper holding the record." aria-describedby="desk-say"></canvas>
+    <picture class="still-pic" data-still-pic>
+      <source media="(max-width: 720px)" srcset="assets/still-channel-phone.webp" data-still-phone>
+      <img data-still-img src="assets/still-channel.webp" width="1440" height="900" alt="" loading="lazy" decoding="async">
+    </picture>
+    <p class="hint" data-hint aria-hidden="true">Push the orb, or slide the paper.</p>
+  </div>
+
+  <div class="tags" data-tags aria-hidden="true">
+    <span class="tag tag-orb" data-tag="orb"><b data-tag-n>93</b> in 100 <span data-tag-peers>channels</span></span>
+    <span class="tag" data-tag="paper">The record</span>
+    <span class="tag" data-tag="ledger">What Orbe charges</span>
+    <span class="tag tag-s" data-tag="rack-channel">93</span>
+    <span class="tag tag-s" data-tag="rack-newsletter">86</span>
+    <span class="tag tag-s" data-tag="rack-stream">94</span>
+    <span class="tag tag-s" data-tag="rack-podcast">63</span>
+    <span class="tag tag-s" data-tag="rack-portfolio">73</span>
+  </div>
+
+  <div class="sr" id="desk-say" data-desk-say>
+    <p data-say-window>On the monitor, a window called orbe/@fieldrecordings/rating says: You beat 93 in 100 channels your size.</p>
+    <p data-say-paper>On the paper, the record for Nova Plays, September 2026 ad revenue: estimate £6,474.47, struck through. Paid £4,624.62.</p>
+  </div>
+
+  <form class="act" data-reserve novalidate>
+    <label class="vh" for="r-handle">Your handle</label>
+    <div class="field">
+      <span class="field-pre" aria-hidden="true">orbe.vc/@</span>
+      <input id="r-handle" name="handle" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourhandle" maxlength="40" aria-describedby="r-note" data-r-handle>
+      <button class="btn" type="submit">Reserve your handle</button>
+    </div>
+    <p class="act-note" id="r-note" data-r-note aria-live="polite">Free. Your number is waiting when ratings open.</p>
+  </form>
+
+  <p class="fine" data-fine>Independently calculated by Orbe. Every creator and figure on this desk is a made-up example, computed live by the Orbe engine.</p>
+</main>
+
+<section class="band" aria-labelledby="band-h">
+  <h2 class="band-h" id="band-h">What is on the desk</h2>
+  <ol class="band-list">
+    <li>
+      <h3>The rating</h3>
+      <p data-band-rating>Field Recordings beats 93 in 100 channels its size on reach. Only creators your size count.</p>
+      <a href="../../products/rate/">How the rating works</a>
+    </li>
+    <li>
+      <h3>The record</h3>
+      <p data-band-record>YouTube estimated £6,474.47 for Nova Plays in September 2026. AdSense paid £4,624.62. The record keeps what was paid.</p>
+      <a href="../../products/diligence/">What a buyer sees</a>
+    </li>
+    <li>
+      <h3>The fees</h3>
+      <p data-band-fees>Free to be rated. 15% when Orbe finds the sponsor, 5% when you bring one, both paid by the brand.</p>
+      <a href="../../products/sponsorships/">Sponsorships</a>
+    </li>
+  </ol>
+</section>
+
+<footer class="foot">
+  <span class="foot-mark" data-wordmark-foot>Orbe</span>
+  <p class="foot-fine" data-foot-fine>Field Recordings, Margin Notes, Night Shift, The Long Table, Low Tide Prints and Nova Plays are made up. Not a YouTube metric, and not provided or endorsed by YouTube or Google.</p>
+  <nav class="foot-links" aria-label="Legal">
+    <a href="../../legal/terms.html">Terms</a>
+    <a href="../../legal/privacy.html">Privacy</a>
+    <a href="mailto:hello@orbe.vc">hello@orbe.vc</a>
+  </nav>
+  <p class="foot-credit">Desk modelled and lit in Blender. Drawn with three.js (MIT). Window type: Departure Mono by Helena Zhang (OFL). The physics is our own small solver, tuned after studying Bruno Simon's folio 2025 (MIT).</p>
+</footer>
+</body>
+</html>

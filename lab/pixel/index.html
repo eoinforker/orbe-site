@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbe: rated against creators your size</title>
+<meta name="description" content="Orbe rates your work against creators your size. Free, read from what you were paid, and Orbe earns only when money moves.">
+<meta name="theme-color" content="#9EE9FB">
+<link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<script>
+  /* Before first paint: reduced motion, or ?still, shows the finished scene. */
+  (function () {
+    var d = document.documentElement, still = false;
+    d.classList.add("js");
+    try { still = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+    try { if (new URLSearchParams(location.search).has("still")) still = true; } catch (e) {}
+    if (still) d.classList.add("still");
+  })();
+</script>
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<a class="skip" href="#reserve">Skip to reserving your handle</a>
+
+<header class="nav">
+  <a class="wm" href="./" aria-label="Orbe, home">Orbe</a>
+  <nav class="links" id="links" aria-label="Products">
+    <a href="../../products/rate/">Rate</a>
+    <a href="../../products/podcasts/">Podcasts</a>
+    <a href="../../products/sponsorships/">Sponsorships</a>
+    <a href="../../products/selling/">Selling</a>
+    <a href="../../products/diligence/">Diligence</a>
+  </nav>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="links"><span class="sr">Products</span><i aria-hidden="true"></i></button>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="h1">
+    <div class="art" tabindex="0" role="group" aria-label="A jar of the hundred creators your size, one marble each, sorted from the bottom up. Blue marbles are creators you beat, yellow ones are ahead of you, and yours is orange. Arrow keys move between marbles.">
+      <canvas class="scene" width="1" height="1" aria-hidden="true"></canvas>
+
+      <div class="receipt" aria-hidden="true">
+        <p><span data-b="handle">@fieldrecordings</span></p>
+        <p><s class="strike">Estimated</s></p>
+        <p>Paid</p>
+        <p class="gap"><span data-b="part0">Reach</span><b data-b="score0">93</b></p>
+        <p><span data-b="part1">Momentum</span><b data-b="score1">60</b></p>
+        <p><span data-b="part2">Engagement</span><b data-b="score2">78</b></p>
+        <p class="gap"><span>Rating</span><b data-b="rating">+1.23 Good</b></p>
+      </div>
+
+      <div class="ledger" aria-hidden="true">
+        <p class="lh">Orbe earns</p>
+        <p><span>Your rating</span><b>Free</b></p>
+        <p><span>A sponsorship</span><b data-b="fee-sponsor">5 to 15%</b></p>
+        <p><span>A sale</span><b data-b="fee-sale">8 to 3%</b></p>
+      </div>
+
+      <p class="shelf-label" aria-hidden="true"><span><b data-b="kinds">Channels</b>, <span data-b="band">250k to 1M subscribers</span></span></p>
+      <p class="typ" aria-hidden="true">Typical</p>
+      <p class="tip" aria-hidden="true" hidden></p>
+    </div>
+
+    <div class="copy">
+      <h1 id="h1">Your work, rated<br> against creators<br> your size.</h1>
+      <p class="lede">Free, and read from what you were paid. Orbe earns only when money moves.</p>
+      <form class="reserve" id="reserve" novalidate>
+        <label class="field">
+          <span class="pre" aria-hidden="true">orbe.vc/@</span>
+          <span class="sr">Your handle</span>
+          <input name="handle" autocomplete="username" spellcheck="false" autocapitalize="off" placeholder="yourhandle" required>
+        </label>
+        <button type="submit">Reserve your handle</button>
+      </form>
+      <p class="said" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="cap">
+      <p class="cap-line">
+        <span class="sw" aria-hidden="true"></span>
+        <span><span data-b="handle">@fieldrecordings</span> beats <b data-b="beats">93</b> in 100 <span data-b="peers">channels</span> your size, on reach.</span>
+      </p>
+      <div class="kinds" role="group" aria-label="Kind of work">
+        <button type="button" data-kind="channel" aria-pressed="true">Channel</button>
+        <button type="button" data-kind="newsletter" aria-pressed="false">Newsletter</button>
+        <button type="button" data-kind="stream" aria-pressed="false">Stream</button>
+        <button type="button" data-kind="podcast" aria-pressed="false">Podcast</button>
+        <button type="button" data-kind="portfolio" aria-pressed="false">Photos</button>
+      </div>
+      <p class="sr" aria-live="polite" data-b="live"></p>
+    </div>
+    <p class="note">Independently calculated by Orbe. <span>A made-up creator, rated live by the Orbe engine.</span></p>
+  </section>
+
+  <section class="tools" aria-labelledby="tools-h">
+    <h2 id="tools-h">Built on the rating.</h2>
+    <ul class="tiles">
+      <li class="t-rate"><a href="../../products/rate/"><canvas data-icon="rate" aria-hidden="true"></canvas><h3>Rate my work</h3><p>Your own numbers, the real Orbe Rating. Zero is typical.</p></a></li>
+      <li class="t-pod"><a href="../../products/podcasts/"><canvas data-icon="podcasts" aria-hidden="true"></canvas><h3>Podcasts</h3><p>Downloads counted the same way on every host.</p></a></li>
+      <li class="t-spo"><a href="../../products/sponsorships/"><canvas data-icon="sponsorships" aria-hidden="true"></canvas><h3>Sponsorships</h3><p>Priced on what you deliver. You keep 100% of your price.</p></a></li>
+      <li class="t-sel"><a href="../../products/selling/"><canvas data-icon="selling" aria-hidden="true"></canvas><h3>Selling</h3><p>What could your business sell for?</p></a></li>
+      <li class="t-dil"><a href="../../products/diligence/"><canvas data-icon="diligence" aria-hidden="true"></canvas><h3>Diligence</h3><p>What a buyer reads before an offer.</p></a></li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>
