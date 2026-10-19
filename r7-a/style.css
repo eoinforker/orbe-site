@@ -41,7 +41,7 @@
     --t-h4: 28px; --lh-h4: 32px;
     --t-h5: 24px; --lh-h5: 32px;
     --band: 128px;
-    --art: 360px;
+    --art: 300px;
   }
 }
 @media (min-width: 1280px) {
@@ -158,13 +158,14 @@ b { font-weight: 500; }
   .hero .lede { margin-top: 40px; }
   .cta { margin-top: 48px; display: flex; }
   .cta .btn { width: auto; }
-  .hero-art { top: 112px; }
-  .hero-cap { right: auto; left: 0; top: calc(100% + 24px); width: 260px; text-align: left; }
+  .hero-art { top: 80px; }
+  .hero-cap { width: 160px; }
 }
 @media (min-width: 1280px) {
   .hero { min-height: 880px; padding-bottom: 96px; }
-  .hero-in { padding: 236px 0 0 max(320px, calc((100vw - 1200px) / 2 + 200px)); }
+  .hero-in { padding: 236px 0 0 max(200px, calc((100vw - 1200px) / 2 + 200px)); }
   .hero-art { top: 120px; right: calc(var(--art) * -0.2); }
+  .hero-cap { right: auto; left: 0; top: calc(100% + 24px); width: 260px; text-align: left; }
 }
 
 /* ---------- 1b. the beat: the live hundred and the size slider ---------- */

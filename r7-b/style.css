@@ -85,6 +85,8 @@ b, strong { font-weight: 500; }
 .win.dragging { border-color: var(--hair-4); }
 .tb { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 14px; border-bottom: 1px solid var(--hair); font: 400 14px/20px var(--sans); color: var(--graphite); white-space: nowrap; overflow: hidden; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; transition: background-color 520ms var(--ease-ui), color 520ms var(--ease-ui); }
 .win.dragging .tb { cursor: grabbing; }
+/* on touch, a vertical swipe on a title bar still scrolls the page; a sideways one moves the window */
+@media (pointer: coarse) { .tb { touch-action: pan-y; } }
 .tb-box { flex: none; width: 12px; height: 12px; border: 1px solid var(--hair-4); border-radius: 2px; }
 .tb-t { flex: none; color: var(--ink); font-weight: 500; }
 .tb-lines { flex: 1; min-width: 16px; height: 9px; background: repeating-linear-gradient(to bottom, var(--hair-3) 0 1px, transparent 1px 4px); }
