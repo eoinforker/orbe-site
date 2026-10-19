@@ -6,7 +6,7 @@ import { suspiciousCreator } from "../assets/engine/record/browser.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
 import { createField, spread, drawBlock, rng, mix, lerp } from "../fx/halftone.js";
-import { drawOrb, riseOrb } from "./orb.js";
+import { drawOrb } from "./orb.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -68,14 +68,25 @@ function firstSentence(text, key) {
 
 /* ================================================================ orbs */
 const orbState = new Map(); /* canvas -> { fill, pitch } */
+/* A rising orb owns its canvas until it lands; a redraw (resize, scheme) draws it at its current level, never jumps it to the end. */
 function orb(cv, fill, pitch, { rise = false, delay = 0 } = {}) {
   if (!cv) return;
-  orbState.set(cv, { fill, pitch });
-  const o = { fill, pitch, ink: accent(), rim: C.ink };
-  if (rise && moving) riseOrb(cv, o, { ms: 900, delay });
-  else drawOrb(cv, o);
+  const prev = orbState.get(cv);
+  if (prev && prev.raf) cancelAnimationFrame(prev.raf);
+  const st = { fill, pitch, now: fill, raf: 0 };
+  orbState.set(cv, st);
+  const paint = () => drawOrb(cv, { fill: st.now, pitch: st.pitch, ink: accent(), rim: C.ink });
+  if (!(rise && moving)) { paint(); return; }
+  const start = performance.now() + delay;
+  const step = (t) => {
+    const k = Math.max(0, Math.min(1, (t - start) / 900));
+    st.now = fill * k; paint();
+    st.raf = k < 1 ? requestAnimationFrame(step) : 0;
+  };
+  st.now = 0; paint();
+  st.raf = requestAnimationFrame(step);
 }
-function redrawOrbs() { for (const [cv, s] of orbState) drawOrb(cv, { ...s, ink: accent(), rim: C.ink }); }
+function redrawOrbs() { for (const [cv, s] of orbState) drawOrb(cv, { fill: s.now, pitch: s.pitch, ink: accent(), rim: C.ink }); }
 
 /* ================================================================ the bell row: twelve cells, -3 to +3, density from the normal */
 const bells = new Map(); /* canvas -> { field, rating } */
@@ -273,10 +284,15 @@ function bindSlider(input, { lo, hi, ticks, snap = 14, nice = (v) => v, valueTex
       if (!pending) { pending = true; requestAnimationFrame(() => setTimeout(() => { pending = false; onChange(value); }, 0)); }
     } else onChange(v);
   };
+  /* only a pointer drag snaps to the marks; arrow keys always move one step, so the keyboard can leave a mark */
+  let dragging = false;
+  input.addEventListener("pointerdown", () => { dragging = true; });
+  addEventListener("pointerup", () => { dragging = false; });
+  addEventListener("pointercancel", () => { dragging = false; });
   input.addEventListener("input", () => {
     const p = +input.value;
     let v = sc.toVal(p);
-    const near = ticks.find((t) => Math.abs(sc.toPos(t.v) - p) <= snap);
+    const near = dragging && ticks.find((t) => Math.abs(sc.toPos(t.v) - p) <= snap);
     if (near) { v = near.v; input.value = String(sc.toPos(v)); }
     set(nice(v), true);
   });
