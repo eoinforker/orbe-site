@@ -50,11 +50,13 @@ function sample(pts) {
   dry    0 to 1, how far the end breaks into streaks
   taper  0 for a flat band, 1 for a flick that narrows to a point
   streak how much the bristles differ in colour (two pigments on one brush)
+  bristles  how many bristles, when a small mark needs finer ones than its width gives
+  crumb  the shortest run of dry paint kept, in px; shorter flecks are dropped
 */
-export function stroke(ctx, R, pts, { w, color, mix = null, dry = 0.5, taper = 0, streak = 0.07, alpha = 1, edge = 0.1, scratch = 1 }) {
+export function stroke(ctx, R, pts, { w, color, mix = null, dry = 0.5, taper = 0, streak = 0.07, alpha = 1, edge = 0.1, scratch = 1, bristles = 0, crumb = 0 }) {
   const { S, L } = sample(pts);
   if (L < 2) return;
-  const n = Math.max(6, Math.min(80, Math.round(w / 1.1)));
+  const n = bristles || Math.max(6, Math.min(80, Math.round(w / 1.1)));
   ctx.lineJoin = "round";
   const tail = Math.min(L * 0.5, w * (1.4 + dry * 2.6)) * dry;
   const step = S.length > 1 ? L / (S.length - 1) : 3;
@@ -98,7 +100,7 @@ export function stroke(ctx, R, pts, { w, color, mix = null, dry = 0.5, taper = 0
       ctx.lineCap = "round";
       let run = 0, gap = 0, target = skippy ? 30 + R() * 120 : 10 + R() * 34, seg = [];
       const flush = () => {
-        if (seg.length > 1) {
+        if (seg.length > 1 && (!crumb || Math.hypot(seg[seg.length - 1][0] - seg[0][0], seg[seg.length - 1][1] - seg[0][1]) >= crumb)) {
           ctx.beginPath(); ctx.moveTo(seg[0][0], seg[0][1]);
           for (const q of seg) ctx.lineTo(q[0], q[1]);
           ctx.stroke();
@@ -244,7 +246,8 @@ function dawn(ctx, R, P, W, H) {
 
 /* An underline under a figure: one stroke, laid fast. */
 function underline(ctx, R, P, W, H) {
-  stroke(ctx, R, [[W * 0.02, H * 0.6], [W * 0.5, H * 0.45], [W * 0.98, H * 0.5]], { w: H * 0.5, color: P.ink || "#FF5A1F", dry: 0.8, streak: 0.12 });
+  // fine bristles, and no flecks shorter than the mark is tall, so the dry end reads as streaks at any density
+  stroke(ctx, R, [[W * 0.02, H * 0.6], [W * 0.5, H * 0.45], [W * 0.98, H * 0.5]], { w: H * 0.5, color: P.ink || "#FF5A1F", dry: 0.8, streak: 0.12, bristles: 16, crumb: H * 1.2, scratch: 0.5 });
 }
 
 /* A score bar: one horizontal stroke, exactly as long as the score. */

@@ -185,7 +185,7 @@
 [data-surface="field"] { background: var(--field); color: var(--on-field); --text: var(--on-field); --text-soft: var(--on-field-soft); --rule: rgba(20, 19, 17, 0.22); }
 [data-surface="paper"] { background: var(--surface); color: var(--text); }
 [data-surface="night"] { background: var(--night); color: var(--on-night); --text: var(--on-night); --text-soft: var(--orbe-stone); --rule: rgba(243, 240, 232, 0.2); --rule-strong: var(--orbe-paper); --focus: var(--night-accent); --link: var(--night-accent); --action: var(--night-accent); --on-action: var(--orbe-ink); }
-[data-surface="deep"] { background: var(--deep); color: var(--on-deep); --text: var(--on-deep); --text-soft: color-mix(in srgb, var(--on-deep) 82%, var(--deep)); --rule: rgba(251, 250, 246, 0.3); --rule-strong: var(--on-deep); --focus: var(--orbe-chalk); --link: var(--on-deep); --action: var(--orbe-chalk); --on-action: var(--deep); }
+[data-surface="deep"] { background: var(--deep); color: var(--on-deep); --text: var(--on-deep); --text-soft: color-mix(in srgb, var(--on-deep) 94%, var(--deep)); --rule: rgba(251, 250, 246, 0.3); --rule-strong: var(--on-deep); --focus: var(--orbe-chalk); --link: var(--on-deep); --action: var(--orbe-chalk); --on-action: var(--deep); }
 
 /* ---------------------------------------------------------------- reduced motion */
 @media (prefers-reduced-motion: reduce) {

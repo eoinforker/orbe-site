@@ -4,17 +4,13 @@
   sent anywhere. The last file per account is remembered on this device only,
   so a later upload can show new personal bests.
 */
-import { shell, $, $$, esc, count, day, today, readText, dropZone, segmented, store, liveStrip, nodash, icon, fold, sourcesList, ask } from "../assets/shell.js";
+import { shell, $, $$, esc, count, day, today, readText, dropZone, segmented, store, nodash, icon, fold, sourcesList, ask } from "../assets/shell.js";
 import { rate, rateWorks, topStat, focusAreas, explain, personalBests, recordMetric, isRated, SPECS, signed as engineSigned, ratingNotice, RATING_LABEL, MODEL_VERSION } from "../../assets/engine/rating/browser.js";
 import { readCreatorExport, EXPORT_FORMATS, accountIdFor, workIdFor } from "../../assets/engine/ingest/browser.js";
 
 shell("rate");
 
-$("[data-live]").innerHTML = liveStrip({
-  live: "The Orbe Rating, sub-scores, explanation and records, from the same engine the API runs (maths version " + MODEL_VERSION + ").",
-  local: "Your file is parsed and rated on this device. If you allow it, the last file per account is kept in this browser so your next upload can show new personal bests. Nothing is uploaded.",
-  api: "Connect YouTube Analytics, Substack or your host once and Orbe refreshes your rating for you, keeps your history and sends your personal bests as they happen. Public YouTube ratings wait for YouTube's approval.",
-});
+$("[data-live] [data-mv]").textContent = MODEL_VERSION;
 
 // A true minus on ratings, as the brand writes them (−0.20).
 const signed = (x) => engineSigned(x).replace(/^-/, "\u2212");
@@ -32,7 +28,6 @@ segmented($("[data-mode]"), (v) => {
 /* ---------- upload ---------- */
 let picked = null;
 $("[data-exported]").value = today();
-$("[data-drop]").insertAdjacentHTML("afterbegin", icon("upload", { size: 24 }));
 $("[data-where]").innerHTML = EXPORT_FORMATS.map((f) => `<li><span><b>${esc(f.label)}.</b> ${esc(f.where)}</span></li>`).join("");
 dropZone($("[data-drop]"), $("[data-file]"), (file) => {
   picked = { name: file.name, read: () => readText(file) };
@@ -159,7 +154,7 @@ function show(snapshot, at, meta) {
   const titles = new Map(snapshot.works.map((w) => [w.id, w.title]));
 
   if (!isRated(result)) {
-    out.innerHTML = `<div class="panel stack"><p class="kick"><span class="tag warn">Not rated yet</span></p><h2 class="h2">${esc(nodash(result.message))}</h2>
+    out.innerHTML = `<div class="panel stack"><p class="tag warn">Not rated yet</p><h2 class="h2">${esc(nodash(result.message))}</h2>
       <p class="sub">Have ${result.have}, need ${result.need}. ${esc(meta.source)}</p>${warnings(meta.warnings)}</div>`;
     return;
   }
@@ -176,7 +171,7 @@ function show(snapshot, at, meta) {
 
   out.innerHTML = `
     <div class="panel stack">
-      ${meta.sample ? `<div class="sample"><span><b>Made-up file.</b> This creator and every figure in the file are invented, for trying the tool.</span></div>` : ""}
+      ${meta.sample ? `<div class="sample"><span><b>Made-up file.</b> This creator and the numbers in the file are invented, for trying the tool.</span></div>` : ""}
       <div class="row" style="justify-content:space-between;align-items:flex-start">
         <div>
           <p class="small">${esc(snapshot.account.title)}</p>
@@ -185,7 +180,6 @@ function show(snapshot, at, meta) {
         <span class="tag acc band">${esc(result.band)}</span>
       </div>
       <p class="sub" style="margin-top:0">Zero is typical for ${esc(spec.peers)} with ${esc(result.sizeBand)} ${esc(spec.audienceNoun)}. ${d.provisional ? "On provisional benchmarks: the engine's starting baselines, replaced by measured ones as creators consent to be counted." : ""}</p>
-      <p><span class="orbe-label">${esc(RATING_LABEL)}</span></p>
       <p class="small">${esc(ratingNotice(kind))}</p>
       ${d.confidence && d.confidence !== "normal" ? `<p class="note warn">Confidence is ${esc(d.confidence)}: with ${d.works} ${esc(d.formatName)}, sub-scores are pulled towards typical until there are ten.</p>` : ""}
     </div>
@@ -217,16 +211,12 @@ function show(snapshot, at, meta) {
     </div>
 
     <div class="panel stack">
-      <h2 class="h3">Each ${esc(d.workNoun)} against your own typical</h2>
-      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>${esc(d.workNoun[0].toUpperCase() + d.workNoun.slice(1))}</th><th>Published</th><th class="r">Rating</th><th class="r">× typical</th></tr></thead><tbody>
+      ${fold(`Each ${esc(d.workNoun)} against your own typical`, `${Math.min(15, works.length)} ${esc(d.workNoun)}s`, `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${esc(d.workNoun[0].toUpperCase() + d.workNoun.slice(1))}</th><th>Published</th><th class="r">Rating</th><th class="r">× typical</th></tr></thead><tbody>
         ${works.slice(0, 15).map((w) => `<tr><td>${esc(titles.get(w.workId) ?? "")}${w.matured ? "" : ' <span class="tag">early</span>'}</td><td>${esc(day(snapshot.works.find((x) => x.id === w.workId)?.publishedAt))}</td><td class="r">${esc(signed(w.rating))}</td><td class="r">${w.multiple.toFixed(2)}</td></tr>`).join("")}
-      </tbody></table></div>
+      </tbody></table></div>`)}
     </div>
 
     <div class="panel stack">
-      <h2 class="h3">Make my card</h2>
-      <p class="small">Opens the card with this rating. Add your own picture there; it stays on this device too.</p>
-      <div class="btns"><a class="btn" href="../card/" data-card>Make my card</a></div>
       ${fold("Where these numbers come from", `${(meta.sources?.length ?? 0) + 1} sources`, sourcesList([
         ...(meta.sources ?? [{ kind: "typed", label: meta.source }]),
         { kind: "engine", label: `The Orbe Rating, maths version ${result.modelVersion}`, provenance: `Independently calculated by Orbe against ${spec.peers} your size${d.provisional ? ", on provisional benchmarks" : ""}.` },

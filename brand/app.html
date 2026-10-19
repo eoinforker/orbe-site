@@ -11,10 +11,10 @@
 <style>body{margin:0;background:#141311}</style>
 </head>
 <body>
-<!-- One application at its native size, for image exports: app.html?app=hero&scheme=blue -->
+<!-- One application at its native size, for image exports: app.html?app=hero&scheme=blue (hero, social, email) -->
 <div id="app" class="app"></div>
 <script type="module">
-  import { APPS } from "./apps.js";
+  import { APPS, paint } from "./apps.js";
   const q = new URLSearchParams(location.search);
   const a = APPS[q.get("app") ?? "hero"], s = q.get("scheme") === "pink" ? "pink" : "blue";
   document.documentElement.dataset.scheme = s;
@@ -22,6 +22,7 @@
   el.style.width = a.w + "px"; el.style.height = a.h + "px";
   el.innerHTML = a.render(s);
   await document.fonts.ready;
+  paint(el, s);
   document.body.dataset.ready = "1";
 </script>
 </body>

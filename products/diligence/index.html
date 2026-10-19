@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3F0E8">
 <title>Diligence report: Orbe</title>
-<meta name="description" content="A real Orbe Verified report, generated in your browser from made-up creators: one clean, one with questions, one messy.">
+<meta name="description" content="A real Orbe diligence report, generated in your browser from made-up creators: one clean, one with questions, one messy.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../../assets/fonts.css">
 <link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
@@ -15,11 +17,30 @@
 <script type="module" src="./diligence.js"></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="../../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="../">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products"><a href="../">All products</a><a href="../rate/">Rate my work</a><a href="../podcasts/">Podcasts</a><a href="../sponsorships/">Sponsorships</a><a href="../selling/">Selling</a><a href="../diligence/" aria-current="page">Diligence report</a></nav>
+</header>
 <main class="wrap page" id="main">
-  <p class="kick"><span class="tag acc">The real artefact</span><span>Made-up creators</span></p>
-  <h1 class="h1">The Orbe Verified report.</h1>
-  <p class="lede">What a buyer reads before an offer: every figure with its source and the day it was checked, cross-checks between sources, what could not be checked and why, and the flags a buyer should ask about. Generated in your browser by the record module from labelled made-up creators.</p>
-  <div data-live></div>
+  <p class="page-kick mono">The real report, on made-up creators.</p>
+  <h1 class="h1">The diligence report.</h1>
+  <p class="lede">What a buyer reads before an offer: every verified figure with where it came from and the day we read it, cross-checks between sources, what could not be checked and why, and the flags a buyer should ask about. Generated in your browser from labelled made-up creators.</p>
+  <details class="fold live-fold" data-live><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>What works today</span></summary>
+    <dl class="live">
+      <div><dt>Live now</dt><dd>The verified record, every cross-check, the flags and the report renderer: the record module's own code, run on made-up records.</dd></div>
+      <div><dt>In your browser</dt><dd>Reports are generated on this device from labelled made-up records. Download or print one to see the file a buyer gets.</dd></div>
+      <div><dt>With the API</dt><dd>Reports on a real creator's verified record, read from their connected sources with their consent, shared with one named buyer at a time.</dd></div>
+    </dl></details>
+  <script>try{if(matchMedia("(min-width: 760px)").matches)document.currentScript.previousElementSibling.open=true}catch(e){}</script>
 
   <section class="section">
     <div class="section-head">
@@ -30,18 +51,18 @@
       </div>
       <div class="btns"><button class="btn btn-ghost btn-sm" type="button" data-open data-icon="external">Open full page</button><button class="btn btn-ghost btn-sm" type="button" data-download data-icon="download">Download HTML</button><button class="btn btn-ghost btn-sm" type="button" data-print>Print or save as PDF</button></div>
     </div>
-    <div class="sample" role="note" style="margin-bottom:14px"><span data-who></span></div>
+    <div class="sample" role="note" style="margin-bottom:14px"><span data-who>Juniper Vale, a made-up YouTube creator: AdSense, YouTube Analytics and Stripe connected, with payouts, and invoices paid through Stripe.</span></div>
     <div class="grid figures" style="grid-template-columns:minmax(0,1fr)">
-      <div class="panel stack" data-summary></div>
+      <div class="panel stack dil-sum" data-summary></div>
     </div>
-    <iframe class="doc" title="Orbe Verified report" data-frame sandbox="allow-same-origin allow-modals" style="height:min(1100px,82vh);margin-top:14px"></iframe>
+    <iframe class="doc" title="Orbe diligence report" data-frame sandbox="allow-same-origin allow-modals" style="height:min(1100px,82vh);margin-top:14px"></iframe>
   </section>
 
   <section class="section">
     <div class="panel stack">
       <h2 class="h3">What a report costs</h2>
       <dl class="dl"><dt>Vetted buyers, under the take rate</dt><dd>Included</dd><dt>If the buyer walks away</dt><dd>£1,500</dd><dt>If they buy, the seller withdraws or sells elsewhere, or the report finds the listing materially wrong</dt><dd>Nothing</dd></dl>
-      <p class="small">A buyer has 120 days to decide and up to three reports open at once. Under the earlier memberships model a report was £2,500, or £1,500 for members, which is the price the report itself still quotes.</p>
+      <p class="small">A buyer has 120 days to decide and up to three reports open at once.</p>
     </div>
   </section>
 </main>

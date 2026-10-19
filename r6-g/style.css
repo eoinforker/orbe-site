@@ -25,12 +25,10 @@ a { color: inherit; }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
-.bk { font-family: var(--serif); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
-.rule { display: inline-block; height: 1px; width: 44px; background: currentColor; opacity: 0.7; margin: 0 12px; vertical-align: middle; }
 .mono { font-family: var(--mono); }
 canvas.paint { display: block; width: 100%; height: 100%; }
 
-/* ---------------------------------------------------------------- [01] hero, on the field */
+/* ---------------------------------------------------------------- hero, on the field */
 .hero { position: relative; background: var(--field); display: flex; flex-direction: column; }
 .hero-art { position: relative; height: 28svh; min-height: 200px; max-height: 250px; }
 .nav { position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 14px var(--gut) 0; --wm-h: 27px; }
@@ -45,21 +43,23 @@ canvas.paint { display: block; width: 100%; height: 100%; }
 .folder .tab {
   position: relative; display: inline-flex; align-items: center; height: 46px;
   padding: 0 34px 0 var(--gut); background: var(--fold, var(--paper)); color: var(--fold-ink, var(--ink)); border-radius: 18px 0 0 0;
-  font-size: 19px;
+  font-family: var(--sans); font-weight: 600; font-size: 16px; letter-spacing: -0.005em;
 }
 .folder .tab::after {
   content: ""; position: absolute; right: -30px; top: 0; width: 46px; height: 46px; background: inherit;
   clip-path: path("M0,0 C14,0 18,4 24,16 L32,32 C37,42 41,46 46,46 L0,46 Z");
 }
-.folder .tab-name { font-weight: 500; }
 .folder-body { background: var(--fold, var(--paper)); color: var(--fold-ink, var(--ink)); padding: 18px var(--gut) 22px; border-radius: 0 18px 0 0; }
 .folder-hero { margin-top: -46px; }
+.preview { display: none; }
 .folder-hero .folder-body { padding-bottom: max(26px, env(safe-area-inset-bottom)); }
 
 h1 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1.02; letter-spacing: -0.022em; margin: 0 0 14px; text-wrap: balance; }
 .hero-rate { min-height: 124px; align-content: start; display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 10px; margin: 0 0 14px; padding: 10px 0 11px; border-top: 1.5px solid var(--ink); border-bottom: 1px solid var(--hair); }
 .hr-n { font-family: var(--sans); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: -0.04em; font-feature-settings: var(--figures-display); }
-.hr-b { font-family: var(--serif); font-style: italic; font-size: 21px; }
+.hr-b { font-family: var(--serif); font-style: italic; font-size: 21px; transition: opacity 0.3s var(--ease); }
+/* the band word is only shown beside a finished figure, never beside one still counting */
+.counting .hr-b, .counting .score-b { opacity: 0; transition: none; }
 .hr-t { grid-column: 1 / -1; margin-top: 4px; font-family: var(--sans); font-size: 12.5px; line-height: 1.4; color: var(--ink-2); }
 .hr-t b { font-weight: 500; color: var(--ink); }
 .lede { margin: 0 0 16px; font-size: 17px; line-height: 1.4; color: var(--ink-2); max-width: 34em; }
@@ -67,7 +67,7 @@ h1 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 
 /* The reserve form, as an index slip */
 .reserve { margin: 0; }
 .slip { border: 1.5px solid var(--ink); border-radius: 14px; background: var(--chalk); padding: 8px 12px 9px; }
-.slip-label { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 1px; }
+.slip-label { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 1px; }
 .slip-row { display: flex; align-items: baseline; min-width: 0; }
 .slip select {
   appearance: none; -webkit-appearance: none; border: 0; background: transparent; font-family: var(--serif); font-style: italic; font-size: 18px;
@@ -75,8 +75,8 @@ h1 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 
   background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(-45deg, transparent 50%, var(--ink) 50%);
   background-size: 5px 5px; background-repeat: no-repeat; background-position: calc(100% - 10px) 55%, calc(100% - 5px) 55%;
 }
-.slip-at { font-family: var(--mono); font-size: 15px; color: var(--ink-2); flex: none; }
-.slip input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: var(--mono); font-size: 15px; padding: 4px 0; outline: none; }
+.slip-at { font-family: var(--mono); font-size: 16px; color: var(--ink-2); flex: none; }
+.slip input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: var(--mono); font-size: 16px; padding: 4px 0; outline: none; }
 .slip input::placeholder { color: #8A857B; }
 .slip:focus-within { box-shadow: 0 0 0 3px var(--focus); }
 .file-btn {
@@ -88,9 +88,8 @@ h1 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 
 .file-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
 .note { margin: 12px 0 0; font-family: var(--sans); font-size: 13px; line-height: 1.45; color: var(--ink-2); }
 
-/* ---------------------------------------------------------------- [02] the drawer, on the field */
+/* ---------------------------------------------------------------- the drawer, on the field */
 .rating { background: var(--field); padding: 34px var(--gut) 30px; --ink-2: var(--on-field-soft); --hair: rgba(20, 19, 17, 0.22); }
-.kicker { margin: 0 0 12px; font-size: 18px; display: flex; align-items: center; }
 h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 1.04; letter-spacing: -0.02em; margin: 0 0 10px; text-wrap: balance; }
 .sec-sub { margin: 0; color: var(--ink-2); font-size: 17px; }
 
@@ -110,20 +109,20 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
 .file-back { position: relative; background: var(--grove); border-radius: 18px 0 18px 18px; padding: 12px 10px 10px; min-height: 200px; overflow: hidden; }
 
 .neighbour {
-  position: absolute; left: 22px; right: 22px; top: 12px; height: 120px; background: var(--linen); padding: 10px 12px;
+  position: absolute; left: 22px; right: 22px; top: 12px; height: 138px; background: var(--linen); padding: 10px 12px;
   display: grid; align-content: start; gap: 1px; font-family: var(--sans); font-size: 12px; color: var(--ink-2); transform: rotate(-1.4deg); transition: transform 0.9s var(--ease);
 }
-.nb-k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orbe-graphite); }
+.nb-k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orbe-graphite); }
 .nb-t { font-family: var(--serif); font-size: 16px; line-height: 1.2; color: var(--ink); }
-.nb-v { color: var(--orbe-graphite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nb-v { color: var(--orbe-graphite); line-height: 1.35; }
 
 /* The filed rating: a sheet set in type. Square, because it carries numbers. */
 .sheet {
-  position: relative; background: var(--chalk); color: var(--ink); padding: 14px 14px 14px; margin-top: 64px; --ink-2: var(--orbe-graphite); --hair: rgba(20, 19, 17, 0.16);
+  position: relative; background: var(--chalk); color: var(--ink); padding: 14px 14px 14px; margin-top: 94px; --ink-2: var(--orbe-graphite); --hair: rgba(20, 19, 17, 0.16);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 16px 30px -20px rgba(0, 0, 0, 0.7);
   transform: translateY(var(--rise, 0)); transition: transform 1s var(--ease);
 }
-.sheet-k { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid var(--ink); font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.sheet-k { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid var(--ink); font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
 .sheet h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 27px; line-height: 1.05; letter-spacing: -0.01em; }
 .who { margin: 4px 0 0; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
 .tip { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: var(--orbe-stone); font-family: var(--sans); font-size: 12px; line-height: 1; padding: 7px 10px; border-radius: 999px; position: relative; white-space: nowrap; }
@@ -133,7 +132,7 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
 .score { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 10px; padding-top: 8px; white-space: nowrap; }
 .score-n { display: inline-block; }
 .score-n { font-family: var(--sans); font-weight: 700; font-size: 64px; line-height: 0.92; letter-spacing: -0.05em; font-feature-settings: var(--figures-display); }
-.score-b { font-family: var(--serif); font-style: italic; font-size: 28px; }
+.score-b { font-family: var(--serif); font-style: italic; font-size: 28px; transition: opacity 0.3s var(--ease); }
 .typical { margin: 4px 0 12px; font-family: var(--sans); font-size: 13px; color: var(--ink-2); }
 .parts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
 .parts li { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "n b" "bar bar"; align-items: baseline; gap: 2px 10px; padding: 9px 0 8px; border-bottom: 1px solid var(--hair); }
@@ -149,28 +148,34 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
 /* The front flap of the folder. Shut, it covers the sheet; open, it tips forward and the sheet rises. */
 .flap {
   position: absolute; left: 0; right: 0; bottom: 0; height: 64%; z-index: 3; background: var(--grove-2); border-radius: 8px 8px 18px 18px;
-  transform-origin: 50% 100%; transition: transform 0.9s var(--ease), opacity 0.6s 0.3s;
+  transform-origin: 50% 100%; transition: transform 0.9s var(--ease), opacity 0.35s;
   display: flex; align-items: flex-start; padding: 16px; font-family: var(--serif); font-size: 18px; color: var(--paper);
 }
 .drawer:not(.open) .sheet { --rise: 120px; }
 .drawer:not(.open) .neighbour { transform: rotate(-1.4deg) translateY(40px); }
-.drawer:not(.open) .p-bar canvas { clip-path: inset(0 100% 0 0); transition: none; }
+.drawer:not(.open):not(.closing) .p-bar canvas { clip-path: inset(0 100% 0 0); transition: none; }
 .drawer.open .flap { transform: rotateX(-88deg); opacity: 0; pointer-events: none; }
-.drawer.closing .sheet { --rise: 140px; transition-duration: 0.4s; }
-.drawer.closing .sheet > * { opacity: 0; transition: opacity 0.2s; }
+/* the flap's name goes first as it tips, so it never lies over the rising sheet */
+.flap span { transition: opacity 0.2s; }
+.drawer.open .flap span { opacity: 0; transition-duration: 0.12s; }
+/* Switching kind: the old sheet stays whole and sinks behind the flap while the old labels fade;
+   everything is swapped in one frame, then the folder opens on the new sheet. */
+.drawer.closing .sheet { --rise: 140px; transition-duration: 0.38s; }
+.drawer.closing .flap { transition: transform 0.38s var(--ease), opacity 0.2s; }
+.file-tab span, .peek span, .neighbour > * { transition: opacity 0.3s; }
+.drawer.closing .file-tab span, .drawer.closing .peek span, .drawer.closing .neighbour > * { opacity: 0; transition-duration: 0.15s; }
 .drawer.still *, .drawer.still { transition: none !important; }
 
 .maths { margin-top: 22px; }
-.maths-k { margin: 0 0 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
+.maths-k { margin: 0 0 8px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
 .maths-w { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .maths-w li { display: inline-flex; gap: 6px; align-items: baseline; border: 1.5px solid var(--ink); border-radius: 999px; padding: 5px 11px; font-family: var(--sans); font-size: 13px; color: var(--ink); }
 .maths-w b { font-weight: 700; }
 .maths-n { margin: 12px 0 0; font-family: var(--sans); font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
 
-/* ---------------------------------------------------------------- [03] worth posting, on ink */
+/* ---------------------------------------------------------------- worth posting, on ink */
 .post { background: var(--night); color: var(--on-night); padding: 46px var(--gut) 40px; --ink-2: var(--orbe-stone); --hair: rgba(243, 240, 232, 0.2); }
-.post .kicker { color: var(--paper); }
-.line { margin: 26px 0 0; }
+.line { margin: 22px 0 0; }
 .line blockquote { margin: 0; }
 .line p { margin: 0; font-family: var(--serif); font-size: 36px; line-height: 1.12; letter-spacing: -0.015em; color: var(--paper); text-wrap: pretty; }
 .line p::before { content: "\201C"; }
@@ -184,9 +189,8 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
 .ledger { margin-top: 44px; }
 .ledger-h { margin: 0 0 8px; font-family: var(--serif); font-weight: 400; font-size: 27px; line-height: 1.08; letter-spacing: -0.015em; color: var(--paper); }
 .ledger-rows { list-style: none; margin: 0; padding: 0; }
-.ledger-rows li { display: grid; grid-template-columns: 36px 1fr; gap: 6px; padding: 15px 0; border-bottom: 1px solid var(--hair); font-size: 16.5px; line-height: 1.45; color: var(--orbe-stone); }
+.ledger-rows li { padding: 15px 0; border-bottom: 1px solid var(--hair); font-size: 16.5px; line-height: 1.45; color: var(--orbe-stone); }
 .ledger-rows li:last-child { border-bottom: 0; }
-.ledger-rows .bk { font-size: 15px; color: var(--orbe-stone); padding-top: 1px; }
 .ledger-rows b { font-weight: 500; color: var(--paper); }
 .tiers { display: grid; grid-template-columns: repeat(3, 1fr); margin: 14px 0 8px; border: 1.5px solid var(--paper); }
 .tiers div { padding: 9px 10px 10px; }
@@ -195,10 +199,10 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
 .tiers dd { margin: 5px 0 0; font-family: var(--sans); font-size: 12.5px; line-height: 1.3; color: var(--orbe-stone); }
 .tiers-min { font-family: var(--sans); font-size: 13px; color: var(--paper); }
 
-/* ---------------------------------------------------------------- [04] buyers, the deep folder rising from the ink */
+/* ---------------------------------------------------------------- buyers, the deep folder rising from the ink */
 .buyers { background: var(--night); padding: 8px 0 0; }
 .folder-deep { --fold: var(--deep); --fold-ink: var(--on-deep); }
-.folder-deep .tab { font-size: 17px; padding-right: 30px; }
+.folder-deep .tab { padding-right: 30px; }
 .folder-deep .folder-body { padding-top: 26px; padding-bottom: 44px; }
 .folder-deep h2 { font-size: 32px; }
 .doors { margin: 20px 0 18px; }
@@ -206,23 +210,26 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
 .doors dt { font-family: var(--serif); font-style: italic; font-size: 20px; }
 .doors dd { margin: 0; font-family: var(--sans); font-size: 14.5px; line-height: 1.45; }
 .moat { margin: 0 0 24px; padding-top: 14px; border-top: 1.5px solid currentColor; font-family: var(--serif); font-size: 19px; line-height: 1.35; }
-.door { display: inline-flex; gap: 10px; align-items: center; height: 52px; padding: 0 24px; border-radius: 999px; text-decoration: none; font-family: var(--sans); font-weight: 600; font-size: 17px; background: var(--orbe-chalk); color: var(--orbe-ink); border: 1.5px solid var(--orbe-ink); box-shadow: 0 3px 0 var(--orbe-ink); }
+.door { display: inline-flex; align-items: center; height: 52px; padding: 0 24px; border-radius: 999px; text-decoration: none; font-family: var(--sans); font-weight: 600; font-size: 17px; background: var(--orbe-chalk); color: var(--orbe-ink); border: 1.5px solid var(--orbe-ink); box-shadow: 0 3px 0 var(--orbe-ink); }
 
-/* ---------------------------------------------------------------- [05] the painted close */
+/* ---------------------------------------------------------------- the painted close */
 .close { position: relative; background: var(--night); }
 .close-art { height: 560px; }
 .folder-close { margin: -250px var(--gut) 0; z-index: 1; }
 .folder-close .folder-body { border-radius: 0 18px 18px 18px; padding-bottom: 24px; }
 .folder-close h2 { font-size: 30px; margin-bottom: 18px; }
-.foot { position: relative; margin-top: 40px; color: var(--orbe-stone); padding: 24px var(--gut) 96px; font-family: var(--sans); font-size: 12.5px; line-height: 1.5; --wm-h: 24px; border-top: 1px solid rgba(243, 240, 232, 0.16); }
+.foot { position: relative; margin-top: 40px; color: var(--orbe-stone); padding: 24px var(--gut) max(32px, env(safe-area-inset-bottom)); font-family: var(--sans); font-size: 12.5px; line-height: 1.5; --wm-h: 24px; border-top: 1px solid rgba(243, 240, 232, 0.16); }
 .foot-mark { display: block; color: var(--paper); height: 24px; }
 .foot p { margin: 12px 0 0; max-width: 60em; }
+.foot .foot-model { color: var(--paper); font-size: 14px; }
 .foot-links a { margin-right: 14px; color: var(--paper); }
 
 /* ---------------------------------------------------------------- the colour toggle */
-.palette { position: fixed; right: 10px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 30; display: flex; gap: 2px; padding: 3px; background: var(--chalk); border: 1.5px solid var(--ink); border-radius: 999px; }
-.palette button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--ink); font-family: var(--sans); font-size: 12px; padding: 4px 10px 4px 6px; border-radius: 999px; cursor: pointer; min-height: 28px; }
-.palette button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+/* In the footer, in the flow of the page: it never sits over content */
+.palette { display: flex; align-items: center; gap: 4px; margin-top: 18px; }
+.palette-k { margin-right: 8px; color: var(--orbe-stone); }
+.palette button { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid rgba(243, 240, 232, 0.4); background: transparent; color: var(--paper); font-family: var(--sans); font-size: 13px; padding: 0 14px 0 10px; border-radius: 999px; cursor: pointer; min-height: 36px; }
+.palette button[aria-pressed="true"] { background: var(--paper); color: var(--orbe-ink); border-color: var(--paper); }
 .sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .sw-blue { background: var(--orbe-sky); box-shadow: inset 0 0 0 2.5px var(--orbe-cobalt); }
 .sw-pink { background: var(--orbe-peony); box-shadow: inset 0 0 0 2.5px var(--orbe-claret); }
@@ -236,7 +243,7 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
   .hero { min-height: 100vh; justify-content: flex-end; }
   .hero-art { position: absolute; inset: 0; height: auto; max-height: none; }
   .folder-hero { margin: 0 0 0 var(--gut); width: min(700px, 56vw); position: relative; }
-  .folder-hero .tab { padding-left: 34px; font-size: 22px; height: 54px; }
+  .folder-hero .tab { padding-left: 34px; font-size: 17px; height: 54px; }
   .folder-hero .tab::after { height: 54px; }
   .folder-hero .folder-body { padding: 28px 40px 40px 34px; }
   h1 { font-size: 66px; line-height: 0.98; margin-bottom: 22px; }
@@ -247,6 +254,16 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
   .reserve { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: stretch; }
   .file-btn { margin-top: 0; height: auto; padding: 0 28px; white-space: nowrap; }
   .note { grid-column: 1 / -1; margin-top: 4px; }
+
+  /* the drawer's front folder, closed, in the field to the hero's right: a preview of what panel 2 opens */
+  .preview { display: block; position: absolute; z-index: 1; right: max(var(--gut), 6vw); bottom: 10vh; width: min(380px, 27vw); padding-top: 34px; transform: rotate(-2deg); }
+  .preview::before, .preview::after { content: ""; position: absolute; height: 70px; border-radius: 12px 12px 0 0; }
+  .preview::before { top: 0; left: 8%; right: 14%; background: var(--linen); }
+  .preview::after { top: 18px; left: 3%; right: 6%; background: var(--paper); box-shadow: 0 -1px 0 rgba(20, 19, 17, 0.12); }
+  .pv-tab { position: relative; z-index: 1; float: right; height: 38px; padding: 10px 18px 0; background: var(--grove); color: var(--paper); border-radius: 12px 12px 0 0; font-family: var(--sans); font-weight: 600; font-size: 14px; }
+  .pv-body { position: relative; z-index: 1; clear: both; display: grid; gap: 4px; padding: 22px 22px 24px; min-height: 150px; align-content: end; background: var(--grove); color: var(--paper); border-radius: 18px 0 18px 18px; box-shadow: 0 22px 40px -26px rgba(0, 0, 0, 0.8); }
+  .pv-name { font-family: var(--serif); font-size: 24px; line-height: 1.1; }
+  .pv-n { font-family: var(--sans); font-size: 14px; color: var(--orbe-stone); }
 
   h2 { font-size: 52px; }
   .sec-sub { font-size: 20px; max-width: 24em; }
@@ -259,7 +276,7 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
   .file-tab { font-size: 14px; height: 40px; padding-top: 11px; }
   .file-back { padding: 18px; }
   .neighbour { height: 130px; left: 34px; right: 34px; }
-  .sheet { display: grid; grid-template-columns: 1.25fr 1fr; gap: 0 34px; padding: 22px 24px 20px; }
+  .sheet { margin-top: 76px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 0 34px; padding: 22px 24px 20px; }
   .sheet-k { grid-column: 1 / -1; }
   .sheet-head, .tip-score, .score, .typical { grid-column: 1; }
   .parts { grid-column: 2; grid-row: 2 / span 4; align-self: start; }
@@ -278,7 +295,7 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
   .buyers { padding: 0 max(var(--gut), calc((100vw - 1240px) / 2 + var(--gut))) 0; }
   .buyers { padding-bottom: 90px !important; }
   .folder-deep .folder-body { padding: 48px 52px 56px; border-radius: 0 18px 18px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 70px; align-items: start; }
-  .folder-deep .tab { padding-left: 34px; font-size: 19px; height: 52px; }
+  .folder-deep .tab { padding-left: 34px; font-size: 17px; height: 52px; }
   .folder-deep h2 { font-size: 46px; grid-column: 1; }
   .doors { margin: 0; grid-column: 2; grid-row: 1 / span 3; }
   .moat { grid-column: 1; margin-top: 30px; font-size: 21px; }
@@ -291,6 +308,7 @@ h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 
   .foot { margin-top: 90px; padding: 30px var(--gut) 40px; display: grid; grid-template-columns: 160px 1fr; gap: 0 40px; }
   .foot p { margin: 0; grid-column: 2; }
   .foot p + p { margin-top: 12px; }
+  .foot .palette { grid-column: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

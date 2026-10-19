@@ -15,53 +15,74 @@ export const TOOLS = [
   { key: "sponsorships", href: "sponsorships/", label: "Sponsorships" },
   { key: "selling", href: "selling/", label: "Selling" },
   { key: "diligence", href: "diligence/", label: "Diligence report" },
-  { key: "card", href: "card/", label: "Your card" },
 ];
+
+/* The header's markup. Each page carries it in its HTML (so nothing moves at first paint);
+   `node` builds it only for a page that does not. */
+export function headerHTML(current, depth = 1) {
+  const up = "../".repeat(depth);
+  return `<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="${up}../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="${up}">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products">${TOOLS.map((t) => `<a href="${up}${t.href}"${t.key === current ? ' aria-current="page"' : ""}>${t.label}</a>`).join("")}</nav>
+</header>`;
+}
 
 /* Pages call this first. `depth` is how many folders below /products/ the page sits. */
 export function shell(current, depth = 1) {
-  const up = "../".repeat(depth);
-  const header = document.createElement("header");
-  header.className = "top";
-  header.innerHTML = `
-    <div class="wrap top-in">
-      <a class="wm" href="${up}../" aria-label="Orbe, home">Orbe</a>
-      <a class="crumb" href="${up}">Products</a>
-      <span class="top-gap"></span>
-      <div class="pal" role="group" aria-label="Brand colour">
-        <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
-        <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
-      </div>
-    </div>
-    <nav class="tabs" aria-label="Products">${TOOLS.map((t) => `<a href="${up}${t.href}"${t.key === current ? ' aria-current="page"' : ""}>${t.label}</a>`).join("")}</nav>`;
-  document.body.prepend(header);
-  const skip = document.createElement("a");
-  skip.className = "skip";
-  skip.href = "#main";
-  skip.textContent = "Skip to content";
-  document.body.prepend(skip);
+  let header = document.querySelector("header.top");
+  if (!header) {
+    document.body.insertAdjacentHTML("afterbegin", headerHTML(current, depth));
+    header = document.querySelector("header.top");
+  }
   mountWordmark(header.querySelector(".wm"), { animate: false });
-  palette(header);
-  const cur = header.querySelector('.tabs [aria-current="page"]');
-  if (cur && cur.offsetLeft > innerWidth - 80) cur.scrollIntoView({ inline: "center", block: "nearest" });
+  tabs(header.querySelector(".tabs"));
   footer();
-  // On a phone the "What works today" strip starts folded, so the tool's first control is on screen.
-  setTimeout(() => { if (matchMedia("(max-width: 759px)").matches) for (const d of document.querySelectorAll("[data-live-fold]")) d.open = false; });
+  palette();
   // Static disclosures get the same caret as the ones the tools build.
   for (const sum of document.querySelectorAll("details.fold > summary")) if (!sum.querySelector(".o-icon")) sum.insertAdjacentHTML("afterbegin", icon("caret", { size: 16, className: "caret" }));
 }
 
-function palette(root) {
+/* On a phone the tab row scrolls. The current tab is centred in the row (as
+   scrollIntoView({ inline: "center" }) would, without moving the page), and the row fades at
+   whichever edge has more tabs behind it. */
+function tabs(row) {
+  if (!row) return;
+  const cur = row.querySelector('[aria-current="page"]');
+  const edges = () => {
+    row.classList.toggle("more-l", row.scrollLeft > 2);
+    row.classList.toggle("more-r", row.scrollLeft + row.clientWidth < row.scrollWidth - 2);
+  };
+  if (cur && row.scrollWidth > row.clientWidth) {
+    const r = row.getBoundingClientRect();
+    const c = cur.getBoundingClientRect();
+    row.scrollLeft += c.left + c.width / 2 - (r.left + row.clientWidth / 2);
+  }
+  edges();
+  row.addEventListener("scroll", edges, { passive: true });
+  addEventListener("resize", edges, { passive: true });
+}
+
+/* The Blue / Pink switch: in the header and again in the footer, both kept in step. */
+function palette() {
   const set = (c, save) => {
     if (c !== "blue" && c !== "pink") return;
     document.documentElement.dataset.c = c;
     document.documentElement.dataset.scheme = c;
-    for (const b of root.querySelectorAll(".pal button")) b.setAttribute("aria-pressed", String(b.dataset.c === c));
+    for (const b of document.querySelectorAll(".pal button")) b.setAttribute("aria-pressed", String(b.dataset.c === c));
     if (save) store.local.set("orbe-palette", c);
     document.dispatchEvent(new CustomEvent("palette", { detail: c }));
   };
   set(new URLSearchParams(location.search).get("c") || store.local.get("orbe-palette") || "blue", false);
-  for (const b of root.querySelectorAll(".pal button")) b.addEventListener("click", () => set(b.dataset.c, true));
+  for (const b of document.querySelectorAll(".pal button")) b.addEventListener("click", () => set(b.dataset.c, true));
 }
 
 function footer() {
@@ -70,7 +91,8 @@ function footer() {
   const f = document.createElement("footer");
   f.className = "foot";
   f.innerHTML = `<p>Everything on these pages runs in your browser. What you type or upload stays on this device: there is no server behind them, and nothing is sent anywhere. Every creator, show, brand and figure in an example is made up and labelled so.</p>
-  <p>Ratings, bands, sub-scores and benchmarks are independently calculated by Orbe, not provided by YouTube, Spotify, Apple or any other platform. Valuations and prices are indicative only: not advice, not a formal valuation and not an offer. Platform names are trademarks of their owners. <a href="mailto:hello@orbe.vc">hello@orbe.vc</a></p>`;
+  <p>Ratings, bands, sub-scores and benchmarks are independently calculated by Orbe, not provided by YouTube, Spotify, Apple or any other platform. Valuations and prices are indicative only: not advice, not a formal valuation and not an offer. Platform names are trademarks of their owners. <a href="mailto:hello@orbe.vc">hello@orbe.vc</a></p>
+  <div class="pal" role="group" aria-label="Brand colour"><span class="pal-k">Colour</span><button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button><button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button></div>`;
   main.append(f);
 }
 
@@ -237,12 +259,14 @@ function niceStep(max) {
   return [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= raw) ?? raw;
 }
 
-/* The three-way status strip every tool shows. */
+/* What works today, as one ruled table (the pages carry it in their HTML; this builds it for one that does not). */
 export function liveStrip({ live, local, api }) {
-  return `<details class="fold live-fold" open data-live-fold><summary>${icon("caret", { size: 16, className: "caret" })}<span>What works today <span class="meta">live now, in your browser, with the API</span></span></summary>
-  <div class="live">
-    <div><b><span class="dot dot-live"></span>Live now</b>${live}</div>
-    <div><b><span class="dot dot-local"></span>In your browser only</b>${local}</div>
-    <div><b><span class="dot dot-api"></span>When the Orbe API is deployed</b>${api}</div>
-  </div></details>`;
+  // Open on a wide screen; folded on a phone so the tool's first control is on screen.
+  const open = matchMedia("(min-width: 760px)").matches;
+  return `<details class="fold live-fold"${open ? " open" : ""}><summary>${icon("caret", { size: 16, className: "caret" })}<span>What works today</span></summary>
+  <dl class="live">
+    <div><dt>Live now</dt><dd>${live}</dd></div>
+    <div><dt>In your browser</dt><dd>${local}</dd></div>
+    <div><dt>With the API</dt><dd>${api}</dd></div>
+  </dl></details>`;
 }

@@ -3,6 +3,7 @@ import { example, ORDER, BANDS, EXAMPLE_LINE, mathsFor } from "../assets/r5/exam
 import { ratingNotice } from "../assets/engine/rating/label.js";
 import { mountWordmark } from "../assets/r5/wordmark.js";
 import { reserve, cleanHandle } from "../assets/r5/reserve.js";
+import { paintCanvas, PALETTES } from "./painter.js";
 
 document.documentElement.classList.add("js");
 
@@ -13,12 +14,23 @@ try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {
 const wide = matchMedia("(min-width: 1024px)");
 const handleOf = (v) => cleanHandle(v).toLowerCase();
 
+/* ---------- the paintings: laid with the archive's flat brush, one stroke at a time ---------- */
+const canvases = $$("canvas.paint");
+function paintAll() {
+  const pal = PALETTES[document.documentElement.dataset.scheme === "pink" ? "pink" : "blue"];
+  for (const c of canvases) paintCanvas(c, c.dataset.scene, pal, +c.dataset.seed || 7);
+}
+let paintT = 0;
+addEventListener("resize", () => { clearTimeout(paintT); paintT = setTimeout(paintAll, 200); });
+if (document.fonts) document.fonts.ready.then(paintAll);
+
 /* ---------- the brand colour: Blue or Pink, mapped to the tokens' data-scheme ---------- */
 const swatches = $$(".swatch button");
 function setColour(c, save) {
   document.documentElement.dataset.c = c;
   document.documentElement.dataset.scheme = c;
   swatches.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.c === c)));
+  paintAll();
   if (save) {
     try { localStorage.setItem("orbe-r6e-colour", c); } catch {}
     try { const u = new URL(location.href); u.searchParams.set("c", c); history.replaceState(null, "", u); } catch {}
@@ -27,75 +39,13 @@ function setColour(c, save) {
 setColour(document.documentElement.dataset.c === "pink" ? "pink" : "blue", false);
 swatches.forEach((b) => b.addEventListener("click", () => setColour(b.dataset.c, true)));
 
-/* ---------- the painting: cut-paper layers drawn in code, flat colour, one ember sun ---------- */
-function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
-/* A smooth line through points (Catmull-Rom as Béziers). */
-function curve(pts) {
-  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    d += ` C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
-  }
-  return d;
-}
-function ridge(r, w, f, step = 30) {
-  const pts = [];
-  for (let x = -20; x < w + 20; x += step) pts.push([x, f(x) + (r() - 0.5) * 2]);
-  pts.push([w + 20, f(w + 20)]);
-  return pts;
-}
-const shape = (pts, h) => `${curve(pts)} L${pts.at(-1)[0]} ${h} L${pts[0][0]} ${h} Z`;
-function poplar(x, base, h, wid) {
-  return `M${x} ${base} C${x - wid} ${base - h * 0.25} ${x - wid * 0.8} ${base - h * 0.75} ${x} ${base - h} C${x + wid * 0.8} ${base - h * 0.75} ${x + wid} ${base - h * 0.25} ${x} ${base}Z`;
-}
-/* Trees for a width: a stand of poplars and one round tree, repeated across wide ground. */
-function grove(w) {
-  const stands = [];
-  for (let o = 0; o < w; o += 390) stands.push([o + 52, 58, 9], [o + 68, 72, 10], [o + 84, 50, 8], [o + 342, 46, 8]);
-  return stands.filter(([x]) => x < w);
-}
-
-function paint(svg, { w = 390, h = 300, seed = 7, sun = true, hz = 0, k = 1, top = 0, trees = grove(w), round = [] } = {}) {
-  const r = rng(seed);
-  /* k presses the land towards the foot, for a low strip */
-  const sq = (y) => h - (h - y) * k;
-  const farF = (x) => sq(150 + hz + Math.sin(x / 70 + 1.2) * 9 + Math.sin(x / 23) * 2);
-  const midF = (x) => sq(190 + hz + Math.sin((x / 390) * Math.PI * 2 + 0.4) * 12 - Math.sin(x / 95 + 0.4) * 8);
-  const fieldF = (x) => sq(230 + hz + Math.sin(x / 120) * 5);
-  const groundF = (x) => sq(264 + hz + Math.sin(x / 80 + 2) * 5);
-  const far = ridge(r, w, farF), mid = ridge(r, w, midF), field = ridge(r, w, fieldF, 40), ground = ridge(r, w, groundF, 40);
-  const id = `l${seed}`;
-  let s = `<rect class="l-sky" x="-20" y="${top - 200}" width="${w + 40}" height="${h - top + 200}"/>`;
-  if (sun) s += `<circle class="l-sun" cx="${w * 0.77}" cy="${132 + hz}" r="30"/>`;
-  s += `<path class="l-far" d="${shape(far, h)}"/>`;
-  s += `<clipPath id="${id}m"><path d="${shape(mid, h)}"/></clipPath><path class="l-mid" d="${shape(mid, h)}"/>`;
-  s += `<g clip-path="url(#${id}m)">`;
-  for (let k = 0; k < 3; k++) s += `<path class="l-stripe" d="${curve(mid.map(([x, y]) => [x, y + 10 + k * 9]))}"/>`;
-  s += `</g>`;
-  for (const [x, hh, ww] of trees) s += `<path class="l-tree" d="${poplar(x, midF(x) + 6, hh, ww)}"/>`;
-  for (const o of round) { const tb = midF(o) + 4; s += `<path class="l-tree" d="M${o - 22} ${tb} c-6 -20 6 -36 22 -38 c16 2 28 18 22 38 Z"/>`; }
-  s += `<clipPath id="${id}f"><path d="${shape(field, h)}"/></clipPath><path class="l-field" d="${shape(field, h)}"/>`;
-  s += `<g clip-path="url(#${id}f)">`;
-  /* furrows run to one point past the field, so it lies flat */
-  for (let x0 = -w; x0 < w * 2; x0 += 34) { const vx = w / 2 + (x0 - w / 2) * 0.22; s += `<path class="l-furrow" d="M${x0} ${h} L${vx.toFixed(1)} ${fieldF(vx) - 2}"/>`; }
-  s += `</g>`;
-  s += `<path class="l-ground" d="${shape(ground, h + 2)}"/>`;
-  svg.innerHTML = s;
-}
-const land = $("[data-land]");
-if (land) paint(land, { seed: 7, top: -200, trees: [[226, 58, 9], [242, 74, 10], [258, 52, 8], [368, 44, 8]], round: [] });
-const landHero = $("[data-land-hero]");
-if (landHero) paint(landHero, { seed: 31, w: 1440, sun: false, k: 0.6, trees: [[64, 30, 7], [77, 36, 8], [90, 26, 6], [610, 28, 6], [1386, 30, 7], [1399, 36, 8]], round: [330, 880] });
-
 /* ---------- every kind can play the story ---------- */
 const initials = { channel: "FR", newsletter: "MN", stream: "NS", podcast: "LT", portfolio: "LP" };
-const trayLabel = { channel: "Channel", newsletter: "Newsletter", stream: "Stream", podcast: "Podcast", portfolio: "Photos" };
+const trayLabel = { channel: "YouTube", newsletter: "Substack", stream: "Twitch", podcast: "Podcast", portfolio: "Photos" };
 const tray = $("[data-tray]");
 tray.innerHTML = ORDER.map((k) => `<button type="button" data-tk="${k}" aria-pressed="false"><span class="tr-av" aria-hidden="true">${initials[k]}</span><span class="tr-k">${trayLabel[k]}</span></button>`).join("");
 
-let kind = "stream";
+let kind = "channel";
 let said = "";
 const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 function firstSentence(e, lead) {
@@ -117,7 +67,7 @@ function setKind(k, { recount = true } = {}) {
     weights: `The weights for ${e.peers}: ${mathsFor(k).map((m) => `${m.name} ${m.weight}%`).join(", ")}.`,
     notice: ratingNotice(e.platform), said: `“${said}”`,
     partOf: `${lead.name}, one of ${count} parts`,
-    weighs: `The Orbe Rating weighs all ${count}: ${e.name} is ${e.signed}, ${e.band}.`,
+    weighs: `The rating weighs all ${count}: ${e.signed}, ${e.band}.`,
     line1: EXAMPLE_LINE, line2: EXAMPLE_LINE, line3: EXAMPLE_LINE + " Painting drawn by Orbe.",
   };
   for (const el of $$("[data-b]")) if (bind[el.dataset.b] != null) { el.textContent = bind[el.dataset.b]; delete el.dataset.final; }
@@ -137,7 +87,9 @@ tray.addEventListener("click", (ev) => { const b = ev.target.closest("[data-tk]"
 /* ---------- the second door: every example, rated live ---------- */
 $("[data-roll]").innerHTML = ORDER.map((k) => {
   const x = example(k);
-  return `<li><span class="rl-av" aria-hidden="true">${initials[k]}</span><span class="rl-n">${x.name}<small>${x.label}, ${x.sizeBand}</small></span><b class="rl-r">${x.signed}</b><span class="rl-b">${x.band}</span></li>`;
+  /* A buyer's list leads with the size band: "250k to 1M" over "subscribers". */
+  const [, span = x.sizeBand, unit = ""] = x.sizeBand.match(/^(.*\d\S*)\s+(\D+)$/) ?? [];
+  return `<li><span class="rl-s">${span}<small>${unit}</small></span><span class="rl-n">${x.name}<small>${x.label}</small></span><b class="rl-r">${x.signed}</b><span class="rl-b">${x.band}</span></li>`;
 }).join("");
 
 /* ---------- wordmarks ---------- */
@@ -201,7 +153,8 @@ function setScene(i, { replay = false } = {}) {
 const panels = $$(".panel");
 function sceneFromScroll() {
   const mid = innerHeight * 0.5;
-  for (let k = panels.length - 1; k >= 0; k--) if (panels[k].getBoundingClientRect().top <= mid) return N + k;
+  /* a panel hidden on this screen (the close, on a phone) never counts */
+  for (let k = panels.length - 1; k >= 0; k--) if (panels[k].offsetParent && panels[k].getBoundingClientRect().top <= mid) return N + k;
   for (let k = N - 1; k >= 0; k--) if (moments[k].getBoundingClientRect().top <= mid) return k;
   return 0;
 }
@@ -254,7 +207,7 @@ $("[data-pause]").addEventListener("click", () => { setPaused(!paused); if (!pau
 if (reduce) setPaused(true);
 wide.addEventListener?.("change", framed);
 
-setKind("stream", { recount: false });
+setKind("channel", { recount: false });
 framed();
 
 /* ---------- the rating is the post: copy the line ---------- */

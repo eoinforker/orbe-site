@@ -7,6 +7,8 @@
 <title>Sponsorships: Orbe</title>
 <meta name="description" content="Price a sponsorship from your own numbers, with the reasons and the rate-card sources, and see how a brand's brief ranks opted-in creators.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../../assets/fonts.css">
 <link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
@@ -15,11 +17,30 @@
 <script type="module" src="./sponsorships.js"></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="../../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="../">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products"><a href="../">All products</a><a href="../rate/">Rate my work</a><a href="../podcasts/">Podcasts</a><a href="../sponsorships/" aria-current="page">Sponsorships</a><a href="../selling/">Selling</a><a href="../diligence/">Diligence report</a></nav>
+</header>
 <main class="wrap page" id="main">
-  <p class="kick"><span class="tag acc">Free for creators</span><span>Brands pay Orbe's fee on top</span></p>
+  <p class="page-kick mono">Free for creators. Brands pay the fee.</p>
   <h1 class="h1">Sponsorships, priced on what you deliver.</h1>
   <p class="lede">Brands pay to reach creators whose results are read at source, not screenshots. You keep 100% of your price. Orbe earns only when a sponsorship completes: 15% on deals its matching found, 5% on deals you bring, paid by the brand.</p>
-  <div data-live></div>
+  <details class="fold live-fold" data-live><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>What works today</span></summary>
+    <dl class="live">
+      <div><dt>Live now</dt><dd>The inventory, price suggestion with its reasons and rate-card sources, matching with a sentence per criterion, and the take rate: the sponsor module's own code.</dd></div>
+      <div><dt>In your browser</dt><dd>Your figures are priced on this device. The brief is matched against made-up creators who have opted in, labelled as such.</dd></div>
+      <div><dt>With the API</dt><dd>Delivery read at source from your connected accounts, real opted-in creators, offers with delivery terms, bookings, disclosure checks, and payment held by a payments partner (never by Orbe).</dd></div>
+    </dl></details>
+  <script>try{if(matchMedia("(min-width: 760px)").matches)document.currentScript.previousElementSibling.open=true}catch(e){}</script>
 
   <section class="section" id="price">
     <div class="section-head"><h2 class="h2">Price my sponsorship</h2><span class="small">For you only: brands see your own price, never this suggestion</span></div>
@@ -32,14 +53,15 @@
           <label class="field"><span data-aud-label>Subscribers</span><input class="input" type="number" min="0" inputmode="numeric" name="audience" placeholder="e.g. 85000"></label>
         </div>
         <label class="field"><span data-units-label>Views at 30 days, recent uploads</span><textarea class="input" name="units" style="min-height:90px" placeholder="21000, 18000, 25000, 19500, 30000"></textarea><small data-units-hint>One number per work, newest first. At least three. From your analytics or export.</small></label>
-        <div class="fields cols2">
+        <details class="fold"><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>More options <span class="meta">rating band, your list price, pounds or dollars</span></span></summary><div class="fold-body stack">        <div class="fields cols2">
           <label class="field"><span>Your Orbe Rating band (optional)</span><select class="input" name="band"><option value="">None yet</option><option>Great</option><option>Good</option><option>Average</option><option>Subpar</option><option>Poor</option></select><small data-band-hint>Nudges a rate-card price a little.</small></label>
           <label class="field"><span>Your list price (optional)</span><input class="input" type="number" min="0" step="1" name="price" placeholder="e.g. 900"><small>Per placement, or per hour for streams, in the currency below.</small></label>
         </div>
         <div class="fields cols2">
-          <label class="field"><span>Quote in</span><select class="input" name="currency"><option value="USD">US dollars (the rate cards' own)</option><option value="GBP">Pounds, at my rate</option></select></label>
-          <label class="field" data-fx-field><span>Pounds per dollar</span><input class="input" type="number" min="0" step="0.0001" name="fx" placeholder="your rate, e.g. today's"><small>Orbe does not guess exchange rates.</small></label>
+          <label class="field"><span>Quote in</span><select class="input" name="currency"><option value="GBP" selected>Pounds</option><option value="USD">US dollars (the rate cards' own)</option></select></label>
+          <label class="field" data-fx-field><span>Pounds per dollar</span><input class="input" type="number" min="0" step="0.0001" name="fx" value="0.75"><small>The rate cards are in dollars. 0.75 is an example, not a live rate: type the one you use.</small></label>
         </div>
+</div></details>
         <div class="btns"><button class="btn" type="submit">Price it</button><button class="btn btn-ghost btn-sm" type="button" data-price-example>Made-up example</button></div>
         <p class="err" data-price-err role="alert"></p>
       </form>
@@ -58,7 +80,7 @@
           <label class="field"><span>Budget, £</span><input class="input" type="number" min="100" step="100" name="budget" value="10000"></label>
           <label class="field"><span>Brand category</span><select class="input" name="category"><option value="fintech">Fintech</option><option value="software">Software</option><option value="food">Food and drink</option><option value="outdoor">Outdoor</option><option value="gambling">Gambling</option></select></label>
         </div>
-        <div class="field"><span class="label">Formats</span><div class="checks" data-formats>
+        <details class="fold"><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>Narrow the brief <span class="meta">formats, audience, verticals, dates, who found the creator</span></span></summary><div class="fold-body stack">        <div class="field"><span class="label">Formats</span><div class="checks" data-formats>
           <label class="chip-check"><input type="checkbox" value="integration" checked> YouTube integration</label>
           <label class="chip-check"><input type="checkbox" value="newsletter_slot" checked> Newsletter slot</label>
           <label class="chip-check"><input type="checkbox" value="podcast_read" checked> Podcast read</label>
@@ -80,17 +102,18 @@
           <label class="field"><span>Publish by, days ahead</span><input class="input" type="number" min="2" max="180" name="to" value="60"></label>
         </div>
         <div class="field"><span class="label">Who found the creator</span><div class="seg" data-source><button type="button" data-v="network" aria-pressed="true">Orbe's matching (15%)</button><button type="button" data-v="direct" aria-pressed="false">The brand, direct (5%)</button></div></div>
+</div></details>
         <div class="btns"><button class="btn" type="submit">Match creators</button></div>
       </form>
-      <div class="stack figures" data-brief-out></div>
+      <div class="stack rows" data-brief-out></div>
     </div>
   </section>
 
   <section class="section">
-    <div class="panel stack">
-      <h2 class="h3">The take rate, and why</h2>
+    <div class="stack">
+      <h2 class="h2">The take rate</h2>
       <dl class="dl"><dt>Deals Orbe's matching found</dt><dd data-network></dd><dt>Deals the creator brought</dt><dd data-direct></dd><dt>Who pays</dt><dd>The brand, on top of the creator's price</dd><dt>When</dt><dd>Only on completion</dd></dl>
-      <p class="small">A refunded booking earns Orbe nothing; a 60% pro rata payout earns 60% of the fee. 15% sits under the 20% that beehiiv's Ad Network, Agentio and SparkLoop take and level with Passionfroot's network fee; 5% on direct deals matches Passionfroot's creator-sourced fee. Comparables are from search snippets, most not verified against the original. Rates are provisional and frozen on each offer.</p>
+      <details class="fold"><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>Why 15% and 5% <span class="meta">against beehiiv, Agentio, SparkLoop, Passionfroot</span></span></summary><div class="fold-body stack">      <p class="small">A refunded booking earns Orbe nothing; a 60% pro rata payout earns 60% of the fee. 15% sits under the 20% that beehiiv's Ad Network, Agentio and SparkLoop take and level with Passionfroot's network fee; 5% on direct deals matches Passionfroot's creator-sourced fee. Comparables are from search snippets, most not verified against the original. Rates are provisional and frozen on each offer.</p></div></details>
     </div>
   </section>
 </main>

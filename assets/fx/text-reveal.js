@@ -130,16 +130,16 @@ const FRAG = `
 
 const DEFAULT_PAIRS = [
   {
-    top: ["a free rating of your work,", "set against creators your size."],
-    bottom: ["read from what you were paid,", "not from what someone guessed."],
+    top: ["A free rating of your work,", "set against creators your size."],
+    bottom: ["Read from what you were paid,", "not from what someone guessed."],
   },
   {
-    top: ["no follower maths,", "no estimates, no guesswork."],
-    bottom: ["just the payouts on record,", "kept every time money moves."],
+    top: ["No follower maths,", "no estimates, no guesswork."],
+    bottom: ["Just the payouts on record,", "kept every time money moves."],
   },
   {
-    top: ["orbe earns a share", "only when money moves."],
-    bottom: ["so the rating stays free,", "and the record stays yours."],
+    top: ["Orbe earns a share", "only when money moves."],
+    bottom: ["So the rating stays free,", "and the record stays yours."],
   },
 ];
 
@@ -154,12 +154,6 @@ const GONE_AT = 0.02;
 const PARALLAX_AMP = 0.006;
 const TL_ANCHOR = [0.16, 0.18];
 const BR_ANCHOR = [0.84, 0.82];
-
-const GRAIN_SVG =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='140' height='140' filter='url(#n)'/></svg>",
-  );
 
 class RevealGL {
   constructor() {
@@ -329,24 +323,7 @@ export function mount(el, opts = {}) {
   host.style.userSelect = "none";
   host.setAttribute("aria-hidden", "true");
 
-  const added = [];
-  const layer = (css) => {
-    const d = document.createElement("div");
-    d.style.cssText = "position:absolute;pointer-events:none;" + css;
-    host.appendChild(d);
-    added.push(d);
-    return d;
-  };
-  // A soft chalk wash over the paper plate, then grain on top.
-  layer(
-    "inset:-8%;background-image:" + [
-      "radial-gradient(55% 75% at 18% 12%, rgba(251,250,246,0.95), transparent 60%)",
-      "radial-gradient(48% 66% at 82% 22%, rgba(251,250,246,0.7), transparent 62%)",
-      "radial-gradient(42% 52% at 8% 85%, rgba(251,250,246,0.7), transparent 60%)",
-      "radial-gradient(52% 60% at 92% 88%, rgba(251,250,246,0.6), transparent 62%)",
-    ].join(","),
-  );
-  const grain = layer(`inset:0;background-image:url("${GRAIN_SVG}");background-size:140px 140px;opacity:0.09;mix-blend-mode:multiply;z-index:2`);
+  // The plate is flat Paper: no washes, no grain.
 
   let W = host.clientWidth || 1;
   let H = host.clientHeight || 1;
@@ -357,11 +334,11 @@ export function mount(el, opts = {}) {
   let fallback = null;
   if (useGL) {
     gl.resize(W, H, dpr);
-    host.insertBefore(gl.canvas, grain);
+    host.appendChild(gl.canvas);
   } else {
     fallback = document.createElement("canvas");
     Object.assign(fallback.style, { position: "absolute", inset: "0", width: "100%", height: "100%", display: "block" });
-    host.insertBefore(fallback, grain);
+    host.appendChild(fallback);
   }
 
   let index = 0;
@@ -507,7 +484,6 @@ export function mount(el, opts = {}) {
       gl.destroy();
       if (gl.canvas.parentNode) gl.canvas.parentNode.removeChild(gl.canvas);
       if (fallback && fallback.parentNode) fallback.parentNode.removeChild(fallback);
-      added.forEach((d) => d.parentNode && d.parentNode.removeChild(d));
     },
   };
 }

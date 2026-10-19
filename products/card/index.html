@@ -2,11 +2,14 @@
 <html lang="en-GB" data-c="blue" data-scheme="blue">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3F0E8">
 <title>Make my card: Orbe</title>
 <meta name="description" content="Your Orbe card from your own rating and your own picture, drawn in your browser.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../../assets/fonts.css">
 <link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
@@ -21,11 +24,30 @@
 <script type="module" src="./card.js"></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="../../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="../">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products"><a href="../">All products</a><a href="../rate/">Rate my work</a><a href="../podcasts/">Podcasts</a><a href="../sponsorships/">Sponsorships</a><a href="../selling/">Selling</a><a href="../diligence/">Diligence report</a></nav>
+</header>
 <main class="wrap page" id="main">
-  <p class="kick"><span class="orbe-label">Independently calculated by Orbe</span></p>
+  <p class="page-kick mono">Independently calculated by Orbe.</p>
   <h1 class="h1">Make my card.</h1>
   <p class="lede">Your rating as a card made to be posted, drawn by the same code the API will serve at orbe.vc/@you/card.svg. Add your own picture: it is drawn on this device and never uploaded.</p>
-  <div data-live></div>
+  <details class="fold live-fold" data-live><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>What works today</span></summary>
+    <dl class="live">
+      <div><dt>Live now</dt><dd>The card drawing, its words and the PNG download: the product's own card code.</dd></div>
+      <div><dt>In your browser</dt><dd>Your rating and your picture stay in this browser tab. The PNG is made on this device.</dd></div>
+      <div><dt>With the API</dt><dd>Your card served at orbe.vc/@you/card.svg and as the preview image when you share your profile, updated at every moment.</dd></div>
+    </dl></details>
+  <script>try{if(matchMedia("(min-width: 760px)").matches)document.currentScript.previousElementSibling.open=true}catch(e){}</script>
 
   <div class="panel section hide" data-none>
     <h2 class="h3">No rating in this tab yet</h2>
@@ -53,7 +75,7 @@
           <span class="label">Your picture (optional)</span>
           <div class="row" style="align-items:center">
             <img class="thumb hide" alt="" data-thumb>
-            <input type="file" accept="image/*" data-image aria-label="Choose your picture">
+            <label class="btn btn-ghost btn-sm file-btn"><svg class="o-icon" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M228,144v64a12,12,0,0,1-12,12H40a12,12,0,0,1-12-12V144a12,12,0,0,1,24,0v52H204V144a12,12,0,0,1,24,0ZM96.49,80.49,116,61v83a12,12,0,0,0,24,0V61l19.51,19.52a12,12,0,1,0,17-17l-40-40a12,12,0,0,0-17,0l-40,40a12,12,0,1,0,17,17Z"/></svg><span>Choose a picture</span><input type="file" accept="image/*" data-image></label>
             <button class="btn btn-ghost btn-sm hide" type="button" data-noimg>Remove</button>
           </div>
           <small>Your thumbnail, cover or a photo of your work. Resized here to 900 pixels and kept in this tab.</small>

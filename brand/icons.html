@@ -34,7 +34,7 @@
 
   /* the pick: one deep panel on the page */
   .pick { margin-top: var(--s-5); padding: var(--s-5); display: grid; gap: var(--s-5); }
-  @media (min-width: 900px) { .pick { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; padding: var(--s-6); } .pick > ol { grid-column: 2; grid-row: 1 / span 2; align-content: start; } .pick > .demo { grid-column: 1; grid-row: 2; align-self: start; } }
+  @media (min-width: 900px) { .pick { grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); grid-template-rows: auto 1fr; padding: var(--s-6); } .pick > ol { grid-column: 2; grid-row: 1 / span 2; align-content: start; } .pick > .demo { grid-column: 1; grid-row: 2; align-self: start; } }
   .pick h2 { font: var(--w-display) var(--t-display-3) / 0.95 var(--font-display); letter-spacing: -0.04em; }
   .pick ol { list-style: decimal; padding-left: 1.3em; display: grid; gap: var(--s-3); }
   .pick li::marker { font-family: var(--font-serif); }
@@ -44,7 +44,9 @@
   .ibtn { display: inline-grid; place-items: center; width: 44px; height: 44px; border: var(--line) solid var(--orbe-ink); border-radius: 50%; background: var(--orbe-chalk); color: var(--orbe-ink); cursor: pointer; padding: 0; }
   .ibtn:hover { background: var(--field-tint); }
   .rule { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-2) var(--s-4); align-items: center; font-size: var(--t-small); }
-  .rule .glyphs { display: inline-flex; gap: 10px; align-items: center; }
+  .rule .glyphs { display: inline-flex; gap: 10px; align-items: center; min-width: 164px; min-height: 24px; }
+  .ic16 { display: inline-flex; width: 16px; height: 16px; flex: none; }
+  .ic16 svg { display: block; }
   .dont { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--text-soft); display: inline-flex; gap: 6px; align-items: center; }
 
   /* controls */
@@ -58,23 +60,30 @@
   .o-toggle button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
   /* the board */
-  .board { --cell-bg: var(--orbe-chalk); --cell-fg: var(--orbe-ink); }
-  .board[data-on="sky"] { --cell-bg: var(--orbe-sky); --cell-fg: var(--orbe-ink); }
-  .board[data-on="cobalt"] { --cell-bg: var(--orbe-cobalt); --cell-fg: var(--orbe-chalk); }
-  .board[data-on="ink"] { --cell-bg: var(--orbe-ink); --cell-fg: var(--orbe-sky); }
+  .board { --cell-bg: var(--orbe-chalk); --cell-fg: var(--orbe-ink); --cell-soft: var(--orbe-graphite); }
+  .board[data-on="sky"] { --cell-bg: var(--orbe-sky); --cell-fg: var(--orbe-ink); --cell-soft: #24464D; }
+  .board[data-on="cobalt"] { --cell-bg: var(--orbe-cobalt); --cell-fg: var(--orbe-chalk); --cell-soft: var(--orbe-chalk); }
+  .board[data-on="ink"] { --cell-bg: var(--orbe-ink); --cell-fg: var(--orbe-sky); --cell-soft: var(--orbe-stone); }
 
   .set { margin-top: var(--s-6); }
   .set-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s-2) var(--s-4); padding-bottom: var(--s-3); border-bottom: var(--line) solid var(--orbe-ink); }
   .set-head h3 { font: var(--w-title) 1.25rem / 1.2 var(--font-text); letter-spacing: var(--track-title); }
   .set-head .meta { font: 400 var(--t-small) / 1.4 var(--font-text); color: var(--text-soft); }
   .set-head .meta code { font: 400 0.8125rem / 1 var(--font-mono); }
-  .set.is-pick .set-head h3::after { content: "Orbe uses this"; margin-left: 10px; font: 500 var(--t-label) / 1 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; vertical-align: 3px; color: var(--link); }
+  .set-head h3 { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .more { margin-top: var(--s-6); border-top: var(--line) solid var(--orbe-ink); }
+  .more > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: var(--s-3) 0; font: var(--w-title) 1.25rem / 1.2 var(--font-text); letter-spacing: var(--track-title); }
+  .more > summary::-webkit-details-marker { display: none; }
+  .more > summary::before { content: "+"; width: 14px; }
+  .more[open] > summary::before { content: "\2212"; }
+  .more > summary span { font: 400 var(--t-small) / 1.4 var(--font-text); color: var(--text-soft); letter-spacing: 0; }
+  .more .set:first-of-type { margin-top: var(--s-3); }
   .cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); border-left: 1px solid var(--rule); }
   .cell { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--cell-bg); color: var(--cell-fg); padding: 12px 10px 10px; display: grid; gap: 10px; min-width: 0; }
   .cell .g { display: flex; align-items: flex-end; gap: 12px; min-height: 24px; }
   .cell .g svg { display: block; flex: none; }
-  .cell .n { font: 400 0.75rem / 1.25 var(--font-text); overflow-wrap: anywhere; opacity: 0.86; }
-  .cell .n code { font: 400 0.6875rem / 1.25 var(--font-mono); display: block; opacity: 0.8; }
+  .cell .n { font: 400 0.75rem / 1.3 var(--font-text); overflow-wrap: anywhere; color: var(--cell-fg); }
+  .cell .n code { font: 400 0.75rem / 1.3 var(--font-mono); display: block; color: var(--cell-soft); }
   .why { margin-top: var(--s-3); font-size: var(--t-small); color: var(--text-soft); max-width: 60em; }
 
   /* the matrix: one glyph per row, a set per column */
@@ -99,7 +108,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="head" data-surface="field">
   <div class="wrap">
-    <p class="crumbs"><a href="./">Brand book</a> / Icons</p>
+    <p class="crumbs"><a href="../">Orbe</a> / <a href="./">Brand book</a> / Icons</p>
     <h1>Icons, found by shape.</h1>
     <p class="o-lede">The same 25 Orbe glyphs drawn by six open icon sets, at 16, 20 and 24 pixels, on Orbe's papers, field, cobalt and ink. Then the one Orbe uses, and why.</p>
   </div>
@@ -120,7 +129,7 @@
       </ol>
       <div class="demo" aria-label="Phosphor in Orbe's interface">
         <div class="row">
-          <button class="o-btn is-small" type="button" data-demo-upload>Upload an export</button>
+          <button class="o-btn is-small" type="button"><span class="ic16" data-demo-upload aria-hidden="true"></span>Upload an export</button>
           <button class="ibtn" type="button" aria-label="Copy" data-demo="copy"></button>
           <button class="ibtn" type="button" aria-label="Search" data-demo="search"></button>
           <button class="ibtn" type="button" aria-label="Close" data-demo="close"></button>
@@ -136,13 +145,13 @@
 
   <section aria-labelledby="board-h">
     <h2 class="h2" id="board-h">The candidates</h2>
-    <p class="sub">From the design.how icon libraries directory (17 sets), the six that cover Orbe's glyphs at interface sizes under a licence Orbe can ship. Each as published on npm, untouched, scaled to the size shown.</p>
+    <p class="sub">From the design.how icon libraries directory (17 sets), the six that cover Orbe's glyphs at interface sizes under a licence Orbe can ship. Each as published on npm, untouched, scaled to the size shown. Phosphor first; the other five are folded below, or compare all six at one size.</p>
     <div class="controls">
       <span><span class="lab" id="on-l">On</span><span class="o-toggle" role="group" aria-labelledby="on-l" data-on>
         <button type="button" data-v="paper" aria-pressed="true">Paper</button><button type="button" data-v="sky" aria-pressed="false">Sky</button><button type="button" data-v="cobalt" aria-pressed="false">Cobalt</button><button type="button" data-v="ink" aria-pressed="false">Ink</button>
       </span></span>
       <span><span class="lab" id="view-l">View</span><span class="o-toggle sizes" role="group" aria-labelledby="view-l" data-view>
-        <button type="button" data-v="sets" aria-pressed="true">By set, three sizes</button><button type="button" data-v="16" aria-pressed="false">16</button><button type="button" data-v="20" aria-pressed="false">20</button><button type="button" data-v="24" aria-pressed="false">24</button>
+        <button type="button" data-v="sets" aria-pressed="true">Phosphor, three sizes</button><button type="button" data-v="16" aria-pressed="false">16</button><button type="button" data-v="20" aria-pressed="false">20</button><button type="button" data-v="24" aria-pressed="false">24</button>
       </span></span>
     </div>
     <div class="board" data-board data-on="paper"></div>
@@ -163,7 +172,7 @@
         <dt>Heroicons</dt><dd>About 320 glyphs, well drawn, but no handshake, payout or broadcast, and only one stroke weight per size.</dd>
         <dt>Bootstrap, Ionicons, MingCute</dt><dd>Complete, but a second rounded set with nothing Phosphor lacks.</dd>
         <dt>Hugeicons</dt><dd>The free tier ships as JavaScript data, not SVG files, and the full set is paid.</dd>
-        <dt>Pixelarticons</dt><dd>Not in the directory. Crisp only at multiples of 24, and the pixels are the creatures' job, not the interface's.</dd>
+        <dt>Pixelarticons</dt><dd>Not in the directory. Crisp only at multiples of 24, and pixel art is not part of Orbe's interface.</dd>
       </dl>
     </div>
   </section>
@@ -190,13 +199,17 @@
     fa: "Solid fills. Loud next to type, and the free icons need a credit line.",
   };
 
-  function bySets() {
-    board.innerHTML = BOARD.sets.map((s, i) => `
-      <div class="set${i === 0 ? " is-pick" : ""}">
-        <div class="set-head"><h3>${s.name}</h3><span class="meta"><code>${s.version}</code>, ${s.licence}</span></div>
+  const setHtml = (s, pick) => `
+      <div class="set${pick ? " is-pick" : ""}">
+        <div class="set-head"><h3>${s.name}${pick ? ", the set Orbe uses" : ""}</h3><span class="meta"><code>${s.version}</code>, ${s.licence}</span></div>
         <ul class="cells">${BOARD.glyphs.map((g) => `<li class="cell"><span class="g">${[16, 20, 24].map((z) => sized(s.icons[g.key].svg, z)).join("")}</span><span class="n">${g.label}<code>${s.icons[g.key].name}</code></span></li>`).join("")}</ul>
         <p class="why">${NOTES[s.key]}</p>
-      </div>`).join("");
+      </div>`;
+  let moreOpen = false;
+  function bySets() {
+    const [pick, ...rest] = BOARD.sets;
+    board.innerHTML = setHtml(pick, true) + `<details class="more"${moreOpen ? " open" : ""}><summary>The other five sets<span>${rest.map((s) => s.name.replace(" Free (solid)", "")).join(", ")}</span></summary>${rest.map((s) => setHtml(s, false)).join("")}</details>`;
+    board.querySelector(".more").addEventListener("toggle", (e) => { moreOpen = e.target.open; });
   }
   function matrix(size) {
     board.innerHTML = `<div class="matrix-wrap"><table class="matrix"><caption class="small" style="text-align:left;padding:8px">Every glyph at ${size}px, one set per column.</caption>
@@ -219,7 +232,7 @@
 
   // The pick, drawn by the helper the site uses.
   for (const b of document.querySelectorAll("[data-demo]")) b.innerHTML = icon(b.dataset.demo, { size: 20 });
-  document.querySelector("[data-demo-upload]").insertAdjacentHTML("afterbegin", icon("upload", { size: 16 }));
+  document.querySelector("[data-demo-upload]").innerHTML = icon("upload", { size: 16 });
   for (const el of document.querySelectorAll("[data-rule]")) {
     const z = Number(el.dataset.rule);
     el.innerHTML = ["views", "payout", "podcast", "pound", "source"].map((n) => icon(n, { size: z })).join("");

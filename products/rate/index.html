@@ -7,6 +7,8 @@
 <title>Rate my work: Orbe</title>
 <meta name="description" content="The Orbe Rating from your own export or figures, calculated in your browser. Nothing leaves your device.">
 <link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../../assets/fonts.css">
 <link rel="stylesheet" href="../../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/products.css">
@@ -15,11 +17,30 @@
 <script type="module" src="./rate.js"></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="../../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="../">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products"><a href="../">All products</a><a href="../rate/" aria-current="page">Rate my work</a><a href="../podcasts/">Podcasts</a><a href="../sponsorships/">Sponsorships</a><a href="../selling/">Selling</a><a href="../diligence/">Diligence report</a></nav>
+</header>
 <main class="wrap page" id="main">
-  <p class="kick"><span class="orbe-label">Independently calculated by Orbe</span></p>
+  <p class="page-kick mono">Free. Nothing leaves this device.</p>
   <h1 class="h1">Rate my work.</h1>
   <p class="lede">Your own numbers, the real Orbe Rating. Zero is typical for creators of your kind and size. Upload the export you already have, or type your recent works. The file is read on this device and never sent anywhere.</p>
-  <div data-live></div>
+  <details class="fold live-fold" data-live><summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>What works today</span></summary>
+    <dl class="live">
+      <div><dt>Live now</dt><dd>The Orbe Rating, sub-scores, explanation and records, from the same engine the API runs (maths version <span data-mv>2026.10</span>).</dd></div>
+      <div><dt>In your browser</dt><dd>Your file is parsed and rated on this device. If you allow it, the last file per account is kept in this browser so your next upload can show new personal bests. Nothing is uploaded.</dd></div>
+      <div><dt>With the API</dt><dd>Connect YouTube Analytics, Substack or your host once and Orbe refreshes your rating for you, keeps your history and sends your personal bests as they happen. Public YouTube ratings wait for YouTube's approval.</dd></div>
+    </dl></details>
+  <script>try{if(matchMedia("(min-width: 760px)").matches)document.currentScript.previousElementSibling.open=true}catch(e){}</script>
 
   <div class="split section">
     <div class="stack">
@@ -30,29 +51,30 @@
         </div>
 
         <form class="stack" data-upload novalidate>
-          <div class="drop" data-drop>
-            <p class="label">Drop your CSV here</p>
-            <p class="hint" style="margin:4px 0 12px">YouTube Studio, Substack, Spotify for Creators or your podcast host</p>
+          <label class="drop" data-drop>
+            <svg class="o-icon" width="24" height="24" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM93.66,77.66,120,51.31V144a8,8,0,0,0,16,0V51.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,77.66Z"/></svg>
+            <span class="drop-t">Choose a CSV</span>
+            <span class="hint">or drop it here. YouTube Studio, Substack, Spotify for Creators or your podcast host</span>
             <input type="file" accept=".csv,text/csv" data-file aria-label="Choose an export file">
-          </div>
+          </label>
           <p class="small" data-picked>No file chosen yet.</p>
           <div class="fields cols2">
             <label class="field"><span data-aud-label>Followers or subscribers</span><input class="input" type="number" inputmode="numeric" min="0" step="1" data-audience required placeholder="e.g. 84000"><small>Exports rarely include it, so type today's count.</small></label>
             <label class="field"><span>Exported on</span><input class="input" type="date" data-exported><small>Ages are measured to this day.</small></label>
           </div>
-          <label class="field"><span>Name on your card</span><input class="input" type="text" data-title placeholder="Your channel, newsletter or show" maxlength="60"></label>
+          <label class="field"><span>Name</span><input class="input" type="text" data-title placeholder="Your channel, newsletter or show" maxlength="60"></label>
           <div class="btns">
             <button class="btn" type="submit">Rate my work</button>
             <span class="small">or try a made-up file:</span>
           </div>
           <div class="btns" data-samples>
-            <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-youtube-studio.csv" data-aud="84000" data-name="Fixture Workshop (made up)">YouTube Studio</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-youtube-studio.csv" data-aud="84000" data-name="Bench Notes (made up)">YouTube Studio</button>
             <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-substack-posts.csv" data-aud="12500" data-name="Margin Notes (made up)">Substack</button>
             <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-podcast-host.csv" data-aud="6000" data-name="The Long Table (made up)">Podcast host</button>
-            <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-spotify-for-creators.csv" data-aud="900" data-name="Fixture Talks (made up)">Spotify for Creators</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-sample="made-up-spotify-for-creators.csv" data-aud="900" data-name="Small Hours (made up)">Spotify for Creators</button>
           </div>
           <details class="fold">
-            <summary><span>Where to find your export</span></summary>
+            <summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>Where to find your export</span></summary>
             <ul class="reasons" style="margin-top:10px" data-where></ul>
             <p style="margin-top:8px">Column names are our reading of each export and have not yet been checked against every account. If a file is not recognised, type your works instead.</p>
           </details>
@@ -72,7 +94,7 @@
             </label>
             <label class="field"><span data-m-aud-label>Subscribers</span><input class="input" type="number" inputmode="numeric" min="0" data-m-audience placeholder="e.g. 12000"></label>
           </div>
-          <label class="field"><span>Name on your card</span><input class="input" type="text" data-m-title maxlength="60" placeholder="Your channel, newsletter or show"></label>
+          <label class="field"><span>Name</span><input class="input" type="text" data-m-title maxlength="60" placeholder="Your channel, newsletter or show"></label>
           <div>
             <p class="label">Recent works, newest first</p>
             <p class="hint" data-m-hint>Today's numbers for each. At least three works old enough to count.</p>

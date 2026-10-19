@@ -10,7 +10,7 @@ export const ORDER = ["channel", "newsletter", "stream", "podcast", "portfolio"]
 
 /* Each example is a made-up creator, generated from a fixed seed so it reads the same every time. */
 const MADE_UP = {
-  channel: { kind: "youtube", word: "channel", label: "Channel", title: "Field Recordings", handle: "@fieldrecordings", show: ["reach", "momentum", "engagement"], o: { audience: 412000, reach: 1.1, engagement: 1.3, hitEvery: 5, seed: 3 } },
+  channel: { kind: "youtube", word: "channel", label: "Channel", title: "Field Recordings", handle: "@fieldrecordings", show: ["reach", "momentum", "engagement"], o: { audience: 412000, reach: 1.6, engagement: 1.6, hitEvery: 5, seed: 1 } },
   newsletter: { kind: "substack", word: "newsletter", label: "Newsletter", title: "Margin Notes", handle: "@marginnotes", show: ["reach", "conversion", "engagement"], o: { audience: 24000, reach: 1.2, engagement: 1.5, hitEvery: 8, seed: 1 } },
   stream: { kind: "twitch", word: "stream", label: "Stream", title: "Night Shift", handle: "@nightshift", show: ["reach", "follows", "momentum"], o: { audience: 21000, reach: 2.6, engagement: 2.2, hitEvery: 5, seed: 38 } },
   podcast: { kind: "podcast", word: "podcast", label: "Podcast", title: "The Long Table", handle: "@thelongtable", show: ["reach", "completion", "momentum"], o: { audience: 14000, reach: 1, engagement: 1.3, hitEvery: 6, seed: 3 } },

@@ -1,13 +1,8 @@
 /* The creator's own card: their rating from Rate my work (this tab only) and their own optional picture. */
-import { shell, $, store, segmented, readImage, liveStrip } from "../assets/shell.js";
+import { shell, $, store, segmented, readImage } from "../assets/shell.js";
 import { renderCard, downloadPng, FORMATS } from "../../assets/r5/card.js";
 
 shell("card");
-$("[data-live]").innerHTML = liveStrip({
-  live: "The card drawing, its words and the PNG download: the product's own card code.",
-  local: "Your rating and your picture stay in this browser tab. The PNG is made on this device.",
-  api: "Your card served at orbe.vc/@you/card.svg and as the preview image when you share your profile, updated at every moment.",
-});
 
 const data = store.session.json("orbe-products-card");
 if (!data?.result) {

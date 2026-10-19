@@ -1,43 +1,101 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" data-scheme="blue">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Orbe motion lab</title>
+<title>Orbe Motion Lab</title>
+<meta name="description" content="Orbe's moving pieces, each with the page and moment it is for and whether it is in use.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/fonts.css">
 <link rel="stylesheet" href="../assets/brand/tokens.css">
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: #F3F0E8; color: #141311; font: 400 16px/1.5 var(--sans, system-ui, sans-serif); -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 28px 16px 80px; }
-  h1 { font: 800 clamp(40px, 9vw, 84px)/0.92 var(--sans); letter-spacing: -0.05em; margin: 0 0 12px; }
-  p { max-width: 60ch; margin: 0 0 28px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-  a.tile { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 12px; color: inherit; text-decoration: none; min-height: 120px; transition: transform .2s cubic-bezier(.23,1,.32,1); }
-  a.tile:hover, a.tile:focus-visible { transform: translateY(-2px); }
-  .k { font: 500 12px/1 var(--mono, monospace); opacity: .75; }
-  .t { font: 700 22px/1.1 var(--sans); letter-spacing: -0.02em; }
-  .d { font-size: 15px; }
+  html { background: var(--surface); -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--surface); color: var(--text); font: 400 var(--t-body) / var(--lh-text) var(--font-text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 var(--gutter); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .wm { display: block; height: 26px; text-decoration: none; font: 700 22px/1 var(--font-display); }
+  .wm svg { display: block; height: 26px; width: auto; }
+  .top nav { display: flex; gap: 18px; font-size: 0.9375rem; font-weight: 600; }
+  .top nav a { text-underline-offset: 3px; }
+  .head { padding: clamp(40px, 7vw, 80px) 0 clamp(28px, 4vw, 44px); }
+  h1 { font: 800 clamp(44px, 9vw, 88px)/0.92 var(--font-display); letter-spacing: -0.05em; margin: 0 0 16px; }
+  .lede { font: 400 var(--t-lede) / 1.38 var(--font-serif); max-width: 40ch; margin: 0; }
+  .key { margin: 22px 0 0; font-size: 0.875rem; color: var(--text-soft); max-width: 62ch; }
+
+  ol.lab { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--orbe-ink); }
+  .lab li { border-bottom: 1px solid var(--rule); }
+  .lab a { display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "k t" "k d" "k f"; gap: 4px 16px; padding: 18px 0 20px; text-decoration: none; }
+  .lab a:hover .t, .lab a:focus-visible .t { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .k { grid-area: k; font: 500 12px/1.9 var(--font-mono); color: var(--text-soft); }
+  .t { grid-area: t; font: 700 clamp(22px, 2.6vw, 28px)/1.1 var(--font-display); letter-spacing: -0.02em; }
+  .d { grid-area: d; font-size: 0.9375rem; max-width: 52ch; }
+  .f { grid-area: f; font-size: 0.875rem; color: var(--text-soft); margin-top: 2px; }
+  .f b { color: var(--text); font-weight: 600; }
+  .s { font: 500 12px/1 var(--font-mono); color: var(--text); margin-right: 10px; white-space: nowrap; }
+  .gone { margin: clamp(32px, 5vw, 48px) 0 0; font-size: 0.875rem; color: var(--text-soft); max-width: 62ch; }
+  .gone + .gone { margin-top: 10px; }
+  .gone a { color: var(--text); font-weight: 600; text-underline-offset: 3px; }
+  .foot { margin: 40px 0 56px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .foot a { font-weight: 600; text-underline-offset: 3px; }
+  @media (max-width: 560px) {
+    .top nav { gap: 14px; font-size: 0.875rem; }
+    .lab a { grid-template-columns: 32px minmax(0, 1fr); }
+    .s { display: block; margin: 2px 0 4px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Motion lab</h1>
-  <p>Ten moving pieces, rebuilt in plain JavaScript in Orbe colours and Orbe words. Each one is a candidate signature moment for the site. Open one, play with it, and tell us which belong.</p>
-  <div class="grid">
-    <a class="tile" style="background:#9EE9FB" href="stamptype.html"><span class="k">01</span><span class="t">Stamp type</span><span class="d">A printed poster that flies in a new world every pass.</span></a>
-    <a class="tile" style="background:#141311;color:#F3F0E8" href="code-trail.html"><span class="k">02</span><span class="t">Code trail</span><span class="d">A staircase of torn analytics source that follows your cursor.</span></a>
-    <a class="tile" style="background:#F2879E" href="holo.html"><span class="k">03</span><span class="t">Holo</span><span class="d">A foil identity card that tilts with you.</span></a>
-    <a class="tile" style="background:#1F4BFF;color:#F3F0E8" href="datamosh.html"><span class="k">04</span><span class="t">Datamosh</span><span class="d">Falling blocks of colour, like a corrupted clip.</span></a>
-    <a class="tile" style="background:#EED56A" href="badge-trail.html"><span class="k">05</span><span class="t">Word trail</span><span class="d">Tiny creator words drop behind the cursor.</span></a>
-    <a class="tile" style="background:#FBFAF6;border:1.5px solid #141311" href="text-reveal.html"><span class="k">06</span><span class="t">Reveal</span><span class="d">Two corner lines dissolve in like weather.</span></a>
-    <a class="tile" style="background:#FF5A1F" href="word-stickers.html"><span class="k">07</span><span class="t">Stickers</span><span class="d">Die cut vinyl words you can grab and fling.</span></a>
-    <a class="tile" style="background:#D6F6FD" href="design-tiles.html"><span class="k">08</span><span class="t">Tiles</span><span class="d">One sentence in clashing blocks that keep reshuffling.</span></a>
-    <a class="tile" style="background:#6F1726;color:#F3F0E8" href="image-sphere.html"><span class="k">09</span><span class="t">Sphere</span><span class="d">A globe of creator work you can spin.</span></a>
-    <a class="tile" style="background:#FBD9E0" href="image-galaxy.html"><span class="k">10</span><span class="t">Galaxy</span><span class="d">A field of work drifting past in depth.</span></a>
-  </div>
+  <header class="top">
+    <a class="wm" href="../" aria-label="Orbe, the site index"><span data-wm>Orbe</span></a>
+    <nav aria-label="Site"><a href="../">Site index</a><a href="../brand/">Brand book</a></nav>
+  </header>
+
+  <main id="main">
+    <div class="head">
+      <h1>Motion lab</h1>
+      <p class="lede">Orbe's moving pieces, in Orbe colours and Orbe words. Each one names the page and moment it is for, and whether it is there yet.</p>
+      <p class="key">In use means on a page now. A candidate is chosen for a moment but not built in yet.</p>
+    </div>
+
+    <ol class="lab">
+      <li><a href="word-stickers.html">
+        <span class="k">01</span><span class="t">Stickers</span>
+        <span class="d">Die cut vinyl words with hard ink shadows: the top 1%, viral, followers, the charts, vanity views, and your size.</span>
+        <span class="f"><span class="s">In use</span><b>r6-a, the first panel.</b> The wrong yardsticks: fling or tap them away until only your size is left.</span>
+      </a></li>
+      <li><a href="stamptype.html">
+        <span class="k">02</span><span class="t">Stamp type</span>
+        <span class="d">A printed poster loop: four lines hop in, hold to be read, then scatter.</span>
+        <span class="f"><span class="s">Candidate</span><b>Social posts and the launch film.</b> Shown in the brand book; never behind a figure.</span>
+      </a></li>
+      <li><a href="design-tiles.html">
+        <span class="k">03</span><span class="t">Tiles</span>
+        <span class="d">One sentence in clashing blocks that keep reshuffling.</span>
+        <span class="f"><span class="s">Candidate</span><b>r6-e, the last moment.</b> "Rated against creators your size" as the closing line, once per page.</span>
+      </a></li>
+      <li><a href="text-reveal.html">
+        <span class="k">04</span><span class="t">Reveal</span>
+        <span class="d">Two lines of type dissolve in on flat Paper, like weather.</span>
+        <span class="f"><span class="s">Candidate</span><b>r6-g, panel three.</b> The one line a creator would post, arriving as the panel opens.</span>
+      </a></li>
+    </ol>
+
+    <p class="gone">Parked, with no moment yet: <a href="badge-trail.html">Word trail</a>, which needs a cursor and so has nothing to do on a phone.</p>
+    <p class="gone">Taken out of the lab: Galaxy (floating screenshots of work), Holo (a foil identity card), Sphere (a globe of work), Code trail (torn analytics source) and Datamosh (falling colour blocks). Their files stay for the record.</p>
+  </main>
+
+  <footer class="foot"><a href="../">The site index</a><a href="../brand/">The brand book</a><a href="../brand/icons.html">Icons</a></footer>
 </div>
+<script type="module">
+  import { mountWordmark } from "../assets/r5/wordmark.js";
+  let reduce = false;
+  try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+  mountWordmark(document.querySelector("[data-wm]"), { animate: !reduce });
+</script>
 </body>
 </html>

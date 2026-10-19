@@ -1,19 +1,15 @@
 /* Selling: the market module's valuation, fees and tail clause (site/assets/engine/market), in the browser. */
-import { shell, $, $$, esc, money, bps, pct, day, segmented, liveStrip, nodash, fold, sourcesList } from "../assets/shell.js";
+import { shell, $, $$, esc, money, bps, pct, day, segmented, nodash, fold, sourcesList } from "../assets/shell.js";
 import { valuate, INDICATIVE_LABEL, VALUATION_MODEL_VERSION, TAKE_RATE, TAKE_RATE_LAUNCH, settlement, BUYER_TERMS, tailScenario } from "../../assets/engine/market/browser.js";
 
 shell("selling");
-$("[data-live]").innerHTML = liveStrip({
-  live: `The indicative valuation (model ${VALUATION_MODEL_VERSION}), the take-rate fee schedule, settlement through escrow and the tail clause: the market module's own code.`,
-  local: "Your figures are valued on this device and count as declared, not verified. Nothing is sent or kept.",
-  api: "Values from revenue read at source (Stripe, AdSense, uploaded invoices cross-checked), a listing, free vetted buyers, consented introductions, and completion through an escrow partner.",
-});
+$("[data-live] [data-mv]").textContent = VALUATION_MODEL_VERSION;
 
 /* ---------- valuation ---------- */
 const vf = $("[data-val-form]");
 const STREAMS = ["ads", "sponsorship", "subscriptions", "memberships", "products", "licensing", "tips", "other"];
 const STREAM_NAME = { ads: "Ads", sponsorship: "Sponsorship", subscriptions: "Subscriptions", memberships: "Memberships", products: "Products", licensing: "Licensing", tips: "Tips", other: "Other" };
-const streamRow = (v = {}) => `<div class="fields cols3" data-stream style="align-items:end">
+const streamRow = (v = {}) => `<div class="fields cols3 stream-row" data-stream style="align-items:end">
   <label class="field"><span>Stream</span><select class="input" data-s="stream">${STREAMS.map((s) => `<option value="${s}"${s === v.stream ? " selected" : ""}>${STREAM_NAME[s]}</option>`).join("")}</select></label>
   <label class="field"><span>£ a month</span><input class="input" type="number" min="0" step="10" data-s="amount" value="${esc(v.amount ?? "")}"></label>
   <label class="field"><span>Main payer (optional)</span><input class="input" data-s="who" value="${esc(v.who ?? "")}" placeholder="e.g. a sponsor"></label>
@@ -85,7 +81,7 @@ vf.addEventListener("submit", (e) => {
   }
   const FACTOR = { base: "Starting multiple", verification: "Verification", diversification: "Spread of streams", face: "Needs you", history: "History", growth: "Growth", concentration: "One big payer", size: "Size" };
   $("[data-val-out]").innerHTML = `<div class="panel stack">
-      <p class="kick" style="margin:0"><span class="tag warn">Indicative</span><span class="tag">Confidence ${esc(v.confidence)}</span></p>
+      <p class="small" style="margin:0">Indicative. Confidence ${esc(v.confidence)}.</p>
       ${v.range ? `<p class="big num" style="font-size:clamp(40px,9vw,72px)">${esc(money(v.range.low))} to ${esc(money(v.range.high))}</p>
         <p class="small">${v.multiples.low}× to ${v.multiples.high}× a year's profit, centred on ${v.multiples.centre}×.</p>` : `<p class="h2">No range</p>`}
       <dl class="dl"><dt>Revenue, last twelve months${v.annualised ? " (annualised)" : ""}</dt><dd>${esc(money(v.ttmRevenue))}</dd><dt>Profit</dt><dd>${esc(money(v.ttmProfit))}</dd><dt>Verified share</dt><dd>${pct(v.verifiedShare)}</dd><dt>Growth</dt><dd>${v.growth === null ? "n/a" : pct(v.growth)}</dd><dt>Largest stream</dt><dd>${pct(v.largestStreamShare)}</dd></dl>
@@ -96,12 +92,9 @@ vf.addEventListener("submit", (e) => {
         { kind: "engine", label: `Orbe's valuation model ${v.modelVersion}`, provenance: "Provisional multiples set from public comparables until Orbe's own completed deals replace them." },
       ]))}
     </div>
-    <div class="panel stack">
-      <h3 class="h3">What moved the multiple</h3>
-      <div class="tbl-wrap"><table class="tbl"><tbody>${v.factors.map((x) => `<tr><td>${esc(FACTOR[x.key] ?? x.key)}</td><td class="r" style="white-space:nowrap">${x.key === "base" ? `${x.effect}×` : `${x.effect >= 0 ? "+" : "\u2212"}${Math.abs(x.effect).toFixed(2)}×`}</td><td class="small">${esc(nodash(x.reason))}</td></tr>`).join("")}</tbody></table></div>
-    </div>
-    ${w.range && v.range ? `<div class="panel stack"><h3 class="h3">What if it were verified?</h3><p>With the same figures read at source, the range would be <b style="font-weight:500">${esc(money(w.range.low))} to ${esc(money(w.range.high))}</b>, confidence ${esc(w.confidence)}. Connecting your revenue sources narrows the range and can lift the centre, because buyers pay for numbers they can trust.</p><p class="small">A what-if on your own figures, not a second valuation.</p></div>` : ""}
-    <p class="note warn">${esc(INDICATIVE_LABEL)} Every multiple and adjustment is provisional (model ${esc(v.modelVersion)}), set from public comparables until Orbe's own completed deals replace them. Your figures here are declared, so none of them counts as verified.</p>`;
+    ${fold("What moved the multiple", `${v.factors.length} factors`, `<div class="tbl-wrap"><table class="tbl"><tbody>${v.factors.map((x) => `<tr><td>${esc(FACTOR[x.key] ?? x.key)}</td><td class="r" style="white-space:nowrap">${x.key === "base" ? `${x.effect}×` : `${x.effect >= 0 ? "+" : "\u2212"}${Math.abs(x.effect).toFixed(2)}×`}</td><td class="small">${esc(nodash(x.reason))}</td></tr>`).join("")}</tbody></table></div>`)}
+    ${w.range && v.range ? `<div class="panel stack"><h3 class="h3">If it were verified</h3><p>With the same figures read at source, the range would be <b style="font-weight:500">${esc(money(w.range.low))} to ${esc(money(w.range.high))}</b>, confidence ${esc(w.confidence)}. Connecting your revenue sources narrows the range and can lift the centre, because buyers pay for numbers they can trust.</p><p class="small">A what-if on your own figures, not a second valuation.</p></div>` : ""}
+    <p class="small">${esc(INDICATIVE_LABEL)} Every multiple is provisional (model ${esc(v.modelVersion)}) until Orbe's own completed deals replace them, and your figures count as declared, not verified.</p>`;
 });
 
 /* ---------- fees ---------- */
@@ -127,22 +120,22 @@ function fees() {
       <div class="panel stack"><p class="small">The seller receives</p><p class="big num" style="font-size:40px">${esc(money(s.sellerReceives))}</p><p class="small">The price less Orbe's fee${f.vat.checked ? " and its VAT" : ""} and half the escrow fee.</p></div>
       <div class="panel stack"><p class="small">The buyer pays in</p><p class="big num" style="font-size:40px">${esc(money(s.buyerPays))}</p><p class="small">The price, the buyer's premium${f.vat.checked ? " and its VAT" : ""}, and half the escrow fee.</p></div>
     </div>
-    <div class="panel stack">
+    ${fold("The working", `success fee ${esc(money(fee.fee))}${prem ? `, premium ${esc(money(prem.fee))}` : ""}`, `    <div class="stack">
       <h3 class="h3">Seller's success fee: ${esc(money(fee.fee))} (${bps(fee.effectiveRateBps)} effective)</h3>
       ${fee.launchRateApplied ? `<p class="small">Launch rate applied: deal ${Number(f.deal.value)} of the first 20.</p>` : `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Slice of the price</th><th class="r">Rate</th><th class="r">Fee</th></tr></thead><tbody>${sliceRows(fee)}</tbody></table></div>`}
       ${fee.minimumApplied ? `<p class="small">The £4,000 minimum applies.</p>` : ""}
       <p class="small">8% to £500,000, 5% to £2M, 3% above, marginal like income tax so the fee never jumps at a boundary. Paid from the proceeds by the escrow partner.</p>
     </div>
-    ${prem ? `<div class="panel stack"><h3 class="h3">Buyer's premium: ${esc(money(prem.fee))} (${bps(prem.effectiveRateBps)} effective)</h3>
+    ${prem ? `<div class="stack"><h3 class="h3">Buyer's premium: ${esc(money(prem.fee))} (${bps(prem.effectiveRateBps)} effective)</h3>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Slice of the price</th><th class="r">Rate</th><th class="r">Premium</th></tr></thead><tbody>${sliceRows(prem)}</tbody></table></div>
       ${prem.minimumApplied ? `<p class="small">The £1,000 minimum applies.</p>` : ""}
-      <p class="small">2% to £2M and 1% above, paid by the buyer at completion in place of memberships. Access is free once Orbe has vetted the buyer, and reports are included; a report is charged £1,500 only if the buyer walks away.</p></div>` : ""}
-    <div class="panel"><dl class="dl">
+      <p class="small">2% to £2M and 1% above, paid by the buyer at completion. Access is free once Orbe has vetted the buyer, and reports are included; a report is charged £1,500 only if the buyer walks away.</p></div>` : ""}
+    <div><dl class="dl">
       <dt>Orbe's fee${f.vat.checked ? ` plus VAT ${esc(money(s.feeVat))}` : ""}</dt><dd>${esc(money({ amount: fee.fee.amount + s.feeVat.amount, currency: "GBP" }))}</dd>
       ${prem ? `<dt>Buyer's premium${f.vat.checked ? ` plus VAT ${esc(money(s.premiumVat))}` : ""}</dt><dd>${esc(money({ amount: prem.fee.amount + s.premiumVat.amount, currency: "GBP" }))}</dd>` : ""}
       <dt>Escrow partner's fee, at cost</dt><dd>${esc(money(s.escrow.partnerFee))}</dd>
       <dt class="tot">The partner pays Orbe</dt><dd class="tot">${esc(money(s.orbeReceives))}</dd>
-    </dl><p class="small" style="margin-top:10px">The escrow partner holds every pound and pays Orbe only its own fees. VAT treatment for overseas parties needs an accountant's view.</p></div>`;
+    </dl><p class="small" style="margin-top:10px">The escrow partner holds every pound and pays Orbe only its own fees. VAT treatment for overseas parties needs an accountant's view.</p></div>`)}`;
 }
 ff.addEventListener("input", fees);
 fees();
@@ -162,8 +155,9 @@ function tail() {
     return void (out.innerHTML = `<p class="err">${esc(nodash(x.message))}</p>`);
   }
   const a = r.assessment;
+  $("[data-tail-sum]").textContent = a.owed ? "this one owes the fees" : "this one owes nothing";
   out.innerHTML = `<div class="stack" style="margin-top:6px">
-    <p><span class="tag ${a.owed ? "warn" : "good"}" style="font-size:14px;padding:5px 12px">${a.owed ? "Fees owed" : "Nothing owed"}</span>${r.tailEndsAt && !f.never.checked ? ` <span class="small">Tail ends ${esc(day(r.tailEndsAt))}</span>` : ""}</p>
+    <p><span class="tag ${a.owed ? "warn" : "good"}">${a.owed ? "Fees owed" : "Nothing owed"}</span>${r.tailEndsAt && !f.never.checked ? ` <span class="small">Tail ends ${esc(day(r.tailEndsAt))}</span>` : ""}</p>
     <ul class="reasons">${a.reasons.map((x) => `<li><span>${esc(nodash(x))}</span></li>`).join("")}</ul>
     ${a.owed ? `<dl class="dl"><dt>Seller's fee</dt><dd>${esc(money(a.sellerFee.fee))}</dd><dt>Buyer's premium</dt><dd>${esc(money(a.premium?.fee))}</dd></dl>${a.needsLegalReview ? `<p class="note warn">A whole-company share sale: flagged for a lawyer before any invoice.</p>` : ""}` : ""}
   </div>`;

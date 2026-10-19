@@ -4,8 +4,8 @@
   canvas, not baked art: the word is rendered offscreen, its silhouette is DILATED by
   the border width (the filled word stamped many times around rings of that radius, so
   the outline follows the true letter shapes, counters and all), that dilated shape is
-  the die-cut base, the coloured word goes on top, and one soft drop shadow lifts the
-  whole sticker off the page. Each sticker is an absolutely positioned canvas at a
+  the die-cut base, the coloured word goes on top, and a shadow lifts the whole sticker
+  off the page: one soft drop shadow by default, or a flat hard ink shadow on request. Each sticker is an absolutely positioned canvas at a
   scattered position and slight rotation.
 
   Physics, no library: drag with the pointer (grab, grabbing), the sticker follows with
@@ -16,6 +16,9 @@
 
   mount(el, opts) -> { destroy }
     opts.stickers  [{ word, font, weight, style, fill, base, x, y, rot }]  x, y as 0..1
+    opts.shadow    "soft" (default) or "hard": a flat offset copy of the die-cut
+    opts.shadowColor  hard shadow colour (default Orbe ink, #141311)
+    opts.shadowOffset hard shadow offset in css px (default 3)
 */
 
 const SANS = '"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif';
@@ -49,11 +52,12 @@ function fontString(d, size) {
   return `${d.style || "normal"} ${d.weight} ${size}px ${d.font}`;
 }
 
-// The die-cut sticker: dilated base, word on top, one soft shadow under it all.
-function renderSticker(d, size, dpr) {
+// The die-cut sticker: dilated base, word on top, one shadow under it all.
+function renderSticker(d, size, dpr, sh = {}) {
+  const hard = sh.shadow === "hard";
   const border = Math.max(5, Math.round(size * 0.15));
-  const shadowBlur = Math.round(size * 0.22);
-  const shadowY = Math.round(size * 0.08);
+  const shadowBlur = hard ? 0 : Math.round(size * 0.22);
+  const shadowY = hard ? Math.max(1, Math.round(sh.shadowOffset ?? 3)) : Math.round(size * 0.08);
   const font = fontString(d, size);
 
   const meas = document.createElement("canvas").getContext("2d");
@@ -92,7 +96,7 @@ function renderSticker(d, size, dpr) {
   b.fillStyle = d.fill;
   b.fillText(d.word, bx, by);
 
-  // 3. one soft shadow under the whole sticker, in a padded outer canvas
+  // 3. one shadow under the whole sticker, in a padded outer canvas
   const sp = shadowBlur + shadowY;
   const cssW = sW + sp * 2;
   const cssH = sH + sp * 2;
@@ -100,15 +104,29 @@ function renderSticker(d, size, dpr) {
   out.width = Math.ceil(cssW * dpr);
   out.height = Math.ceil(cssH * dpr);
   const o = out.getContext("2d");
-  o.shadowColor = "rgba(20, 19, 17, 0.28)";
-  o.shadowBlur = shadowBlur * dpr;
-  o.shadowOffsetY = shadowY * dpr;
+  if (hard) {
+    // a flat copy of the die-cut silhouette in ink, offset down and right, no blur
+    const s = document.createElement("canvas");
+    s.width = base.width;
+    s.height = base.height;
+    const sc = s.getContext("2d");
+    sc.drawImage(base, 0, 0);
+    sc.globalCompositeOperation = "source-in";
+    sc.fillStyle = sh.shadowColor || "#141311";
+    sc.fillRect(0, 0, s.width, s.height);
+    o.drawImage(s, (sp + shadowY) * dpr, (sp + shadowY) * dpr);
+  } else {
+    o.shadowColor = "rgba(20, 19, 17, 0.28)";
+    o.shadowBlur = shadowBlur * dpr;
+    o.shadowOffsetY = shadowY * dpr;
+  }
   o.drawImage(base, sp * dpr, sp * dpr);
   return { canvas: out, w: cssW, h: cssH, inset: sp };
 }
 
 export function mount(el, opts = {}) {
   const defs = opts.stickers && opts.stickers.length ? opts.stickers : DEFAULT_STICKERS;
+  const sh = { shadow: opts.shadow, shadowColor: opts.shadowColor, shadowOffset: opts.shadowOffset };
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const host = el;
   if (getComputedStyle(host).position === "static") host.style.position = "relative";
@@ -150,7 +168,7 @@ export function mount(el, opts = {}) {
   };
 
   const draw = (it) => {
-    const r = renderSticker(it.def, fontPx(), dpr);
+    const r = renderSticker(it.def, fontPx(), dpr, sh);
     it.el.width = r.canvas.width;
     it.el.height = r.canvas.height;
     it.el.style.width = `${r.w}px`;

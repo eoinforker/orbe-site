@@ -24,6 +24,16 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<!-- The stickers' hard shadow: the soft shadow under each sticker is cut away, and a flat 3px ink shadow is set under the die-cut instead. -->
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <filter id="hard" x="-10%" y="-10%" width="130%" height="130%" color-interpolation-filters="sRGB">
+    <feComponentTransfer in="SourceGraphic" result="cut"><feFuncA type="linear" slope="1.6" intercept="-0.6"/></feComponentTransfer>
+    <feFlood flood-color="#141311"/>
+    <feComposite in2="cut" operator="in"/>
+    <feOffset dx="3" dy="3" result="sh"/>
+    <feMerge><feMergeNode in="sh"/><feMergeNode in="cut"/></feMerge>
+  </filter>
+</svg>
 
 <main id="main">
 
@@ -37,10 +47,6 @@
         <a class="bar-x" href="#money">The money</a>
         <a class="bar-buy" href="#buyers">For buyers</a>
       </nav>
-      <div class="palette" role="group" aria-label="Brand colour">
-        <button type="button" data-c="blue" aria-pressed="true" aria-label="Blue" title="Blue"><i aria-hidden="true"></i></button>
-        <button type="button" data-c="pink" aria-pressed="false" aria-label="Pink" title="Pink"><i aria-hidden="true"></i></button>
-      </div>
     </div>
   </header>
   <div class="hero-text">
@@ -62,18 +68,23 @@
       <p class="r-kind"><label>I make a <select name="kind" aria-label="What you make"></select></label></p>
       <p class="r-note" aria-live="polite">Ratings open with YouTube: connect your channel to see yours. Newsletters and podcasts next.</p>
     </form>
+    <a class="fig" id="fig" href="#rating"></a>
     </div>
-    <div class="stickers" id="stickers" aria-hidden="true"></div>
+    <div class="yards">
+      <p class="y-cap" id="y-cap" aria-live="polite"></p>
+      <div class="stickers" id="stickers" aria-hidden="true"></div>
+    </div>
     </div>
   </div>
 </section>
 
-<!-- 02. Paper. Why your size: one stream, the wrong yardsticks, and the rating. -->
+<!-- 02. Paper. Why your size: one channel, the wrong yardsticks struck, and the rating. -->
 <section class="pn rating" id="rating" data-surface="paper" aria-labelledby="v-h">
   <div class="v-head">
     <h2 id="v-h">The only fair yardstick is your size.</h2>
     <p class="v-lede" id="v-lede"></p>
   </div>
+  <div class="v-right">
   <div class="v-body ow">
     <span class="ow-tab" id="yard-tab"></span>
     <ol class="yard" id="yard"></ol>
@@ -82,6 +93,8 @@
       <div class="scale" id="scale" aria-hidden="true"></div>
       <p class="rt-foot" id="rt-foot"></p>
     </div>
+  </div>
+  <p class="v-why" id="v-why"></p>
   </div>
   <div class="v-say">
     <p class="v-zero">Zero is typical for creators your size. Above zero, you&rsquo;re ahead of them.</p>
@@ -135,6 +148,10 @@
     <span class="foot-wm" id="wm2" aria-hidden="true"></span>
     <p class="foot-links"><a href="mailto:hello@orbe.vc">hello@orbe.vc</a> <a href="../products/">Products</a> <a href="../legal/privacy.html">Privacy</a> <a href="../legal/terms.html">Terms</a></p>
     <p class="foot-fine" id="notice"></p>
+    <div class="palette" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true">Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false">Pink</button>
+    </div>
   </footer>
 </section>
 

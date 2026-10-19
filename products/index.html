@@ -5,76 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3F0E8">
 <title>Orbe products</title>
-<meta name="description" content="Use Orbe today: rate your own work, set up podcast measurement, price a sponsorship, see what your business might sell for, and read a real Orbe Verified report. Everything runs in your browser.">
+<meta name="description" content="Use Orbe today: rate your own work from an export you already have, set up podcast measurement, price a sponsorship, see what your business might sell for and read a real diligence report. Everything runs in your browser.">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/Newsreader-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/fonts.css">
 <link rel="stylesheet" href="../assets/brand/tokens.css">
 <link rel="stylesheet" href="assets/products.css">
 <link rel="stylesheet" href="../assets/r5/type.css">
 <script>try{var c=new URLSearchParams(location.search).get("c")||localStorage.getItem("orbe-palette");if(c==="blue"||c==="pink"){document.documentElement.dataset.c=c;document.documentElement.dataset.scheme=c}}catch(e){}</script>
-<script type="module">
-  import { shell } from "./assets/shell.js";
-  shell("hub", 0);
-</script>
+<script type="module" src="./hub.js"></script>
 </head>
 <body>
-<main class="wrap page" id="main">
-  <p class="kick"><span class="tag acc">Works today</span><span>Phone or desktop, no account, no server</span></p>
-  <h1 class="h1">Use Orbe now.</h1>
-  <p class="lede">The same engine the Orbe API runs, built for your browser. Rate your own work from a file you already have, set up podcast measurement, price a sponsorship, see an indicative value, and read a real Orbe Verified report. What you enter stays on this device.</p>
-
-  <div class="tools-grid">
-    <a class="tool feature" href="podcasts/">
-      <span class="kick" style="margin:0"><span class="tag">Showcase</span><span>Free, for good</span></span>
-      <h2>Podcasts: Orbe's Chartable</h2>
-      <p>Paste your feed, get your exact measurement prefix with the steps for your host, prove the show is yours, and see the dashboard you will get: downloads by day, episode, app and country, chart positions, smart link clicks and promo results. Plus a smart link builder and a plausibility check on any download claim.</p>
-      <span class="go">Set up your show</span>
-    </a>
-    <a class="tool" href="rate/">
-      <h2>Rate my work</h2>
-      <p>Upload a YouTube Studio, Substack, Spotify for Creators or podcast host export, or type your recent works. Get the real Orbe Rating, sub-scores, an explanation and your personal bests, then make your card.</p>
-      <span class="go">Rate my work</span>
-    </a>
-    <a class="tool" href="sponsorships/">
-      <h2>Sponsorships</h2>
-      <p>Price a sponsorship from your own numbers, with the reasons and the rate-card sources, and see how a brand's brief ranks opted-in creators. Free for creators: brands pay Orbe 15% on network deals, 5% on direct ones.</p>
-      <span class="go">Price my sponsorship</span>
-    </a>
-    <a class="tool" href="selling/">
-      <h2>Selling</h2>
-      <p>An indicative value from your revenue, with every factor explained, and the fee calculator for a sale: the seller's fee, the buyer's premium and the tail clause.</p>
-      <span class="go">What could it sell for</span>
-    </a>
-    <a class="tool" href="diligence/">
-      <h2>Diligence report</h2>
-      <p>A real Orbe Verified report, generated in your browser from made-up creators: one clean, one with questions. What a buyer actually reads.</p>
-      <span class="go">Read a report</span>
-    </a>
-    <a class="tool" href="../card/">
-      <h2>Your card</h2>
-      <p>Every moment as a card made to be posted. See every moment, kind and theme on the made-up examples; your own card comes from Rate my work.</p>
-      <span class="go">See the card</span>
-    </a>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="wm" href="../" aria-label="Orbe, home">Orbe</a>
+    <a class="crumb" href="">Products</a>
+    <span class="top-gap"></span>
+    <div class="pal" role="group" aria-label="Brand colour">
+      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
+      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Products"><a href="" aria-current="page">All products</a><a href="rate/">Rate my work</a><a href="podcasts/">Podcasts</a><a href="sponsorships/">Sponsorships</a><a href="selling/">Selling</a><a href="diligence/">Diligence report</a></nav>
+</header>
+<main class="wrap page hub" id="main">
+  <div class="hub-top">
+    <div class="hub-say">
+      <p class="hub-kick mono">Works today. Nothing leaves this device.</p>
+      <h1 class="h1">Use Orbe now.</h1>
+      <p class="lede">The engine the Orbe API runs, in your browser. Bring one export and see where your work stands against creators your size.</p>
+      <div class="btns hub-act"><a class="btn" href="rate/">Rate my work</a><span class="small">About a minute, on a phone or a desktop</span></div>
+    </div>
+    <figure class="proof" data-surface="field" aria-labelledby="proof-cap">
+      <p class="proof-k mono">A made-up YouTube channel, rated live</p>
+      <p class="proof-n"><span class="proof-num" data-num aria-hidden="true">+0.00</span><span class="proof-band" data-band></span></p>
+      <p class="proof-parts mono" data-parts></p>
+      <figcaption class="proof-cap" id="proof-cap" data-cap>Zero is typical for a channel its size.</figcaption>
+    </figure>
   </div>
 
-  <section class="section">
-    <h2 class="h2">What is live, and what waits for the API</h2>
-    <p class="sub">The maths is the product's own, compiled from the same code the API runs. What cannot happen in a browser is anything that reads an account for you, keeps data, or counts real listeners.</p>
-    <div class="panel" style="margin-top:14px">
-      <div class="tbl-wrap">
+  <ol class="steps-list" aria-label="What you can do today">
+    <li class="step">
+      <span class="step-k">01</span>
+      <h2 class="step-h"><a href="rate/">Rate my work</a></h2>
+      <p class="step-p">Upload the export you already have from YouTube Studio, Substack, Spotify for Creators or your podcast host, and get the real Orbe Rating, explained in plain English.</p>
+      <span class="step-go" aria-hidden="true">Rate my work<svg class="o-icon go-i" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></span>
+    </li>
+    <li class="step step-field">
+      <span class="step-k">02</span>
+      <h2 class="step-h"><a href="podcasts/">Podcasts</a></h2>
+      <p class="step-tag">Free, for good</p>
+      <p class="step-p">The Chartable replacement: your exact measurement prefix with your host's steps, the dashboard you will get, smart links and a check on any download claim.</p>
+      <span class="step-go" aria-hidden="true">Set up your show<svg class="o-icon go-i" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></span>
+    </li>
+    <li class="step">
+      <span class="step-k">03</span>
+      <h2 class="step-h"><a href="sponsorships/">Sponsorships</a></h2>
+      <p class="step-p">Price a sponsorship from your own numbers, with the reasons and the rate cards behind the price. Free for creators.</p>
+      <span class="step-go" aria-hidden="true">Price my sponsorship<svg class="o-icon go-i" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></span>
+    </li>
+    <li class="step">
+      <span class="step-k">04</span>
+      <h2 class="step-h"><a href="selling/">Selling</a></h2>
+      <p class="step-p">An indicative value from your revenue with every factor explained, then the fees, the buyer's premium and the tail clause.</p>
+      <span class="step-go" aria-hidden="true">What could it sell for<svg class="o-icon go-i" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></span>
+    </li>
+    <li class="step">
+      <span class="step-k">05</span>
+      <h2 class="step-h"><a href="diligence/">The diligence report</a></h2>
+      <p class="step-p">What a buyer reads before an offer, generated here from made-up creators: one clean, one with questions, one messy.</p>
+      <span class="step-go" aria-hidden="true">Read a report<svg class="o-icon go-i" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></span>
+    </li>
+  </ol>
+
+  <details class="fold hub-fold">
+    <summary><svg class="o-icon caret" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg><span>What is live, and what waits for the API</span></summary>
+    <div class="fold-body">
+      <p class="sub">The maths is the product's own, compiled from the same code the API runs. What cannot happen in a browser is anything that reads an account for you, keeps data, or counts real listeners.</p>
+      <div class="tbl-wrap" style="margin-top:12px">
         <table class="tbl">
           <thead><tr><th>Tool</th><th>Works today, in your browser</th><th>Switches on with the Orbe API</th></tr></thead>
           <tbody>
-            <tr><td>Rate my work</td><td>The Orbe Rating from your own export or typed figures; card and PNG</td><td>Connected reads (YouTube Analytics, Substack, hosts) refreshed for you, history and personal bests over time. Public YouTube ratings wait for YouTube's approval of our derived-metrics use</td></tr>
-            <tr><td>Podcasts</td><td>Feed reading, your prefix and host steps, the podcast:txt tag, a feed check, the dashboard on labelled sample data, smart link preview, plausibility check</td><td>The prefix at m.orbe.vc counting real downloads, your real dashboard, live smart links at orbe.vc/l/, daily charts, ownership verified by Orbe</td></tr>
-            <tr><td>Sponsorships</td><td>Inventory and price suggestion from typed figures; brief matching over made-up opted-in creators</td><td>Verified delivery read at source, real opted-in creators, offers, bookings, disclosure checks and payment through the partner</td></tr>
+            <tr><td>Rate my work</td><td>The Orbe Rating from your own export or typed figures, explained</td><td>Connected reads (YouTube Analytics, Substack, hosts) refreshed for you, history and personal bests over time. Public YouTube ratings wait for YouTube's approval of our derived-metrics use</td></tr>
+            <tr><td>Podcasts</td><td>Feed reading, your prefix and host steps, the podcast:txt tag, a feed check, the dashboard on labelled sample data, smart link preview, plausibility check</td><td>The prefix at m.orbe.vc counting real downloads, your real dashboard, live smart links at orbe.vc/l/, daily charts, ownership checked by Orbe</td></tr>
+            <tr><td>Sponsorships</td><td>Inventory and price suggestion from typed figures; brief matching over made-up opted-in creators</td><td>Delivery read at source, real opted-in creators, offers, bookings, disclosure checks and payment through the partner</td></tr>
             <tr><td>Selling</td><td>Indicative value from typed revenue; fees, premium and tail clause</td><td>Values from connected, verified revenue; listings, vetted buyers, introductions</td></tr>
             <tr><td>Diligence report</td><td>Real reports from labelled made-up records</td><td>Reports on a real creator's verified record, shared with one named buyer at a time</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-  </section>
+  </details>
 </main>
 </body>
 </html>

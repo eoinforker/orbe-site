@@ -4,10 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orbe Brand Book</title>
-<meta name="description" content="Orbe's identity system: colour, type, texture, shape, voice and applications. Blue leads.">
+<meta name="description" content="Orbe's identity as the site uses it: colour, type, what Orbe draws, shape, voice and three applications. Blue leads.">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
+<script>
+  /* The scheme before first paint: ?scheme=, else the last choice, else blue. */
+  (function () {
+    var s = null;
+    try { s = new URLSearchParams(location.search).get("scheme"); } catch (e) {}
+    if (s !== "blue" && s !== "pink") { try { s = localStorage.getItem("orbe-brand-scheme"); } catch (e) {} }
+    if (s === "pink") document.documentElement.setAttribute("data-scheme", "pink");
+  })();
+</script>
 <link rel="stylesheet" href="../assets/fonts.css">
 <link rel="stylesheet" href="../assets/brand/tokens.css">
 <link rel="stylesheet" href="../assets/brand/components.css">
@@ -18,9 +27,9 @@
 <a class="bk-skip" href="#main">Skip to the book</a>
 
 <header class="bk-top" data-surface="field">
-  <a class="wm" href="#top" aria-label="Orbe, home">Orbe</a>
+  <a class="wm" href="../" aria-label="Orbe, the site index"><span data-wm>Orbe</span></a>
   <nav aria-label="Sections">
-    <a href="#colour">Colour</a><a href="#type">Type</a><a href="#texture">Texture</a><a href="#shape">Shape</a><a href="#voice">Voice</a><a href="#applications">Applications</a><a href="icons.html">Icons</a>
+    <a href="#colour">Colour</a><a href="#type">Type</a><a href="#draws">What Orbe draws</a><a href="#voice">Voice</a><a href="#applications">Applications</a><a href="icons.html">Icons</a>
   </nav>
   <div class="o-toggle" role="group" aria-label="Colour scheme">
     <button type="button" data-scheme-set="blue" aria-pressed="true" style="--dot: var(--orbe-sky)">Blue</button>
@@ -30,241 +39,185 @@
 
 <main id="main">
 
-<!-- 00 cover -->
+<!-- 00 cover: the field, the line, the painted ground -->
 <section class="bk-cover" id="top" data-surface="field">
-  <div class="bk-cover-bars" data-bars aria-hidden="true"></div>
   <div class="bk-wrap bk-cover-in">
-    <p class="o-label">[00] Brand book · October 2026</p>
-    <h1 class="o-display is-hero">Made for creators. Trusted with their money.</h1>
-    <p class="o-lede bk-cover-lede">fal's energy, the idyll's warmth and enough precision for the money moments, in one system. Blue leads, and it should.</p>
+    <p class="o-label">Brand book · October 2026</p>
+    <h1 class="o-display is-hero"><span>Bright enough to post.</span> <span>Exact enough for money.</span></h1>
+    <p class="o-lede bk-cover-lede"><span data-only="blue">The system the site uses today: a sky field, ink type, one cobalt action, an ember spark, painted ground for people and square windows for every figure.</span><span data-only="pink">The pink alternative: a peony field, ink type, one ink action, a claret panel, an ember spark, painted ground for people and square windows for every figure. Blue is the scheme that ships.</span></p>
   </div>
-  <div class="bk-cover-critter o-pixelated" data-critter="cover" aria-hidden="true"></div>
-  <div class="bk-cover-ground" data-scape="cover" aria-hidden="true"></div>
+  <canvas class="bk-paint bk-cover-ground" data-scene="hero" data-seed="43" aria-hidden="true"></canvas>
 </section>
 
-<!-- 01 recommendation -->
-<section class="bk-sec" id="recommendation" data-surface="paper">
-  <div class="bk-wrap">
-    <p class="o-num"><span>[01]</span><span>The recommendation</span></p>
-    <h2 class="o-display">Blue leads. Pink is the dawn.</h2>
-    <p class="o-lede bk-measure">The brand is a sky blue field with ink type, a cobalt action and an ember spark, set on warm paper. Pink stays in the paintings and on the odd sticker. It is never a field beside cobalt.</p>
-
-    <div class="bk-schemes">
-      <article class="bk-scheme" data-scheme="blue">
-        <div class="bk-scheme-field" data-surface="field">
-          <span class="o-pill is-tip bk-rec"><b>Recommended</b> Blue-led</span>
-          <p class="o-display is-3">Rated against creators your size.</p>
-          <span class="o-btn">Reserve your handle</span>
-          <div class="bk-scheme-critter o-pixelated" data-critter="blue" aria-hidden="true"></div>
-        </div>
-        <div class="bk-ratio" aria-label="Proportions: Sky 50, Paper 22, Ink 18, Cobalt 7, Ember 3">
-          <span style="--c: var(--orbe-sky); --p: 50">Sky 50</span><span style="--c: var(--orbe-paper); --p: 22">Paper 22</span><span style="--c: var(--orbe-ink); --p: 18; color: var(--orbe-paper)">Ink 18</span><span style="--c: var(--orbe-cobalt); --p: 7; color: var(--orbe-chalk)">7</span><span style="--c: var(--orbe-ember); --p: 3"></span>
-        </div>
-        <h3 class="o-title">Blue-led: Sky, Cobalt, Ink, Paper, Ember</h3>
-        <p class="o-small">Light, open and fun on the field; cobalt reads as the trustworthy, clickable, money-safe colour. The paintings bring the warmth, so the field can stay cool.</p>
-      </article>
-      <article class="bk-scheme" data-scheme="pink">
-        <div class="bk-scheme-field" data-surface="field">
-          <span class="o-pill is-tip bk-rec"><b>Alternative</b> Pink-led</span>
-          <p class="o-display is-3">Rated against creators your size.</p>
-          <span class="o-btn">Reserve your handle</span>
-          <div class="bk-scheme-critter o-pixelated" data-critter="pink" aria-hidden="true"></div>
-        </div>
-        <div class="bk-ratio" aria-label="Proportions: Peony 50, Paper 22, Ink 20, Claret 5, Ember 3">
-          <span style="--c: var(--orbe-peony); --p: 50">Peony 50</span><span style="--c: var(--orbe-paper); --p: 22">Paper 22</span><span style="--c: var(--orbe-ink); --p: 20; color: var(--orbe-peony)">Ink 20</span><span style="--c: var(--orbe-claret); --p: 5"></span><span style="--c: var(--orbe-ember); --p: 3"></span>
-        </div>
-        <h3 class="o-title">Pink-led: Peony, Claret, Ink, Paper, Ember</h3>
-        <p class="o-small">Bold and warm, but it lands next to TypeSafe and, with any blue beside it, next to Idyll. Peony cannot carry white text, its action has to be ink, and it sits too close to a sale tag or a loss in money screens.</p>
-      </article>
-    </div>
-
-    <div class="bk-why">
-      <div><h3 class="o-title">For creators</h3><p>A bright sky field and a creature to play with feels like a favourite tool, not a bank. Cobalt is a confident, friendly button. Their own work, painted or posted, is the warm thing on the page.</p></div>
-      <div><h3 class="o-title">For backers</h3><p>Blue is the colour people already trust with money, so the fun reads as confidence, not noise. Ink and paper carry every figure; cobalt carries every action. It looks like a company that will still be careful at scale.</p></div>
-      <div><h3 class="o-title">Why it is ours</h3><p>fal pairs its blue with violet, yellow and lime; Idyll pairs magenta with electric blue. Orbe pairs fal's sky with cobalt, an ember spark, warm paper and painted landscapes. Nobody else has that set.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- 02 colour -->
+<!-- 01 colour -->
 <section class="bk-sec" id="colour" data-surface="paper">
   <div class="bk-wrap">
-    <p class="o-num"><span>[02]</span><span>Colour</span></p>
-    <h2 class="o-display">Five colours do the work.</h2>
+    <p class="o-label bk-kick">01 Colour</p>
+    <h2 class="o-display">Blue leads. Pink is the dawn.</h2>
+    <p class="o-lede bk-measure">A sky field with ink type, a cobalt action and an ember spark, on warm paper. Blue is the colour people already trust with money, so the fun reads as confidence. Pink stays in the paintings and is never a field beside cobalt.</p>
+    <p class="o-small bk-measure bk-pinknote" data-only="pink">You are looking at the pink alternative. The rules here are written for blue, the scheme that ships: in pink, read peony for sky, ink for the cobalt action and claret for the deep panel.</p>
 
-    <h3 class="bk-sub o-label">Primary, blue-led</h3>
-    <div class="bk-primary" data-swatches="primary"></div>
-
-    <h3 class="bk-sub o-label">The proportions on a page</h3>
-    <div class="bk-propbar" data-proportions aria-label="Sky 50 percent, Paper 22, Ink 18, Cobalt 7, Ember 3"></div>
-
-    <h3 class="bk-sub o-label">Alternative scheme, pink-led</h3>
-    <div class="bk-swatches" data-swatches="pink"></div>
-
-    <div class="bk-supporting">
-      <div><h3 class="bk-sub o-label">Papers</h3><div class="bk-swatches is-small" data-swatches="papers"></div></div>
-      <div><h3 class="bk-sub o-label">Inks</h3><div class="bk-swatches is-small" data-swatches="inks"></div></div>
-      <div><h3 class="bk-sub o-label">Painterly, for the idylls only</h3><div class="bk-swatches is-small" data-swatches="painterly"></div></div>
-      <div><h3 class="bk-sub o-label">Functional, for product UI only</h3><div class="bk-swatches is-small" data-swatches="functional"></div></div>
+    <div class="bk-site">
+      <figure class="bk-shot">
+        <div class="bk-story" data-surface="field" data-story></div>
+        <figcaption><b>The story, moment one</b> <span>r6-e. The figure is the headline; the reach track says where it sits out of 100.</span></figcaption>
+      </figure>
+      <figure class="bk-shot">
+        <div class="bk-archive" data-surface="field">
+          <canvas class="bk-paint" data-scene="hero" data-seed="11" aria-hidden="true"></canvas>
+          <div class="o-folder bk-afold"><span class="o-folder-tab">Your work</span><div data-archive></div></div>
+        </div>
+        <figcaption><b>The archive's folder</b> <span>r6-g. Paper on painted ground: the person and their work.</span></figcaption>
+      </figure>
     </div>
 
-    <h3 class="bk-sub o-label">The pairs</h3>
-    <div class="bk-pairs" data-pairs></div>
+    <h3 class="bk-sub o-label" data-prop-label>The proportions on a page</h3>
+    <div class="bk-propbar" data-proportions></div>
 
-    <h3 class="bk-sub o-label">Contrast, computed (WCAG 2.2)</h3>
-    <p class="o-small bk-measure">Text needs 4.5:1 for AA and 7:1 for AAA. Large text (24px, or 19px bold) needs 3:1 and 4.5:1. A shape that carries meaning needs 3:1. Computed live from the hex values below.</p>
-    <div class="bk-tablewrap"><table class="bk-contrast" data-contrast><thead><tr><th>Pair</th><th>Use</th><th>Scheme</th><th>Ratio</th><th>AA</th><th>AAA</th></tr></thead><tbody></tbody></table></div>
+    <div class="bk-primary" data-swatches="primary"></div>
+
+    <details class="bk-cdet bk-fold" data-fold>
+      <summary><span class="o-label">The full palette</span><span class="bk-csum">Pink-led, papers, inks, paint and functional colours</span></summary>
+    <div class="bk-rows">
+      <div class="bk-rowsw"><h3 class="o-label">Pink-led, the alternative</h3><div data-chips="pink"></div></div>
+      <div class="bk-rowsw"><h3 class="o-label">Papers</h3><div data-chips="papers"></div></div>
+      <div class="bk-rowsw"><h3 class="o-label">Inks</h3><div data-chips="inks"></div></div>
+      <div class="bk-rowsw"><h3 class="o-label">Paint, for the paintings only</h3><div data-chips="painterly"></div></div>
+      <div class="bk-rowsw"><h3 class="o-label">Functional, product states only</h3><div data-chips="functional"></div></div>
+    </div>
+    </details>
+
+    <details class="bk-cdet" data-cdet data-fold>
+      <summary><span class="o-label">Contrast, computed (WCAG 2.2)</span><span class="bk-csum" data-csum></span></summary>
+      <p class="o-small bk-measure">Text needs 4.5:1 for AA and 7:1 for AAA. Large text (24px, or 19px bold) needs 3:1 and 4.5:1. A shape that carries meaning needs 3:1. Computed live from the hex values.</p>
+      <div class="bk-tables" data-contrast></div>
+    </details>
 
     <div class="bk-rules">
       <div><h3 class="o-title">Always</h3><ul>
-        <li>One field per screen. Sky is the field; paper is where people read and where products live.</li>
-        <li>Ink for type on sky, paper and ember. Cobalt for the one action, links and the ball on the card.</li>
-        <li>Ember as a spark: bars, creatures, a crayon loop. On a light field it carries an ink edge whenever it must read as a shape.</li>
+        <li>One field per screen. Sky is the field; paper is where people read and products live.</li>
+        <li>Ink for type on sky, paper and ember. Cobalt for the one action and links.</li>
+        <li>Ember as a spark: one brush stroke under a figure. On a light field it never carries meaning alone.</li>
         <li>Functional colours only for states in the product, always with words beside them.</li>
       </ul></div>
       <div><h3 class="o-title">Never</h3><ul>
         <li>Never colour a rating red or green. A rating measures; it does not judge.</li>
         <li>Never put paper or white text on sky or peony, or body text in cobalt on sky.</li>
-        <li>Never set peony or magenta beside cobalt as two fields. That is someone else's brand.</li>
-        <li>Never use gradients, glows or a second field colour on one screen. No seals, badges or ticks.</li>
+        <li>Never set peony beside cobalt as two fields.</li>
+        <li>Never use gradients, glows, purple or a second field on one screen. No seals, badges or ticks.</li>
         <li>Never recolour a creator's work to match the brand.</li>
       </ul></div>
     </div>
   </div>
 </section>
 
-<!-- 03 type -->
+<!-- 02 type -->
 <section class="bk-sec" id="type" data-surface="field">
   <div class="bk-wrap">
-    <p class="o-num"><span>[03]</span><span>Type</span></p>
+    <p class="o-label bk-kick">02 Type</p>
     <h2 class="o-display">Big and tight, then warm, then exact.</h2>
     <div class="bk-faces">
-      <article class="o-window"><div class="o-window-bar"><span>Schibsted Grotesk</span><span>400 to 900</span></div><div class="o-window-body"><p class="bk-face-a">Aa</p><p class="o-small"><b>The voice and the figures.</b> Display at 800, tight; titles at 700; body and interface at 400. Every rating, count and sum.</p></div></article>
-      <article class="o-window"><div class="o-window-bar"><span>Newsreader</span><span>300 to 700, opsz</span></div><div class="o-window-body"><p class="bk-face-b">Aa <i>Aa</i></p><p class="o-small"><b>The warmth.</b> Ledes, editorial heads, [01] numbering, folder tabs, and the italic band word: <i>Average</i>, <i>Good</i>.</p></div></article>
-      <article class="o-window"><div class="o-window-bar"><span>Commit Mono</span><span>400 to 600</span></div><div class="o-window-body"><p class="bk-face-c">orbe.vc/@</p><p class="o-small"><b>The machine.</b> Addresses, handles, dates, and short capital labels on windows and artefacts. Never sentences, never money.</p></div></article>
+      <article class="o-window"><div class="o-window-bar"><span>Schibsted Grotesk</span><span>400 to 900</span></div><div class="o-window-body"><p class="bk-face-a">Aa</p><p class="o-small"><b>The voice and the figures.</b> Display at 800, tight; titles at 700; body at 400. Every rating, count and sum.</p></div></article>
+      <article class="o-window"><div class="o-window-bar"><span>Newsreader</span><span>300 to 700</span></div><div class="o-window-body"><p class="bk-face-b">Aa <i>Aa</i></p><p class="o-small"><b>The warmth.</b> Ledes, folder tabs and the italic band word: <i>Average</i>, <i>Good</i>.</p></div></article>
+      <article class="o-window"><div class="o-window-bar"><span>Commit Mono</span><span>400 to 600</span></div><div class="o-window-body"><p class="bk-face-c">orbe.vc/@</p><p class="o-small"><b>The machine.</b> Handles, dates and short capital labels on windows. Never sentences, never money.</p></div></article>
     </div>
 
-    <h3 class="bk-sub o-label">Web scale, fluid from 390 to 1440</h3>
+    <details class="bk-cdet bk-fold" data-fold>
+      <summary><span class="o-label">Web scale</span><span class="bk-csum">Six steps, fluid from 390 to 1440</span></summary>
     <div class="bk-scale">
-      <div class="bk-step"><span class="o-label">Display 1 · 800 · 64 to 200 · 0.86 · −5.5%</span><p class="o-display is-hero">Rated.</p></div>
-      <div class="bk-step"><span class="o-label">Display 2 · 800 · 48 to 120 · 0.86</span><p class="o-display">Zero is typical.</p></div>
-      <div class="bk-step"><span class="o-label">Display 3 · 800 · 36 to 72 · 0.92</span><p class="o-display is-3">Your best first week yet.</p></div>
+      <div class="bk-step"><span class="o-label">Display 1 · 800 · 64 to 200</span><p class="o-display is-hero">Rated.</p></div>
+      <div class="bk-step"><span class="o-label">Display 3 · 800 · 36 to 72</span><p class="o-display is-3">Zero is typical.</p></div>
       <div class="bk-step"><span class="o-label">Serif 1 · Newsreader 400 · 34 to 64</span><p class="o-serif">Filed beside creators your size.</p></div>
-      <div class="bk-step"><span class="o-label">Title · 700 · 22 to 28</span><p class="o-title">Sponsorships, paid by the brand</p></div>
-      <div class="bk-step"><span class="o-label">Lede · Newsreader 400 · 20 to 24 · 1.38</span><p class="o-lede">A newsletter, a channel, a podcast, a portfolio: each one is a body of work, rated fairly against its own kind.</p></div>
-      <div class="bk-step"><span class="o-label">Body · 400 · 16 to 17 · 1.5</span><p class="o-body">Orbe earns 15% when it finds the brand and 5% when you bring it, paid by the brand. Creators never pay.</p></div>
-      <div class="bk-step"><span class="o-label">Label · Commit Mono 500 · 12 · +6% · capitals</span><p class="o-label">Checked 18 Oct 2026 · model 2026.10</p></div>
+      <div class="bk-step"><span class="o-label">Lede · Newsreader 400 · 20 to 24</span><p class="o-lede">A channel, a newsletter, a podcast, a portfolio: each one rated fairly against its own kind.</p></div>
+      <div class="bk-step"><span class="o-label">Body · 400 · 16 to 17</span><p class="o-body">Orbe earns 15% when it finds the brand and 5% when you bring it, paid by the brand. Creators never pay.</p></div>
+      <div class="bk-step"><span class="o-label">Label · Commit Mono 500 · 12, the floor</span><p class="o-label">Checked 18 Oct 2026 · model 2026.10</p></div>
     </div>
+    </details>
 
-    <h3 class="bk-sub o-label">Product scale, fixed, 14 base</h3>
-    <div class="bk-pscale" data-pscale></div>
-
-    <h3 class="bk-sub o-label">Figures</h3>
     <div class="bk-figures">
-      <div><p class="o-figure">+0.71 <span class="o-band">Average</span></p><p class="o-small">Ratings: Schibsted 700, proportional lining figures, a true minus (−0.20), the band in Newsreader italic.</p></div>
-      <div class="o-window"><div class="o-window-bar"><span>Money in a column</span><span>tabular</span></div><div class="o-window-body"><table class="bk-money"><tr><td>Sponsorship, brand found by Orbe</td><td>15%</td></tr><tr><td>Sponsorship, brand you brought</td><td>5%</td></tr><tr><td>A typical first week</td><td>7,077</td></tr><tr><td>Best of the last twelve</td><td>3.7×</td></tr></table></div></div>
-      <div><p class="bk-figrule"><b>Write it</b> 25,877 · £12,400 · 3.7× · 51% · 18 Oct 2026 · 5k to 25k</p><p class="bk-figrule"><b>Never</b> 25.9K views!! · ~£12k · 3.7x · 18/10/26 · 5k-25k</p></div>
+      <div><p class="o-figure" data-fig>+1.23 <span class="o-band">Good</span></p><p class="o-small">Ratings: Schibsted 700, a true minus (−0.20), a plus on positives, the band in Newsreader italic. Money in columns is tabular.</p></div>
+      <div><p class="bk-figrule"><b>Write it</b> 25,877 · £12,400 · 3.7× · 51% · 18 Oct 2026 · 5k to 25k</p><p class="bk-figrule"><b>Never</b> <s>25.9K views!! · ~£12k · 3.7x · 18/10/26</s></p></div>
     </div>
   </div>
 </section>
 
-<!-- 04 texture -->
-<section class="bk-sec" id="texture" data-surface="paper">
+<!-- 03 what Orbe draws: the survivors -->
+<section class="bk-sec" id="draws" data-surface="paper">
   <div class="bk-wrap">
-    <p class="o-num"><span>[04]</span><span>Texture and image</span></p>
-    <h2 class="o-display">Pixels for the machine. Paint for the people.</h2>
-    <div class="bk-sides">
-      <div class="bk-side">
-        <h3 class="o-title">The pixel side</h3>
-        <p class="o-small bk-measure">fal's energy and TypeSafe's confidence. Use it on the brand field, around the rating and the product, and wherever Orbe is counting. Square cells on a grid, never blurred, never scaled by a fraction.</p>
-        <div class="bk-tiles">
-          <figure class="bk-tile" data-surface="field"><div class="bk-tile-art bk-grain" aria-hidden="true"></div><figcaption><b>Grain</b> on every brand field, at 22%. It warms flat colour. <code>grain.svg</code></figcaption></figure>
-          <figure class="bk-tile is-night"><div class="bk-tile-art o-pixelated" data-orb aria-hidden="true"></div><figcaption><b>Dithered orb</b> behind big type and figures; the lap's sphere, made by a machine. <code>orb-*.svg</code></figcaption></figure>
-          <figure class="bk-tile" data-surface="field"><div class="bk-tile-art o-pixelated" data-critter="tile" aria-hidden="true"></div><figcaption><b>Creatures</b>, one per screen at most. They walk at nine frames a second and have eyes. <code>creature()</code></figcaption></figure>
-          <figure class="bk-tile" data-surface="field"><div class="bk-tile-art" data-bartile aria-hidden="true"></div><figcaption><b>Fat bars</b>, two per field, crossing behind objects and never through type. <code>bars()</code></figcaption></figure>
-          <figure class="bk-tile is-wide"><div class="bk-tile-art is-stripe" data-stripe aria-hidden="true"></div><figcaption><b>Pixel stripe</b> between sections and at the foot of posts. <code>pixelStripe()</code></figcaption></figure>
+    <p class="o-label bk-kick">03 What Orbe draws</p>
+    <h2 class="o-display">Square for numbers. Paint for people.</h2>
+    <p class="o-lede bk-measure">Four pieces, each already on a page or chosen for one. Nothing is drawn that does not count something or hold someone's work.</p>
+
+    <div class="bk-draw">
+      <figure class="bk-piece is-yard">
+        <div><div class="bk-ow"><span class="bk-ow-tab" data-yard-tab>One upload, three yardsticks</span><ol class="bk-yard" data-yard></ol><div class="bk-rt" data-rt></div></div><p class="bk-why" data-why></p></div>
+        <figcaption><b>The yardstick window</b> <span>r6-a. One piece of work against the smallest, the biggest and its own size. The two wrong verdicts are struck once read.</span></figcaption>
+      </figure>
+      <figure class="bk-piece is-brush">
+        <div class="bk-brush">
+          <canvas class="bk-paint bk-brush-land" data-scene="hero" data-seed="7" aria-hidden="true"></canvas>
+          <div class="bk-brush-marks" data-brush></div>
         </div>
-      </div>
-      <div class="bk-side">
-        <h3 class="o-title">The painted side</h3>
-        <p class="o-small bk-measure">The idyll's warmth. Use it where a person and their work are the subject: the hero's ground, the archive, the after-post email, the deck. Brushed by hand in code, layered, dry at the edges, crayon on top.</p>
-        <div class="bk-tiles">
-          <figure class="bk-tile is-wide is-tall"><div class="bk-tile-art" data-scape="tile" aria-hidden="true"></div><figcaption><b>Landscapes</b> in four palettes: sky (the brand's own), dawn, noon and night. <code>landscape()</code></figcaption></figure>
-          <figure class="bk-tile"><div class="bk-tile-art bk-crayons" data-crayons aria-hidden="true"></div><figcaption><b>Crayon marks</b>: a loop round the point, an underline, an arrow. One per view. <code>crayon()</code></figcaption></figure>
-          <figure class="bk-tile"><div class="bk-tile-art bk-foldertile"><div class="o-folder"><span class="o-folder-tab">[02] Your rating</span><p class="o-small">A folder holds a person's things.</p></div></div><figcaption><b>Folders</b> with [01] tabs: the archive, the sections, the forms.</figcaption></figure>
-        </div>
-      </div>
+        <figcaption><b>The brush</b> <span>r6-g. Ground painted stroke by stroke in code, one ember stroke under the figure, ink bars exactly as long as each part's score.</span></figcaption>
+      </figure>
+      <figure class="bk-piece">
+        <div class="bk-fx bk-fx-tiles" data-tiles></div>
+        <figcaption><b>Tiles</b> <span>One sentence in clashing blocks that reshuffle. For a closing line, once per page.</span></figcaption>
+      </figure>
+      <figure class="bk-piece">
+        <div class="bk-fx bk-fx-stamp" data-stamp></div>
+        <figcaption><b>Stamp type</b> <span>A printed poster loop for social posts and the launch. Never behind a figure.</span></figcaption>
+      </figure>
     </div>
 
-    <h3 class="bk-sub o-label">Framing the creator's own work</h3>
-    <div class="bk-frames" data-frames></div>
     <ul class="bk-list bk-measure">
-      <li>Their work is shown as they made it: cropped to fill, never filtered, dithered, tinted or painted over.</li>
-      <li>It sits in corner brackets, a folder or the card's window, with a small dark tooltip naming it: <span class="o-pill is-tip"><b>artefact 61</b> [episode 61: bread]</span></li>
-      <li>Orbe's own paintings stand in only where there is no work to show, and are labelled as made up.</li>
+      <li><b>Counting marks:</b> square windows with an ink bar, the band rule with a square marker, the reach track out of 100, the struck verdict.</li>
+      <li><b>People's marks:</b> paper folders with a named tab, painted ground, a small dark tooltip naming the work: <span class="o-pill is-tip"><b>upload</b> the marsh at 4am</span></li>
+      <li><b>Their work</b> is shown as they made it, cropped to fill, never filtered or painted over. Orbe's paintings stand in only where there is no work, and say they are made up.</li>
     </ul>
   </div>
 </section>
 
-<!-- 05 shape -->
-<section class="bk-sec" id="shape" data-surface="paper" style="background: var(--surface-sunk)">
+<!-- 04 shape, UI and motion -->
+<section class="bk-sec bk-sunk" id="shape" data-surface="paper">
   <div class="bk-wrap">
-    <p class="o-num"><span>[05]</span><span>Shape and UI</span></p>
-    <h2 class="o-display">Square for numbers. Round for people.</h2>
-    <div class="bk-shapes">
-      <figure><div class="o-window"><div class="o-window-bar"><span>Window</span><span>0px</span></div><div class="o-window-body"><p class="o-figure bk-mini-fig">+0.64</p><p class="o-small">Figures, money, product data. Ink border 1.5px, an ink title bar in mono capitals, a hard 6px shadow.</p></div></div></figure>
-      <figure><div class="o-folder bk-shape-folder"><span class="o-folder-tab">[01] Your work</span><p class="o-small">People and their work, sections, forms. 18px corners, a tab with a cut corner, paper on the field.</p></div></figure>
-      <figure><div class="bk-pillset"><span class="o-pill is-on">Podcast</span><span class="o-pill">Newsletter</span><span class="o-pill">Channel</span><span class="o-pill is-tip"><b>Measured against</b> 5k to 25k</span><span class="bk-bar-demo" aria-hidden="true"></span></div><figcaption class="o-small">Pills and bars: kinds of work, size bands, tooltips, every button. Fully round.</figcaption></figure>
-    </div>
-
+    <p class="o-label bk-kick">04 Shape, UI and motion</p>
+    <h2 class="o-display">Square holds money. Round holds people.</h2>
     <div class="bk-ui">
       <div class="bk-ui-block"><h3 class="bk-sub o-label">Buttons</h3>
-        <div class="bk-row"><span class="o-btn">Reserve your handle</span><span class="o-btn is-hover">Hover</span><span class="o-btn is-press">Pressed</span><span class="o-btn is-focus">Focus</span><span class="o-btn is-quiet">For buyers</span></div>
-        <p class="o-small">One action per view, in cobalt. It lifts on hover on a hard ink shadow and presses flat. Quiet buttons are outlined in the text colour.</p></div>
-      <div class="bk-ui-block"><h3 class="bk-sub o-label">Inputs</h3>
-        <label class="o-input"><span class="o-input-pre">orbe.vc/@</span><input placeholder="yourhandle" aria-label="Handle"></label>
-        <label class="o-input is-focus"><span class="o-input-pre">orbe.vc/@</span><input value="thelongtable" aria-label="Handle, focused example"></label>
-        <label class="o-input is-error"><span class="o-input-pre">orbe.vc/@</span><input value="the long table" aria-label="Handle, error example"></label><p class="o-hint is-error">Handles use letters, numbers and underscores.</p></div>
+        <div class="bk-row"><span class="o-btn">Reserve your handle</span><span class="o-btn is-press">Pressed</span><span class="o-btn is-quiet">For buyers</span></div>
+        <p class="o-small">One action per view, in cobalt. It lifts on a hard ink shadow and presses flat.</p></div>
+      <div class="bk-ui-block"><h3 class="bk-sub o-label">Inputs, 16px</h3>
+        <label class="o-input"><span class="o-input-pre">orbe.vc/@</span><input placeholder="yourhandle" aria-label="Handle, example"></label>
+        <label class="o-input is-error"><span class="o-input-pre">orbe.vc/@</span><input value="field recordings" aria-label="Handle, error example"></label><p class="o-hint is-error">Handles use letters, numbers, dots and dashes.</p></div>
       <div class="bk-ui-block"><h3 class="bk-sub o-label">Status, in words</h3>
         <p class="o-status is-positive">Read from payouts, checked 18 Oct 2026</p>
         <p class="o-status is-warning">Two payouts do not add up; your record says so</p>
         <p class="o-status is-negative">Orbe can no longer read this account</p>
-        <p class="o-status is-info">Reading your payouts</p>
         <p class="o-small">A dot and a sentence. Never a seal, a badge or a tick.</p></div>
-      <div class="bk-ui-block"><h3 class="bk-sub o-label">The colour toggle</h3>
-        <div class="o-toggle" role="group" aria-label="Colour scheme example"><button type="button" aria-pressed="true" style="--dot: var(--orbe-sky)">Blue</button><button type="button" aria-pressed="false" style="--dot: var(--orbe-peony)">Pink</button></div>
-        <p class="o-small">For the founder's comparison only; a page ships in one scheme. Bottom corner, chalk, ink border.</p>
-        <h3 class="bk-sub o-label">Corners and rules</h3>
-        <div class="bk-rulesdemo"><span class="o-brackets">Corner brackets</span><span class="bk-hair">Hairline 1px at 16% ink</span><span class="bk-strong">Rule 1.5px ink</span></div></div>
     </div>
-
-    <h3 class="bk-sub o-label">Motion</h3>
+    <details class="bk-cdet bk-fold" data-fold>
+      <summary><span class="o-label">Motion curves</span><span class="bk-csum">Settle, standard, play and chisel</span></summary>
     <div class="bk-motion" data-motion></div>
-    <ul class="bk-list bk-measure">
-      <li><b>Motion explains.</b> A rating counts up once from zero, a folder lifts to show a card, the wordmark is cut once in the nav.</li>
-      <li><b>Play overshoots, money settles.</b> Creatures, pills and dealt cards may spring; figures, fees and payouts never bounce.</li>
-      <li><b>Pixels step, paint fades.</b> Creatures step at 110ms a frame; brush layers fade in over 700ms, 120ms apart.</li>
-      <li><b>Reduced motion</b> turns every movement into an instant change.</li>
-    </ul>
+    </details>
+    <p class="o-small bk-measure bk-after">Motion explains: a figure counts up once, a folder lifts, a wrong verdict is struck, the wordmark is cut once. Play may overshoot; figures, fees and payouts never bounce. Reduced motion makes every change instant.</p>
   </div>
 </section>
 
-<!-- 06 voice -->
+<!-- 05 voice -->
 <section class="bk-sec" id="voice" data-surface="deep">
   <div class="bk-wrap">
-    <p class="o-num"><span>[06]</span><span>Voice</span></p>
+    <p class="o-label bk-kick">05 Voice</p>
     <h2 class="o-display">Cheeky with creators. Exact with money.</h2>
     <div class="bk-voice">
       <div>
         <h3 class="o-title">For creators: a mate who knows the numbers</h3>
-        <p class="o-small">Short, warm, second person, a little cheeky. Celebrate the work, then give the figure. British English, no dashes.</p>
+        <p class="o-small">Short, warm, second person, a little cheeky. Celebrate the work, then give the figure.</p>
         <ul class="bk-do">
-          <li><b>Do</b><span>Your best first week yet. Post it.</span></li>
-          <li><b>Do</b><span>Zero is typical. You are at +0.71.</span></li>
+          <li><b>Do</b><span>Your most watched upload yet. Post it.</span></li>
+          <li><b>Do</b><span>Zero is typical. You are at +1.23.</span></li>
           <li><b>Do</b><span>Free, for good. Creators never pay.</span></li>
-          <li><b>Do</b><span>Moved up a size. New neighbours, same you.</span></li>
           <li class="is-dont"><b>Don't</b><span>Unlock your creator economy potential with AI-powered insights!</span></li>
-          <li class="is-dont"><b>Don't</b><span>You're crushing it, superstar!!!</span></li>
           <li class="is-dont"><b>Don't</b><span>Your content scored 64/100. Try harder.</span></li>
         </ul>
       </div>
@@ -275,22 +228,20 @@
           <li><b>Do</b><span>Read from payouts, not estimates. Checked 18 Oct 2026.</span></li>
           <li><b>Do</b><span>15% when Orbe finds the brand, 5% when you bring it, paid by the brand.</span></li>
           <li><b>Do</b><span>Orbe introduces. You negotiate and sign with your own advisers.</span></li>
-          <li><b>Do</b><span>Estimated from public signals. Labelled wherever shown.</span></li>
           <li class="is-dont"><b>Don't</b><span>Verified creators. Bank-grade. Guaranteed returns.</span></li>
           <li class="is-dont"><b>Don't</b><span>Revenue ~£12k/mo (est.)</span></li>
-          <li class="is-dont"><b>Don't</b><span>Invest in creators through Orbe.</span></li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 07 applications -->
-<section class="bk-sec bk-appsec" id="applications">
+<!-- 06 applications -->
+<section class="bk-sec bk-appsec" id="applications" data-surface="night">
   <div class="bk-wrap">
-    <p class="o-num"><span>[07]</span><span>Applications</span></p>
-    <h2 class="o-display">The system, at work.</h2>
-    <p class="o-small bk-measure">Each is drawn live from the brand's own parts at its native size and scaled to fit. Exports: <code>shots/app-*-blue.png</code> and <code>shots/app-*-pink.png</code>. Every figure is from the Orbe engine's made-up examples.</p>
+    <p class="o-label bk-kick">06 Applications</p>
+    <h2 class="o-display">Three at work.</h2>
+    <p class="o-small bk-measure">Drawn live at native size from the site's own parts and scaled to fit. Exports: <code>shots/app-*-blue.png</code> and <code>shots/app-*-pink.png</code>. Every figure is from the Orbe engine's made-up examples.</p>
     <div class="bk-apps" data-apps></div>
   </div>
 </section>
@@ -298,19 +249,26 @@
 </main>
 
 <footer class="bk-foot" data-surface="field">
-  <div class="bk-wrap">
-    <div class="bk-foot-grid">
-      <div><h3 class="o-title">Adopt it</h3>
+  <div class="bk-wrap bk-foot-grid">
+    <div><h3 class="o-title">Adopt it</h3>
 <pre><code>&lt;link rel="stylesheet" href="/assets/fonts.css"&gt;
 &lt;link rel="stylesheet" href="/assets/brand/tokens.css"&gt;
 &lt;link rel="stylesheet" href="/assets/brand/components.css"&gt;
 &lt;html data-scheme="blue"&gt;</code></pre></div>
-      <div><h3 class="o-title">Files</h3><p class="o-small"><code>docs/BRAND.md</code> the system · <code>assets/brand/tokens.css</code> · <code>components.css</code> · <code>brand.js</code> the generators · <code>build.mjs</code> the SVG exports · <code>assets/r5/wordmark.js</code> · <code>assets/fonts.css</code></p></div>
-    </div>
-    <div class="bk-foot-wm"><a class="wm" href="#top" aria-label="Orbe, back to top">Orbe</a></div>
+    <div><h3 class="o-title">Files</h3><p class="o-small"><code>docs/BRAND.md</code> the system · <code>assets/brand/tokens.css</code> · <code>components.css</code> · <code>r6-g/painter.js</code> the brush · <code>assets/fx/</code> tiles and stamp type · <code>assets/r5/wordmark.js</code></p>
+      <p class="o-small bk-links"><a href="../">The site index</a> · <a href="icons.html">Icons</a> · <a href="../fx/">Motion lab</a></p>
+      <div class="o-toggle bk-foot-toggle" role="group" aria-label="Colour scheme, in the footer">
+        <button type="button" data-scheme-set="blue" aria-pressed="true" style="--dot: var(--orbe-sky)">Blue</button>
+        <button type="button" data-scheme-set="pink" aria-pressed="false" style="--dot: var(--orbe-peony)">Pink</button>
+      </div></div>
   </div>
 </footer>
 
+<script>
+  /* Folded sections stay folded on a phone and open on wider screens, before first paint. */
+  if (innerWidth >= 600) for (const d of document.querySelectorAll("[data-fold]")) d.open = true;
+  if (document.documentElement.dataset.scheme === "pink") for (const b of document.querySelectorAll("[data-scheme-set]")) b.setAttribute("aria-pressed", String(b.dataset.schemeSet === "pink"));
+</script>
 <script type="module" src="book.js"></script>
 </body>
 </html>

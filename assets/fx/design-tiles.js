@@ -25,13 +25,13 @@ export const WORDS = ["rated", "against", "creators", "your", "size"];
 // source are replaced by cobalt, claret and peony.
 export const SWATCHES = [
   { bg: "#141311", fg: "#F3F0E8" },
-  { bg: "#FF2E20", fg: "#141311" },
+  { bg: "#FF5A1F", fg: "#141311" },
   { bg: "#F2879E", fg: "#141311" },
-  { bg: "#22E58B", fg: "#141311" },
+  { bg: "#8E9A4A", fg: "#141311" },
   { bg: "#1F4BFF", fg: "#FBFAF6" },
-  { bg: "#FFE14D", fg: "#141311" },
-  { bg: "#18B6FF", fg: "#141311" },
-  { bg: "#FF7A1A", fg: "#141311" },
+  { bg: "#EED56A", fg: "#141311" },
+  { bg: "#4D9AD0", fg: "#141311" },
+  { bg: "#F3F0E8", fg: "#141311" },
   { bg: "#6F1726", fg: "#FBD9E0" },
   { bg: "#9EE9FB", fg: "#1F4BFF" },
 ];
@@ -73,8 +73,12 @@ function measureWord(word, family, weight) {
   return { glyphs, width: ctx.measureText(word).width };
 }
 
-function pickAvoiding(used) {
-  const free = SWATCHES.filter((s) => !used.includes(s));
+/* Peony and cobalt never touch: BRAND keeps the two schemes' leads apart. */
+const CLASH = { "#F2879E": "#1F4BFF", "#1F4BFF": "#F2879E" };
+const clashes = (s, near) => near.some((n) => n && CLASH[s.bg] === n.bg);
+
+function pickAvoiding(used, near = []) {
+  const free = SWATCHES.filter((s) => !used.includes(s) && !clashes(s, near));
   const pool = free.length ? free : SWATCHES;
   return pool[(Math.random() * pool.length) | 0];
 }
@@ -224,7 +228,8 @@ export function mount(el, opts = {}) {
 
   const recolor = (t) => {
     const others = tiles.filter((o) => o !== t).map((o) => o.swatch);
-    const sw = pickAvoiding(others.concat([t.swatch]));
+    const i = tiles.indexOf(t);
+    const sw = pickAvoiding(others.concat([t.swatch]), [tiles[i - 1]?.swatch, tiles[i + 1]?.swatch]);
     t.swatch = sw;
     for (const r of t.rects) r.el.style.fill = sw.bg;
     t.text.style.fill = sw.fg;
