@@ -414,7 +414,7 @@ $("[data-reach-reset]").addEventListener("click", () => { reachIn.value = "0"; r
 
 /* The price calculator: the engine's own fee schedule, three tiers on one axis, each a third wide. */
 const priceIn = $("[data-price-in]");
-const TIERS = [[50000, 500000], [500000, 2000000], [2000000, 10000000]];
+const TIERS = [[20000, 500000], [500000, 2000000], [2000000, 10000000]];
 const priceAt = (t) => { const i = Math.min(2, Math.floor(t / 100)); const [a, b] = TIERS[i]; const p = a + (b - a) * ((t - i * 100) / 100); const step = p < 1e6 ? 10000 : 50000; return Math.round(p / step) * step; };
 const money = (n) => formatMoney({ amount: n, currency: "GBP" });
 $("[data-stairs]").innerHTML = TIERS.map(([a, b], i) => {

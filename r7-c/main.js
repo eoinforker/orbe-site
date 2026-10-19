@@ -303,8 +303,9 @@ function renderSpon() {
     <p class="st-f">Orbe's fee <b>${money(x.f.fee)}</b>, paid by the brand.</p>
   </div>`).join("");
 }
+let salePrice = 220000;
 function renderSale() {
-  const p = gbp(niceSale(saleDial.to(+saleIn.value)));
+  const p = gbp(salePrice);
   const f = successFee(p), b = buyerPremium(p);
   const keep = p.amount - f.fee.amount;
   setText("[data-sale-v]", money(p));
@@ -325,7 +326,7 @@ function renderSale() {
   </div>`;
 }
 sponIn.addEventListener("input", renderSpon);
-saleIn.addEventListener("input", renderSale);
+saleIn.addEventListener("input", () => { salePrice = niceSale(saleDial.to(+saleIn.value)); renderSale(); });
 renderSpon();
 renderSale();
 

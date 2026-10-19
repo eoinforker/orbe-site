@@ -100,7 +100,7 @@ function makeLog(lo, hi) {
   return { toVal: (p) => Math.exp(L + (p / 1000) * (H - L)), toPos: (v) => Math.round(((Math.log(v) - L) / (H - L)) * 1000) };
 }
 const SNAP = 18; /* slider steps, of 1000 */
-function bindSlider(name, { lo, hi, ticks, label, onChange, initial, nice = (v) => v, valueText }) {
+function bindSlider(name, { lo, hi, ticks, label, onChange, initial, nice = (v) => v, valueText, fast = null, heavy = false }) {
   const input = $(`[data-slider="${name}"]`);
   const sc = makeLog(lo, hi);
   const tickEl = $(`[data-ticks="${name}"]`);
@@ -115,8 +115,14 @@ function bindSlider(name, { lo, hi, ticks, label, onChange, initial, nice = (v) 
     if (from !== "input") input.value = String(sc.toPos(v));
     input.style.setProperty("--p", `${input.value / 10}%`);
     input.setAttribute("aria-valuetext", valueText(v));
-    onChange(v);
+    if (fast) fast(v);
+    /* the thumb and readout move this frame; the engine re-rates after the frame paints, once per frame */
+    if (from === "input" && heavy) {
+      if (!pending) requestAnimationFrame(() => setTimeout(() => { const x = pending; pending = null; onChange(x); }, 0));
+      pending = v;
+    } else onChange(v);
   };
+  let pending = null;
   input.addEventListener("input", () => {
     const p = +input.value;
     let v = sc.toVal(p);
@@ -125,6 +131,40 @@ function bindSlider(name, { lo, hi, ticks, label, onChange, initial, nice = (v) 
     set(nice(v), "input");
   });
   input.setAttribute("aria-label", label);
+  /* Touch: the page keeps scrolling. The track only takes horizontal drags (touch-action: pan-y),
+     so a vertical swipe scrolls as normal and never moves a value. Keyboard stays on the native input. */
+  const wrap = document.createElement("div");
+  wrap.className = "slider-wrap";
+  input.before(wrap); wrap.append(input);
+  const fromX = (x) => {
+    const r = input.getBoundingClientRect();
+    const tw = parseFloat(getComputedStyle(input.closest(".ctl")).getPropertyValue("--tw")) || 44;
+    const f = Math.max(0, Math.min(1, (x - r.left - tw / 2) / (r.width - tw)));
+    input.value = String(Math.round(f * 1000));
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  let drag = null;
+  wrap.addEventListener("pointerdown", (ev) => {
+    if (ev.button > 0) return;
+    drag = { id: ev.pointerId, x: ev.clientX, y: ev.clientY, t: performance.now(), moved: ev.pointerType !== "touch", vertical: false };
+    input.focus({ preventScroll: true });
+    if (ev.pointerType !== "touch") { wrap.setPointerCapture(ev.pointerId); fromX(ev.clientX); }
+    wrap.classList.add("is-down");
+  });
+  wrap.addEventListener("pointermove", (ev) => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    if (!drag.moved && Math.abs(ev.clientY - drag.y) > 8) drag.vertical = true; /* a scroll, not a drag */
+    if (!drag.moved && !drag.vertical && Math.abs(ev.clientX - drag.x) > 4) { drag.moved = true; try { wrap.setPointerCapture(ev.pointerId); } catch {} }
+    if (drag.moved) fromX(ev.clientX);
+  });
+  const end = (ev, apply) => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    /* a short, still tap moves the thumb there; anything that travelled up or down was a scroll */
+    if (apply && !drag.moved && !drag.vertical && Math.abs(ev.clientY - drag.y) <= 8 && performance.now() - drag.t < 400) fromX(ev.clientX);
+    drag = null; wrap.classList.remove("is-down");
+  };
+  wrap.addEventListener("pointerup", (ev) => end(ev, true));
+  wrap.addEventListener("pointercancel", (ev) => end(ev, false)); /* the browser took it as a scroll */
   return { set, get: () => value, scale: sc, input };
 }
 
@@ -313,18 +353,27 @@ function bindRatingSliders() {
     ticks: [...bands.slice(1).map((b) => ({ v: b.min, l: compact(b.min) })), { v: MADE_UP[k].o.audience, l: "Now", own: true }],
     nice: (v) => (v >= 1e6 ? Math.round(v / 1e4) * 1e4 : v >= 1e4 ? Math.round(v / 1e3) * 1e3 : Math.round(v / 10) * 10),
     valueText: (v) => `${num.format(v)} ${spec.audienceNoun}`,
+    heavy: true, fast: (v) => { $('[data-out="size"]').textContent = num.format(v); },
     onChange: (v) => { S.audience = v; rerate(); paint(); },
   });
   reach = bindSlider("reach", {
     lo: 0.1, hi: 10, initial: 1, label: `How many people a typical ${WORK[k]} reaches`,
     ticks: [{ v: 0.25, l: "÷4" }, { v: 0.5, l: "÷2" }, { v: 1, l: "Now" }, { v: 2, l: "×2" }, { v: 4, l: "×4" }],
     valueText: (v) => `${num.format((baseReach() * v))} ${COUNT_NOUN[k]}`,
+    heavy: true, fast: (v) => { $('[data-out="reach"]').textContent = num.format(baseReach() * v); },
     onChange: (v) => { S.scale = v; rerate(); paint(); },
   });
 }
-const baseReach = () => rate(baseSnap(S.kind), FIXTURE_NOW).detail.parts.find((p) => p.key === "reach").measured * MADE_UP[S.kind].o.audience;
+const BR = {};
+/* a typical work's reach count does not depend on the audience it is read against */
+const baseReach = () => (BR[S.kind] ??= rate(baseSnap(S.kind), FIXTURE_NOW).detail.parts.find((p) => p.key === "reach").measured * MADE_UP[S.kind].o.audience);
 /* rebinding replaces the inputs' listeners by cloning them */
-function freshSlider(name) { const old = $(`[data-slider="${name}"]`); const n = old.cloneNode(true); old.replaceWith(n); }
+function freshSlider(name) {
+  const old = $(`[data-slider="${name}"]`);
+  const n = old.cloneNode(true);
+  const w = old.closest(".slider-wrap");
+  (w ?? old).replaceWith(n);
+}
 for (const b of $$("[data-reset]")) b.addEventListener("click", () => {
   if (b.dataset.reset === "size") size.set(MADE_UP[S.kind].o.audience);
   else reach.set(1);
