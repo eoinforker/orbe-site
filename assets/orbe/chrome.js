@@ -10,7 +10,7 @@
 
   The header, the one navigation on every page: the lockup (the Portal, then
   the Carved wordmark, both in currentColor), the Products menu (every tool
-  with one line on it, and All products), How it works and the Reserve
+  with one line on it, and All products), How it works, Pricing and the Reserve
   button; on a phone, a Menu button and a sheet with every tool. At the
   very top it has no bar and each part takes the colour of the field under it;
   once the page moves it is a solid bar (Paper, or Ink over a dark field), so
@@ -36,6 +36,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
   list these, then "All products".
 */
 export const PRODUCTS = [
+  ["Your Orbe", "products/you/", "Your highlights, against your size.", "also"],
   ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
   ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
   ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
@@ -46,16 +47,16 @@ export const PRODUCTS = [
 export const ALL_PRODUCTS = ["All products", "products/", "Every tool, running in your browser."];
 
 /* the links beside the Products menu ("#..." is the homepage's own anchor) */
-export const NAV = [["How it works", "#tools"]];
+export const NAV = [["How it works", "#tools"], ["For teams", "teams/"], ["Pricing", "pricing/"]];
 
 /* the sheet on a phone: every tool, then all products */
 export const SHEET = [...PRODUCTS.map(([t, p]) => [t, p]), ALL_PRODUCTS.slice(0, 2)];
 
 /* the public footer, by path from the site root; "#..." entries are the homepage's own anchors */
 export const FOOTER = [
-  ["Products", [["Rate my work", "products/rate/"], ["Podcasts", "products/podcasts/"], ["Sponsorships", "products/sponsorships/"], ["Selling", "products/selling/"], ["Diligence", "products/diligence/"], ["Roster", "products/roster/"]]],
-  ["For creators", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"]]],
-  ["Company", [["Brand", "brand/"]]],
+  ["Products", [["Your Orbe", "products/you/"], ["Rate my work", "products/rate/"], ["Podcasts", "products/podcasts/"], ["Sponsorships", "products/sponsorships/"], ["Selling", "products/selling/"], ["Diligence", "products/diligence/"], ["Roster", "products/roster/"]]],
+  ["For creators", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"], ["Pricing", "pricing/"]]],
+  ["Company", [["For teams", "teams/"], ["Brand", "brand/"]]],
   ["Legal", [["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
 ];
 
@@ -254,7 +255,7 @@ export function mountFooter(target, { root = "./", home, people, note = "Indepen
         <div class="ob-foot-col"><h3>${esc(h)}</h3><ul>${links.map(([t, p]) => `<li><a href="${esc(href(p))}">${esc(t)}</a></li>`).join("")}</ul></div>`).join("")}
       </nav>
     </div>
-    <p class="ob-foot-line"><span>${esc(note)}</span><span>Free for creators, for good.</span></p>
+    <p class="ob-foot-line"><span>${esc(note)}</span><span>The core is free for creators, for good. Orbe earns from teams, from optional Pro, and when money moves.</span></p>
     <div class="ob-giant-mark" data-head="light" aria-hidden="true">
       <p class="ob-giant-cap" data-ob-giant-cap></p>
       <div class="ob-giant-svg" data-ob-giant-svg></div>

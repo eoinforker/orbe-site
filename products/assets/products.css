@@ -427,6 +427,8 @@ iframe.doc.is-in { outline: 2px solid var(--orbe-cobalt); outline-offset: -2px; 
 .proof-cap { min-height: 4.35em; }
 .tools-h { margin-bottom: 24px; }
 .tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ob-gap); }
+.tool-wide { grid-column: 1 / -1; }
+.tool.tool-wide .ob-win-body { min-height: 0; }
 @media (max-width: 1023px) { .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .tools { grid-template-columns: minmax(0, 1fr); } }
 .tool .ob-win-body { gap: 8px; padding: 20px; min-height: 196px; }

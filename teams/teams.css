@@ -1,0 +1,53 @@
+/*
+  Orbe for teams: the company pitch. Loads after orbe.css and products.css
+  and adds only the three audience windows, the usage-rights table, the
+  creator-first band and the closing call. Flat colour fields, no art.
+*/
+
+/* the Coming chip: an outline, as on the pricing page */
+.tm-soon { background: transparent; box-shadow: inset 0 0 0 1px currentColor; padding: 0 10px; }
+
+.tm-band-act { margin-top: 16px; }
+
+/* ---------------------------------------------------------------- three audiences */
+.tm-cards { list-style: none; margin: 0; padding: 0; align-items: stretch; }
+.tm-cards > .ob-win { display: flex; flex-direction: column; }
+.tm-cards .ob-win-body { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 20px; }
+.tm-p { font-size: var(--ob-t16); line-height: 1.5; max-width: 46ch; text-wrap: pretty; }
+.tm-list { list-style: none; margin: auto 0 0; padding: 12px 0 0; border-top: 1px solid var(--rule); display: grid; gap: 10px; }
+.tm-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; font-size: var(--ob-t14); line-height: 1.4; }
+.tm-list .ob-chip { flex: none; }
+.tm-foot { margin-top: 16px; }
+
+/* ---------------------------------------------------------------- usage rights */
+.tm-rights { display: grid; gap: var(--ob-gap); }
+.tm-rights-say .sub { margin-top: 12px; }
+.tm-rights-say .ob-chips { margin-top: 16px; }
+@media (min-width: 1024px) {
+  .tm-rights { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); align-items: start; }
+}
+.tm-table { margin: 0; min-width: 0; }
+.tm-table .ob-win-body { display: grid; gap: 16px; padding: 20px; }
+@media (max-width: 720px) { .tm-table .ob-win-body { padding: 16px; } }
+.tm-table .tbl td { white-space: nowrap; }
+.tm-st { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; font: 500 var(--ob-t12)/1 var(--font-text); color: var(--orbe-ink); }
+.tm-ok { background: var(--orbe-positive-tint); }
+.tm-due { background: var(--orbe-warning-tint); }
+.tm-ask { background: var(--orbe-mist); }
+
+/* ---------------------------------------------------------------- creator first: a flat Mist field */
+.tm-band { background: var(--orbe-mist); color: var(--orbe-ink); padding: var(--ob-sec) 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.tm-rules { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 16px var(--ob-gap); grid-template-columns: minmax(0, 1fr); }
+.tm-rules li { padding-top: 12px; border-top: 1px solid var(--orbe-ink); font-size: var(--ob-t16); line-height: 1.5; text-wrap: pretty; }
+.tm-rules b { display: block; margin-bottom: 4px; font-weight: 600; }
+@media (min-width: 640px) { .tm-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .tm-rules { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ---------------------------------------------------------------- the call */
+.tm-cta { padding: var(--ob-sec) 0; }
+.tm-cta-in { display: grid; gap: 24px; align-items: end; }
+.tm-cta .sub { margin-top: 12px; }
+@media (min-width: 1024px) { .tm-cta-in { grid-template-columns: minmax(0, 1fr) auto; } }
+.tm-what { flex: 1 1 18ch; min-width: 0; }
+.tm-what .ob-lnk { display: inline; }
+@media (max-width: 720px) { .tm-table .tbl td { white-space: normal; } }

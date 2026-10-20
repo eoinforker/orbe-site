@@ -164,7 +164,7 @@ $$(".bk-kind").forEach((el) => {
 /* ---------------------------------------------------------------- type: the ladder, sized by the live tokens */
 const LADDER = [
   ["--ob-t12", "Labels, captions, chips", "Checked 18 Oct 2026"],
-  ["--ob-t14", "Notes, links, the header", "Free for creators, for good."],
+  ["--ob-t14", "Notes, links, the header", "The rating is free, for good."],
   ["--ob-t16", "Body and buttons", "Your work, read properly."],
   ["--ob-t18", "The lede", "Rated against your size."],
   ["--ob-t24", "Small heads", "Know what a slot is worth."],

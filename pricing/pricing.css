@@ -1,0 +1,70 @@
+/*
+  Pricing, on the shared system (../assets/orbe/orbe.css). A short sky band
+  with the title and the key to the labels, then four windows (Free, Pro,
+  Teams, When money moves) and a few questions that open in place.
+  Four columns from 1024, two on a tablet, one on a phone.
+*/
+.pc-wrap { width: 100%; max-width: calc(var(--ob-max) + 2 * var(--ob-g)); margin: 0 auto; padding: 0 var(--ob-g); }
+
+/* ---------------------------------------------------------------- the band */
+.pc-hero { padding: calc(var(--ob-head) + clamp(24px, 0.5rem + 2.4vw, 56px)) 0 clamp(32px, 1rem + 2vw, 56px); border-bottom: 1px solid var(--rule); }
+.pc-hero .ob-title { max-width: 22ch; }
+.pc-lede { margin-top: 16px; max-width: 56ch; }
+.pc-key { margin-top: 16px; }
+.pc-key .ob-chip { height: 26px; padding: 0 10px 0 8px; font-size: var(--ob-t14); }
+/* Coming has no icon: a thin ring says not yet */
+.pc-soon { background: transparent; box-shadow: inset 0 0 0 1px currentColor; padding: 0 8px; }
+.pc-key .pc-soon { padding: 0 10px; }
+
+/* ---------------------------------------------------------------- the four windows */
+.pc-page { padding-top: clamp(24px, 0.5rem + 2vw, 48px); padding-bottom: var(--ob-sec); }
+.pc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ob-gap); align-items: stretch; }
+@media (max-width: 1023px) { .pc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .pc-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.pc-plan .ob-win-body { gap: 4px; padding: 20px 18px 18px; }
+.pc-plan .ob-h3 { margin-bottom: 2px; }
+.pc-plan .ob-k { color: var(--orbe-graphite); }
+.pc-price { margin-top: 16px; font: 500 var(--ob-t32)/1.1 var(--font-display); letter-spacing: -0.03em; }
+.pc-per { font: 400 var(--ob-t16)/1 var(--font-text); letter-spacing: 0; color: var(--orbe-graphite); }
+.pc-under { margin-top: 4px; }
+
+.pc-list { margin: 16px 0 12px; border-top: 1px solid var(--rule); }
+.pc-list li {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: var(--ob-t14); line-height: 1.45;
+}
+.pc-list b { font-weight: 600; }
+.pc-list .ob-chip, .pc-fees .ob-chip { color: var(--orbe-graphite); }
+
+.pc-fees { margin: 16px 0 12px; border-top: 1px solid var(--rule); }
+.pc-fees > div { padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: var(--ob-t14); line-height: 1.45; }
+.pc-fees dt { font-weight: 600; }
+.pc-fees dd { margin: 2px 0 0; }
+
+.pc-act { padding-top: 12px; }
+.pc-act .ob-lnk { min-height: 40px; }
+
+/* ---------------------------------------------------------------- questions */
+.pc-faq { margin-top: var(--ob-sec); display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--ob-gap); }
+.pc-faq .ob-h2 { grid-column: 1 / span 4; }
+.pc-qs { grid-column: 6 / span 7; border-top: 1px solid var(--rule-strong); }
+.pc-sign { grid-column: 6 / span 7; max-width: 60ch; }
+@media (max-width: 1023px) {
+  .pc-faq .ob-h2, .pc-qs, .pc-sign { grid-column: 1 / -1; }
+}
+.pc-q { border-bottom: 1px solid var(--rule); }
+.pc-q summary {
+  position: relative; list-style: none; display: flex; align-items: center; min-height: 56px; padding: 12px 40px 12px 0;
+  font: 500 var(--ob-t18)/1.35 var(--font-text);
+}
+.pc-q summary::-webkit-details-marker { display: none; }
+.pc-q summary::after {
+  content: ""; position: absolute; right: 4px; top: 50%; width: 12px; height: 12px; margin-top: -6px; background: currentColor;
+  -webkit-mask: var(--ob-arrow) center / 100% no-repeat; mask: var(--ob-arrow) center / 100% no-repeat;
+  transform: rotate(90deg); transition: transform 200ms var(--ob-ease);
+}
+.pc-q[open] summary::after { transform: rotate(-90deg); }
+.pc-q p { padding: 0 40px 20px 0; max-width: 60ch; color: var(--orbe-graphite); text-wrap: pretty; }
+@media (prefers-reduced-motion: reduce) { .pc-q summary::after { transition: none; } }
+@media (max-width: 720px) { .pc-q summary { font-size: var(--ob-t16); } }

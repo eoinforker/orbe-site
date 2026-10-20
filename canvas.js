@@ -539,13 +539,12 @@ function fillMid() {
 midKind.addEventListener("change", fillMid);
 fillMid();
 
-/* ---------------------------------------------------------------- Diligence and Lending, from the engine's fee table */
+/* ---------------------------------------------------------------- Diligence, from the engine's fee table */
 $("[data-dil]").textContent = gbp(TAKE_RATE.buyers.report.standard);
-$("[data-lend]").textContent = gbp(TAKE_RATE.financingFilePrice);
 
 /* ---------------------------------------------------------------- reserve */
 /* what you make follows the kind chosen in the instrument above */
-const NOTE_IDLE = "Free for creators, for good. We check the handle is yours when ratings open.";
+const NOTE_IDLE = "The rating is free for creators, for good. We check the handle is yours when ratings open.";
 const form = $("[data-reserve]");
 const handleIn = $("[data-handle]");
 const emailIn = $("[data-email]");

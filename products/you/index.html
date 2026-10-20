@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your Orbe</title>
+<meta name="description" content="Your rating against creators your size, your skills, the week's highlights and three next moves. A made-up creator, rated live by the Orbe engine.">
+<meta name="theme-color" content="#F3F0E8">
+<link rel="icon" href="../../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/r5/apple-touch-icon.png">
+<link rel="manifest" href="../../assets/r5/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Orbe">
+<meta property="og:title" content="Your Orbe">
+<meta property="og:description" content="Your rating against creators your size, your skills, the week's highlights and three next moves.">
+<meta property="og:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Your Orbe">
+<meta name="twitter:description" content="Your rating against creators your size, your skills, the week's highlights and three next moves.">
+<meta name="twitter:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<link rel="preload" href="../../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="../../assets/brand/tokens.css">
+<link rel="stylesheet" href="../../assets/orbe/orbe.css">
+<link rel="stylesheet" href="./you.css">
+<script type="module" src="./you.js"></script>
+</head>
+<body class="ob-page ob-grain">
+<a class="ob-skip" href="#main">Skip to the content</a>
+<header data-ob-header></header>
+<main id="main" class="yo">
+
+  <!-- 1. Hello, and your rating -->
+  <section class="yo-hero ob-lit" data-head="light" aria-labelledby="yo-hello">
+    <div class="yo-wrap ob-layer">
+      <div class="yo-top">
+        <p class="ob-cue" data-date>Your Orbe</p>
+        <div class="yo-kinds" role="radiogroup" aria-label="Choose a made-up creator" data-kinds></div>
+      </div>
+
+      <div class="yo-hero-grid">
+        <div class="yo-hello">
+          <h1 class="ob-title" id="yo-hello"><span data-hello>Hello &amp; welcome.</span> <span class="ob-h2-soft" data-hello-soft></span></h1>
+          <p class="ob-lede" data-lede></p>
+          <p class="yo-made"><span class="ob-chip" data-i="record">Made up</span> <span data-made></span></p>
+        </div>
+
+        <figure class="ob-win yo-score" data-pair="note" data-head="light" aria-labelledby="yo-score-cap">
+          <div class="ob-win-bar"><span class="ob-win-title" data-file>rating.txt</span><a class="ob-win-lnk" href="../rate/">Rate yours</a></div>
+          <div class="ob-win-body">
+            <div class="yo-score-row">
+              <div>
+                <p class="ob-k">Your rating</p>
+                <p class="ob-figure yo-fig" data-rating aria-hidden="true">+0.00</p>
+                <p class="yo-band"><b data-band>Good</b> <span data-band-note></span></p>
+              </div>
+              <div class="yo-beats">
+                <p class="yo-beats-n"><span data-beats>0</span><span class="yo-of"> in 100</span></p>
+                <p class="ob-note" data-beats-note></p>
+              </div>
+            </div>
+            <div class="yo-trend">
+              <div class="yo-trend-head"><p class="ob-k">The last eight Sundays</p><p class="ob-note" data-trend-note></p></div>
+              <div class="yo-trend-chart" data-trend></div>
+            </div>
+            <figcaption class="ob-note yo-cap" id="yo-score-cap" data-score-cap></figcaption>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="yo-wrap yo-body" data-head="light">
+
+    <!-- 2. Skills -->
+    <section class="yo-sec" aria-labelledby="yo-skills-h">
+      <div class="yo-sec-head">
+        <h2 class="ob-h2" id="yo-skills-h">Your skills. <span class="ob-h2-soft">Each part of the rating, against creators your size.</span></h2>
+        <p class="ob-note">50 is typical for your size. The number on each bar is how many in 100 you beat.</p>
+      </div>
+      <ol class="yo-skills" data-skills></ol>
+    </section>
+
+    <!-- 3. Highlights -->
+    <section class="yo-sec" aria-labelledby="yo-hl-h">
+      <div class="yo-sec-head">
+        <h2 class="ob-h2" id="yo-hl-h">Highlights. <span class="ob-h2-soft" data-hl-soft>The best of the last five weeks.</span></h2>
+        <p class="ob-note">Every work is measured against your own typical, so a highlight means better than you, not better than someone else.</p>
+      </div>
+      <div class="yo-hl" data-highlights></div>
+    </section>
+
+    <!-- 4. Compare -->
+    <section class="yo-sec" aria-labelledby="yo-cmp-h">
+      <div class="yo-sec-head">
+        <h2 class="ob-h2" id="yo-cmp-h">Compare. <span class="ob-h2-soft">You, side by side with the people who matter.</span></h2>
+      </div>
+      <div class="yo-seg" role="tablist" aria-label="Compare with" data-cmp-tabs>
+        <button type="button" role="tab" id="cmp-t-size" aria-controls="cmp-panel" aria-selected="true" data-v="size">Typical at your size</button>
+        <button type="button" role="tab" id="cmp-t-past" aria-controls="cmp-panel" aria-selected="false" tabindex="-1" data-v="past">You, five weeks ago</button>
+        <button type="button" role="tab" id="cmp-t-next" aria-controls="cmp-panel" aria-selected="false" tabindex="-1" data-v="next">The next size up</button>
+      </div>
+      <div class="yo-cmp" id="cmp-panel" role="tabpanel" aria-labelledby="cmp-t-size" tabindex="0" data-cmp></div>
+    </section>
+
+    <!-- 5. Next moves -->
+    <section class="yo-sec" aria-labelledby="yo-moves-h">
+      <div class="yo-sec-head">
+        <h2 class="ob-h2" id="yo-moves-h">Three next moves. <span class="ob-h2-soft">From your own numbers, not a blog post.</span></h2>
+      </div>
+      <ol class="yo-moves" data-moves></ol>
+    </section>
+
+    <!-- 6. Levels -->
+    <section class="yo-sec" aria-labelledby="yo-lv-h">
+      <div class="yo-sec-head">
+        <h2 class="ob-h2" id="yo-lv-h">Levels you grow into. <span class="ob-h2-soft">Each one opens when it makes sense at your size.</span></h2>
+        <p class="ob-note">The core is free for creators, for good, and all of this is in it. Orbe earns from teams, from optional Pro, and when money moves.</p>
+      </div>
+      <ol class="yo-levels" data-levels></ol>
+    </section>
+
+    <!-- 7. Share -->
+    <section class="yo-sec yo-share-sec" aria-labelledby="yo-share-h">
+      <div class="yo-share-say">
+        <h2 class="ob-h2" id="yo-share-h">Your week, ready to post. <span class="ob-h2-soft">Send it to the group chat. Or your mum.</span></h2>
+        <p class="ob-note">The card carries the label every Orbe figure carries, so nobody mistakes it for a platform number.</p>
+        <p class="yo-line" data-line></p>
+        <div class="yo-share-acts">
+          <button type="button" class="ob-btn" data-copy><span class="ob-orb" aria-hidden="true"></span><span data-label>Copy the line</span></button>
+          <p class="ob-note" role="status" aria-live="polite" data-copied></p>
+        </div>
+      </div>
+      <figure class="yo-card" data-card aria-labelledby="yo-card-cap"></figure>
+    </section>
+
+    <section class="yo-print" aria-label="The small print">
+      <p class="ob-note" data-print></p>
+      <p class="ob-note">Ratings, bands, skills and benchmarks are independently calculated by Orbe, not provided by YouTube, Substack, Twitch, any podcast platform or any photography platform. Prices are indicative only: not advice and not an offer. Platform names are trademarks of their owners.</p>
+    </section>
+  </div>
+</main>
+<footer data-ob-footer></footer>
+</body>
+</html>

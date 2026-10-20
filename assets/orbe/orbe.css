@@ -526,6 +526,8 @@ html.ob-sheet-on { overflow: hidden; }
 .ob-trail { position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none; }
 
 /* ---------------------------------------------------------------- the band scene (scene.js): under the words, in the band's free space */
+.ob-scene { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; display: block; }
+.ob-scene[hidden] { display: none; }
 
 /* ---------------------------------------------------------------- touch: 44px for every control
   Under a coarse pointer, a control that is drawn smaller than 44px tall

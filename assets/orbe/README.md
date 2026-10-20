@@ -5,10 +5,11 @@ The homepage (`site/try-d/`, promoted to `site/index.html`) is built on these fi
 | File | What it is |
 | --- | --- |
 | `orbe.css` | Tokens and components: page, grain, gradient light, type ladder, buttons, links, fields, the window with its colour pairs, chips, the stat strip, focus, the header and the footer. |
-| `chrome.js` | `mountHeader` and `mountFooter`, the shared header (the lockup, the Products menu, How it works and the Reserve button: the one navigation on every page) and the public footer with the looping wordmark. `PRODUCTS` lists every tool, with one line on it and its colour pair. |
+| `chrome.js` | `mountHeader` and `mountFooter`, the shared header (the lockup, the Products menu, How it works, Pricing and the Reserve button: the one navigation on every page) and the public footer with the looping wordmark. `PRODUCTS` lists every tool, with one line on it and its colour pair. |
 | `mark.js` | The Portal, Orbe's mark: both cuts as paths, `portalMarkup` (bare, currentColor), `tileMarkup` (on a coloured tile) and `LOCKUP`, the lockup's numbers. `.ob-lockup` in `orbe.css` sets the mark beside the wordmark. |
 | `trail.js` | `mountTrail`, the pointer trail for any page. |
 | `ease.js` | The one easing as a function (`ease`), its CSS string (`EASE`) and `reducedMotion()`. |
+| `scene.js` | `mountScene`, a product band's one crafted lattice object in the free space on its right, and the objects themselves. |
 
 Everything is built on the palette in `../brand/tokens.css` (`--orbe-*`, plus `--rule`, `--rule-strong`, `--action-press` and the font stacks). Classes and custom properties use the `ob-` prefix, so this file can sit beside the older `../brand/components.css` (`.o-*`) while a page moves across.
 
@@ -52,7 +53,7 @@ Everything is built on the palette in `../brand/tokens.css` (`--orbe-*`, plus `-
 
 ## The Products menu
 
-From 721px up the header holds the lockup, a Products button, How it works and the Reserve button. There is no second row of links under it on any page.
+From 721px up the header holds the lockup, a Products button, How it works, Pricing and the Reserve button. There is no second row of links under it on any page.
 
 - **The panel:** solid Paper under the bar, set to the right gutter, 12px radius, the held shadow. Every tool in two columns (a small swatch in its colour pair, its name, one line on what it does), then All products under a hairline. The page you are on is Chalk with its name underlined.
 - **Keyboard:** the button carries `aria-expanded`. Enter or Space opens it; the arrow keys open it too and move between the links (Home and End as well), and Tab moves through them as usual. Escape closes it and puts focus back on the button.
@@ -61,7 +62,7 @@ From 721px up the header holds the lockup, a Products button, How it works and t
 
 ## The header on a phone
 
-Up to 720px the links and the Reserve button move into a sheet. The bar keeps the wordmark and a Menu button (44px). The sheet is full width, solid Paper, under the bar: every tool and All products as 56px rows with a hairline, the Reserve button at full width, then How it works, Brand, Terms and Privacy. Focus stays inside it (the Menu button included) while it is open; Escape, the button, any link in it, or the screen growing past 720px closes it, and the page behind does not scroll.
+Up to 720px the links and the Reserve button move into a sheet. The bar keeps the wordmark and a Menu button (44px). The sheet is full width, solid Paper, under the bar: every tool and All products as 56px rows with a hairline, the Reserve button at full width, then How it works, Pricing, Brand, Terms and Privacy. Focus stays inside it (the Menu button included) while it is open; Escape, the button, any link in it, or the screen growing past 720px closes it, and the page behind does not scroll.
 
 ## How the header picks its colours
 
@@ -80,6 +81,26 @@ Every field the header can sit over declares itself with `data-head="light"` or 
 - **Colours:** read from `--ob-trail` on the element under the pointer, as three colours separated by spaces. The default is Sky, Straw and Peony. A section sets its own: `.my-band { --ob-trail: var(--orbe-sky) var(--orbe-chalk) var(--orbe-straw); }`.
 - **Strength:** full inside the `loud` selector, and `quiet` (0.45) with sparser cells everywhere else.
 - **When it is off:** on touch, and under reduced motion. No frame runs once the last cell has gone.
+
+## The band scene
+
+`mountScene(band, { item, light, dark, specks, calm = 44, ceiling = ".ob-bar", within = ".wrap", side = 0.5, minWidth = 0 })` draws one lattice object into a band. The product pages mount theirs through `site/products/assets/bands.js`: Rate, Podcasts, Sponsorships, Roster and the hub carry one; Selling, Diligence and the card carry none.
+
+```js
+import { mountScene, orb } from "../assets/orbe/scene.js";
+mountScene(document.querySelector(".pr-band"), {
+  light: "water", dark: "ink", specks: { colors: ["sky", "ember"], n: 3 },
+  item: { make: orb({ level: 0.93, rim: ["chalk", "mist", "sky", "water"], liquid: ["mist", "sky", "water", "press"] }), size: [120, 250] },
+});
+```
+
+- **The cast:** `orb({ level, rim, liquid, tint })` (filled by area, so 0.5 is the middle), `orbDepth({ levels })` (one orb in front, up to two behind to one side), `mic(...)`, `camera(...)` and `tool({ key })` (the bulb, microphone or game pad from `../../pixels.js`, on the half lattice). Colours are brand names or hex, as gradient stops from lit to shade.
+- **One piece:** one object per band, never companions. `specks` adds at most three small clusters (two to six cells) near it.
+- **The dress:** a one cell outline in `light`, `light` dots on a diamond lattice over dark tones, sparse `dark` dots over light ones. Edges and highlights stay plain.
+- **Placement:** every word (by line boxes), chip, link, control and window in the band is a no-go zone, and so is everything above the bottom of `ceiling` (the fixed header bar). The object takes the largest size in `size` (px) that keeps `calm` px clear, with its centre in the right part of the `within` column (from `side`, a fraction of it). It leans on the open bottom or right edge (about `bleed`, 0.15 by default, never more than `cut`, 0.3). Below `minWidth`, or when nothing fits, the canvas hides. The canvas is absolute, so the band never changes height.
+- **Motion:** after the fonts load the object rises up its columns once and an orb fills to its level, then nothing runs. Reduced motion draws the final state. A ResizeObserver redraws the final state.
+- **Faces:** no pair of small marks side by side. Orbs have no bubbles and one crescent; grilles are lines; clusters are never one cell. The camera has one lens with a crescent, no catchlight dot, no viewfinder window and no flash. The moth, the pan and the homepage camera stay out.
+- **CSS:** `.ob-scene` in `orbe.css` puts the canvas at z-index 1, under `.ob-layer`. The band needs `position: relative`.
 
 ## Tokens (`--ob-*`)
 

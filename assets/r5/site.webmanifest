@@ -1,7 +1,7 @@
 {
   "name": "Orbe",
   "short_name": "Orbe",
-  "description": "Your work, rated against creators your size. Free for creators, for good.",
+  "description": "Your work, rated against creators your size. The rating is free for creators, for good.",
   "start_url": "../../",
   "display": "browser",
   "background_color": "#F3F0E8",

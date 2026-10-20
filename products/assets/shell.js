@@ -1,13 +1,17 @@
 /*
   Shared by every product page, on the shared system (../../assets/orbe/):
   the header (the one navigation, with the Products menu) and the footer
-  from orbe/chrome.js, the small print, and small DOM and formatting helpers, file reading, and per-tab
+  from orbe/chrome.js, the band's one piece of art on the pages that carry
+  one (bands.js), the small print, and small DOM and formatting helpers, file reading, and per-tab
   storage that never leaves this browser.
 */
 import { mountHeader, mountFooter } from "../../assets/orbe/chrome.js";
 import { icon } from "../../assets/icons/icons.js";
 
 export { icon };
+
+/* the pages whose band carries its one piece of art (bands.js) */
+const BANDS = new Set(["hub", "rate", "podcasts", "sponsorships", "roster"]);
 
 /*
   Pages call this first. `depth` is how many folders below /products/ the page sits.
@@ -23,6 +27,8 @@ export function shell(current, depth = 1) {
   smallPrint(main);
   mountFooter(foot, { root });
   const header = mountHeader(head, { root, current: current === "hub" ? "products/" : `products/${current}/` });
+  // One piece of art on the band, only on the pages that carry one (bands.js); the money and trust pages stay clean.
+  if (BANDS.has(current)) import("./bands.js").then((m) => m.mountBand(current)).catch(() => {});
   fades(document.querySelector(".page-tabs"));
   // Static disclosures get the same caret as the ones the tools build.
   for (const sum of document.querySelectorAll("details.fold > summary")) if (!sum.querySelector(".o-icon")) sum.insertAdjacentHTML("afterbegin", icon("caret", { size: 16, className: "caret" }));
