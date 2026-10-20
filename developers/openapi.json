@@ -49,6 +49,14 @@
     {
       "name": "orbe_explain_rating",
       "description": "Explain a rating in plain English"
+    },
+    {
+      "name": "orbe_quote_guaranteed_read",
+      "description": "Quote a guaranteed sponsorship read"
+    },
+    {
+      "name": "orbe_check_delivery",
+      "description": "Check delivery against a guarantee"
     }
   ],
   "paths": {
@@ -457,6 +465,70 @@
         ],
         "x-status": "routed",
         "x-mcp-tool": "orbe_value_business"
+      }
+    },
+    "/v1/bookings": {
+      "post": {
+        "operationId": "requestBooking",
+        "summary": "Request a guaranteed booking",
+        "description": "Sends an offer built from orbe_quote_guaranteed_read to a creator who has opted in to sponsorships. Returns 202 with status pending_creator_approval: the creator approves the brand and the offer, or declines, in Orbe. An agent cannot accept for a creator. Planned: no route serves this yet.",
+        "tags": [
+          "bookings"
+        ],
+        "x-status": "planned",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Pending the creator's approval.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "The booking request, pending the creator's approval."
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/bookings/{bookingId}": {
+      "get": {
+        "operationId": "getBooking",
+        "summary": "A booking's state and delivery",
+        "description": "The booking's state (awaiting funds, in production, live, short, make-good, verified, paid), each delivery reading with its source, and the settlement once verified. Planned: no route serves this yet.",
+        "tags": [
+          "bookings"
+        ],
+        "x-status": "planned",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Pending the creator's approval.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "The booking request, pending the creator's approval."
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
       }
     },
     "/v1/tools/rate": {
@@ -1216,6 +1288,134 @@
                       }
                     ],
                     "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/quote-guaranteed-read": {
+      "post": {
+        "operationId": "quoteGuaranteedRead",
+        "summary": "Quote a guaranteed sponsorship read",
+        "description": "Quotes one sponsorship (a YouTube integration or dedicated video, a podcast host-read, a Twitch segment) that the brand pays for in full only on verified delivery: the price (the creator's, or the middle of Orbe's suggestion), the guaranteed floor (the lower quartile of what the creator's recent works delivered at the format's last window), the shortfall terms, what the brand pays with Orbe's fee, and the creator's worst case. A quote, not a booking: the creator must approve, and booking runs through the Orbe API.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_quote_guaranteed_read"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_quote_guaranteed_read",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteGuaranteedReadInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "podcast",
+                    "audience": 14000,
+                    "delivery": [
+                      14200,
+                      12100,
+                      16800,
+                      11900,
+                      15300,
+                      13800
+                    ],
+                    "format": "podcast_read",
+                    "currency": "GBP",
+                    "usdRate": 0.79,
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/check-delivery": {
+      "post": {
+        "operationId": "checkDelivery",
+        "summary": "Check delivery against a guarantee",
+        "description": "Judges a guaranteed sponsorship once its delivery is read: delivered (paid in full) or short, and when short, the creator's options (a make-good, or pro rata never below the floor for a published, disclosed work that stays up) with the exact split between creator, Orbe's fee and the brand's refund. The same rules Orbe's bookings use.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_check_delivery"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_check_delivery",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckDeliveryInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "podcast",
+                    "format": "podcast_read",
+                    "price": {
+                      "amount": 24000,
+                      "currency": "GBP"
+                    },
+                    "guarantee": 12525,
+                    "delivered": 10900,
+                    "remedy": "pro_rata",
+                    "now": "2026-11-20T12:00:00Z"
                   }
                 }
               }
@@ -2031,6 +2231,288 @@
         },
         "title": "Explain a rating in plain English",
         "description": "The Orbe Rating for the same input as orbe_rate, written as a short paragraph a creator can read: what is typical for creators their size, how they compare part by part, their strongest stat and the one to work on, and how sure it is. Use it when someone wants the rating explained rather than the numbers."
+      },
+      "QuoteGuaranteedReadInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "audience",
+          "delivery",
+          "format"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast"
+            ],
+            "description": "The kind of creator: youtube, substack, twitch or podcast. Photography has no sponsorship formats yet."
+          },
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "The audience in the platform's own sense: subscribers for YouTube and Substack, followers for Twitch, podcasts and photography. It picks the size band."
+          },
+          "delivery": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "description": "What each recent work delivered at the format's price window, newest first: YouTube views at 30 days, Substack unique opens at 7 days, podcast downloads at 30 days, Twitch average viewers per stream."
+          },
+          "rating": {
+            "type": "object",
+            "required": [
+              "band"
+            ],
+            "additionalProperties": false,
+            "description": "The creator's Orbe Rating, if known (from orbe_rate). Its band nudges a rate card price up or down, provisionally.",
+            "properties": {
+              "band": {
+                "type": "string",
+                "enum": [
+                  "Great",
+                  "Good",
+                  "Average",
+                  "Subpar",
+                  "Poor"
+                ],
+                "description": "The rating band."
+              },
+              "rating": {
+                "type": "number",
+                "minimum": -6,
+                "maximum": 6,
+                "description": "The rating itself, -6 to +6."
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "GBP",
+              "EUR"
+            ],
+            "description": "The currency for prices. The rate cards are in US dollars; for GBP or EUR also give usdRate."
+          },
+          "usdRate": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000,
+            "description": "How much of your currency one US dollar buys, e.g. 0.79 for GBP. Needed for GBP or EUR. Orbe does not guess exchange rates."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "integration",
+              "dedicated",
+              "newsletter_slot",
+              "podcast_read",
+              "stream_segment"
+            ],
+            "description": "The format: integration, dedicated, podcast_read or stream_segment. Newsletter formats are priced at 7 days but judged at 30, so they quote without a guarantee."
+          },
+          "price": {
+            "type": "object",
+            "required": [
+              "amount"
+            ],
+            "additionalProperties": false,
+            "description": "The creator's price for the whole placement. Defaults to the middle of Orbe's suggestion.",
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "In minor units: cents or pence. $600.00 is 60000."
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "USD",
+                  "GBP",
+                  "EUR"
+                ],
+                "description": "The price's currency. Defaults to currency, then USD."
+              }
+            }
+          },
+          "hours": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 24,
+            "description": "For a stream segment, the hours sponsored. Defaults to 1."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "network",
+              "direct"
+            ],
+            "description": "network if Orbe matched the brand (15% fee), direct if the creator brought the sponsor (5%). Defaults to network."
+          },
+          "shortfall": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Overrides for the shortfall terms. Defaults: 5% tolerance, a 50% floor, 30 days for a make-good (provisional).",
+            "properties": {
+              "toleranceBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2500,
+                "description": "Delivery within this many basis points under the guarantee counts as delivered. 500 is 5%."
+              },
+              "floorBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000,
+                "description": "The least share of the price paid for a published, disclosed work that stays up. 5000 is 50%."
+              },
+              "makeGoodDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 90,
+                "description": "Days the creator has to publish a make-good."
+              }
+            }
+          }
+        },
+        "title": "Quote a guaranteed sponsorship read",
+        "description": "Quotes one sponsorship (a YouTube integration or dedicated video, a podcast host-read, a Twitch segment) that the brand pays for in full only on verified delivery: the price (the creator's, or the middle of Orbe's suggestion), the guaranteed floor (the lower quartile of what the creator's recent works delivered at the format's last window), the shortfall terms, what the brand pays with Orbe's fee, and the creator's worst case. A quote, not a booking: the creator must approve, and booking runs through the Orbe API."
+      },
+      "CheckDeliveryInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "format",
+          "price",
+          "guarantee",
+          "delivered"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast"
+            ],
+            "description": "The kind of creator."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "integration",
+              "dedicated",
+              "newsletter_slot",
+              "podcast_read",
+              "stream_segment"
+            ],
+            "description": "The format booked."
+          },
+          "price": {
+            "type": "object",
+            "required": [
+              "amount"
+            ],
+            "additionalProperties": false,
+            "description": "The creator's price for the placement.",
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "In minor units."
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "USD",
+                  "GBP",
+                  "EUR"
+                ],
+                "description": "The currency for prices. The rate cards are in US dollars; for GBP or EUR also give usdRate."
+              }
+            }
+          },
+          "guarantee": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The guaranteed units at the format's last window, from orbe_quote_guaranteed_read."
+          },
+          "delivered": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Units delivered at that window, read at source."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "network",
+              "direct"
+            ],
+            "description": "Who found the deal: network (15%) or direct (5%). Defaults to network."
+          },
+          "keptUp": {
+            "type": "boolean",
+            "description": "Whether the work is published, properly disclosed and still up, which earns the floor. Defaults to true."
+          },
+          "remedy": {
+            "type": "string",
+            "enum": [
+              "undecided",
+              "make_good",
+              "pro_rata"
+            ],
+            "description": "The creator's choice when short. Defaults to undecided."
+          },
+          "shortfall": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Overrides for the shortfall terms. Defaults: 5% tolerance, a 50% floor, 30 days for a make-good (provisional).",
+            "properties": {
+              "toleranceBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2500,
+                "description": "Delivery within this many basis points under the guarantee counts as delivered. 500 is 5%."
+              },
+              "floorBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000,
+                "description": "The least share of the price paid for a published, disclosed work that stays up. 5000 is 50%."
+              },
+              "makeGoodDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 90,
+                "description": "Days the creator has to publish a make-good."
+              }
+            }
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Check delivery against a guarantee",
+        "description": "Judges a guaranteed sponsorship once its delivery is read: delivered (paid in full) or short, and when short, the creator's options (a make-good, or pro rata never below the floor for a published, disclosed work that stays up) with the exact split between creator, Orbe's fee and the brand's refund. The same rules Orbe's bookings use."
       },
       "Error": {
         "type": "object",

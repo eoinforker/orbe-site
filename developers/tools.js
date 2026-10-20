@@ -219,6 +219,17 @@ const currencySchema         = {
   description: "The currency for prices. The rate cards are in US dollars; for GBP or EUR also give usdRate.",
 };
 
+const shortfallSchema         = {
+  type: "object",
+  additionalProperties: false,
+  description: "Overrides for the shortfall terms. Defaults: 5% tolerance, a 50% floor, 30 days for a make-good (provisional).",
+  properties: {
+    toleranceBps: { type: "integer", minimum: 0, maximum: 2500, description: "Delivery within this many basis points under the guarantee counts as delivered. 500 is 5%." },
+    floorBps: { type: "integer", minimum: 0, maximum: 10000, description: "The least share of the price paid for a published, disclosed work that stays up. 5000 is 50%." },
+    makeGoodDays: { type: "integer", minimum: 1, maximum: 90, description: "Days the creator has to publish a make-good." },
+  },
+};
+
 const usdRateSchema         = {
   type: "number",
   exclusiveMinimum: 0,
@@ -514,6 +525,113 @@ export function createTools(engine        )          {
       ok: true,
       summary: `${say} The creator keeps all of it; the brand pays Orbe's ${terms.bps / 100}% on top only when it completes. ${ATTRIBUTION}`,
       structured: envelope({ ...base, verdict, range: { low: { amount: low, currency }, high: { amount: high, currency } }, positionInRange: position, counter, counterShown: counter ? money(counter.amount) : null, explanation: say }),
+    };
+  }
+
+  /* ---- the deal desk: a guaranteed read, quoted and then checked */
+
+                                                                                         
+                                                                                                                                                                           
+
+  const shortfallOf = (t              ) => ({ ...S.DEFAULT_SHORTFALL, ...(t ?? {}) });
+
+  function quoteTool(a           )              {
+    const currency = a.price?.currency ?? a.currency ?? "USD";
+    const fx = fxFor({ ...a, currency });
+    if (fx.issue) return { ok: false, message: "An exchange rate is needed.", issues: [fx.issue] };
+    const spec = S.specFor(a.format         , a.kind);
+    if (!spec) return { ok: false, message: "Unknown format for this kind.", issues: [{ path: "format", message: `must be one of ${S.specsForKind(a.kind).map((f) => f.format).join(", ")} for ${a.kind}` }] };
+    const { at, inventory } = inventoryOf({ ...a, currency });
+    const item = inventory.items.find((i) => i.format === a.format) ;
+    const s = item.suggestion;
+    const quantity = spec.quantity === "hour" ? Math.max(1, Math.round(a.hours ?? 1)) : 1;
+    let price       ;
+    if (a.price) price = { amount: Math.round(a.price.amount), currency };
+    else if (s && s.status === "suggested") price = { amount: Math.round((s.low.amount + s.high.amount) / 2 / 100) * 100 * quantity, currency };
+    else return { ok: false, message: "Orbe cannot suggest a price from this delivery yet, so give the creator's price.", issues: [{ path: "price", message: s && s.status === "not_enough_data" ? s.reason : "is required" }] };
+    const guarantee = S.suggestGuarantee(spec, item.stats, quantity);
+    const shortfall = shortfallOf(a.shortfall);
+    const terms = S.feeTermsFor(a.source ?? "network");
+    const funding = S.fundingFor(price, terms);
+    const floorPay = S.settle(price, terms, shortfall.floorBps);
+    const money = (m       ) => S.formatMoney(m);
+    const unit = spec.unit;
+    const g = guarantee ? `${guarantee.units.toLocaleString("en-GB")} ${unit} at ${guarantee.day} days` : null;
+    const why = guarantee
+      ? `the lower quartile of what the creator's recent works delivered at ${guarantee.day} days, reached three times in four`
+      : `a ${spec.name.toLowerCase()} is judged at ${S.finalWindow(spec)} days and the delivery given is read at ${spec.priceWindow}`;
+    return {
+      ok: true,
+      summary: g
+        ? `A guaranteed ${spec.name.toLowerCase()} at ${money(price)}, guaranteed at ${g}. The brand pays ${money(funding.total)} into a payments partner and pays in full only on verified delivery. The creator must approve before anything is booked. ${ATTRIBUTION}`
+        : `A ${spec.name.toLowerCase()} at ${money(price)}, without a guarantee: ${why}. The brand pays ${money(funding.total)}. The creator must approve before anything is booked. ${ATTRIBUTION}`,
+      structured: envelope({
+        status: "draft",
+        kind: a.kind,
+        format: a.format,
+        name: spec.name,
+        quantity,
+        price,
+        priceShown: money(price),
+        suggestion: s && s.status === "suggested" ? { low: s.low, high: s.high, per: s.per, shown: `${money(s.low)} to ${money(s.high)} per ${s.per}` } : null,
+        guarantee: guarantee ? { ...guarantee, unit, shown: g, basis: why } : null,
+        noGuaranteeReason: guarantee ? null : why,
+        shortfall: {
+          ...shortfall,
+          rule: `Within ${shortfall.toleranceBps / 100}% of the guarantee counts as delivered. Short of that, the creator chooses a make-good within ${shortfall.makeGoodDays} days or pro rata, never below ${shortfall.floorBps / 100}% of the price for a published, disclosed work that stays up.`,
+        },
+        brandPays: funding.total,
+        brandPaysShown: money(funding.total),
+        orbeFee: funding.fee,
+        orbeFeePercent: terms.bps / 100,
+        creatorKeeps: price,
+        worstCaseForCreator: { creatorPayout: floorPay.creatorPayout, brandRefund: floorPay.brandRefund, shown: `At the floor the creator is paid ${money(floorPay.creatorPayout)} and the brand gets ${money(floorPay.brandRefund)} back.` },
+        approval: "A quote, not a booking. The creator approves the brand and the offer before anything is booked; an agent cannot accept for them.",
+        nextStep: "Book through the Orbe API (with the API): the creator approves, the brand funds a regulated payments partner, Orbe reads delivery at source and releases payment only on verified delivery.",
+        computedAt: at,
+      }),
+    };
+  }
+
+                                                                                                                                                                                                                                                                                 
+
+  function checkTool(a           )              {
+    const spec = S.specFor(a.format         , a.kind);
+    if (!spec) return { ok: false, message: "Unknown format for this kind.", issues: [{ path: "format", message: `must be one of ${S.specsForKind(a.kind).map((f) => f.format).join(", ")} for ${a.kind}` }] };
+    const currency = a.price.currency ?? "USD";
+    const price        = { amount: Math.round(a.price.amount), currency };
+    const g = { day: S.finalWindow(spec), units: Math.round(a.guarantee) };
+    const shortfall = shortfallOf(a.shortfall);
+    const terms = S.feeTermsFor(a.source ?? "network");
+    const units = Math.round(a.delivered);
+    const money = (m       ) => S.formatMoney(m);
+    const pay = (bps        ) => {
+      const st = S.settle(price, terms, bps);
+      return { creatorShareBps: bps, creatorPayout: st.creatorPayout, orbeFee: st.orbeFee, brandRefund: st.brandRefund, shown: `Creator ${money(st.creatorPayout)}, Orbe ${money(st.orbeFee)}, back to the brand ${money(st.brandRefund)}.` };
+    };
+    const delivered = `${units.toLocaleString("en-GB")} of ${g.units.toLocaleString("en-GB")} ${spec.unit} at ${g.day} days`;
+    if (S.guaranteeMet(g, shortfall.toleranceBps, units)) {
+      const p = pay(10_000);
+      return { ok: true, summary: `Delivered: ${delivered}. Paid in full. ${p.shown} ${ATTRIBUTION}`, structured: envelope({ verdict: "delivered", delivered: units, guarantee: g, payout: p, computedAt: nowOf(a) }) };
+    }
+    const keptUp = a.keptUp ?? true;
+    const proRata = pay(S.proRataShareBps(g, shortfall.floorBps, units, keptUp));
+    const remedy = a.remedy ?? "undecided";
+    const options = {
+      makeGood: { days: shortfall.makeGoodDays, what: `The creator publishes an extra placement within ${shortfall.makeGoodDays} days; delivery across both is judged against the guarantee, then pro rata if still short.` },
+      proRata,
+    };
+    const head = `Short: ${delivered}.`;
+    const tail =
+      remedy === "pro_rata"
+        ? `Pro rata: ${proRata.shown}`
+        : remedy === "make_good"
+          ? `A make-good is due within ${shortfall.makeGoodDays} days; nothing is paid out until it is read.`
+          : `The creator chooses a make-good within ${shortfall.makeGoodDays} days or pro rata (${proRata.shown}).`;
+    return {
+      ok: true,
+      summary: `${head} ${tail} ${ATTRIBUTION}`,
+      structured: envelope({ verdict: "short", delivered: units, guarantee: g, keptUp, remedy, options, payout: remedy === "pro_rata" ? proRata : null, note: keptUp ? `The floor of ${shortfall.floorBps / 100}% applies because the work is published, disclosed and still up.` : "No floor: the work was taken down or not disclosed.", computedAt: nowOf(a) }),
     };
   }
 
@@ -875,6 +993,69 @@ export function createTools(engine        )          {
       annotations: READ_ONLY("Explain a rating"),
       example: rateExample,
       run: explainTool                             ,
+    },
+    {
+      name: "orbe_quote_guaranteed_read",
+      title: "Quote a guaranteed sponsorship read",
+      description:
+        "Quotes one sponsorship (a YouTube integration or dedicated video, a podcast host-read, a Twitch segment) that the brand pays for in full only on verified delivery: the price (the creator's, or the middle of Orbe's suggestion), the guaranteed floor (the lower quartile of what the creator's recent works delivered at the format's last window), the shortfall terms, what the brand pays with Orbe's fee, and the creator's worst case. A quote, not a booking: the creator must approve, and booking runs through the Orbe API.",
+      inputSchema: {
+        type: "object",
+        required: ["kind", "audience", "delivery", "format"],
+        additionalProperties: false,
+        properties: {
+          ...priceInputProps,
+          format: { type: "string", enum: [...S.SPONSOR_FORMATS], description: "The format: integration, dedicated, podcast_read or stream_segment. Newsletter formats are priced at 7 days but judged at 30, so they quote without a guarantee." },
+          price: {
+            type: "object",
+            required: ["amount"],
+            additionalProperties: false,
+            description: "The creator's price for the whole placement. Defaults to the middle of Orbe's suggestion.",
+            properties: {
+              amount: { type: "integer", minimum: 1, description: "In minor units: cents or pence. $600.00 is 60000." },
+              currency: { ...currencySchema, description: "The price's currency. Defaults to currency, then USD." },
+            },
+          },
+          hours: { type: "number", minimum: 1, maximum: 24, description: "For a stream segment, the hours sponsored. Defaults to 1." },
+          source: { type: "string", enum: ["network", "direct"], description: "network if Orbe matched the brand (15% fee), direct if the creator brought the sponsor (5%). Defaults to network." },
+          shortfall: shortfallSchema,
+        },
+      },
+      annotations: READ_ONLY("Quote a guaranteed read"),
+      example: { kind: "podcast", audience: 14000, delivery: [14200, 12100, 16800, 11900, 15300, 13800], format: "podcast_read", currency: "GBP", usdRate: 0.79, now: "2026-10-18T12:00:00Z" },
+      run: quoteTool                             ,
+    },
+    {
+      name: "orbe_check_delivery",
+      title: "Check delivery against a guarantee",
+      description:
+        "Judges a guaranteed sponsorship once its delivery is read: delivered (paid in full) or short, and when short, the creator's options (a make-good, or pro rata never below the floor for a published, disclosed work that stays up) with the exact split between creator, Orbe's fee and the brand's refund. The same rules Orbe's bookings use.",
+      inputSchema: {
+        type: "object",
+        required: ["kind", "format", "price", "guarantee", "delivered"],
+        additionalProperties: false,
+        properties: {
+          kind: { type: "string", enum: ["youtube", "substack", "twitch", "podcast"], description: "The kind of creator." },
+          format: { type: "string", enum: [...S.SPONSOR_FORMATS], description: "The format booked." },
+          price: {
+            type: "object",
+            required: ["amount"],
+            additionalProperties: false,
+            description: "The creator's price for the placement.",
+            properties: { amount: { type: "integer", minimum: 1, description: "In minor units." }, currency: currencySchema },
+          },
+          guarantee: { type: "integer", minimum: 1, description: "The guaranteed units at the format's last window, from orbe_quote_guaranteed_read." },
+          delivered: { type: "integer", minimum: 0, description: "Units delivered at that window, read at source." },
+          source: { type: "string", enum: ["network", "direct"], description: "Who found the deal: network (15%) or direct (5%). Defaults to network." },
+          keptUp: { type: "boolean", description: "Whether the work is published, properly disclosed and still up, which earns the floor. Defaults to true." },
+          remedy: { type: "string", enum: ["undecided", "make_good", "pro_rata"], description: "The creator's choice when short. Defaults to undecided." },
+          shortfall: shortfallSchema,
+          now: nowSchema,
+        },
+      },
+      annotations: READ_ONLY("Check delivery"),
+      example: { kind: "podcast", format: "podcast_read", price: { amount: 24000, currency: "GBP" }, guarantee: 12525, delivered: 10900, remedy: "pro_rata", now: "2026-11-20T12:00:00Z" },
+      run: checkTool                             ,
     },
   ];
 

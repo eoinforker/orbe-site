@@ -802,7 +802,7 @@ addEventListener("resize", () => {
 }
 
 /* ---------------------------------------------------------------- the audience line: jump to the part, light it once */
-for (const a of $$("[data-aud] a")) {
+for (const a of $$("[data-aud] a[data-to]")) {
   a.addEventListener("click", (e) => {
     const ids = a.dataset.to.split(" ");
     const els = ids.map((id) => (id === "hero" ? hero : document.getElementById(id))).filter(Boolean);

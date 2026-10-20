@@ -34,6 +34,8 @@ const BLURB = {
   orbe_value_business: "An indicative value on trailing profit, with Orbe's fees at each end.",
   orbe_podcast_plausibility: "Does a download claim fit the public signals? Flags, never accusations.",
   orbe_explain_rating: "The rating as a paragraph a creator can read.",
+  orbe_quote_guaranteed_read: "A read the brand pays for in full only on verified delivery: price, floor and terms.",
+  orbe_check_delivery: "Delivered or short, the creator's options, and the exact split of the money.",
 };
 const titled = (t) => (/[.?]$/.test(t) ? t : `${t}.`);
 $("[data-tools]").innerHTML = list
@@ -102,7 +104,7 @@ args.addEventListener("keydown", (e) => {
 });
 
 /* ---------------------------------------------------------------- copy buttons */
-const sources = { req: () => req.textContent, res: () => res.textContent, desk: () => $('[data-snip="desk"]').textContent, code: () => $('[data-snip="code"]').textContent };
+const sources = { req: () => req.textContent, res: () => res.textContent, desk: () => $('[data-snip="desk"]').textContent, code: () => $('[data-snip="code"]').textContent, cli: () => $('[data-snip="cli"]').textContent };
 for (const btn of document.querySelectorAll("[data-copy]")) {
   btn.addEventListener("click", async () => {
     const text = sources[btn.dataset.copy]();
