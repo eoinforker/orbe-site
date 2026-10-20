@@ -8,8 +8,10 @@
   root is the page's relative path to the site root ("./" at the root,
   "../" one folder down, "../../" two down). Every link is built from it.
 
-  The header: the lockup (the Portal, then the Carved wordmark, both in
-  currentColor), the product links and the Reserve button. At the
+  The header, the one navigation on every page: the lockup (the Portal, then
+  the Carved wordmark, both in currentColor), the Products menu (every tool
+  with one line on it, and All products), How it works and the Reserve
+  button; on a phone, a Menu button and a sheet with every tool. At the
   very top it has no bar and each part takes the colour of the field under it;
   once the page moves it is a solid bar (Paper, or Ink over a dark field), so
   text never shows through. A field says what it is with data-head="light" or
@@ -28,29 +30,31 @@ import { portalMarkup } from "./mark.js";
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[c]);
 
-/* the product links in the header, by path from the site root */
-export const NAV = [
-  ["Ratings", "products/rate/"],
-  ["Podcasts", "products/podcasts/"],
-  ["Sponsorships", "products/sponsorships/"],
-  ["Selling", "products/selling/"],
+/*
+  Every tool, by path from the site root: its name, one line on what it does,
+  and its colour pair. The header's Products menu and the phone sheet both
+  list these, then "All products".
+*/
+export const PRODUCTS = [
+  ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
+  ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
+  ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
+  ["Selling", "products/selling/", "An indicative value, fees in full.", "sell"],
+  ["Diligence", "products/diligence/", "The report a buyer reads first.", "rec"],
+  ["Roster", "products/roster/", "Every creator you look after.", "note"],
 ];
+export const ALL_PRODUCTS = ["All products", "products/", "Every tool, running in your browser."];
 
-/* the sheet on a phone: every product, then every tool */
-export const SHEET = [
-  ["Rate my work", "products/rate/"],
-  ["Podcasts", "products/podcasts/"],
-  ["Sponsorships", "products/sponsorships/"],
-  ["Selling", "products/selling/"],
-  ["Diligence", "products/diligence/"],
-  ["Roster", "products/roster/"],
-  ["Every tool", "products/"],
-];
+/* the links beside the Products menu ("#..." is the homepage's own anchor) */
+export const NAV = [["How it works", "#tools"]];
+
+/* the sheet on a phone: every tool, then all products */
+export const SHEET = [...PRODUCTS.map(([t, p]) => [t, p]), ALL_PRODUCTS.slice(0, 2)];
 
 /* the public footer, by path from the site root; "#..." entries are the homepage's own anchors */
 export const FOOTER = [
   ["Products", [["Rate my work", "products/rate/"], ["Podcasts", "products/podcasts/"], ["Sponsorships", "products/sponsorships/"], ["Selling", "products/selling/"], ["Diligence", "products/diligence/"], ["Roster", "products/roster/"]]],
-  ["For creators", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["Every tool", "products/"]]],
+  ["For creators", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"]]],
   ["Company", [["Brand", "brand/"]]],
   ["Legal", [["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
 ];
@@ -72,15 +76,27 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   if (bar !== target) target.replaceWith(bar);
   bar.className = "ob-bar";
   bar.dataset.obBar = "";
+  const cur = (p) => (p === current ? " aria-current=\"page\"" : "");
+  const inMenu = current && [...PRODUCTS.map(([, p]) => p), ALL_PRODUCTS[1]].includes(current);
   bar.innerHTML = `
     <a class="ob-bar-mark ob-lockup" data-part href="${esc(home ?? root)}" aria-label="Orbe, home"><span class="ob-lockup-mark">${portalMarkup({ cut: "small" })}</span><span data-ob-wordmark></span></a>
-    <nav class="ob-bar-links" aria-label="Products">${NAV.map(([t, p]) => `<a data-part href="${esc(href(p))}"${p === current ? " aria-current=\"page\"" : ""}>${esc(t)}</a>`).join("")}</nav>
+    <nav class="ob-bar-links" aria-label="Main">
+      <div class="ob-dd">
+        <button class="ob-dd-btn${inMenu ? " is-here" : ""}" data-part type="button" aria-expanded="false" aria-controls="ob-dd-panel">Products<i aria-hidden="true"></i></button>
+        <div class="ob-dd-panel" id="ob-dd-panel" hidden>
+          <ul class="ob-dd-list">${PRODUCTS.map(([t, p, d, k]) => `
+            <li><a href="${esc(href(p))}"${cur(p)}><span class="ob-dd-sw" data-k="${k}" aria-hidden="true"></span><span class="ob-dd-t">${esc(t)}</span><span class="ob-dd-d">${esc(d)}</span></a></li>`).join("")}
+          </ul>
+          <a class="ob-dd-all" href="${esc(href(ALL_PRODUCTS[1]))}"${cur(ALL_PRODUCTS[1])}><span class="ob-dd-t">${esc(ALL_PRODUCTS[0])}</span><span class="ob-dd-d">${esc(ALL_PRODUCTS[2])}</span></a>
+        </div>
+      </div>${NAV.map(([t, p]) => `<a data-part href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}
+    </nav>
     <a class="ob-btn ob-btn--s" data-part href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
     <button class="ob-bar-menu" data-part type="button" aria-expanded="false" aria-controls="ob-sheet">Menu<i aria-hidden="true"></i></button>
     <div class="ob-sheet" id="ob-sheet" hidden>
-      <nav class="ob-sheet-nav" aria-label="Products">${SHEET.map(([t, p]) => `<a href="${esc(href(p))}"${p === current ? " aria-current=\"page\"" : ""}>${esc(t)}</a>`).join("")}</nav>
+      <nav class="ob-sheet-nav" aria-label="Products">${SHEET.map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</nav>
       <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
-      <p class="ob-sheet-small"><a href="${esc(href("brand/"))}">Brand</a><a href="${esc(href("legal/terms.html"))}">Terms</a><a href="${esc(href("legal/privacy.html"))}">Privacy</a></p>
+      <p class="ob-sheet-small">${NAV.map(([t, p]) => `<a href="${esc(href(p))}">${esc(t)}</a>`).join("")}<a href="${esc(href("brand/"))}">Brand</a><a href="${esc(href("legal/terms.html"))}">Terms</a><a href="${esc(href("legal/privacy.html"))}">Privacy</a></p>
     </div>`;
   const reduce = reducedMotion();
   mountWordmark(bar.querySelector("[data-ob-wordmark]"), { animate: animate ?? !reduce });
@@ -119,6 +135,48 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
   try { matchMedia("(min-width: 721px)").addEventListener("change", (m) => { if (m.matches) setMenu(false, { focus: false }); }); } catch (e) {}
+
+  /*
+    The Products menu, from a tablet up: a button that shows a panel of every
+    tool under the bar. A disclosure, not an application menu: Tab moves
+    through the links as usual, and the arrow keys move between them too.
+    Escape closes it and puts focus back on the button; so does the button.
+    A click outside it, focus leaving it, any link in it, or the screen
+    shrinking to a phone closes it without moving focus.
+  */
+  const dd = bar.querySelector(".ob-dd"), ddBtn = dd.querySelector(".ob-dd-btn"), panel = dd.querySelector(".ob-dd-panel");
+  const ddLinks = () => [...panel.querySelectorAll("a[href]")];
+  let ddOpen = false;
+  function setDd(on, { focus = false } = {}) {
+    if (on === ddOpen) return;
+    ddOpen = on;
+    panel.hidden = !on;
+    ddBtn.setAttribute("aria-expanded", String(on));
+    if (!on && focus) ddBtn.focus();
+  }
+  ddBtn.addEventListener("click", () => setDd(!ddOpen));
+  ddBtn.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDd(true);
+    const l = ddLinks();
+    (e.key === "ArrowDown" ? l[0] : l[l.length - 1])?.focus();
+  });
+  dd.addEventListener("keydown", (e) => {
+    if (!ddOpen) return;
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setDd(false, { focus: true }); return; }
+    const l = ddLinks(), i = l.indexOf(document.activeElement);
+    if (i < 0) return;
+    const to = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: l.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    l[(to + l.length) % l.length].focus();
+  });
+  panel.addEventListener("click", (e) => { if (e.target.closest("a[href]")) setDd(false); });
+  dd.addEventListener("focusout", (e) => { if (ddOpen && e.relatedTarget && !dd.contains(e.relatedTarget)) setDd(false); });
+  document.addEventListener("pointerdown", (e) => { if (ddOpen && !dd.contains(e.target)) setDd(false); });
+  try { matchMedia("(max-width: 720px)").addEventListener("change", (m) => { if (m.matches) setDd(false); }); } catch (e) {}
 
   /*
     Which field is under each part. Transparent: each part takes the
@@ -174,7 +232,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
   theme();
-  return { el: bar, refresh: theme, rescan: watch };
+  return { el: bar, refresh: theme, rescan: watch, close: () => { setDd(false); setMenu(false, { focus: false }); } };
 }
 
 /* ---------------------------------------------------------------- the footer */

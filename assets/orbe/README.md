@@ -5,11 +5,10 @@ The homepage (`site/try-d/`, promoted to `site/index.html`) is built on these fi
 | File | What it is |
 | --- | --- |
 | `orbe.css` | Tokens and components: page, grain, gradient light, type ladder, buttons, links, fields, the window with its colour pairs, chips, the stat strip, focus, the header and the footer. |
-| `chrome.js` | `mountHeader` and `mountFooter`, the shared header (the lockup: the Portal, then the Carved wordmark) and the public footer with the looping wordmark. |
+| `chrome.js` | `mountHeader` and `mountFooter`, the shared header (the lockup, the Products menu, How it works and the Reserve button: the one navigation on every page) and the public footer with the looping wordmark. `PRODUCTS` lists every tool, with one line on it and its colour pair. |
 | `mark.js` | The Portal, Orbe's mark: both cuts as paths, `portalMarkup` (bare, currentColor), `tileMarkup` (on a coloured tile) and `LOCKUP`, the lockup's numbers. `.ob-lockup` in `orbe.css` sets the mark beside the wordmark. |
 | `trail.js` | `mountTrail`, the pointer trail for any page. |
 | `ease.js` | The one easing as a function (`ease`), its CSS string (`EASE`) and `reducedMotion()`. |
-| `scene.js` | `mountScene`, a band's crafted lattice objects in the free space beside its words, and the objects themselves. |
 
 Everything is built on the palette in `../brand/tokens.css` (`--orbe-*`, plus `--rule`, `--rule-strong`, `--action-press` and the font stacks). Classes and custom properties use the `ob-` prefix, so this file can sit beside the older `../brand/components.css` (`.o-*`) while a page moves across.
 
@@ -47,13 +46,22 @@ Everything is built on the palette in `../brand/tokens.css` (`--orbe-*`, plus `-
 
 - `root` is the page's relative path to the site root: `"./"` at the root, `"../"` one folder down, `"../../"` two folders down. Every header and footer link is built from it.
 - `home` defaults to `root`. On the homepage itself, pass `home: "./"` so its anchors (`#reserve`, `#tools`) stay on the page.
-- `current` is the active product path, such as `"products/rate/"`. That link gets `aria-current="page"`.
+- `current` is the active product path, such as `"products/rate/"`. That link gets `aria-current="page"` in the Products menu and the phone sheet, and the Products button is underlined.
 - Mount the footer before the header. The header then sees the footer's fields. If a page adds fields later, call `header.rescan()`.
 - `mountFooter` accepts `people`, a list of `{ name, beats }` from the engine, for the looping wordmark. Without it, the footer reads the made-up creators in `../r5/examples.js`. Pass `note` to change the honesty line. It must still say the creators are made up and that Orbe calculated the figures.
 
+## The Products menu
+
+From 721px up the header holds the lockup, a Products button, How it works and the Reserve button. There is no second row of links under it on any page.
+
+- **The panel:** solid Paper under the bar, set to the right gutter, 12px radius, the held shadow. Every tool in two columns (a small swatch in its colour pair, its name, one line on what it does), then All products under a hairline. The page you are on is Chalk with its name underlined.
+- **Keyboard:** the button carries `aria-expanded`. Enter or Space opens it; the arrow keys open it too and move between the links (Home and End as well), and Tab moves through them as usual. Escape closes it and puts focus back on the button.
+- **Closing:** the button, Escape, any link, a click outside it, focus leaving it, or the screen shrinking to a phone.
+- **Colours:** the button is a header part, so it recolours with the links over light and dark fields; the panel stays Paper.
+
 ## The header on a phone
 
-Up to 720px the links and the Reserve button move into a sheet. The bar keeps the wordmark and a Menu button (44px). The sheet is full width, solid Paper, under the bar: every product as a 56px row with a hairline, the Reserve button at full width, then Brand, Terms and Privacy. Focus stays inside it (the Menu button included) while it is open; Escape, the button, any link in it, or the screen growing past 720px closes it, and the page behind does not scroll.
+Up to 720px the links and the Reserve button move into a sheet. The bar keeps the wordmark and a Menu button (44px). The sheet is full width, solid Paper, under the bar: every tool and All products as 56px rows with a hairline, the Reserve button at full width, then How it works, Brand, Terms and Privacy. Focus stays inside it (the Menu button included) while it is open; Escape, the button, any link in it, or the screen growing past 720px closes it, and the page behind does not scroll.
 
 ## How the header picks its colours
 
@@ -72,42 +80,6 @@ Every field the header can sit over declares itself with `data-head="light"` or 
 - **Colours:** read from `--ob-trail` on the element under the pointer, as three colours separated by spaces. The default is Sky, Straw and Peony. A section sets its own: `.my-band { --ob-trail: var(--orbe-sky) var(--orbe-chalk) var(--orbe-straw); }`.
 - **Strength:** full inside the `loud` selector, and `quiet` (0.45) with sparser cells everywhere else.
 - **When it is off:** on touch, and under reduced motion. No frame runs once the last cell has gone.
-
-## The band scene
-
-`mountScene(band, { items, light, dark, specks, calm = 44, ceiling = ".pr-tabs", within = ".wrap" })` draws a lattice composition into a band: a hero object, a companion or two, and small clusters scattered round them. The products pages mount theirs through `site/products/assets/bands.js`, one composition per product, in its colour pair.
-
-```js
-import { mountScene, orb, hundred, tool } from "../assets/orbe/scene.js";
-mountScene(document.querySelector(".pr-band"), {
-  light: "water", dark: "ink", specks: { colors: ["sky", "water", "ember"], n: 12 },
-  items: [
-    { make: orb({ level: 0.93, rim: ["chalk", "mist", "sky", "water"], liquid: ["mist", "sky", "water", "press"] }), size: [130, 250] },
-    { make: hundred({ n: 93 }), size: [82, 82], cut: 0, ring: 0 },
-    { make: tool({ key: "explainer", dark: ["water", "press"], body: ["mist", "sky"], accent: "ember" }), size: [160, 160] },
-  ],
-});
-```
-
-- **The cast:**
-  - `orb({ level, rim, liquid, tint })`, filled by area, so 0.5 is exactly the middle;
-  - `orbDepth({ levels })`, one orb in front with up to two behind it to one side;
-  - `orbRow({ levels, sizes })`;
-  - `hundred({ n, on, off })`, always 82px, on the half lattice;
-  - `mic(...)`, `tag(...)` (no words on it) and `magnifier(...)`;
-  - `tool({ key, dark, body, accent })`, a creator tool from `../../pixels.js` (`explainer`, `podcast`, `letsplay`) on the half lattice.
-
-  Colours are brand names (`sky`, `press`, `claret`) or hex, given as gradient stops from lit to shade. Each product keeps its own pair, with Ember as the accent; never lime or violet. Levels come from the engine and are labelled made up where the page shows them.
-- **The dress:** every object gets a one cell outline in `light` (an item can set `ring`, `0` for none, and its own `light`). Dark tones get `light` dots on a diamond lattice and light tones get sparse `dark` dots, on the band's own lattice. Edges and highlights stay plain.
-- **Clusters:** `specks: { colors, n }` scatters shapes of two to six cells round the hero. They keep the full calm from the words, 3 cells from every object and 8 from each other.
-- **Placement:** every word (by its line boxes), chip, link, control and window in the band is a no-go zone, and so is everything above `ceiling`.
-  - The hero takes the largest size in its `size` range (in px) that keeps `calm` px of clear band round it, in the spot with the most room.
-  - It may bleed off the band's right or bottom edge by up to `cut` of its cells (0.3 by default; never the left or top). Its centre stays over the `within` column, so wide margins stay empty.
-  - Companions keep 0.62 of the calm (an item can set its own factor as `calm`) and 3 cells from the objects already placed, and sit as near the hero as they can. A companion that does not fit is left out.
-  - When the hero cannot fit, nothing is drawn, so on most phones the band stays text only.
-- **Motion:** after the fonts load, each object rises into place up its columns, an orb fills to its level, and the clusters arrive last, nearest first. That takes under two seconds, then no frame runs. Reduced motion draws the final state. A ResizeObserver redraws the final state when the band changes size.
-- **Faces:** no pair of small marks side by side, ever. Orbs carry no bubbles, highlights are single crescents, grilles and ledger rows are lines, and clusters are never one cell. The game pad loses Select and Start. Cameras (a lens with a dot), the moth and the pan stay out, and so do small orbs on dark bands, whose empty glass reads as a hole.
-- **CSS:** `.ob-scene` in `orbe.css` puts the canvas at z-index 1, under `.ob-layer`. The band needs `position: relative`.
 
 ## Tokens (`--ob-*`)
 

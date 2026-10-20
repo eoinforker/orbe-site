@@ -209,7 +209,7 @@ views.addEventListener("input", () => { viewsOut.textContent = nf.format(+views.
 $$("[data-bar-demo]").forEach((bar) => {
   const state = bar.dataset.barDemo, on = state === "dark" ? "dark" : "light";
   bar.innerHTML = `<span class="ob-bar-mark ob-lockup" data-part data-on="${on}"><span class="ob-lockup-mark">${portalMarkup({ cut: "small" })}</span><span data-wm-bar></span></span>
-    <span class="ob-bar-links">${NAV.map(([t]) => `<a data-part data-on="${on}">${esc(t)}</a>`).join("")}</span>
+    <span class="ob-bar-links"><span class="ob-dd-btn" data-part data-on="${on}">Products<i aria-hidden="true"></i></span>${NAV.map(([t]) => `<a data-part data-on="${on}">${esc(t)}</a>`).join("")}</span>
     <span class="ob-btn ob-btn--s bk-fake" data-part data-on="${on}"><span class="ob-orb" aria-hidden="true"></span>Reserve your handle</span>
     <span class="ob-bar-menu" data-part data-on="${on}">Menu<i></i></span>`;
   mountWordmark($("[data-wm-bar]", bar), { animate: false });

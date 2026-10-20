@@ -1,32 +1,13 @@
 /*
   Shared by every product page, on the shared system (../../assets/orbe/):
-  the header, the footer and the pointer trail from orbe/chrome.js and
-  orbe/trail.js, the quiet products tab row under the header, the small
-  print, and small DOM and formatting helpers, file reading, and per-tab
+  the header (the one navigation, with the Products menu) and the footer
+  from orbe/chrome.js, the small print, and small DOM and formatting helpers, file reading, and per-tab
   storage that never leaves this browser.
 */
 import { mountHeader, mountFooter } from "../../assets/orbe/chrome.js";
-import { mountTrail } from "../../assets/orbe/trail.js";
 import { icon } from "../../assets/icons/icons.js";
 
 export { icon };
-
-export const TOOLS = [
-  { key: "hub", href: "", label: "All products" },
-  { key: "rate", href: "rate/", label: "Rate my work" },
-  { key: "podcasts", href: "podcasts/", label: "Podcasts" },
-  { key: "sponsorships", href: "sponsorships/", label: "Sponsorships" },
-  { key: "selling", href: "selling/", label: "Selling" },
-  { key: "diligence", href: "diligence/", label: "Diligence" },
-  { key: "roster", href: "roster/", label: "Roster" },
-];
-
-/* The products tab row's markup. Each page carries it in its HTML (so nothing moves at first
-   paint); `shell` builds it only for a page that does not. */
-export function tabsHTML(current, depth = 1) {
-  const up = "../".repeat(depth);
-  return `<nav class="pr-tabs" aria-label="Orbe products">${TOOLS.map((t) => `<a href="${up}${t.href}"${t.key === current ? ' aria-current="page"' : ""}>${t.label}</a>`).join("")}</nav>`;
-}
 
 /*
   Pages call this first. `depth` is how many folders below /products/ the page sits.
@@ -39,17 +20,9 @@ export function shell(current, depth = 1) {
   if (!foot) { foot = document.createElement("footer"); foot.dataset.obFooter = ""; (main ?? document.body).after(foot); }
   let head = document.querySelector("[data-ob-header]");
   if (!head) { head = document.createElement("header"); head.dataset.obHeader = ""; document.body.prepend(head); }
-  if (!document.querySelector(".pr-tabs")) {
-    const band = document.querySelector(".pr-band .wrap") ?? main;
-    band?.insertAdjacentHTML("afterbegin", tabsHTML(current, depth));
-  }
   smallPrint(main);
   mountFooter(foot, { root });
   const header = mountHeader(head, { root, current: current === "hub" ? "products/" : `products/${current}/` });
-  mountTrail({ loud: ".pr-band" });
-  // The band's scene: its own object in the free space beside the words (bands.js).
-  import("./bands.js").then((m) => m.mountBand(current)).catch(() => {});
-  tabs(document.querySelector(".pr-tabs"));
   fades(document.querySelector(".page-tabs"));
   // Static disclosures get the same caret as the ones the tools build.
   for (const sum of document.querySelectorAll("details.fold > summary")) if (!sum.querySelector(".o-icon")) sum.insertAdjacentHTML("afterbegin", icon("caret", { size: 16, className: "caret" }));
@@ -67,18 +40,6 @@ function fades(row) {
   row.addEventListener("scroll", edges, { passive: true });
   addEventListener("resize", edges);
   requestAnimationFrame(edges);
-}
-
-/* On a phone the tab row scrolls: the current tab is centred in the row without moving the page. */
-function tabs(row) {
-  if (!row) return;
-  fades(row);
-  const cur = row.querySelector('[aria-current="page"]');
-  if (cur && row.scrollWidth > row.clientWidth) {
-    const r = row.getBoundingClientRect();
-    const c = cur.getBoundingClientRect();
-    row.scrollLeft += c.left + c.width / 2 - (r.left + row.clientWidth / 2);
-  }
 }
 
 /* The small print under every tool: what runs where, and what every figure is. */

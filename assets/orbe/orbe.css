@@ -371,11 +371,50 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 .ob-bar [data-part] { color: var(--orbe-ink); transition: color 160ms var(--ob-ease); }
 .ob-bar [data-part][data-on="dark"] { color: var(--orbe-paper); }
 .ob-bar-mark { --wm-h: 22px; text-decoration: none; flex: none; height: var(--wm-h); border-radius: 4px; }
-.ob-bar-links { display: flex; gap: 4px; margin-left: auto; }
-.ob-bar-links a { font-size: var(--ob-t14); font-weight: 500; text-decoration: none; padding: 6px 12px; border-radius: 4px; transition: background-color 200ms var(--ob-ease), color 160ms var(--ob-ease); }
-.ob-bar-links a:hover { background: rgba(20, 19, 17, 0.06); }
-.ob-bar-links a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
-.ob-bar-links a[data-on="dark"]:hover { background: rgba(251, 250, 246, 0.12); }
+.ob-bar-links { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.ob-bar-links > a, .ob-dd-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 4px;
+  font: 500 var(--ob-t14)/1.4 var(--font-text); text-decoration: none; background: none; border: 0; cursor: pointer;
+  transition: background-color 200ms var(--ob-ease), color 160ms var(--ob-ease);
+}
+.ob-bar-links > a:hover, .ob-dd-btn:hover, .ob-dd-btn[aria-expanded="true"] { background: rgba(20, 19, 17, 0.06); }
+.ob-bar-links > a[aria-current="page"], .ob-dd-btn.is-here { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+.ob-bar-links > a[data-on="dark"]:hover, .ob-dd-btn[data-on="dark"]:hover, .ob-dd-btn[data-on="dark"][aria-expanded="true"] { background: rgba(251, 250, 246, 0.12); }
+/* the caret: a small chevron drawn in currentColor; it turns when the menu is open */
+.ob-dd-btn i { display: block; width: 7px; height: 7px; margin-top: -3px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); transition: transform 200ms var(--ob-ease), margin 200ms var(--ob-ease); }
+.ob-dd-btn[aria-expanded="true"] i { margin-top: 3px; transform: rotate(225deg); }
+/*
+  The Products menu: a Paper panel under the bar, set to the right gutter,
+  whatever field the bar sits over. Every tool in two columns with its colour
+  pair as a small swatch and one line on what it does, then All products.
+*/
+.ob-dd-panel {
+  position: absolute; top: calc(var(--ob-head) - 4px); right: var(--ob-edge); width: min(640px, calc(100vw - 2 * var(--ob-g)));
+  padding: 8px; border: 1px solid var(--rule); border-radius: 12px; background: var(--orbe-paper); color: var(--orbe-ink); box-shadow: var(--ob-lift-held);
+  --ob-focus: var(--orbe-cobalt);
+}
+.ob-dd-panel[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) { .ob-dd-panel:not([hidden]) { animation: ob-sheet 180ms var(--ob-ease) both; } }
+.ob-dd-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; margin: 0; padding: 0; list-style: none; }
+.ob-dd-list a, .ob-dd-all {
+  display: grid; grid-template-columns: 12px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: baseline;
+  padding: 12px 14px; border-radius: 8px; color: var(--orbe-ink); text-decoration: none; transition: background-color 160ms var(--ob-ease);
+}
+.ob-dd-list a:hover, .ob-dd-all:hover { background: var(--orbe-chalk); }
+.ob-dd-sw { grid-row: span 2; align-self: start; width: 12px; height: 12px; margin-top: 4px; border-radius: 4px; background: var(--ob-p-note-bg); box-shadow: inset 0 0 0 1px rgba(20, 19, 17, 0.14); }
+.ob-dd-sw[data-k="spon"] { background: var(--ob-p-spon-bg); }
+.ob-dd-sw[data-k="sell"] { background: var(--ob-p-sell-bg); }
+.ob-dd-sw[data-k="rec"] { background: var(--ob-p-rec-bg); }
+.ob-dd-sw[data-k="pod"] { background: var(--ob-p-pod-bg); }
+.ob-dd-sw[data-k="also"] { background: var(--ob-p-also-bg); }
+.ob-dd-t { font: 500 var(--ob-t16)/1.3 var(--font-text); }
+.ob-dd-d { grid-column: 2; font-size: var(--ob-t14); line-height: 1.4; color: var(--orbe-graphite); }
+.ob-dd-all { grid-template-columns: minmax(0, 1fr) auto; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--rule); border-radius: 0 0 8px 8px; }
+.ob-dd-all .ob-dd-d { grid-column: 1; }
+.ob-dd-all::after { content: ""; grid-column: 2; grid-row: 1 / span 2; align-self: center; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--ob-arrow) center / 100% no-repeat; mask: var(--ob-arrow) center / 100% no-repeat; }
+/* the page you are on: Chalk, and the name underlined */
+.ob-dd-panel [aria-current="page"] { background: var(--orbe-chalk); }
+.ob-dd-panel [aria-current="page"] .ob-dd-t { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
 .ob-bar [data-on="dark"]:focus-visible { outline-color: var(--orbe-paper); }
 /* the Reserve button takes the light variant over a dark field */
 .ob-bar .ob-btn[data-part] { color: var(--orbe-chalk); }
@@ -419,7 +458,7 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 html.ob-sheet-on { overflow: hidden; }
 @media (max-width: 720px) {
   .ob-bar { gap: 12px; }
-  .ob-bar-links, .ob-bar > .ob-btn { display: none; }
+  .ob-bar-links, .ob-bar > .ob-btn, .ob-dd-panel { display: none; }
   .ob-bar-menu { display: inline-flex; }
 }
 @media (min-width: 721px) { .ob-sheet { display: none; } }
@@ -487,8 +526,6 @@ html.ob-sheet-on { overflow: hidden; }
 .ob-trail { position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none; }
 
 /* ---------------------------------------------------------------- the band scene (scene.js): under the words, in the band's free space */
-.ob-scene { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; display: block; }
-.ob-scene[hidden] { display: none; }
 
 /* ---------------------------------------------------------------- touch: 44px for every control
   Under a coarse pointer, a control that is drawn smaller than 44px tall
@@ -497,9 +534,9 @@ html.ob-sheet-on { overflow: hidden; }
   controls with .ob-hit. Lists of links (the footer) get real 44px rows.
 */
 @media (pointer: coarse) {
-  .ob-hit, .ob-win-btn, .ob-win-lnk, .ob-bar-mark, .ob-foot-mark, .ob-bar-links a, .ob-lnk, .ob-btn--s,
+  .ob-hit, .ob-win-btn, .ob-win-lnk, .ob-bar-mark, .ob-foot-mark, .ob-bar-links > a, .ob-dd-btn, .ob-lnk, .ob-btn--s,
   .ob-page summary { position: relative; }
-  .ob-hit::before, .ob-win-btn::before, .ob-win-lnk::before, .ob-bar-mark::before, .ob-foot-mark::before, .ob-bar-links a::before, .ob-lnk::before, .ob-btn--s::before,
+  .ob-hit::before, .ob-win-btn::before, .ob-win-lnk::before, .ob-bar-mark::before, .ob-foot-mark::before, .ob-bar-links > a::before, .ob-dd-btn::before, .ob-lnk::before, .ob-btn--s::before,
   .ob-page summary::before {
     content: ""; position: absolute; left: -4px; right: -4px; top: min(0px, calc(50% - 22px)); bottom: min(0px, calc(50% - 22px));
   }

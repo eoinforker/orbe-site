@@ -5,9 +5,9 @@
   header and the footer all come from there. This file holds only what the
   product pages add:
 
-    .pr-band      the header band, in the product's colour pair, Steel style:
-                  the quiet products tab row, a short two-tone title, one
-                  line on what the tool does, and its status chips
+    .pr-band      the header band, the product's colour pair as a flat field:
+                  a short two-tone title, one line on what the tool does,
+                  its status chips and the short intro
     .pr-intro     the longer line and "What works today", under the band
     .pr-in        a tool's input window (the note pair, Paper)
     .pr-out       a tool's result window (the product's pair); the panels the
@@ -50,44 +50,28 @@
 @media (max-width: 899px) { .split.lead > .pr-out { order: -1; } }
 
 /* ---------------------------------------------------------------- the header band
-  The product's colour pair as a lit field, under the transparent header.
-  Every ink, rule and focus ring inside follows the pair.
+  The product's colour pair as one flat field under the transparent header:
+  no art, no gradient, no grain. The two-tone title, one line, the status
+  chips and the short intro, kept short so the tool starts on the first
+  screen. Every ink, rule and focus ring inside follows the pair.
 */
 .pr-band {
-  --pr-fg: var(--orbe-ink);
-  position: relative; padding: var(--ob-head) 0 clamp(32px, 1rem + 2.4vw, 56px);
-  color: var(--pr-fg); border-bottom: 1px solid var(--rule);
+  --pr-fg: var(--orbe-ink); --ob-field: var(--orbe-sky);
+  position: relative; padding: calc(var(--ob-head) + clamp(12px, 0.25rem + 1.8vw, 40px)) 0 clamp(24px, 0.75rem + 1.2vw, 40px);
+  background-color: var(--ob-field); color: var(--pr-fg); border-bottom: 1px solid var(--rule);
   --ob-ink: var(--pr-fg); --ob-ink-soft: var(--pr-fg); --rule-strong: var(--pr-fg); --ob-focus: var(--pr-fg);
   --rule: color-mix(in srgb, var(--pr-fg) 26%, transparent);
 }
-.pr-band.ob-lit[data-pair="note"] { --ob-field: var(--orbe-linen); --ob-field-lt: var(--orbe-chalk); --ob-field-dk: color-mix(in srgb, var(--orbe-linen) 80%, var(--orbe-stone)); --pr-fg: var(--ob-p-note-fg); --ob-trail: var(--orbe-sky) var(--orbe-straw) var(--orbe-linen); }
-.pr-band.ob-lit[data-pair="spon"] { --ob-field: var(--ob-p-spon-bg); --ob-field-lt: var(--ob-p-spon-lt); --ob-field-dk: var(--ob-p-spon-dk); --pr-fg: var(--ob-p-spon-fg); --ob-trail: var(--orbe-chalk) var(--orbe-ink) var(--orbe-cobalt); }
-.pr-band.ob-lit[data-pair="sell"] { --ob-field: var(--ob-p-sell-bg); --ob-field-lt: var(--ob-p-sell-lt); --ob-field-dk: var(--ob-p-sell-dk); --pr-fg: var(--ob-p-sell-fg); --ob-trail: var(--orbe-straw) var(--orbe-sky) var(--orbe-chalk); }
-.pr-band.ob-lit[data-pair="rec"]  { --ob-field: var(--ob-p-rec-bg);  --ob-field-lt: var(--ob-p-rec-lt);  --ob-field-dk: var(--ob-p-rec-dk);  --pr-fg: var(--ob-p-rec-fg);  --ob-trail: var(--orbe-chalk) var(--orbe-cobalt) var(--orbe-straw); }
-.pr-band.ob-lit[data-pair="pod"]  { --ob-field: var(--ob-p-pod-bg);  --ob-field-lt: var(--ob-p-pod-lt);  --ob-field-dk: var(--ob-p-pod-dk);  --pr-fg: var(--ob-p-pod-fg);  --ob-trail: var(--orbe-claret) var(--orbe-blush) var(--orbe-chalk); }
-.pr-band.ob-lit[data-pair="also"] { --ob-field: var(--ob-p-also-bg); --ob-field-lt: var(--ob-p-also-lt); --ob-field-dk: var(--ob-p-also-dk); --pr-fg: var(--ob-p-also-fg); --ob-trail: var(--orbe-sky) var(--orbe-straw) var(--orbe-chalk); }
-.pr-band.ob-lit[data-pair="sky"]  { --pr-fg: var(--orbe-ink); --ob-trail: var(--orbe-straw) var(--orbe-chalk) var(--orbe-cobalt); }
+.pr-band[data-pair="note"] { --ob-field: var(--orbe-linen); --pr-fg: var(--ob-p-note-fg); }
+.pr-band[data-pair="spon"] { --ob-field: var(--ob-p-spon-bg); --pr-fg: var(--ob-p-spon-fg); }
+.pr-band[data-pair="sell"] { --ob-field: var(--ob-p-sell-bg); --pr-fg: var(--ob-p-sell-fg); }
+.pr-band[data-pair="rec"]  { --ob-field: var(--ob-p-rec-bg);  --pr-fg: var(--ob-p-rec-fg); }
+.pr-band[data-pair="pod"]  { --ob-field: var(--ob-p-pod-bg);  --pr-fg: var(--ob-p-pod-fg); }
+.pr-band[data-pair="also"] { --ob-field: var(--ob-p-also-bg); --pr-fg: var(--ob-p-also-fg); }
+.pr-band[data-pair="sky"]  { --pr-fg: var(--orbe-ink); }
 .pr-band:is([data-pair="sell"], [data-pair="also"]) .ob-btn-q { color: var(--pr-fg); --ob-q-on: var(--ob-field); }
 
-/* the products, as a quiet row of underlined words under the header; it scrolls on a phone */
-.pr-tabs {
-  display: flex; gap: 24px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--ob-g));
-  padding: 0 var(--ob-g); border-bottom: 1px solid var(--rule);
-}
-.pr-tabs::-webkit-scrollbar { display: none; }
-.pr-tabs.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
-.pr-tabs.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 48px); mask-image: linear-gradient(90deg, transparent, #000 48px); }
-.pr-tabs.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
-.pr-tabs a {
-  flex: none; padding: 12px 0 11px; margin-bottom: -1px; border-bottom: 1px solid transparent;
-  font: 400 var(--ob-t14)/1.2 var(--font-text); color: var(--ob-ink); text-decoration: none; white-space: nowrap;
-  transition: border-color 160ms var(--ob-ease);
-}
-.pr-tabs a:hover { border-bottom-color: var(--rule-strong); }
-.pr-tabs a[aria-current="page"] { font-weight: 600; border-bottom: 2px solid var(--ob-ink); }
-@media (max-width: 720px) { .pr-tabs { gap: 20px; } }
-
-.pr-band-in { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--ob-gap); row-gap: 24px; margin-top: clamp(28px, 1rem + 1.8vw, 48px); align-items: end; }
+.pr-band-in { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--ob-gap); row-gap: 16px; align-items: end; }
 .pr-band-say { grid-column: 1 / span 8; }
 .pr-band-side { grid-column: 9 / span 4; }
 @media (max-width: 1023px) { .pr-band-say, .pr-band-side { grid-column: 1 / -1; } }
@@ -95,8 +79,8 @@
 .pr-title { font: 500 var(--ob-t-title)/1.04 var(--font-display); letter-spacing: -0.035em; max-width: 20ch; text-wrap: balance; }
 .pr-title-soft { color: color-mix(in srgb, var(--ob-ink) 60%, var(--ob-field, var(--orbe-paper))); }
 @media (min-width: 1180px) { .pr-title { max-width: 22ch; } }
-.pr-band .ob-lede { margin-top: 20px; }
-.pr-band .ob-chips { margin-top: 20px; }
+.pr-band .ob-lede { margin-top: 14px; }
+.pr-band .ob-chips { margin-top: 16px; }
 .pr-band .ob-chip { height: 26px; padding: 0 10px 0 8px; font-size: var(--ob-t14); }
 /* on a phone the status chips keep to one row */
 @media (max-width: 720px) { .pr-band .ob-chip { height: 24px; padding: 0 8px 0 6px; font-size: var(--ob-t12); } }
@@ -493,8 +477,10 @@ iframe.doc.is-in { outline: 2px solid var(--orbe-cobalt); outline-offset: -2px; 
 
 /* ---------------------------------------------------------------- touch: the tools' small controls reach 44px */
 @media (pointer: coarse) {
-  .seg button, .sort-btn, .pr-tabs a, .page-tabs a, .chip-file button, .icon-btn, .chip-check, .name-btn, .sits-name, .link-btn, .drop, .copy .ob-btn { position: relative; }
-  .seg button::before, .sort-btn::before, .pr-tabs a::before, .page-tabs a::before, .chip-file button::before, .icon-btn::before, .chip-check::before, .name-btn::before, .sits-name::before, .link-btn::before {
+  .seg button, .sort-btn, .page-tabs a, .chip-file button, .icon-btn, .chip-check, .name-btn, .sits-name, .link-btn, .drop, .copy .ob-btn { position: relative; }
+  .seg button::before, .sort-btn::before, .page-tabs a::before, .chip-file button::before, .icon-btn::before, .chip-check::before, .name-btn::before, .sits-name::before, .link-btn::before {
     content: ""; position: absolute; left: -2px; right: -2px; top: min(0px, calc(50% - 22px)); bottom: min(0px, calc(50% - 22px));
   }
 }
+/* on a phone the hub's band keeps to its words, so the tools start higher; the live rating is one tap away */
+@media (max-width: 720px) { .hub-band .pr-band-side { display: none; } }
