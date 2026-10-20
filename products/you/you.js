@@ -91,7 +91,7 @@ function hero(c, animate) {
   $("[data-made]").textContent = `${c.k.name} is a made-up ${c.spec.name}, rated live by the Orbe engine.`;
   $("[data-file]").textContent = `${c.k.handle.slice(1)}_rating.txt`;
   $("[data-band]").textContent = c.verdict;
-  $("[data-band-note]").textContent = `Zero is typical for ${c.peers} with ${c.sizeBand}.`;
+  $("[data-band-note]").textContent = `${c.signed} ${c.against}. Zero is typical.`;
   $("[data-beats]").textContent = c.reachScore;
   $("[data-beats-note]").textContent = `Your reach beats ${c.reachScore} in 100 ${c.peers} your size: ${c.reachValue} on a typical ${c.w.work}.`;
   const first = c.trend.find((t) => t.rating !== null);
@@ -507,7 +507,7 @@ function share(c) {
   }
   if (shareWhich.startsWith("work:")) {
     const R = workReport(c, shareWhich.slice(5));
-    if (R) h = { kicker: "Work report", share: { fig: R.signed, unit: `${R.band.word}, against ${c.peers} my size`, title: R.title, work: true, id: R.id } };
+    if (R) h = { kicker: "Work report", share: { fig: R.signed, unit: `${R.band.word}, ${c.against}`, title: R.title, work: true, id: R.id } };
   }
   const sh = h.share;
   const line = sh.recap
@@ -515,10 +515,10 @@ function share(c) {
     : sh.work
     ? `${c.k.name}: “${sh.title}” rated ${sh.fig}, ${sh.unit.toLowerCase()}. ${RATING_LABEL}.`
     : sh.pb
-    ? `${c.k.name}: new personal best, ${sh.unit} (${sh.fig}). Rated ${c.signed}, ${c.verdict}, against ${c.peers} my size. ${RATING_LABEL}.`
+    ? `${c.k.name}: new personal best, ${sh.unit} (${sh.fig}). Rated ${c.signed}, ${c.verdict}, ${c.against}. ${RATING_LABEL}.`
     : sh.title
-      ? `${c.k.name}: “${sh.title}” did ${sh.fig} ${sh.unit}. Rated ${c.signed}, ${c.verdict}, against ${c.peers} my size. ${RATING_LABEL}.`
-      : `${c.k.name}: ${sh.fig} ${sh.unit}. Rated ${c.signed}, ${c.verdict}, against ${c.peers} my size. ${RATING_LABEL}.`;
+      ? `${c.k.name}: “${sh.title}” did ${sh.fig} ${sh.unit}. Rated ${c.signed}, ${c.verdict}, ${c.against}. ${RATING_LABEL}.`
+      : `${c.k.name}: ${sh.fig} ${sh.unit}. Rated ${c.signed}, ${c.verdict}, ${c.against}. ${RATING_LABEL}.`;
   $("[data-line]").textContent = line;
   $("[data-copied]").textContent = "";
   const cells = [[0, 3], [1, 3], [1, 2], [2, 3], [2, 2], [2, 1], [3, 3], [3, 2], [3, 1], [3, 0]];
@@ -529,7 +529,7 @@ function share(c) {
       <p class="yo-card-unit">${esc(sh.unit)}</p>
       ${sh.title ? `<p class="yo-card-title">“${esc(sh.title)}”</p>` : ""}
       <div class="yo-card-foot">
-        <p><b>${esc(c.k.name)}</b> ${esc(c.k.handle)}<br>Rated ${esc(c.signed)}, ${esc(c.verdict)}, against ${esc(c.peers)} my size.</p>
+        <p><b>${esc(c.k.name)}</b> ${esc(c.k.handle)}<br>Rated ${esc(c.signed)}, ${esc(c.verdict)}, ${esc(c.against)}.</p>
         <svg class="yo-lattice" viewBox="0 0 45.12 45.12" aria-hidden="true">${cells.map(([x, y]) => `<rect x="${x * 11.28 + 1}" y="${y * 11.28 + 1}" width="9.28" height="9.28" rx="1"/>`).join("")}</svg>
       </div>
       <p class="yo-card-label">${RATING_LABEL}. Made up.</p>
@@ -646,9 +646,9 @@ function renderReport(id) {
       <section class="yo-r-player" aria-label="The work, made up" data-player></section>
       <div class="yo-r-score">
         <div class="yo-r-big">
-          <p class="ob-k">Rating against ${esc(c.peers)} your size</p>
+          <p class="ob-k">Orbe Rating</p>
           <p class="ob-figure yo-fig" data-r-fig>${esc(R.signed)}</p>
-          <p class="yo-band">${bandChip(R.band)} <span>Zero is typical for ${esc(c.peers)} with ${esc(c.sizeBand)}.</span></p>
+          <p class="yo-band">${bandChip(R.band)} <span>${esc(R.signed)} ${esc(c.against)}. Zero is typical.</span></p>
         </div>
         <div class="yo-r-own">
           ${R.gaugePos == null ? "" : gaugeSvg(R.gaugePos)}

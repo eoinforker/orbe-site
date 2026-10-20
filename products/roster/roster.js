@@ -4,6 +4,7 @@
   lays them out, sorts, filters, opens a creator in place, and builds the files.
 */
 import { shell, $, $$, esc, count, money, bps, icon, copyText, copyLabel, day } from "../assets/shell.js";
+import { Against, against } from "../../assets/js/against.js";
 import {
   buildRoster, build, ROSTER, invite, leave, pitchLine, rateCardCSV, KINDS, SHARE_LABEL, RECORD_LABEL,
   MADE_UP_LINE, RATING_LABEL, RATING_BANDS, MODEL_VERSION, RATE_CARD_VERSION, DEFAULT_TAKE_RATE, FIXTURE_NOW, FX_RATE,
@@ -27,7 +28,7 @@ const notShared = (what = "Not shared") => `<span class="ns">${what}</span>`;
 const COLS = [
   { key: "name", label: "Creator", sort: (r) => r.name.toLowerCase(), cell: nameCell },
   { key: "rating", label: "Orbe Rating", num: true, sort: (r) => (rated(r) ? r.rating.rating : null), cell: (r) => (rated(r) ? `<b class="fig">${esc(r.rating.signed)}</b> <span class="band-w">${esc(r.rating.band)}</span>` : notShared(r.share === "invited" ? "Waiting" : "Not shared")) },
-  { key: "size", label: "Size band", sort: (r) => (rated(r) ? r.audience : null), cell: (r) => (rated(r) ? esc(r.rating.sizeBand) : notShared("")) },
+  { key: "size", label: "Rated against", hint: "Creators their size", sort: (r) => (rated(r) ? r.audience : null), cell: (r) => (rated(r) ? esc(Against(r.kind, r.rating.sizeBand).replace(/^Against /, "")) : notShared("")) },
   { key: "beats", label: "Beats", hint: "Of 100 their size", num: true, sort: (r) => (rated(r) ? r.rating.beats : null), cell: (r) => (rated(r) ? `<b class="fig">${r.rating.beats}</b><span class="of"> in 100</span>` : notShared("")) },
   { key: "momentum", label: "Momentum", hint: "Against their own", num: true, sort: (r) => (rated(r) && r.rating.momentum ? pctNum(r.rating.momentum.value) : null), cell: (r) => (rated(r) && r.rating.momentum ? `<span class="fig">${esc(r.rating.momentum.value)}</span>` : notShared("")) },
   { key: "latest", label: "Latest work", hint: "Against their own typical", num: true, sort: (r) => (rated(r) && r.rating.latest ? r.rating.latest.multiple : null), cell: (r) => (rated(r) && r.rating.latest ? `<span class="fig">${r.rating.latest.multiple.toFixed(1)}×</span><span class="of"> typical</span>` : notShared("")) },
@@ -146,7 +147,7 @@ function detail(r) {
     <div class="d-head">
       <div><p class="d-k mono">${esc(k.label)} ${esc(k.noun)}, made up. ${esc(r.handle)}, ${count(r.audience)} ${esc(R.sizeBand.split(" ").pop())}</p>
         <p class="d-big"><span class="disp">${esc(R.signed)}</span> <span class="band-w">${esc(R.band)}</span></p>
-        <p class="small">Zero is typical for ${esc(R.peers)} with ${esc(R.sizeBand.replace(/^(Under|Over)/, (w) => w.toLowerCase()))}. ${esc(RATING_LABEL)}.</p></div>
+        <p class="small">${esc(R.signed)} ${esc(against(r.kind, R.sizeBand))}. Zero is typical. ${esc(RATING_LABEL)}.</p></div>
       <div class="pitch"><p class="pitch-k mono">For a pitch email</p><p class="pitch-line">${esc(line)}</p><button type="button" class="ob-btn ob-btn--light ob-btn--s" data-copy="${esc(line)}">${copyLabel("Copy the line")}</button></div>
     </div>
     <div class="d-grid">
@@ -266,14 +267,14 @@ function summary() {
     const name = `<td class="s-name">${esc(r.name)}</td>`;
     if (!r.shown.rating) return `<tr>${name}<td colspan="2" class="ns">${r.share === "left" ? "Left the roster" : "Invited, nothing shared yet"}</td></tr>`;
     const R = r.rating;
-    const rt = `<td>${esc(R.signed)} ${esc(R.band)}, beats ${R.beats} in 100</td>`;
+    const rt = `<td>${esc(R.signed)} ${esc(against(r.kind, R.sizeBand))}: ${esc(R.band)}, beats ${R.beats} in 100</td>`;
     if (!r.shown.prices) return `<tr>${name}${rt}<td class="ns">Prices not shared</td></tr>`;
     if (r.prices.status !== "priced") return `<tr>${name}${rt}<td class="ns">No sponsor format yet</td></tr>`;
     const list = r.prices.items.map((it) => `<li><span>${esc(it.name)}</span><span class="fig">${it.s?.status === "suggested" ? `${esc(range(it.s))} ${it.s.per === "hour" ? "an hour" : "each"}` : "Not enough data"}</span></li>`).join("");
     return `<tr>${name}${rt}<td><ul class="s-fmts">${list}</ul></td></tr>`;
   }).join("");
   $("[data-summary]").innerHTML = `<p class="sum-h">Roster rate cards <span class="mono">made up</span></p>
-    <table class="tbl sum-t"><thead><tr><th scope="col">Creator</th><th scope="col">Orbe Rating, against their size</th><th scope="col">Suggested price, by format</th></tr></thead><tbody>${body}</tbody></table>
+    <table class="tbl sum-t"><thead><tr><th scope="col">Creator</th><th scope="col">Orbe Rating, against creators their size</th><th scope="col">Suggested price, by format</th></tr></thead><tbody>${body}</tbody></table>
     <p class="small">${esc(MADE_UP_LINE)} Ratings: ${esc(RATING_LABEL)}, model ${esc(MODEL_VERSION)}. Prices are the sponsor engine's suggestions on rate card ${esc(RATE_CARD_VERSION)}, converted at ${FX_RATE} pounds per dollar (an example rate). Indicative, not offers.</p>`;
   $("[data-sum-date]").textContent = `As of ${day(FIXTURE_NOW)}`;
 }

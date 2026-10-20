@@ -14,6 +14,7 @@ import { bandFor, RATING_SCALE } from "../../assets/engine/rating/rate.js";
 import { seeded } from "../../assets/engine/rating/fixtures.js";
 import { scaleSnapshot } from "../../assets/engine/rating/fixtures.js";
 import { formatDisplay } from "../../assets/engine/rating/format.js";
+import { against } from "../../assets/js/against.js";
 import { inventoryFromStats, specsForKind } from "../../assets/engine/sponsor/browser.js";
 import { DEFAULT_FEE_SCHEDULE, MIN_MONTHS, formatMoney } from "../../assets/engine/market/browser.js";
 import { suspiciousCreator } from "../../assets/engine/record/browser.js";
@@ -246,10 +247,10 @@ function build(k) {
   const rec = record();
 
   /* ---------- the line for the share card ---------- */
-  const shareLine = `${k.name}: “${best.work.title}” did ${times(best.multiple)} my typical ${w.work}. Rated ${minus(signed(r.rating))}, ${r.band}, against ${spec.peers} my size. ${RATING_LABEL}.`;
+  const shareLine = `${k.name}: “${best.work.title}” did ${times(best.multiple)} my typical ${w.work}. Rated ${minus(signed(r.rating))}, ${r.band}, ${against(k.kind, band.label)}. ${RATING_LABEL}.`;
 
   return {
-    k, spec, w, r, sizeBand, band: band.label, peers: spec.peers,
+    k, spec, w, r, sizeBand, band: band.label, peers: spec.peers, against: against(k.kind, band.label),
     rating: r.rating, signed: minus(signed(r.rating)), verdict: r.band,
     reachScore: r.parts.find((p) => p.key === "reach").score, reachValue: r.parts.find((p) => p.key === "reach").value,
     works: r.detail.works, explain: explain(r),
@@ -856,7 +857,7 @@ export function workReport(c, id) {
     media: mediaFor(c.k.kind, p.work, seed),
     next: next.slice(0, 2),
     older: idx > 0 ? recent12[idx - 1].id : null, newer: idx >= 0 && idx < recent12.length - 1 ? recent12[idx + 1].id : null,
-    shareLine: `${c.k.name}: “${x.title}” rated ${x.rating == null ? "n/a" : minus(signed(x.rating))} against ${c.peers} my size, ${x.band.word.toLowerCase()}. ${RATING_LABEL}.`,
+    shareLine: `${c.k.name}: “${x.title}” rated ${x.rating == null ? "n/a" : minus(signed(x.rating))} ${c.against}, ${x.band.word.toLowerCase()}. ${RATING_LABEL}.`,
   };
 }
 

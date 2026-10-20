@@ -1,6 +1,8 @@
 /* The creator's own card: their rating from Rate my work (this tab only) and their own optional picture. */
 import { shell, $, store, segmented, readImage } from "../assets/shell.js";
 import { renderCard, downloadPng, FORMATS } from "../../assets/r5/card.js";
+import { signed } from "../../assets/engine/rating/browser.js";
+import { ratedAgainst } from "../../assets/js/against.js";
 
 shell("card");
 
@@ -12,7 +14,10 @@ if (!data?.result) {
   const s = { moment: data.personalBest ? "best" : "rating", format: "square", theme: "paper", image: store.session.get("orbe-products-card-image") };
   $("[data-name]").value = data.name ?? "";
   $("[data-handle]").value = data.handle ?? "";
-  $("[data-src]").textContent = data.sample ? "From a made-up file: this card shows an invented creator." : "From your own numbers, rated in this browser.";
+  const rated = ratedAgainst(signed(data.result.rating).replace(/^-/, "\u2212"), data.result.kind, data.result.sizeBand);
+  $("[data-src]").textContent = `${data.sample ? "From a made-up file: this card shows an invented creator." : "From your own numbers, rated in this browser."} Rated ${rated}. Independently calculated by Orbe.`;
+  /* The rating and year-so-far moments draw the band themselves; a personal best carries it in the small line. */
+  const noteFor = (moment) => moment === "best" ? `${data.sample ? "Made up. " : ""}Rated ${rated}.` : data.sample ? "A made-up creator, for trying Orbe." : undefined;
   let svg = "";
   const draw = () => {
     svg = renderCard(data.result, {
@@ -20,7 +25,7 @@ if (!data?.result) {
       handle: $("[data-handle]").value.trim() || "@you", name: $("[data-name]").value.trim() || "My work",
       works: data.works, personalBest: data.personalBest ?? undefined, season: data.season, workTitle: data.workTitle,
       image: s.image ? { href: s.image, alt: "The creator's own picture" } : null,
-      note: data.sample ? "A made-up creator, for trying Orbe." : undefined,
+      note: noteFor(s.moment),
     });
     $("[data-card]").innerHTML = svg;
     const { width, height } = FORMATS[s.format];

@@ -1,0 +1,40 @@
+/*
+  The answer pages: a question, the short answer, a live tool, then plain
+  explanations and the common questions. Loads after orbe.css, products.css
+  and the fair offer check's offer.css (for the range line and equity mode).
+*/
+.an-short { display: grid; gap: 10px; max-width: 68ch; padding: 20px 0; border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule); }
+.an-short p { margin: 0; font-size: var(--ob-t18); line-height: 1.55; text-wrap: pretty; }
+.an-short .small { font-size: var(--ob-t14); }
+.an-prose { max-width: 68ch; }
+.an-prose p, .an-prose li { font-size: var(--ob-t16); line-height: 1.6; text-wrap: pretty; }
+.an-prose p { margin: 0 0 12px; }
+.an-prose ul { margin: 0 0 12px; padding-left: 20px; }
+.an-prose li + li { margin-top: 6px; }
+.an-terms { display: grid; gap: 0; margin: 0; max-width: 68ch; border-top: 1px solid var(--rule-strong); }
+.an-terms > div { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.an-terms dt { font: 600 var(--ob-t16)/1.4 var(--font-text); margin-bottom: 4px; }
+.an-terms dd { margin: 0; font-size: var(--ob-t16); line-height: 1.55; color: var(--ob-ink-soft); }
+.an-faq { max-width: 68ch; border-top: 1px solid var(--rule-strong); }
+.an-faq .fold { padding: 6px 0; border-top: 0; border-bottom: 1px solid var(--rule); }
+.an-faq .fold > summary { font-size: var(--ob-t16); min-height: 44px; }
+.an-faq .fold-body p { margin: 0; font-size: var(--ob-t16); line-height: 1.55; color: var(--ob-ink-soft); max-width: 62ch; }
+.an-more { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.an-more a { font-size: var(--ob-t16); }
+.an-cards { list-style: none; margin: 0; padding: 0; }
+.an-cards .ob-win-body { display: grid; gap: 12px; padding: 20px; align-content: start; }
+.an-cards h2 { margin: 0; font: var(--ob-w-head) var(--ob-t24, 1.5rem)/1.2 var(--font-display); letter-spacing: -0.02em; }
+.an-cards p { margin: 0; font-size: var(--ob-t16); line-height: 1.5; }
+
+/* the rights checker */
+.rc-set { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 14px; }
+.rc-set + .rc-set { padding-top: 16px; border-top: 1px solid var(--rule); }
+.rc-set > legend { padding: 0; margin-bottom: 12px; float: left; width: 100%; }
+.rc-set > legend + * { clear: both; }
+.rc-boxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+.rc-box { display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: var(--ob-t16); line-height: 1.3; cursor: pointer; }
+.rc-box input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--orbe-ink); }
+.rc-box input:disabled + span { color: var(--ob-ink-soft); text-decoration: line-through; }
+.rc-box input:focus-visible { outline: 2px solid var(--ob-focus, var(--orbe-cobalt)); outline-offset: 2px; }
+.rc .verdict-row + p { margin: 0; font-size: var(--ob-t16); line-height: 1.55; }
+@media (max-width: 380px) { .rc-boxes { grid-template-columns: minmax(0, 1fr); } }

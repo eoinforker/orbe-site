@@ -11,7 +11,9 @@
   Nothing leaves the browser.
 */
 import { shell, $, $$, esc, count, money, store, copyText, copyLabel, day } from "../assets/shell.js";
-import { inventoryFromStats, specsForKind, sizeBandFor } from "../../assets/engine/sponsor/browser.js";
+import { specsForKind, sizeBandFor } from "../../assets/engine/sponsor/browser.js";
+import { FX, fairRange, judge, scale, parseUnits, gbp, kindWords, EXAMPLE } from "./fair.js";
+import { mountEquity } from "./equity.js";
 import { fixtureSnapshot, SPECS } from "../../assets/engine/rating/browser.js";
 import { maturedShare } from "../../assets/engine/rating/measure.js";
 import { ORDER, example } from "../../assets/r5/examples.js";
@@ -21,7 +23,6 @@ import { outcomeFor, recordReading } from "./loop/outcomes.js";
 
 shell("offer");
 
-const FX = 0.75; // pounds per dollar: the example rate Sponsorships uses, stated on the page
 const KEY = "orbe-offer-record";
 const DAY = 864e5;
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -29,79 +30,16 @@ const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* ================================================================ the check */
 const form = $("[data-form]");
 const out = $("[data-out]");
-const AUD = { youtube: "Subscribers", substack: "Subscribers", podcast: "Followers", twitch: "Followers" };
-const NOUN = { youtube: "upload", substack: "issue", podcast: "episode", twitch: "stream" };
 
 function kindChanged() {
-  const kind = form.elements.kind.value;
-  const specs = specsForKind(kind);
-  const spec = specs[0];
-  const what = spec.quantity === "hour" ? "Average viewers per stream" : `${spec.unit[0].toUpperCase()}${spec.unit.slice(1)} at ${spec.priceWindow} days`;
-  $("[data-units-label]").textContent = `${what}, recent ${NOUN[kind]}s`;
-  $("[data-aud-label]").textContent = AUD[kind];
-  $("[data-placement]").innerHTML = specs.map((s) => `<option value="${s.format}">${esc(s.name)}</option>`).join("");
-  $("[data-offer-label]").textContent = spec.quantity === "hour" ? "Their offer per hour, in pounds" : "Their offer, in pounds";
+  const w = kindWords(form.elements.kind.value);
+  $("[data-units-label]").textContent = w.units;
+  $("[data-aud-label]").textContent = w.audience;
+  $("[data-placement]").innerHTML = w.placements.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("");
+  $("[data-offer-label]").textContent = w.offer;
 }
 form.elements.kind.addEventListener("change", kindChanged);
 kindChanged();
-
-const parseUnits = (text) => text.split(/[\s,;]+/).map((x) => Number(x.replace(/[^\d.]/g, ""))).filter((n) => Number.isFinite(n) && n > 0);
-const a = (w) => `${/^[aeiou]/i.test(w) ? "an" : "a"} ${w}`;
-const up10 = (pence) => Math.ceil(pence / 1000) * 1000;
-const gbp = (amount) => ({ amount, currency: "GBP" });
-const fx = (m, to) => (m.currency === to ? m : m.currency === "USD" && to === "GBP" ? { amount: Math.round(m.amount * FX), currency: "GBP" } : null);
-
-/* The fair range for one placement, from the sponsor engine. */
-function fairRange({ kind, audience, units, placement }) {
-  const { inventory } = inventoryFromStats({ kind, audience, units, price: null, currency: "GBP", fx, rating: null, at: new Date().toISOString() });
-  const item = inventory.items.find((i) => i.format === placement) ?? inventory.items[0];
-  return { item, s: item?.suggestion };
-}
-
-/* low, fair or strong, and what to say back */
-function judge(offer, s, placementName, kind) {
-  const low = s.low.amount, high = s.high.amount, mid = (low + high) / 2;
-  const deliver = `about ${count(s.expected.units)} ${s.expected.unit} at ${s.expected.day} ${s.expected.day === 1 ? "day" : "days"}`;
-  const per = s.per === "hour" ? " an hour" : "";
-  if (offer < low) {
-    const counter = up10(mid);
-    return {
-      verdict: "low", word: "Low", tag: "bad", counter,
-      reason: `${money(gbp(offer))} is ${Math.round((1 - offer / low) * 100)}% under the bottom of your fair range for ${deliver}. Ask for the middle of it.`,
-      reply: `Thanks for the offer. My recent ${NOUN[kind]}s deliver ${deliver}, so my rate for ${a(placementName.toLowerCase())} is ${money(gbp(counter))}${per}. Happy to talk through the details and dates.`,
-    };
-  }
-  if (offer > high) {
-    return {
-      verdict: "strong", word: "Strong", tag: "good", counter: null,
-      reason: `Above your fair range for ${deliver}. Take it, and get the deliverables and the payment date in writing.`,
-      reply: `Thanks, ${money(gbp(offer))}${per} works for me. Could you confirm the deliverables, any usage rights and the payment date in writing?`,
-    };
-  }
-  if (offer < mid) {
-    const counter = up10(mid);
-    return {
-      verdict: "fair", word: "Fair", tag: "warn", counter,
-      reason: `Inside your range for ${deliver}, but in its lower half. The middle is a fair ask.`,
-      reply: `Thanks for the offer. For ${deliver}, I'd be glad to do ${a(placementName.toLowerCase())} at ${money(gbp(counter))}${per}. Could you confirm the deliverables and payment date?`,
-    };
-  }
-  return {
-    verdict: "fair", word: "Fair", tag: "good", counter: null,
-    reason: `In the upper half of your fair range for ${deliver}. Take it, or hold the price and ask for a second placement.`,
-    reply: `Thanks, ${money(gbp(offer))}${per} works for me. Could you confirm the deliverables, any usage rights and the payment date in writing?`,
-  };
-}
-
-/* The range as a line, with the offer marked on it. */
-function scale(low, high, offer) {
-  const max = Math.max(high * 1.4, offer * 1.1);
-  const at = (x) => `${Math.min(100, (x / max) * 100).toFixed(2)}%`;
-  return `<div class="scale" role="img" aria-label="Fair range ${esc(money(gbp(low)))} to ${esc(money(gbp(high)))}; the offer is ${esc(money(gbp(offer)))}">
-    <span class="scale-band" style="left:${at(low)};width:calc(${at(high)} - ${at(low)})"></span>
-    <span class="scale-mark" style="left:${at(offer)}"><span>Offer</span></span>
-  </div><div class="scale-ends"><span>£0</span><span>${esc(money(gbp(Math.round(max / 100) * 100)))}</span></div>`;
-}
 
 let last = null;
 function check(input, sample = false) {
@@ -147,7 +85,6 @@ form.addEventListener("submit", (e) => {
   if (innerWidth < 900) out.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
 });
 
-const EXAMPLE = { kind: "youtube", audience: 85000, units: "21000, 18000, 25000, 19500, 30000, 17000, 22500", placement: "integration", offer: 400 };
 $("[data-example]").addEventListener("click", () => {
   const f = form.elements;
   f.kind.value = EXAMPLE.kind;
@@ -158,6 +95,22 @@ $("[data-example]").addEventListener("click", () => {
   f.offer.value = EXAMPLE.offer;
   form.requestSubmit();
 });
+
+/* ================================================================ paid partly in equity: folded, drawn on first open */
+const eqFold = $("[data-eq-fold]");
+let eq = null;
+const mainSize = () => {
+  const f = form.elements;
+  const audience = Number(f.audience.value);
+  const units = parseUnits(f.units.value);
+  if (!(audience > 0) || units.length < 3) return { error: "no size" };
+  return { kind: f.kind.value, audience, units, placement: f.placement.value };
+};
+eqFold.addEventListener("toggle", () => { if (eqFold.open && !eq) eq = mountEquity($("[data-eq]", eqFold), { size: mainSize }); });
+form.addEventListener("submit", () => { if (eq && !mainSize().error) eq.refresh(); });
+const openEquity = () => { if (location.hash === "#equity") { eqFold.open = true; } };
+addEventListener("hashchange", openEquity);
+openEquity();
 
 /* ================================================================ the record, on this device */
 const PLACE = Object.fromEntries(["youtube", "substack", "podcast", "twitch"].flatMap((k) => specsForKind(k).map((s) => [`${k}/${s.format}`, s.name])));

@@ -8,6 +8,7 @@ import { mountHeader, mountFooter } from "./assets/orbe/chrome.js";
 import { mountTrail } from "./assets/orbe/trail.js";
 import { mountArt, ease, GW, GH } from "./pixels.js";
 import { reserve, cleanHandle } from "./assets/r5/reserve.js";
+import { Against } from "./assets/js/against.js";
 import { mountOrbs } from "./block.js";
 import {
   KINDS, rated, sale, quote, plausible, prefixed, disagree,
@@ -360,6 +361,7 @@ function show(key, animateWord) {
   $("[data-who-name]").textContent = k.name;
   $("[data-who-handle]").textContent = k.handle;
   $("[data-who-size]").textContent = r.sizeBand;
+  $("[data-against]").textContent = Against(r.result.kind, r.result.sizeBand);
   $("[data-peers]").textContent = r.peers;
   $("[data-noun]").textContent = k.noun;
   $("[data-noun-2]").textContent = k.noun;

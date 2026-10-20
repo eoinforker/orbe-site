@@ -9,6 +9,7 @@ import { rate, rateWorks, topStat, focusAreas, explain, personalBests, recordMet
 import { fixtureSnapshot, FIXTURE_NOW } from "../../assets/engine/rating/browser.js";
 import { readCreatorExport, EXPORT_FORMATS, accountIdFor, workIdFor } from "../../assets/engine/ingest/browser.js";
 import { example } from "../../assets/r5/examples.js";
+import { against } from "../../assets/js/against.js";
 
 shell("rate");
 
@@ -187,7 +188,7 @@ function show(snapshot, at, meta) {
         </div>
         <span class="tag acc band">${esc(result.band)}</span>
       </div>
-      <p class="sub" style="margin-top:0">Zero is typical for ${esc(spec.peers)} with ${esc(result.sizeBand)} ${esc(spec.audienceNoun)}. ${d.provisional ? "On provisional benchmarks: the engine's starting baselines, replaced by measured ones as creators consent to be counted." : ""}</p>
+      <p class="sub" style="margin-top:0"><b style="font-weight:500">${esc(signed(result.rating))} ${esc(against(kind, result.sizeBand))}.</b> Zero is typical. ${d.provisional ? "On provisional benchmarks: the engine's starting baselines, replaced by measured ones as creators consent to be counted." : ""}</p>
       <p class="small">${esc(ratingNotice(kind))}</p>
       <p class="small rate-next"><a class="ob-lnk ob-lnk--s" href="../you/">Next: Your Orbe, your home</a> A report for every piece, your level and your focus areas.</p>
       ${d.confidence && d.confidence !== "normal" ? `<p class="note warn">Confidence is ${esc(d.confidence)}: with ${d.works} ${esc(d.formatName)}, sub-scores are pulled towards typical until there are ten.</p>` : ""}
@@ -195,7 +196,7 @@ function show(snapshot, at, meta) {
 
     <div class="panel stack">
       <h2 class="h3">Sub-scores</h2>
-      <p class="small" style="margin-top:4px">Each is a percentile against ${esc(spec.peers)} your size: 50 is typical.</p>
+      <p class="small" style="margin-top:4px">Each is a percentile ${esc(against(kind, result.sizeBand))}: 50 is typical.</p>
       <ul class="stack">${result.parts.map((p) => `
         <li class="score">
           <div class="row" style="justify-content:space-between;gap:8px"><b style="font-weight:500">${esc(p.name)}</b><span class="small">${esc(p.value)} · better than ${p.score} in 100</span></div>
@@ -226,7 +227,7 @@ function show(snapshot, at, meta) {
     <div class="panel stack" data-wide>
       ${fold("Where these numbers come from", `${(meta.sources?.length ?? 0) + 1} sources`, sourcesList([
         ...(meta.sources ?? [{ kind: "typed", label: meta.source }]),
-        { kind: "engine", label: `The Orbe Rating, maths version ${result.modelVersion}`, provenance: `Independently calculated by Orbe against ${spec.peers} your size${d.provisional ? ", on provisional benchmarks" : ""}.` },
+        { kind: "engine", label: `The Orbe Rating, maths version ${result.modelVersion}`, provenance: `Independently calculated by Orbe ${against(kind, result.sizeBand)}${d.provisional ? ", on provisional benchmarks" : ""}.` },
       ]))}
       ${warnings(meta.warnings)}
     </div>`;

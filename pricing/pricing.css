@@ -68,3 +68,4 @@
 .pc-q p { padding: 0 40px 20px 0; max-width: 60ch; color: var(--orbe-graphite); text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) { .pc-q summary::after { transition: none; } }
 @media (max-width: 720px) { .pc-q summary { font-size: var(--ob-t16); } }
+.pc-list + .pc-under { margin-top: 16px; }

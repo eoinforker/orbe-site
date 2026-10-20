@@ -35,6 +35,12 @@ Works today: the playground and the MCP server run locally. With the API: a host
 - [For teams](https://eoinforker.github.io/orbe-site/teams/): rights tooling for agencies, brands and media companies.
 - [Pricing](https://eoinforker.github.io/orbe-site/pricing/): free for creators; what teams and deals pay.
 
+## Answers
+
+- [Is this offer fair for my size?](https://eoinforker.github.io/orbe-site/answers/is-this-offer-fair/): a live fair-offer check for creators.
+- [Should I take equity instead of cash?](https://eoinforker.github.io/orbe-site/answers/equity-or-cash/): an illustrative equity check, not advice.
+- [Who owns my video after a brand deal?](https://eoinforker.github.io/orbe-site/answers/who-owns-my-video/): usage rights, explained, with a live checker.
+
 ## Optional
 
 - [Terms](https://eoinforker.github.io/orbe-site/legal/terms.html)

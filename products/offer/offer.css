@@ -59,3 +59,33 @@
 .h-s { font-size: var(--ob-t12); }
 .past tr.is-bad td { background: var(--orbe-negative-tint); }
 .offer .big { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+/* ---------------------------------------------------------------- paid partly in equity (equity.js), folded */
+.eq-sec { margin-top: 40px; }
+.eq-fold { border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule); padding: 8px 0; }
+.eq-fold > summary { flex-wrap: wrap; min-height: 48px; font-size: var(--ob-t18); font-weight: 600; }
+.eq-fold > summary .meta { flex: 1 1 24ch; font-size: var(--ob-t14); }
+.eq-fold > .fold-body { margin-top: 16px; }
+.eq-warn { font-size: var(--ob-t16); }
+.eq-warn b { font-weight: 600; }
+.eq-gap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.eq-gap > div { display: grid; gap: 2px; align-content: start; min-width: 0; }
+.eq-gap b { font-weight: 600; }
+.eq-tbl th[scope="row"] { font-weight: 400; font-size: var(--ob-t14); color: var(--ob-ink); text-align: left; white-space: normal; padding-right: 12px; }
+.eq-tbl .eq-o { display: block; font-weight: 600; }
+.eq-tbl th .small { display: block; max-width: 34ch; }
+.eq-tbl th .tag { margin-top: 4px; white-space: normal; }
+.eq-tbl td { white-space: nowrap; font-feature-settings: "lnum" 1, "pnum" 1; }
+.eq-assume, .eq-how { margin-top: 8px; }
+.eq-tbl tbody th { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.eq-tbl tbody tr:last-child th { border-bottom: 0; }
+@media (max-width: 559px) {
+  .eq-tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .eq-tbl, .eq-tbl tbody, .eq-tbl tr { display: block; }
+  .eq-tbl tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .eq-tbl tr:last-child { border-bottom: 0; }
+  .eq-tbl tbody th { grid-column: 1 / -1; padding: 0; border: 0; }
+  .eq-tbl td.r { display: grid; gap: 2px; padding: 0; border: 0; text-align: left; font-weight: 600; }
+  .eq-tbl td::before { content: attr(data-k); font-weight: 400; font-size: var(--ob-t12); color: var(--ob-ink-soft); }
+  .eq-tbl th .small { max-width: none; }
+}

@@ -103,3 +103,14 @@
 @media (min-width: 721px) and (max-width: 1023px) { .gt tr { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .log li { grid-template-columns: 2em minmax(0, 1fr); } .l-h { grid-column: 2; } }
 @media (prefers-reduced-motion: reduce) { .rights * { transition: none !important; animation: none !important; } }
+
+/* ---------------------------------------------------------------- the two sides, and the creator's view */
+.r-tabs { margin-top: 24px; }
+.r-tabs .seg { display: inline-flex; max-width: 100%; }
+@media (max-width: 480px) { .r-tabs .seg { display: flex; width: 100%; } .r-tabs .seg button { flex: 1; } }
+.cr-h3 { margin: 0; font: 500 var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; color: var(--orbe-ink); text-wrap: balance; }
+.owed { margin: 0; max-width: 68ch; font-size: var(--ob-t16); line-height: 1.5; color: var(--orbe-ink); }
+.owed b { font-weight: 600; }
+[data-cr-tally] { margin: 0; }
+[data-cr-tally] b { font-weight: 600; color: var(--orbe-ink); }
+.cr-t .c-st .sub-l { white-space: normal; }

@@ -75,7 +75,7 @@ export const SHEET = [...PRODUCTS.map(([t, p]) => [t, p]), ALL_PRODUCTS.slice(0,
 /* the public footer, by path from the site root: one compact column per pillar, then Orbe; "#..." entries are the homepage's own anchors */
 export const FOOTER = [
   ...PILLARS.map(([h, , items]) => [h, items.map(([t, p]) => [t, p])]),
-  ["Orbe", [["Pricing", "pricing/"], ["Brand", "brand/"], ["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
+  ["Orbe", [["Answers", "answers/"], ["Pricing", "pricing/"], ["Brand", "brand/"], ["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
 ];
 
 /*

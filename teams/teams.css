@@ -41,7 +41,8 @@
 .tm-rules li { padding-top: 12px; border-top: 1px solid var(--orbe-ink); font-size: var(--ob-t16); line-height: 1.5; text-wrap: pretty; }
 .tm-rules b { display: block; margin-bottom: 4px; font-weight: 600; }
 @media (min-width: 640px) { .tm-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { .tm-rules { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .tm-rules { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1280px) { .tm-rules { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 
 /* ---------------------------------------------------------------- the call */
 .tm-cta { padding: var(--ob-sec) 0; }
