@@ -40,7 +40,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
   the phone sheet as grouped sections, and the footer as compact columns.
 */
 export const PILLARS = [
-  ["Grow", "Know where you stand, and get better.", [
+  ["Grow", "Each upload, rated against creators your size.", [
     ["Your Orbe", "products/you/", "Your home: a report for every piece.", "also"],
     ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
     ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],

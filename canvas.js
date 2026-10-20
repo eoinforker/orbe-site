@@ -357,7 +357,7 @@ function show(key, animateWord) {
   hero.dataset.head = DARK_KINDS.has(key) ? "dark" : "light";
   heroSec.dataset.kind = key;
   art.show(key, animateWord && !reduce);
-  $("[data-frame-name]").textContent = `rating.txt / ${k.name}`;
+  $("[data-frame-name]").textContent = `each_upload.txt / ${k.name}`;
   $("[data-who-name]").textContent = k.name;
   $("[data-who-handle]").textContent = k.handle;
   $("[data-who-size]").textContent = r.sizeBand;
