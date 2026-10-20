@@ -44,6 +44,7 @@ export const PILLARS = [
     ["Your Orbe", "products/you/", "Your home: a report for every piece.", "also"],
     ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
     ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
+    ["Orbe Fix", "products/fix/", "New titles, kept only on lift.", "also"],
   ]],
   ["Earn", "Get paid fairly when money moves.", [
     ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
@@ -97,6 +98,7 @@ function menuDirection() {
 const GLYPH = {
   "products/you/": ".###.|#...#|#.#.#|#...#|.###.",
   "products/rate/": "....#|..#.#|..#.#|#.#.#|#.#.#",
+  "products/fix/": "....#|...#.|#.#..|.#...|#.#..",
   "products/podcasts/": "..#..|#.#.#|#.#.#|#.#.#|..#..",
   "products/sponsorships/": "#####|#...#|#####|.....|#####",
   "products/offer/": ".....|....#|...#.|#.#..|.#...",
