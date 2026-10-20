@@ -57,6 +57,14 @@
     {
       "name": "orbe_check_delivery",
       "description": "Check delivery against a guarantee"
+    },
+    {
+      "name": "orbe_diagnose_upload",
+      "description": "Diagnose an upload for Orbe Fix"
+    },
+    {
+      "name": "orbe_judge_fix",
+      "description": "Judge whether a fix lifted an upload"
     }
   ],
   "paths": {
@@ -1441,6 +1449,123 @@
           }
         }
       }
+    },
+    "/v1/tools/diagnose-upload": {
+      "post": {
+        "operationId": "diagnoseUpload",
+        "summary": "Diagnose an upload for Orbe Fix",
+        "description": "Orbe Fix, step one: whether a YouTube upload is below creators the same size at the same age (the lower quartile of the rating's reach benchmark, scaled to the share of views expected by its age), and what to fix: with click-through from YouTube Analytics it tells a weak thumbnail and title from weak reach; without it, both. Judged from 1 to 60 days old. It changes nothing: generating options and swapping them need the creator's approval in Orbe.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_diagnose_upload"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_diagnose_upload",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnoseUploadInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "audience": 50000,
+                    "title": "I rebuilt my studio for £500 | Studio Diaries",
+                    "publishedAt": "2026-10-15T17:00:00Z",
+                    "durationSec": 900,
+                    "views": 900,
+                    "ctr": 0.021,
+                    "typicalCtr": 0.048,
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/judge-fix": {
+      "post": {
+        "operationId": "judgeFix",
+        "summary": "Judge whether a fix lifted an upload",
+        "description": "Orbe Fix, last step: whether a new title or thumbnail lifted a YouTube upload. The baseline is the upload's own pace at the moment of the change, carried forward on the rating's curve for YouTube views and sealed; the fix is kept and charged only if the upload then added at least 15% more views than that baseline, judged no sooner than two days after the change. Otherwise the old title and thumbnail go back and there is no fee.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_judge_fix"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_judge_fix",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JudgeFixInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "publishedAt": "2026-10-15T17:00:00Z",
+                    "changedAt": "2026-10-18T12:00:00Z",
+                    "viewsAtChange": 900,
+                    "viewsNow": 2400,
+                    "now": "2026-10-23T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2513,6 +2638,101 @@
         },
         "title": "Check delivery against a guarantee",
         "description": "Judges a guaranteed sponsorship once its delivery is read: delivered (paid in full) or short, and when short, the creator's options (a make-good, or pro rata never below the floor for a published, disclosed work that stays up) with the exact split between creator, Orbe's fee and the brand's refund. The same rules Orbe's bookings use."
+      },
+      "DiagnoseUploadInput": {
+        "type": "object",
+        "required": [
+          "audience",
+          "publishedAt",
+          "views"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "Subscribers. It picks the size band the upload is judged against."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "The upload's current title, for the record."
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the upload went out, ISO 8601."
+          },
+          "durationSec": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Length in seconds; 1 to 180 is a Short, judged against Shorts. Defaults to long-form."
+          },
+          "views": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Views so far."
+          },
+          "ctr": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Click-through on impressions for this upload, 0 to 1, from YouTube Analytics. Needs typicalCtr."
+          },
+          "typicalCtr": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "The creator's typical click-through, 0 to 1."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Diagnose an upload for Orbe Fix",
+        "description": "Orbe Fix, step one: whether a YouTube upload is below creators the same size at the same age (the lower quartile of the rating's reach benchmark, scaled to the share of views expected by its age), and what to fix: with click-through from YouTube Analytics it tells a weak thumbnail and title from weak reach; without it, both. Judged from 1 to 60 days old. It changes nothing: generating options and swapping them need the creator's approval in Orbe."
+      },
+      "JudgeFixInput": {
+        "type": "object",
+        "required": [
+          "publishedAt",
+          "changedAt",
+          "viewsAtChange",
+          "viewsNow"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the upload went out, ISO 8601."
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the new title or thumbnail went live."
+          },
+          "viewsAtChange": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Views when the change went live."
+          },
+          "viewsNow": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Views at the moment of judging (now)."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Judge whether a fix lifted an upload",
+        "description": "Orbe Fix, last step: whether a new title or thumbnail lifted a YouTube upload. The baseline is the upload's own pace at the moment of the change, carried forward on the rating's curve for YouTube views and sealed; the fix is kept and charged only if the upload then added at least 15% more views than that baseline, judged no sooner than two days after the change. Otherwise the old title and thumbnail go back and there is no fee."
       },
       "Error": {
         "type": "object",

@@ -26,6 +26,7 @@ import { RATING_LABEL } from "../assets/engine/rating/label.js";
                                                             
                                                           
                                                             
+                                                    
 
                       
                               
@@ -33,6 +34,7 @@ import { RATING_LABEL } from "../assets/engine/rating/label.js";
                                 
                               
                                 
+                        
   
 
 /** The JSON Schema subset the tools use, checked by validate() below. */
@@ -240,13 +242,14 @@ const usdRateSchema         = {
 /* ---------------------------------------------------------------- the tools */
 
 export function createTools(engine        )          {
-  const { rating: R, ratingFormat: F, sponsor: S, market: M, podcast: P } = engine;
+  const { rating: R, ratingFormat: F, sponsor: S, market: M, podcast: P, fix: X } = engine;
 
   const versions                         = {
     model: R.MODEL_VERSION,
     rateCards: S.RATE_CARD_VERSION,
     valuation: M.VALUATION_MODEL_VERSION,
     plausibilityRules: P.RULES_VERSION,
+    fix: X.FIX_VERSION,
   };
 
   const envelope = (data                         , supplied = true)                          => ({
@@ -633,6 +636,33 @@ export function createTools(engine        )          {
       summary: `${head} ${tail} ${ATTRIBUTION}`,
       structured: envelope({ verdict: "short", delivered: units, guarantee: g, keptUp, remedy, options, payout: remedy === "pro_rata" ? proRata : null, note: keptUp ? `The floor of ${shortfall.floorBps / 100}% applies because the work is published, disclosed and still up.` : "No floor: the work was taken down or not disclosed.", computedAt: nowOf(a) }),
     };
+  }
+
+  /* ---- Orbe Fix */
+
+                                                                                                                                                                      
+
+  function diagnoseTool(a              )              {
+    const at = nowOf(a);
+    const ctr = a.ctr !== undefined && a.typicalCtr !== undefined ? { work: a.ctr, typical: a.typicalCtr } : undefined;
+    const d = X.diagnose({ work: { id: "typed_upload", kind: "youtube", title: a.title ?? "", publishedAt: new Date(Date.parse(a.publishedAt)).toISOString(), durationSec: a.durationSec ?? 0, metrics: { views: a.views } }, audience: a.audience, now: at, ctr });
+    const next = d.status === "underperforming" ? " Orbe Fix can generate new options, check them against the video and swap them only with the creator's approval; it charges only if the change lifts the upload." : "";
+    return { ok: true, summary: `${d.why}${next} ${ATTRIBUTION}`, structured: envelope({ ...d, computedAt: at }) };
+  }
+
+                                                                                                                     
+
+  function judgeFixTool(a           )              {
+    const at = nowOf(a);
+    const iso = (s        ) => new Date(Date.parse(s)).toISOString();
+    if (!(Date.parse(a.changedAt) >= Date.parse(a.publishedAt))) return { ok: false, message: "The change must come after the upload was published.", issues: [{ path: "changedAt", message: "is before publishedAt" }] };
+    if (a.viewsNow < a.viewsAtChange) return { ok: false, message: "Views cannot fall: viewsNow is below viewsAtChange.", issues: [{ path: "viewsNow", message: "is below viewsAtChange" }] };
+    const baseline = X.sealBaseline({ fixId: "typed_fix", workId: "typed_upload", madeAt: iso(a.changedAt), publishedAt: iso(a.publishedAt), viewsAtChange: a.viewsAtChange, rule: X.BASELINE_RULE, version: X.FIX_VERSION });
+    const r = X.judgeLift(baseline, at, a.viewsNow);
+    const lift = r.lift === null ? null : Number.isFinite(r.lift) ? Math.round(r.lift * 1000) / 1000 : null;
+    const expected = r.expectedGain === null ? null : Math.round(r.expectedGain);
+    const fee = r.fee ? ` Fee ${S.formatMoney(r.fee)}.` : "";
+    return { ok: true, summary: `${r.text}${fee} ${ATTRIBUTION}`, structured: envelope({ ...r, expectedGain: expected, lift, liftMin: X.LIFT_MIN, minWindowDays: X.MIN_WINDOW_DAYS, baseline: { rule: baseline.rule, seal: baseline.seal }, computedAt: at }) };
   }
 
   /* ---- business value */
@@ -1056,6 +1086,51 @@ export function createTools(engine        )          {
       annotations: READ_ONLY("Check delivery"),
       example: { kind: "podcast", format: "podcast_read", price: { amount: 24000, currency: "GBP" }, guarantee: 12525, delivered: 10900, remedy: "pro_rata", now: "2026-11-20T12:00:00Z" },
       run: checkTool                             ,
+    },
+    {
+      name: "orbe_diagnose_upload",
+      title: "Diagnose an upload for Orbe Fix",
+      description:
+        "Orbe Fix, step one: whether a YouTube upload is below creators the same size at the same age (the lower quartile of the rating's reach benchmark, scaled to the share of views expected by its age), and what to fix: with click-through from YouTube Analytics it tells a weak thumbnail and title from weak reach; without it, both. Judged from 1 to 60 days old. It changes nothing: generating options and swapping them need the creator's approval in Orbe.",
+      inputSchema: {
+        type: "object",
+        required: ["audience", "publishedAt", "views"],
+        additionalProperties: false,
+        properties: {
+          audience: { ...audienceSchema, description: "Subscribers. It picks the size band the upload is judged against." },
+          title: { type: "string", maxLength: 100, description: "The upload's current title, for the record." },
+          publishedAt: { type: "string", format: "date-time", description: "When the upload went out, ISO 8601." },
+          durationSec: { type: "integer", minimum: 0, description: "Length in seconds; 1 to 180 is a Short, judged against Shorts. Defaults to long-form." },
+          views: { type: "integer", minimum: 0, description: "Views so far." },
+          ctr: { type: "number", minimum: 0, maximum: 1, description: "Click-through on impressions for this upload, 0 to 1, from YouTube Analytics. Needs typicalCtr." },
+          typicalCtr: { type: "number", minimum: 0, maximum: 1, description: "The creator's typical click-through, 0 to 1." },
+          now: nowSchema,
+        },
+      },
+      annotations: READ_ONLY("Diagnose an upload"),
+      example: { audience: 50000, title: "I rebuilt my studio for £500 | Studio Diaries", publishedAt: "2026-10-15T17:00:00Z", durationSec: 900, views: 900, ctr: 0.021, typicalCtr: 0.048, now: "2026-10-18T12:00:00Z" },
+      run: diagnoseTool                             ,
+    },
+    {
+      name: "orbe_judge_fix",
+      title: "Judge whether a fix lifted an upload",
+      description:
+        "Orbe Fix, last step: whether a new title or thumbnail lifted a YouTube upload. The baseline is the upload's own pace at the moment of the change, carried forward on the rating's curve for YouTube views and sealed; the fix is kept and charged only if the upload then added at least 15% more views than that baseline, judged no sooner than two days after the change. Otherwise the old title and thumbnail go back and there is no fee.",
+      inputSchema: {
+        type: "object",
+        required: ["publishedAt", "changedAt", "viewsAtChange", "viewsNow"],
+        additionalProperties: false,
+        properties: {
+          publishedAt: { type: "string", format: "date-time", description: "When the upload went out, ISO 8601." },
+          changedAt: { type: "string", format: "date-time", description: "When the new title or thumbnail went live." },
+          viewsAtChange: { type: "integer", minimum: 0, description: "Views when the change went live." },
+          viewsNow: { type: "integer", minimum: 0, description: "Views at the moment of judging (now)." },
+          now: nowSchema,
+        },
+      },
+      annotations: READ_ONLY("Judge a fix"),
+      example: { publishedAt: "2026-10-15T17:00:00Z", changedAt: "2026-10-18T12:00:00Z", viewsAtChange: 900, viewsNow: 2400, now: "2026-10-23T12:00:00Z" },
+      run: judgeFixTool                             ,
     },
   ];
 
