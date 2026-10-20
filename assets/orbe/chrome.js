@@ -72,11 +72,10 @@ export const NAV = [["How it works", "#tools"], ["For teams", "teams/"], ["Prici
 export const LEAD = PRODUCTS[0];
 export const SHEET = [...PRODUCTS.map(([t, p]) => [t, p]), ALL_PRODUCTS.slice(0, 2)];
 
-/* the public footer, by path from the site root: one compact column per pillar, then Orbe and Legal; "#..." entries are the homepage's own anchors */
+/* the public footer, by path from the site root: one compact column per pillar, then Orbe; "#..." entries are the homepage's own anchors */
 export const FOOTER = [
   ...PILLARS.map(([h, , items]) => [h, items.map(([t, p]) => [t, p])]),
-  ["Orbe", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"], ["Pricing", "pricing/"], ["Brand", "brand/"]]],
-  ["Legal", [["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
+  ["Orbe", [["Pricing", "pricing/"], ["Brand", "brand/"], ["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
 ];
 
 /*
@@ -124,12 +123,12 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
       <nav class="ob-sheet-nav" aria-label="Products">
         <a class="ob-sheet-lead" href="${esc(href(LEAD[1]))}"${cur(LEAD[1])}><span>${esc(LEAD[0])}</span><small>${esc(LEAD[2])}</small></a>${PILLARS.map(([h, line, items], i) => `
         <div class="ob-sheet-g" role="group" aria-labelledby="ob-sh-g${i}">
-          <p class="ob-sheet-h" id="ob-sh-g${i}"><span>${esc(h)}</span>${esc(line)}</p>
+          <p class="ob-sheet-h" id="ob-sh-g${i}">${esc(h)}</p>
           <div class="ob-sheet-links">${items.filter(([, p]) => p !== LEAD[1]).map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</div>
         </div>`).join("")}
       </nav>
       <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
-      <p class="ob-sheet-small">${NAV.map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}<a href="${esc(href(ALL_PRODUCTS[1]))}"${cur(ALL_PRODUCTS[1])}>${esc(ALL_PRODUCTS[0])}</a></p>
+      <p class="ob-sheet-small">${NAV.filter(([, p]) => p !== "teams/").map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</p>
     </div>`;
   const reduce = reducedMotion();
   mountWordmark(bar.querySelector("[data-ob-wordmark]"), { animate: animate ?? !reduce });
@@ -283,7 +282,7 @@ export function mountFooter(target, { root = "./", home, people, note = "Indepen
     <div class="ob-foot-top">
       <div class="ob-foot-intro">
         <a class="ob-foot-mark" href="${esc(home ?? root)}" aria-label="Orbe, home"><span data-ob-foot-wm></span></a>
-        <p class="ob-foot-sign">Made by people who refresh the same pages you do.</p>
+        <p class="ob-foot-sign">Creator tooling. <span>Your unfair advantage.</span></p>
       </div>
       <nav class="ob-foot-cols" aria-label="Footer">${FOOTER.map(([h, links]) => `
         <div class="ob-foot-col"><h3>${esc(h)}</h3><ul>${links.map(([t, p]) => `<li><a href="${esc(href(p))}">${esc(t)}</a></li>`).join("")}</ul></div>`).join("")}
