@@ -52,7 +52,7 @@ export const PILLARS = [
     ["Diligence", "products/diligence/", "The report a buyer reads first.", "rec"],
   ]],
   ["Protect", "Your work, and who may use it.", [
-    ["Protect", "products/protect/", "Find your work wherever it goes.", "rec"],
+    ["Protect", "products/protect/", "Find your work anywhere.", "rec"],
     ["Rights", "products/rights/", "Who may use what, until when.", "note"],
   ]],
   ["Teams", "For the people around creators.", [
