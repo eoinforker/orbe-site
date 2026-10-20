@@ -1,0 +1,2091 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "Orbe API",
+    "version": "0.1.0",
+    "summary": "Ratings, benchmarks, sponsorship prices, offer checks, indicative values and podcast plausibility for creators.",
+    "description": "The same capabilities as Orbe's MCP tools. Paths marked x-status: routed exist in the API's code today and run locally with `npm run serve` in product/; the hosted API is not deployed yet. Paths marked x-status: planned are the stateless tool endpoints, not routed yet. Every rating, band, sub-score and benchmark is labelled Independently calculated by Orbe. Money is in minor units unless a field says otherwise.",
+    "contact": {
+      "email": "hello@orbe.vc"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4300",
+      "description": "Local: `npm run serve` in product/. Works today."
+    },
+    {
+      "url": "https://api.orbe.vc",
+      "description": "Hosted. Planned, not deployed yet.",
+      "x-status": "planned"
+    }
+  ],
+  "tags": [
+    {
+      "name": "orbe_rate",
+      "description": "Rate a creator against their size band"
+    },
+    {
+      "name": "orbe_benchmark",
+      "description": "Typical figures for a kind and size band"
+    },
+    {
+      "name": "orbe_price_sponsorship",
+      "description": "Price a sponsorship"
+    },
+    {
+      "name": "orbe_fair_offer",
+      "description": "Is this sponsorship offer fair?"
+    },
+    {
+      "name": "orbe_value_business",
+      "description": "Indicative value of a creator business"
+    },
+    {
+      "name": "orbe_podcast_plausibility",
+      "description": "Is a podcast's download claim plausible?"
+    },
+    {
+      "name": "orbe_explain_rating",
+      "description": "Explain a rating in plain English"
+    }
+  ],
+  "paths": {
+    "/v1/rate/{kind}/{handle}": {
+      "get": {
+        "operationId": "ratePublicHandle",
+        "summary": "Rate a public channel by handle",
+        "description": "A public rating from a fresh public read, cached, never stored. YouTube only today: 503 rating_unavailable without a YouTube key, 501 for kinds not open yet. Route: src/api/routes/public.ts.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "description": "The kind of creator. The site's words are accepted too: channel, newsletter, stream, portfolio.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "youtube",
+                "channel",
+                "substack",
+                "newsletter",
+                "twitch",
+                "stream",
+                "podcast",
+                "photography",
+                "portfolio"
+              ]
+            }
+          },
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "description": "A channel handle, id or URL.",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The rating, or not_enough_work.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "A rating result: status, rating, band, sizeBand, parts, modelVersion and attribution."
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_rate"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_rate"
+      }
+    },
+    "/v1/me/rating": {
+      "get": {
+        "operationId": "myRating",
+        "summary": "The signed-in creator's rating per claimed account",
+        "description": "From connected data, with consent. Route: src/api/routes/creator.ts.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ratings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ratings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A rating result per account."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_rate"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_rate"
+      }
+    },
+    "/v1/benchmarks/summary": {
+      "get": {
+        "operationId": "benchmarkSummary",
+        "summary": "The latest published benchmark season in plain English",
+        "description": "Measured, consented aggregates once a season is published; available: false until then. Route: src/api/routes/public.ts.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "paragraphs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "season": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "available",
+                    "title",
+                    "paragraphs"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_benchmark"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_benchmark"
+      }
+    },
+    "/v1/maths": {
+      "get": {
+        "operationId": "maths",
+        "summary": "The published maths behind every rating",
+        "description": "JSON with the model version, or Markdown with ?format=markdown. Route: src/api/routes/public.ts.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "markdown"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The maths.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "modelVersion": {
+                      "type": "string"
+                    },
+                    "format": {
+                      "type": "string"
+                    },
+                    "markdown": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_explain_rating"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_explain_rating"
+      }
+    },
+    "/v1/me/sponsorships/inventory": {
+      "get": {
+        "operationId": "mySponsorshipInventory",
+        "summary": "The signed-in creator's sponsorship inventory with price suggestions",
+        "description": "Each format with delivery stats read at source and Orbe's suggested price. Route: src/api/routes/sponsor.ts.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The inventory.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "inventory": {
+                      "type": "object",
+                      "description": "Items per format with stats and suggestion, ratings, provenance and notes."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_price_sponsorship"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_price_sponsorship"
+      }
+    },
+    "/v1/me/sponsorships/offers/{id}/counter": {
+      "post": {
+        "operationId": "counterOffer",
+        "summary": "Counter a real offer",
+        "description": "Acts on an offer a brand sent through Orbe: the step after orbe_fair_offer suggests a counter. Price in pounds. At most two counters per offer. Needs the session's CSRF token. Route: src/api/routes/sponsor.ts.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "price"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "price": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 10000000,
+                    "description": "The counter, in pounds."
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The countered offer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "offer": {
+                      "type": "object",
+                      "description": "The offer, now countered."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_fair_offer"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_fair_offer"
+      }
+    },
+    "/v1/me/valuation": {
+      "get": {
+        "operationId": "myValuation",
+        "summary": "The signed-in creator's indicative value",
+        "description": "From connected and uploaded revenue. Route: src/api/routes/creator.ts.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "margin",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            }
+          },
+          {
+            "name": "faceDependence",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          {
+            "name": "historyMonths",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 600
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The indicative value.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valuation": {
+                      "type": "object",
+                      "description": "The valuation."
+                    },
+                    "leftOut": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A line left out, with why."
+                      }
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "notice": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "tags": [
+          "orbe_value_business"
+        ],
+        "x-status": "routed",
+        "x-mcp-tool": "orbe_value_business"
+      }
+    },
+    "/v1/tools/rate": {
+      "post": {
+        "operationId": "rate",
+        "summary": "Rate a creator against their size band",
+        "description": "The Orbe Rating for a creator's recent works: zero is typical for their kind and size band, positive is better, negative is worse, with five bands (Great, Good, Average, Subpar, Poor), sub-scores as percentiles, the #1 stat, what to work on, and a rating for each work against the creator's own median. Use it when someone asks how a channel, newsletter, stream, podcast or portfolio is doing compared with creators its size. Needs at least 3 works old enough to count.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_rate"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_rate",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RateInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "youtube",
+                    "audience": 48000,
+                    "title": "A made-up channel",
+                    "works": [
+                      {
+                        "id": "upload_1",
+                        "publishedAt": "2026-10-14T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 18200,
+                          "likes": 910,
+                          "comments": 120
+                        }
+                      },
+                      {
+                        "id": "upload_2",
+                        "publishedAt": "2026-10-07T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 24600,
+                          "likes": 1180,
+                          "comments": 164
+                        }
+                      },
+                      {
+                        "id": "upload_3",
+                        "publishedAt": "2026-09-30T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 16900,
+                          "likes": 760,
+                          "comments": 98
+                        }
+                      },
+                      {
+                        "id": "upload_4",
+                        "publishedAt": "2026-09-23T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 21300,
+                          "likes": 1020,
+                          "comments": 141
+                        }
+                      },
+                      {
+                        "id": "upload_5",
+                        "publishedAt": "2026-09-16T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 52400,
+                          "likes": 2610,
+                          "comments": 388
+                        }
+                      },
+                      {
+                        "id": "upload_6",
+                        "publishedAt": "2026-09-09T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 19800,
+                          "likes": 930,
+                          "comments": 117
+                        }
+                      },
+                      {
+                        "id": "upload_7",
+                        "publishedAt": "2026-09-02T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 17500,
+                          "likes": 820,
+                          "comments": 102
+                        }
+                      },
+                      {
+                        "id": "upload_8",
+                        "publishedAt": "2026-08-26T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 22900,
+                          "likes": 1100,
+                          "comments": 150
+                        }
+                      },
+                      {
+                        "id": "upload_9",
+                        "publishedAt": "2026-08-19T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 20100,
+                          "likes": 960,
+                          "comments": 129
+                        }
+                      },
+                      {
+                        "id": "upload_10",
+                        "publishedAt": "2026-08-12T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 18800,
+                          "likes": 870,
+                          "comments": 111
+                        }
+                      }
+                    ],
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/benchmark": {
+      "post": {
+        "operationId": "benchmark",
+        "summary": "Typical figures for a kind and size band",
+        "description": "What is typical for creators of one kind and size band: the median and spread for each part of the rating (reach, momentum, hit rate, engagement, cadence and the kind's own parts), the size bands, and the provisional sponsorship rate cards for that kind. Use it to answer 'what is normal for a newsletter with 5,000 subscribers'. Give an audience or a size band key.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_benchmark"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_benchmark",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenchmarkInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "substack",
+                    "audience": 5000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/price-sponsorship": {
+      "post": {
+        "operationId": "priceSponsorship",
+        "summary": "Price a sponsorship",
+        "description": "A suggested price range for each sponsorship format a creator can sell (YouTube integration and dedicated video, Substack sponsor slot and dedicated send, podcast host-read spot, Twitch sponsored stream segment per hour), from what their recent works delivered, with the reasons, the rate basis (own history, comparables or a provisional rate card with its sources) and Orbe's fee. The creator always sets their own price.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_price_sponsorship"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_price_sponsorship",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PriceSponsorshipInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "youtube",
+                    "audience": 48000,
+                    "delivery": [
+                      21000,
+                      18500,
+                      30200,
+                      16800,
+                      24100,
+                      19900
+                    ],
+                    "rating": {
+                      "band": "Good",
+                      "rating": 1.1
+                    },
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/fair-offer": {
+      "post": {
+        "operationId": "fairOffer",
+        "summary": "Is this sponsorship offer fair?",
+        "description": "Checks a brand's offer for one sponsorship format against the price Orbe suggests from the creator's own delivery, says whether it is below, within or above the range, and gives a counter at the top of the range when it is low. It also shows what the brand pays with Orbe's fee on top; the creator keeps all of their price.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_fair_offer"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_fair_offer",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FairOfferInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "youtube",
+                    "audience": 48000,
+                    "delivery": [
+                      21000,
+                      18500,
+                      30200,
+                      16800,
+                      24100,
+                      19900
+                    ],
+                    "format": "integration",
+                    "offer": {
+                      "amount": 30000,
+                      "currency": "USD"
+                    },
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/value-business": {
+      "post": {
+        "operationId": "valueBusiness",
+        "summary": "Indicative value of a creator business",
+        "description": "An indicative value range for a creator business on a multiple of trailing twelve months' profit, with the factors that moved it (verification, diversification, dependence on the creator, history, growth, concentration, size), its confidence, and the fees Orbe would charge on a completed sale at each end of the range. Indicative only: not advice, not a formal valuation and not an offer. Needs at least 3 months of revenue.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_value_business"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_value_business",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValueBusinessInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "youtube",
+                    "currency": "GBP",
+                    "revenue": [
+                      {
+                        "month": "2025-10",
+                        "amount": 420000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2025-10",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2025-11",
+                        "amount": 426000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2025-11",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2025-12",
+                        "amount": 432000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2025-12",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-01",
+                        "amount": 438000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-01",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-02",
+                        "amount": 444000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-02",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-03",
+                        "amount": 450000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-03",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-04",
+                        "amount": 456000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-04",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-05",
+                        "amount": 462000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-05",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-06",
+                        "amount": 468000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-06",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-07",
+                        "amount": 474000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-07",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-08",
+                        "amount": 480000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-08",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      },
+                      {
+                        "month": "2026-09",
+                        "amount": 486000,
+                        "stream": "ads",
+                        "basis": "connected"
+                      },
+                      {
+                        "month": "2026-09",
+                        "amount": 180000,
+                        "stream": "sponsorship",
+                        "basis": "uploaded",
+                        "counterparty": "Sponsor A"
+                      }
+                    ],
+                    "margin": 0.7,
+                    "faceDependence": 0.6,
+                    "historyMonths": 40
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/podcast-plausibility": {
+      "post": {
+        "operationId": "podcastPlausibility",
+        "summary": "Is a podcast's download claim plausible?",
+        "description": "Checks a podcast's claimed or host-reported downloads against what can be seen: Orbe's own measurement, OP3's public counts, the claim's internal consistency (a daily series that is too flat or too round, a first week bigger than the first month), the public feed, YouTube views of video episodes, chart positions and public ratings. Returns a verdict, flags with an innocent reading where there is one, and an estimate when OP3 data is given. It never accuses.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_podcast_plausibility"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_podcast_plausibility",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PodcastPlausibilityInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "claim": {
+                      "basis": "claimed",
+                      "monthlyDownloads": 26000
+                    },
+                    "op3": {
+                      "monthlyDownloads": 11800,
+                      "numWeeks": 12
+                    },
+                    "publicEpisodeCount": 96,
+                    "ratingsCount": 140,
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/tools/explain-rating": {
+      "post": {
+        "operationId": "explainRating",
+        "summary": "Explain a rating in plain English",
+        "description": "The Orbe Rating for the same input as orbe_rate, written as a short paragraph a creator can read: what is typical for creators their size, how they compare part by part, their strongest stat and the one to work on, and how sure it is. Use it when someone wants the rating explained rather than the numbers.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_explain_rating"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_explain_rating",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplainRatingInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "kind": "youtube",
+                    "audience": 48000,
+                    "title": "A made-up channel",
+                    "works": [
+                      {
+                        "id": "upload_1",
+                        "publishedAt": "2026-10-14T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 18200,
+                          "likes": 910,
+                          "comments": 120
+                        }
+                      },
+                      {
+                        "id": "upload_2",
+                        "publishedAt": "2026-10-07T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 24600,
+                          "likes": 1180,
+                          "comments": 164
+                        }
+                      },
+                      {
+                        "id": "upload_3",
+                        "publishedAt": "2026-09-30T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 16900,
+                          "likes": 760,
+                          "comments": 98
+                        }
+                      },
+                      {
+                        "id": "upload_4",
+                        "publishedAt": "2026-09-23T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 21300,
+                          "likes": 1020,
+                          "comments": 141
+                        }
+                      },
+                      {
+                        "id": "upload_5",
+                        "publishedAt": "2026-09-16T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 52400,
+                          "likes": 2610,
+                          "comments": 388
+                        }
+                      },
+                      {
+                        "id": "upload_6",
+                        "publishedAt": "2026-09-09T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 19800,
+                          "likes": 930,
+                          "comments": 117
+                        }
+                      },
+                      {
+                        "id": "upload_7",
+                        "publishedAt": "2026-09-02T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 17500,
+                          "likes": 820,
+                          "comments": 102
+                        }
+                      },
+                      {
+                        "id": "upload_8",
+                        "publishedAt": "2026-08-26T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 22900,
+                          "likes": 1100,
+                          "comments": 150
+                        }
+                      },
+                      {
+                        "id": "upload_9",
+                        "publishedAt": "2026-08-19T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 20100,
+                          "likes": 960,
+                          "comments": 129
+                        }
+                      },
+                      {
+                        "id": "upload_10",
+                        "publishedAt": "2026-08-12T12:00:00.000Z",
+                        "durationSec": 840,
+                        "metrics": {
+                          "views": 18800,
+                          "likes": 870,
+                          "comments": 111
+                        }
+                      }
+                    ],
+                    "now": "2026-10-18T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ToolResult": {
+        "type": "object",
+        "description": "Every tool result. Tool-specific fields sit beside these.",
+        "required": [
+          "attribution",
+          "modelVersion",
+          "versions"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "string",
+            "const": "Independently calculated by Orbe."
+          },
+          "modelVersion": {
+            "type": "string",
+            "description": "The rating maths version.",
+            "examples": [
+              "2026.10"
+            ]
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Every model version the tools use: model, rateCards, valuation, plausibilityRules."
+          },
+          "inputs": {
+            "type": "string",
+            "description": "Present when the result is built from figures the caller supplied."
+          }
+        },
+        "additionalProperties": true
+      },
+      "RateInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "audience",
+          "works"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast",
+              "photography"
+            ],
+            "description": "The kind of creator: youtube (a channel), substack (a newsletter), twitch (a stream channel), podcast, or photography (a portfolio)."
+          },
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "The audience in the platform's own sense: subscribers for YouTube and Substack, followers for Twitch, podcasts and photography. It picks the size band."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The account's name, used in the wording only."
+          },
+          "works": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "Recent works, any order. Metric keys by kind: youtube views, likes, comments; substack recipients, opens, clicks, new_paid, new_free; twitch avg_viewers, peak_viewers, hours_watched, new_followers; podcast downloads_7d, downloads_30d, completion (0 to 1); photography views, saves, licences, licence_revenue (minor units). Leave a metric out when unknown: missing means unknown, never zero.",
+            "items": {
+              "type": "object",
+              "required": [
+                "publishedAt",
+                "metrics"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "description": "Your id for the work, echoed back on its work rating."
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "description": "The work's title, for your own reading."
+                },
+                "publishedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When it was published, ISO 8601."
+                },
+                "durationSec": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Length in seconds for video, audio and streams. On YouTube it separates Shorts (180 seconds or less) from long-form. 0 when it does not apply."
+                },
+                "metrics": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "description": "The work's numbers so far, keyed as listed above."
+                }
+              }
+            }
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Rate a creator against their size band",
+        "description": "The Orbe Rating for a creator's recent works: zero is typical for their kind and size band, positive is better, negative is worse, with five bands (Great, Good, Average, Subpar, Poor), sub-scores as percentiles, the #1 stat, what to work on, and a rating for each work against the creator's own median. Use it when someone asks how a channel, newsletter, stream, podcast or portfolio is doing compared with creators its size. Needs at least 3 works old enough to count."
+      },
+      "BenchmarkInput": {
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast",
+              "photography"
+            ],
+            "description": "The kind of creator: youtube (a channel), substack (a newsletter), twitch (a stream channel), podcast, or photography (a portfolio)."
+          },
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "The audience number, which picks the size band. Give this or sizeBand."
+          },
+          "sizeBand": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "A size band key instead of an audience: seed, rise, low, mid, high (YouTube only) or top."
+          },
+          "format": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Only this format: short or long for YouTube; all for the other kinds. Defaults to every format."
+          }
+        },
+        "title": "Typical figures for a kind and size band",
+        "description": "What is typical for creators of one kind and size band: the median and spread for each part of the rating (reach, momentum, hit rate, engagement, cadence and the kind's own parts), the size bands, and the provisional sponsorship rate cards for that kind. Use it to answer 'what is normal for a newsletter with 5,000 subscribers'. Give an audience or a size band key."
+      },
+      "PriceSponsorshipInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "audience",
+          "delivery"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast"
+            ],
+            "description": "The kind of creator: youtube, substack, twitch or podcast. Photography has no sponsorship formats yet."
+          },
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "The audience in the platform's own sense: subscribers for YouTube and Substack, followers for Twitch, podcasts and photography. It picks the size band."
+          },
+          "delivery": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "description": "What each recent work delivered at the format's price window, newest first: YouTube views at 30 days, Substack unique opens at 7 days, podcast downloads at 30 days, Twitch average viewers per stream."
+          },
+          "rating": {
+            "type": "object",
+            "required": [
+              "band"
+            ],
+            "additionalProperties": false,
+            "description": "The creator's Orbe Rating, if known (from orbe_rate). Its band nudges a rate card price up or down, provisionally.",
+            "properties": {
+              "band": {
+                "type": "string",
+                "enum": [
+                  "Great",
+                  "Good",
+                  "Average",
+                  "Subpar",
+                  "Poor"
+                ],
+                "description": "The rating band."
+              },
+              "rating": {
+                "type": "number",
+                "minimum": -6,
+                "maximum": 6,
+                "description": "The rating itself, -6 to +6."
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "GBP",
+              "EUR"
+            ],
+            "description": "The currency for prices. The rate cards are in US dollars; for GBP or EUR also give usdRate."
+          },
+          "usdRate": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000,
+            "description": "How much of your currency one US dollar buys, e.g. 0.79 for GBP. Needed for GBP or EUR. Orbe does not guess exchange rates."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "integration",
+              "dedicated",
+              "newsletter_slot",
+              "podcast_read",
+              "stream_segment"
+            ],
+            "description": "Only this format. Defaults to every format the kind has."
+          }
+        },
+        "title": "Price a sponsorship",
+        "description": "A suggested price range for each sponsorship format a creator can sell (YouTube integration and dedicated video, Substack sponsor slot and dedicated send, podcast host-read spot, Twitch sponsored stream segment per hour), from what their recent works delivered, with the reasons, the rate basis (own history, comparables or a provisional rate card with its sources) and Orbe's fee. The creator always sets their own price."
+      },
+      "FairOfferInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "audience",
+          "delivery",
+          "format",
+          "offer"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast"
+            ],
+            "description": "The kind of creator: youtube, substack, twitch or podcast. Photography has no sponsorship formats yet."
+          },
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "The audience in the platform's own sense: subscribers for YouTube and Substack, followers for Twitch, podcasts and photography. It picks the size band."
+          },
+          "delivery": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "description": "What each recent work delivered at the format's price window, newest first: YouTube views at 30 days, Substack unique opens at 7 days, podcast downloads at 30 days, Twitch average viewers per stream."
+          },
+          "rating": {
+            "type": "object",
+            "required": [
+              "band"
+            ],
+            "additionalProperties": false,
+            "description": "The creator's Orbe Rating, if known (from orbe_rate). Its band nudges a rate card price up or down, provisionally.",
+            "properties": {
+              "band": {
+                "type": "string",
+                "enum": [
+                  "Great",
+                  "Good",
+                  "Average",
+                  "Subpar",
+                  "Poor"
+                ],
+                "description": "The rating band."
+              },
+              "rating": {
+                "type": "number",
+                "minimum": -6,
+                "maximum": 6,
+                "description": "The rating itself, -6 to +6."
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "GBP",
+              "EUR"
+            ],
+            "description": "The currency for prices. The rate cards are in US dollars; for GBP or EUR also give usdRate."
+          },
+          "usdRate": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000,
+            "description": "How much of your currency one US dollar buys, e.g. 0.79 for GBP. Needed for GBP or EUR. Orbe does not guess exchange rates."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "integration",
+              "dedicated",
+              "newsletter_slot",
+              "podcast_read",
+              "stream_segment"
+            ],
+            "description": "The format the offer is for: integration, dedicated, newsletter_slot, podcast_read or stream_segment."
+          },
+          "offer": {
+            "type": "object",
+            "required": [
+              "amount"
+            ],
+            "additionalProperties": false,
+            "description": "The brand's offer for the whole placement.",
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "In minor units: cents or pence. $600.00 is 60000."
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "USD",
+                  "GBP",
+                  "EUR"
+                ],
+                "description": "The offer's currency. Defaults to currency, then USD."
+              }
+            }
+          },
+          "hours": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 24,
+            "description": "For a stream segment, the hours the offer covers. Defaults to 1."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "network",
+              "direct"
+            ],
+            "description": "network if Orbe matched the brand (15% fee), direct if the creator brought the sponsor (5%). Defaults to network."
+          }
+        },
+        "title": "Is this sponsorship offer fair?",
+        "description": "Checks a brand's offer for one sponsorship format against the price Orbe suggests from the creator's own delivery, says whether it is below, within or above the range, and gives a counter at the top of the range when it is low. It also shows what the brand pays with Orbe's fee on top; the creator keeps all of their price."
+      },
+      "ValueBusinessInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "revenue",
+          "faceDependence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast",
+              "photography"
+            ],
+            "description": "The kind of business: youtube (a channel), substack (a newsletter), twitch (a stream channel), podcast, or photography (a portfolio)."
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "GBP",
+              "USD",
+              "EUR"
+            ],
+            "description": "The currency of every amount. Defaults to GBP. Fees are shown for GBP."
+          },
+          "revenue": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 600,
+            "description": "Revenue by month. Several lines for one month are added together.",
+            "items": {
+              "type": "object",
+              "required": [
+                "month",
+                "amount"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "month": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-(0[1-9]|1[0-2])(-01)?$",
+                  "description": "The month, like 2026-09 or 2026-09-01."
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Gross revenue in minor units: pence or cents. £1,250.00 is 125000."
+                },
+                "stream": {
+                  "type": "string",
+                  "enum": [
+                    "ads",
+                    "sponsorship",
+                    "subscriptions",
+                    "memberships",
+                    "products",
+                    "licensing",
+                    "tips",
+                    "other"
+                  ],
+                  "description": "Where the money came from. Defaults to other."
+                },
+                "basis": {
+                  "type": "string",
+                  "enum": [
+                    "connected",
+                    "uploaded",
+                    "declared"
+                  ],
+                  "description": "How it is known: connected (read from the platform), uploaded (from an invoice or statement) or declared (stated, the default). Only connected and uploaded count as verified."
+                },
+                "counterparty": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "description": "Who paid, e.g. a sponsor. Used only to measure concentration."
+                }
+              }
+            }
+          },
+          "margin": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1,
+            "description": "Profit as a share of revenue, 0 to 1, if costs are not given. A stated margin lowers confidence."
+          },
+          "costs": {
+            "type": "array",
+            "maxItems": 600,
+            "description": "Monthly costs instead of a margin.",
+            "items": {
+              "type": "object",
+              "required": [
+                "month",
+                "amount"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "month": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-(0[1-9]|1[0-2])(-01)?$"
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Minor units."
+                }
+              }
+            }
+          },
+          "faceDependence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How much the business needs the creator personally: 0 not at all, 1 it is them."
+          },
+          "historyMonths": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 600,
+            "description": "Months the business has traded, if longer than the revenue given."
+          }
+        },
+        "title": "Indicative value of a creator business",
+        "description": "An indicative value range for a creator business on a multiple of trailing twelve months' profit, with the factors that moved it (verification, diversification, dependence on the creator, history, growth, concentration, size), its confidence, and the fees Orbe would charge on a completed sale at each end of the range. Indicative only: not advice, not a formal valuation and not an offer. Needs at least 3 months of revenue."
+      },
+      "PodcastPlausibilityInput": {
+        "type": "object",
+        "required": [
+          "claim"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "claim": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "basis"
+            ],
+            "additionalProperties": false,
+            "description": "What is claimed. null when nothing is claimed.",
+            "properties": {
+              "basis": {
+                "type": "string",
+                "enum": [
+                  "claimed",
+                  "host"
+                ],
+                "description": "claimed: typed by the creator or a seller. host: read from their podcast host."
+              },
+              "monthlyDownloads": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Downloads in the last 30 days, all episodes."
+              },
+              "daily": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Downloads by day, keyed 2026-10-01."
+              },
+              "dailyTotal": {
+                "type": "number",
+                "minimum": 0,
+                "description": "A total the claim states for the same days as daily."
+              },
+              "episodes": {
+                "type": "array",
+                "maxItems": 2000,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "guid",
+                    "publishedAt"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "guid": {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "publishedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "downloads_7d": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "downloads_30d": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "measured": {
+            "type": "object",
+            "required": [
+              "monthlyDownloads",
+              "daysMeasured",
+              "prefixCoverage"
+            ],
+            "additionalProperties": false,
+            "description": "Orbe's own measurement prefix count, if the show has one.",
+            "properties": {
+              "monthlyDownloads": {
+                "type": "number",
+                "minimum": 0
+              },
+              "daysMeasured": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "prefixCoverage": {
+                "type": "string",
+                "enum": [
+                  "live",
+                  "partial"
+                ],
+                "description": "live when every episode goes through the prefix."
+              }
+            }
+          },
+          "op3": {
+            "type": "object",
+            "required": [
+              "monthlyDownloads",
+              "numWeeks"
+            ],
+            "additionalProperties": false,
+            "description": "OP3's public counts for the show, if it uses the OP3 prefix.",
+            "properties": {
+              "monthlyDownloads": {
+                "type": "number",
+                "minimum": 0
+              },
+              "numWeeks": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Weeks of OP3 data."
+              }
+            }
+          },
+          "publicEpisodeCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Episodes Podcast Index sees in the public feed."
+          },
+          "feedDead": {
+            "type": "boolean",
+            "description": "True if Podcast Index marks the feed dead."
+          },
+          "feedEpisodeDates": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Publish dates of the episodes in the public feed."
+          },
+          "youtubeViews": {
+            "type": "array",
+            "maxItems": 2000,
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "description": "Views of the video versions of episodes on YouTube."
+          },
+          "bestChart": {
+            "type": "object",
+            "required": [
+              "rank",
+              "chart"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rank": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "chart": {
+                "type": "string",
+                "maxLength": 200
+              }
+            },
+            "description": "Best chart position seen."
+          },
+          "ratingsCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Public ratings across the podcast apps."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Is a podcast's download claim plausible?",
+        "description": "Checks a podcast's claimed or host-reported downloads against what can be seen: Orbe's own measurement, OP3's public counts, the claim's internal consistency (a daily series that is too flat or too round, a first week bigger than the first month), the public feed, YouTube views of video episodes, chart positions and public ratings. Returns a verdict, flags with an innocent reading where there is one, and an estimate when OP3 data is given. It never accuses."
+      },
+      "ExplainRatingInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "audience",
+          "works"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "substack",
+              "twitch",
+              "podcast",
+              "photography"
+            ],
+            "description": "The kind of creator: youtube (a channel), substack (a newsletter), twitch (a stream channel), podcast, or photography (a portfolio)."
+          },
+          "audience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "The audience in the platform's own sense: subscribers for YouTube and Substack, followers for Twitch, podcasts and photography. It picks the size band."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The account's name, used in the wording only."
+          },
+          "works": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "Recent works, any order. Metric keys by kind: youtube views, likes, comments; substack recipients, opens, clicks, new_paid, new_free; twitch avg_viewers, peak_viewers, hours_watched, new_followers; podcast downloads_7d, downloads_30d, completion (0 to 1); photography views, saves, licences, licence_revenue (minor units). Leave a metric out when unknown: missing means unknown, never zero.",
+            "items": {
+              "type": "object",
+              "required": [
+                "publishedAt",
+                "metrics"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "description": "Your id for the work, echoed back on its work rating."
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "description": "The work's title, for your own reading."
+                },
+                "publishedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When it was published, ISO 8601."
+                },
+                "durationSec": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Length in seconds for video, audio and streams. On YouTube it separates Shorts (180 seconds or less) from long-form. 0 when it does not apply."
+                },
+                "metrics": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "description": "The work's numbers so far, keyed as listed above."
+                }
+              }
+            }
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Explain a rating in plain English",
+        "description": "The Orbe Rating for the same input as orbe_rate, written as a short paragraph a creator can read: what is typical for creators their size, how they compare part by part, their strongest stat and the one to work on, and how sure it is. Use it when someone wants the rating explained rather than the numbers."
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "requestId"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {},
+              "requestId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "An error, as every Orbe API error is shaped.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "orbe_session",
+        "description": "The signed-in session from the emailed sign-in link. State-changing requests also need the CSRF token from GET /v1/auth/session."
+      },
+      "apiKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Planned: API keys for agents and teams, with rate limits.",
+        "x-status": "planned"
+      }
+    }
+  }
+}

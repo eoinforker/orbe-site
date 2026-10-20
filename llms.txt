@@ -1,0 +1,41 @@
+# Orbe
+
+> Orbe is creator tooling. It rates a creator's work against creators of the same kind and size (zero is typical for your size band), prices sponsorships from what the creator's work actually delivers, gives an indicative value for a creator business with the fees in full, and checks whether a podcast's download claims fit public signals. Creators use it free. Companies pay for rights tooling, and Orbe earns when money moves. Every rating, band and benchmark is labelled "Independently calculated by Orbe." and carries the version of the published maths.
+
+Status, honestly: the tools on this site run in your browser on Orbe's own engine code, on made-up or typed figures. The HTTP API exists in the code but is not hosted yet. Anything that needs it (live connections to a creator's accounts, a hosted endpoint, API keys) is marked "With the API" on the pages. Example figures on the site are made up and labelled so.
+
+## For agents
+
+- [For developers and agents](https://eoinforker.github.io/orbe-site/developers/): the seven tools, the MCP config and a live playground that runs the MCP server's own code in the browser.
+- [OpenAPI 3.1](https://eoinforker.github.io/orbe-site/developers/openapi.json): the same capabilities. Paths marked x-status: routed exist in the API's code and run locally; paths marked x-status: planned are not routed yet.
+
+The MCP server (stdio, JSON-RPC 2.0, protocol revision 2025-06-18) runs locally from the repository with `node product/src/mcp/server.ts`. It makes no network calls and keeps nothing. Tools:
+
+- orbe_rate: the Orbe Rating for a creator's recent works against their size band, with sub-scores, the #1 stat, what to work on and a rating per work.
+- orbe_benchmark: typical figures for a kind of creator and size band, and the provisional sponsorship rate cards.
+- orbe_price_sponsorship: a suggested price range per sponsorship format, with reasons and sources. The creator sets their own price.
+- orbe_fair_offer: whether a sponsorship offer is below, within or above that range, and a counter when it is low.
+- orbe_value_business: an indicative value range for a creator business on trailing profit, with Orbe's fees at each end. Not advice and not an offer.
+- orbe_podcast_plausibility: whether a podcast's claimed downloads fit Orbe's measurement, OP3, the public feed, YouTube, charts and ratings. It never accuses.
+- orbe_explain_rating: the rating in plain English.
+
+Works today: the playground and the MCP server run locally. With the API: a hosted endpoint, keys, rate limits and data from connected accounts. For access, write to hello@orbe.vc.
+
+## Pages
+
+- [Home](https://eoinforker.github.io/orbe-site/): what Orbe is, and reserving a handle.
+- [All products](https://eoinforker.github.io/orbe-site/products/): every tool, running in the browser.
+- [Rate my work](https://eoinforker.github.io/orbe-site/products/rate/): the rating against creators your size.
+- [Your Orbe](https://eoinforker.github.io/orbe-site/products/you/): your highlights, against your size.
+- [Podcasts](https://eoinforker.github.io/orbe-site/products/podcasts/): free measurement for podcasts.
+- [Sponsorships](https://eoinforker.github.io/orbe-site/products/sponsorships/): price a slot and match brand briefs.
+- [Selling](https://eoinforker.github.io/orbe-site/products/selling/): an indicative value, with the fees in full.
+- [Diligence](https://eoinforker.github.io/orbe-site/products/diligence/): the report a buyer reads first.
+- [Roster](https://eoinforker.github.io/orbe-site/products/roster/): for managers, every creator they look after.
+- [For teams](https://eoinforker.github.io/orbe-site/teams/): rights tooling for agencies, brands and media companies.
+- [Pricing](https://eoinforker.github.io/orbe-site/pricing/): free for creators; what teams and deals pay.
+
+## Optional
+
+- [Terms](https://eoinforker.github.io/orbe-site/legal/terms.html)
+- [Privacy](https://eoinforker.github.io/orbe-site/legal/privacy.html)

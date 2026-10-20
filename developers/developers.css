@@ -1,0 +1,67 @@
+/*
+  For developers and agents. Loads after orbe.css and products.css and adds
+  only the tool list, the playground's two columns and code panes, the
+  config snippets and the status columns. Flat fields, no art.
+*/
+
+.dv-band-act { margin-top: 16px; }
+.dv code { font: 400 0.92em/1.4 var(--font-mono); }
+
+/* ---------------------------------------------------------------- the tool list */
+.dv .section { margin-top: calc(var(--ob-sec) * 0.7); }
+.dv .dv-first { margin-top: calc(var(--ob-sec) * 0.5); }
+.dv .page { padding-bottom: calc(var(--ob-sec) * 0.7); }
+.dv-tools { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); column-gap: var(--ob-gap); border-top: 1px solid var(--rule-strong); }
+.dv-tools li { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--rule); min-width: 0; }
+.dv-name { font: 500 var(--ob-t14)/1.4 var(--font-mono); overflow-wrap: anywhere; }
+.dv-what { font-size: var(--ob-t14); line-height: 1.5; color: var(--ob-ink-soft); text-wrap: pretty; }
+.dv-what b { font-weight: 600; color: var(--ob-ink); }
+@media (min-width: 900px) {
+  .dv-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dv-tools li { grid-template-columns: 14rem minmax(0, 1fr); gap: 16px; align-items: baseline; }
+}
+.dv-foot { margin-top: 12px; max-width: 80ch; }
+
+/* ---------------------------------------------------------------- the playground */
+.dv-play { display: grid; gap: var(--ob-gap); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1024px) { .dv-play { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+.dv-in .ob-win-body { gap: 14px; padding: 20px; }
+@media (max-width: 720px) { .dv-in .ob-win-body { padding: 16px; } }
+.dv-in .ob-win-title { margin: 0; font-weight: 500; }
+.dv-say { margin: 0; color: var(--ob-ink); }
+.dv-desc > summary { min-height: 32px; }
+.dv-desc p { margin: 4px 0 0; }
+.dv-args { min-height: 220px; font-size: 16px; line-height: 1.45; white-space: pre; overflow: auto; tab-size: 2; }
+.dv-out { display: grid; gap: 16px; min-width: 0; }
+.dv-pane { margin: 0; }
+.dv-code {
+  margin: 0; padding: 14px 16px; max-height: 260px; overflow: auto; background: var(--orbe-chalk); color: var(--orbe-ink);
+  font: 400 var(--ob-t14)/1.5 var(--font-mono); white-space: pre; tab-size: 2; overscroll-behavior: contain;
+}
+.dv-code--tall { max-height: 330px; }
+.dv-code:focus-visible { outline: 2px solid var(--orbe-cobalt); outline-offset: -2px; }
+.dv-summary { margin: 0; padding: 12px 16px; font-size: var(--ob-t14); line-height: 1.5; background: var(--orbe-linen); color: var(--orbe-ink); border-bottom: 1px solid var(--rule); text-wrap: pretty; }
+.dv-summary.is-error { background: var(--orbe-negative-tint); }
+.dv-in .sample { margin: 0; }
+.dv-in .note { margin: 0; }
+
+/* ---------------------------------------------------------------- connect */
+.dv-connect { display: grid; gap: var(--ob-gap); }
+.dv-connect-say .sub { margin-top: 12px; }
+.dv-connect-say .ob-chips { margin-top: 16px; }
+.dv-openapi { margin-top: 16px; max-width: 52ch; }
+.dv-snips { display: grid; gap: 16px; min-width: 0; }
+@media (min-width: 1024px) {
+  .dv-connect { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
+}
+
+/* ---------------------------------------------------------------- status */
+.dv-status { display: grid; gap: var(--ob-gap); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .dv-status { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.dv-col { padding-top: 12px; border-top: 1px solid var(--orbe-ink); min-width: 0; }
+.dv-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.dv-list li { font-size: var(--ob-t14); line-height: 1.5; color: var(--ob-ink-soft); text-wrap: pretty; }
+.dv-list b { display: block; font-weight: 600; color: var(--ob-ink); }
+.dv-talk { display: grid; gap: 14px; align-content: start; justify-items: start; }
+.dv-talk .sub { margin: 0; }
+.dv-talk .small { margin: 0; }

@@ -40,9 +40,12 @@ export const PRODUCTS = [
   ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
   ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
   ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
+  ["Fair offer check", "products/offer/", "Is this offer fair for your size?", "spon"],
+  ["Protect", "products/protect/", "Find your work wherever it travels.", "rec"],
   ["Selling", "products/selling/", "An indicative value, fees in full.", "sell"],
   ["Diligence", "products/diligence/", "The report a buyer reads first.", "rec"],
   ["Roster", "products/roster/", "Every creator you look after.", "note"],
+  ["Rights", "products/rights/", "Who agreed to what, until when.", "note"],
 ];
 export const ALL_PRODUCTS = ["All products", "products/", "Every tool, running in your browser."];
 
@@ -54,9 +57,9 @@ export const SHEET = [...PRODUCTS.map(([t, p]) => [t, p]), ALL_PRODUCTS.slice(0,
 
 /* the public footer, by path from the site root; "#..." entries are the homepage's own anchors */
 export const FOOTER = [
-  ["Products", [["Your Orbe", "products/you/"], ["Rate my work", "products/rate/"], ["Podcasts", "products/podcasts/"], ["Sponsorships", "products/sponsorships/"], ["Selling", "products/selling/"], ["Diligence", "products/diligence/"], ["Roster", "products/roster/"]]],
+  ["Products", [["Your Orbe", "products/you/"], ["Rate my work", "products/rate/"], ["Podcasts", "products/podcasts/"], ["Sponsorships", "products/sponsorships/"], ["Fair offer check", "products/offer/"], ["Protect", "products/protect/"], ["Selling", "products/selling/"], ["Diligence", "products/diligence/"], ["Roster", "products/roster/"], ["Rights", "products/rights/"]]],
   ["For creators", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"], ["Pricing", "pricing/"]]],
-  ["Company", [["For teams", "teams/"], ["Brand", "brand/"]]],
+  ["Company", [["For teams", "teams/"], ["For developers", "developers/"], ["Brand", "brand/"]]],
   ["Legal", [["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
 ];
 

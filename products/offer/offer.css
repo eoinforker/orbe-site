@@ -1,0 +1,61 @@
+/*
+  Fair offer check, on the shared system (../../assets/orbe/orbe.css) and
+  products.css. This file holds only the page's own parts: the range line
+  with the offer marked, the verdict, the saved record, the seal and the
+  calibration row.
+*/
+.offer .num, .offer .tbl { font-feature-settings: "lnum" 1, "pnum" 1; font-variant-numeric: lining-nums proportional-nums; }
+.ob-win-bar h3 { margin: 0; }
+.ob-win[data-pair] .small { color: var(--pfg, var(--ob-ink-soft)); }
+.pr-out .panel .small { color: var(--orbe-graphite); }
+
+/* a small inline label for what waits for the API */
+.chip-say { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font: 500 var(--ob-t12)/1 var(--font-text); color: var(--orbe-ink); background: color-mix(in srgb, var(--orbe-ink) 8%, transparent); vertical-align: 1px; white-space: nowrap; }
+
+/* ---------------------------------------------------------------- the verdict and the range line */
+.verdict-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.verdict-row p { margin: 0; }
+.verdict .tag-l { font-weight: 600; }
+.scale { position: relative; height: 28px; margin-top: 8px; border-radius: 999px; background: color-mix(in srgb, var(--orbe-ink) 7%, transparent); }
+.scale-band { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: var(--orbe-positive-tint, color-mix(in srgb, var(--orbe-positive) 30%, transparent)); box-shadow: inset 0 0 0 1px var(--orbe-positive); }
+.scale-mark { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--orbe-ink); }
+.scale-mark > span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font: 500 var(--ob-t12)/1 var(--font-text); white-space: nowrap; }
+.scale { margin-top: 24px; }
+.scale-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: var(--ob-t12); color: var(--orbe-graphite); }
+.copy { flex-wrap: wrap; }
+.copy code { flex: 1 1 22ch; font-family: var(--font-text); font-size: var(--ob-t14); }
+
+/* ---------------------------------------------------------------- the record */
+.rec-head { display: grid; gap: 8px; margin-bottom: 16px; }
+.rec-head .small { max-width: 64ch; margin: 0; }
+#rec-h:focus { outline: none; }
+#rec-h:focus-visible { outline: 2px solid var(--ob-focus, var(--orbe-cobalt)); outline-offset: 4px; }
+.rec { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+.rec-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.rec-what { grid-column: 1 / -1; display: grid; gap: 2px; }
+.rec-num { display: grid; gap: 2px; min-width: 0; }
+.rec-rm { justify-self: start; }
+.agree { display: flex; gap: 8px; align-items: center; }
+.agree .ob-input { width: 7.5em; min-width: 0; font-size: 16px; }
+@media (min-width: 900px) {
+  .rec-row { grid-template-columns: minmax(0, 2fr) 1fr 1.3fr 1.6fr auto; }
+  .rec-what { grid-column: auto; }
+}
+.empty-rec { padding: 12px 0; border-top: 1px solid var(--rule); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------------------------------------------------------------- before you post */
+.seal-sec .sub { margin: 0 0 20px; }
+@media (min-width: 900px) { .seal-split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+.sealbox { display: grid; gap: 8px; padding: 12px; border-radius: 8px; background: var(--orbe-chalk); color: var(--orbe-ink); box-shadow: inset 0 0 0 1px var(--rule); }
+.sealbox p { margin: 0; }
+.sealbox .small { color: var(--orbe-graphite); }
+.hash { display: block; padding: 8px 10px; border-radius: 4px; font-size: var(--ob-t14); line-height: 1.45; overflow-wrap: anywhere; background: color-mix(in srgb, var(--orbe-ink) 6%, transparent); }
+.cal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cal > div { display: grid; gap: 2px; align-content: start; min-width: 0; }
+.cal b { font-weight: 600; }
+@media (max-width: 560px) { .cal { grid-template-columns: minmax(0, 1fr); } }
+.past td, .past th { padding-right: 10px; }
+.h-s { font-size: var(--ob-t12); }
+.past tr.is-bad td { background: var(--orbe-negative-tint); }
+.offer .big { font-family: var(--font-display); letter-spacing: -0.02em; }

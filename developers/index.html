@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For developers and agents. Ask Orbe.</title>
+<meta name="description" content="Seven Orbe tools an AI agent can call over MCP: rate a creator against their size band, benchmarks, sponsorship prices, offer checks, indicative values and podcast plausibility. A live playground on the engine's own code, the MCP config and an OpenAPI 3.1 document.">
+<meta name="theme-color" content="#F3F0E8">
+<link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../assets/r5/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
+<link rel="manifest" href="../assets/r5/site.webmanifest">
+<link rel="alternate" type="application/json" href="openapi.json" title="Orbe OpenAPI 3.1">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Orbe">
+<meta property="og:url" content="https://eoinforker.github.io/orbe-site/developers/">
+<meta property="og:title" content="For developers and agents. Ask Orbe.">
+<meta property="og:description" content="Agents call Orbe instead of guessing: seven tools over MCP, a live playground and an OpenAPI 3.1 document.">
+<meta property="og:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Orbe lockup and the line Your work, rated against creators your size., beside pixel drawings of a bulb, a camera and two half-filled orbs on a sky field.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="For developers and agents. Ask Orbe.">
+<meta name="twitter:description" content="Agents call Orbe instead of guessing: seven tools over MCP, a live playground and an OpenAPI 3.1 document.">
+<meta name="twitter:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<link rel="preload" href="../assets/fonts/SchibstedGrotesk-Latin-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/brand/tokens.css">
+<link rel="stylesheet" href="../assets/orbe/orbe.css">
+<link rel="stylesheet" href="../products/assets/products.css">
+<link rel="stylesheet" href="developers.css">
+<script type="module" src="developers.js"></script>
+</head>
+<body class="ob-page ob-grain">
+<a class="ob-skip" href="#main">Skip to the content</a>
+<header data-ob-header></header>
+<main class="pr dv" id="main">
+  <section class="pr-band" data-pair="note" data-head="light" aria-labelledby="dv-h">
+    <div class="wrap ob-layer">
+      <div class="pr-band-in">
+        <div class="pr-band-say">
+          <h1 class="pr-title" id="dv-h"><span class="pr-title-soft">For developers and agents.</span> Ask Orbe.</h1>
+          <p class="ob-lede">An agent asked how a channel compares, what a sponsorship should cost or what a creator business is worth should not guess. It can call Orbe: seven tools over MCP, on the same published engine as this site.</p>
+          <div class="ob-chips" aria-label="What the labels mean"><span class="ob-chip" data-i="time">Works today</span><span class="ob-chip" data-i="source">With the API</span><span class="ob-chip" data-i="record">Made up</span></div>
+        </div>
+        <div class="pr-band-side">
+          <p class="pr-say"><b>Every answer is labelled.</b> Each result says "Independently calculated by Orbe." and the model version, so an agent can quote it and a person can check it.</p>
+          <div class="btns dv-band-act">
+            <a class="ob-btn ob-btn--s" href="#play"><span class="ob-orb" aria-hidden="true"></span>Try the playground</a>
+            <a class="ob-lnk ob-lnk--s" href="openapi.json">OpenAPI 3.1</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap page" data-head="light">
+    <section class="section dv-first" aria-labelledby="tools-h">
+      <div class="section-head"><h2 class="ob-h2" id="tools-h"><span class="ob-h2-soft">Seven tools.</span> Thin wrappers on the engine, no new maths.</h2></div>
+      <ul class="dv-tools" data-tools></ul>
+      <p class="small dv-foot">Every input is a JSON Schema with a description on every field. Money is in minor units, pence or cents, with a readable string beside it. Prices from typed figures say they were not read at source.</p>
+    </section>
+
+    <section class="section" id="play" aria-labelledby="play-h">
+      <div class="section-head">
+        <h2 class="ob-h2" id="play-h"><span class="ob-h2-soft">The playground.</span> Pick a tool, edit the input, run it.</h2>
+        <div class="ob-chips"><span class="ob-chip" data-i="time">Works today</span><span class="ob-chip" data-i="record">Made up</span></div>
+      </div>
+      <div class="dv-play">
+        <div class="ob-win dv-in" data-pair="note">
+          <div class="ob-win-bar"><h3 class="ob-win-title" id="in-t">tools/call</h3><span class="ob-win-ctl"><button class="ob-win-btn" type="button" data-reset>Reset example</button></span></div>
+          <div class="ob-win-body">
+            <label class="field"><span>Tool</span>
+              <select class="ob-input" data-tool aria-describedby="tool-say"></select>
+            </label>
+            <p class="small dv-say" id="tool-say" data-say></p>
+            <details class="fold dv-desc"><summary>What the agent reads: the tool's description</summary><p class="small" data-desc></p></details>
+            <label class="field"><span>Arguments, as JSON</span>
+              <textarea class="ob-input dv-args" data-args rows="10" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="args-note args-err"></textarea>
+            </label>
+            <p class="sample" id="args-note"><span>The example inputs are made up. What you type runs in this tab, on the MCP server's own tools.js and protocol.js and the site's engine, and never leaves this device.</span></p>
+            <p class="note bad" id="args-err" data-err hidden></p>
+            <div class="btns"><button class="ob-btn" type="button" data-run><span class="ob-orb" aria-hidden="true"></span>Run</button><span class="small" data-ran aria-live="polite"></span></div>
+          </div>
+        </div>
+        <div class="dv-out">
+          <figure class="ob-win dv-pane">
+            <div class="ob-win-bar"><figcaption class="ob-win-title">request.json</figcaption><span class="ob-win-ctl"><button class="ob-win-btn" type="button" data-copy="req">Copy</button></span></div>
+            <pre class="dv-code" tabindex="0" aria-label="The JSON-RPC request" data-req></pre>
+          </figure>
+          <figure class="ob-win dv-pane">
+            <div class="ob-win-bar"><figcaption class="ob-win-title">response.json</figcaption><span class="ob-win-ctl"><button class="ob-win-btn" type="button" data-copy="res">Copy</button></span></div>
+            <p class="dv-summary" data-summary aria-live="polite"></p>
+            <pre class="dv-code dv-code--tall" tabindex="0" aria-label="The JSON-RPC response, as the MCP server returns it" data-res></pre>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dv-connect" aria-labelledby="con-h">
+      <div class="dv-connect-say">
+        <h2 class="ob-h2" id="con-h"><span class="ob-h2-soft">Connect it.</span> Run the server from the repo.</h2>
+        <p class="sub">MCP over stdio, JSON-RPC 2.0, protocol revision 2025-06-18. No dependencies, no network calls, nothing kept. Node 22.18 or later.</p>
+        <div class="ob-chips"><span class="ob-chip" data-i="time">Works today</span></div>
+        <p class="small dv-openapi">The same capabilities as an <a class="ob-lnk ob-lnk--s" href="openapi.json">OpenAPI 3.1 document</a>. Paths the API already routes are marked <code>x-status: routed</code>; the stateless tool endpoints are <code>x-status: planned</code>.</p>
+      </div>
+      <div class="dv-snips">
+        <figure class="ob-win dv-pane">
+          <div class="ob-win-bar"><figcaption class="ob-win-title">claude_desktop_config.json</figcaption><span class="ob-win-ctl"><button class="ob-win-btn" type="button" data-copy="desk">Copy</button></span></div>
+          <pre class="dv-code" tabindex="0" aria-label="Claude Desktop config" data-snip="desk">{
+  "mcpServers": {
+    "orbe": {
+      "command": "node",
+      "args": ["--no-warnings", "/path/to/orbe/product/src/mcp/server.ts"]
+    }
+  }
+}</pre>
+        </figure>
+        <figure class="ob-win dv-pane">
+          <div class="ob-win-bar"><figcaption class="ob-win-title">Claude Code</figcaption><span class="ob-win-ctl"><button class="ob-win-btn" type="button" data-copy="code">Copy</button></span></div>
+          <pre class="dv-code" tabindex="0" aria-label="Claude Code command" data-snip="code">claude mcp add orbe -- node --no-warnings /path/to/orbe/product/src/mcp/server.ts</pre>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="st-h">
+      <div class="section-head"><h2 class="ob-h2" id="st-h"><span class="ob-h2-soft">What is live.</span> And what waits for the API.</h2></div>
+      <div class="dv-status">
+        <div class="dv-col">
+          <div class="ob-chips"><span class="ob-chip" data-i="time">Works today</span></div>
+          <ul class="dv-list">
+            <li><b>The playground on this page.</b> Every tool, on the engine's own code, in your browser.</li>
+            <li><b>The MCP server, run locally from the repo.</b> Claude Desktop, Claude Code or any MCP client, on figures the agent supplies.</li>
+            <li><b>The OpenAPI document.</b> Routed paths run when you start the API locally.</li>
+          </ul>
+        </div>
+        <div class="dv-col">
+          <div class="ob-chips"><span class="ob-chip" data-i="source">With the API</span></div>
+          <ul class="dv-list">
+            <li><b>A hosted endpoint.</b> The same tools over HTTP, without a clone.</li>
+            <li><b>Keys and rate limits.</b> For agents, apps and teams.</li>
+            <li><b>Data from connected accounts.</b> Figures read at source, with the creator's consent, instead of typed ones.</li>
+          </ul>
+        </div>
+        <div class="dv-col dv-talk">
+          <p class="sub">Want API access for an agent or a product?</p>
+          <a class="ob-btn" href="mailto:hello@orbe.vc?subject=Orbe%20API%20access"><span class="ob-orb" aria-hidden="true"></span>Talk to us</a>
+          <p class="small">For machines: <a class="ob-lnk ob-lnk--s" href="../llms.txt">llms.txt</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer data-ob-footer></footer>
+<script type="module">
+  import { mountHeader, mountFooter } from "../assets/orbe/chrome.js";
+  mountFooter(document.querySelector("[data-ob-footer]"), { root: "../" });
+  mountHeader(document.querySelector("[data-ob-header]"), { root: "../", current: "developers/" });
+</script>
+</body>
+</html>

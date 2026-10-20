@@ -1,0 +1,86 @@
+/*
+  Protect, on the shared system (../../assets/orbe/orbe.css) and products.css.
+  Windows, chips, drop zones and fields are the system's; this file holds the
+  page's own parts: the demo cards, the 8x8 fingerprint grids, the two checks
+  and the verdicts.
+*/
+.protect .ob-win-body { gap: 16px; min-width: 0; }
+.ob-win-bar h3 { margin: 0; }
+.fig { font-feature-settings: "tnum" 1, "lnum" 1; font-variant-numeric: tabular-nums lining-nums; }
+.protect code, .ref { font: 400 var(--ob-t12)/1.4 var(--font-mono); overflow-wrap: anywhere; }
+.ref { display: block; color: var(--ob-ink-soft); }
+
+/* ---------------------------------------------------------------- fingerprint grids */
+.bitgrid { display: block; flex: none; width: 64px; height: 64px; }
+.bitgrid rect { stroke-width: 0; }
+.bitgrid .on { fill: var(--orbe-ink); }
+.bitgrid .off { fill: color-mix(in srgb, var(--orbe-ink) 10%, transparent); }
+.bitgrid .diff { stroke: var(--orbe-ember); stroke-width: 1.6px; }
+.bitgrid .off.diff { fill: var(--orbe-chalk); }
+
+/* ---------------------------------------------------------------- verdict chips */
+.vd { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px 0 8px; border-radius: 999px; font: 500 var(--ob-t12)/1 var(--font-text); white-space: nowrap; vertical-align: 2px; }
+.vd::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.vd-same { color: var(--orbe-chalk); background: var(--orbe-ink); }
+.vd-edited { color: var(--orbe-warning); background: var(--orbe-warning-tint); }
+.vd-different { color: var(--orbe-positive); background: var(--orbe-positive-tint); }
+
+/* ---------------------------------------------------------------- the demo */
+.demo .section-head { align-items: end; }
+.demo .section-head .sub { margin: 0; }
+.demo-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 720px) { .demo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1180px) { .demo-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.dcard { margin: 0; display: grid; align-content: start; gap: 10px; min-width: 0; }
+.dcard .thumb { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.thumb { display: block; height: auto; max-width: 100%; border-radius: 8px; background: var(--orbe-linen); box-shadow: inset 0 0 0 1px var(--rule); }
+.dcard figcaption { display: grid; gap: 6px; }
+.dname { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font: 600 var(--ob-t16)/1.3 var(--font-text); }
+.dgrid { display: flex; gap: 12px; align-items: flex-start; margin-top: 4px; }
+.dgrid .small { min-width: 0; }
+.dcard-orig .dgrid { flex-direction: column; gap: 8px; }
+.dwords { font-size: var(--ob-t14); line-height: 1.45; }
+.dcard .small { margin: 0; }
+.key { margin: 0; max-width: 72ch; }
+/* on a phone, each suspect is one row: the picture beside its verdict */
+@media (max-width: 719px) {
+  .dcard:not(.dcard-orig) { grid-template-columns: 38% minmax(0, 1fr); gap: 12px; padding-top: 16px; border-top: 1px solid var(--rule); }
+  .dcard:not(.dcard-orig) .dgrid { flex-direction: column; gap: 6px; }
+  .dcard:not(.dcard-orig) .bitgrid { width: 48px; height: 48px; }
+}
+@media (min-width: 1180px) {
+  .dcard-orig { padding-right: 16px; border-right: 1px solid var(--rule); }
+}
+
+/* ---------------------------------------------------------------- the two checks */
+.check-grid { display: grid; gap: var(--ob-gap, 24px); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) { .check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pair { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 480px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+.slot { display: grid; align-content: start; gap: 10px; min-width: 0; }
+.slot .drop { min-height: 112px; align-content: center; }
+.slot .drop .small { margin: 0; }
+.slot-out { display: grid; gap: 10px; min-width: 0; }
+.slot-out .thumb { max-height: 180px; width: auto; justify-self: start; }
+.slot-out p { margin: 0; }
+.fp-row { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+.fp-say { display: grid; gap: 2px; min-width: 0; }
+.fname { font: 600 var(--ob-t14)/1.35 var(--font-text); overflow-wrap: anywhere; }
+.fp-say .small { overflow-wrap: anywhere; }
+.strip { display: flex; flex-wrap: wrap; gap: 6px; }
+.strip .bitgrid { width: 32px; height: 32px; }
+
+.result { padding-top: 14px; border-top: 1px solid var(--rule); min-width: 0; }
+.result p { margin: 0; }
+.verdict { display: grid; gap: 8px; }
+.v-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.v-score b { font: 500 var(--ob-t24, 24px)/1 var(--font-display); }
+.v-words { font-size: var(--ob-t16); line-height: 1.45; max-width: 52ch; }
+
+/* ---------------------------------------------------------------- after a match */
+.next .ob-h2 { margin-bottom: 20px; }
+.next-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--rule-strong); padding-top: 16px; }
+@media (min-width: 900px) { .next-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ob-gap, 24px); } }
+.next-col { display: grid; align-content: start; justify-items: start; gap: 8px; min-width: 0; }
+.next-col p { margin: 0; font-size: var(--ob-t14); line-height: 1.5; color: var(--ob-ink-soft); max-width: 44ch; }
+.fair-use { margin-top: 20px; max-width: 72ch; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--orbe-ink) 5%, transparent); }
