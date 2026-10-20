@@ -44,6 +44,9 @@
   --ob-sec: 80px;
   --ob-head: 64px;
   --ob-win-row: 36px;
+  /* weights: display (hero, title, giant, figure) and heads (section heads, h3, window says) */
+  --ob-w-display: 700;
+  --ob-w-head: 500;
   /* the contextual ink: a window's colour pair re-points these, and everything inside follows */
   --ob-ink: var(--orbe-ink);
   --ob-ink-soft: var(--orbe-graphite);
@@ -52,26 +55,26 @@
   --ob-lift-held: 0 0.5px 0.5px rgba(20, 19, 17, 0.12), 0 2px 2px rgba(20, 19, 17, 0.07), 0 4px 4px rgba(20, 19, 17, 0.05), 0 6px 6px rgba(20, 19, 17, 0.04), 0 12px 12px rgba(20, 19, 17, 0.02);
   /* a well-drawn arrow: two strokes, round ends */
   --ob-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6h8M6.5 2.5 10 6l-3.5 3.5'/%3E%3C/svg%3E");
-  /* paper grain: fractal noise, tinted ink, at a few percent */
-  --ob-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  /* the tactile grain for coloured fields: coarser, a little stronger, laid under the words */
-  --ob-grit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* paper grain: fractal noise, tinted ink, at a few percent (3.5: any more greys the fields) */
+  --ob-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* the tactile grain for coloured fields: coarser, laid under the words, light enough to keep the field clean */
+  --ob-grit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 
   /*
-    One colour pair per product: a field, its words, its light (top left) and
-    its shade (lower right), kept close so the words keep their contrast.
-    Body text: note 16.3, sponsorships 12.7, selling 5.6, record 6.05,
-    podcasts 4.78, also 13.7 (all to 1).
+    One colour pair per product: a solid field and its words. The light and
+    shade tokens stay for swatches and art; the window paints the field flat.
+    Body text: note 16.3, sponsorships 12.6, selling 7.3, record 7.7,
+    podcasts 6.95, also 13.3 (all to 1).
   */
   --ob-p-note-bg: var(--orbe-paper);   --ob-p-note-fg: var(--orbe-ink);
   --ob-p-spon-bg: var(--orbe-straw);   --ob-p-spon-fg: var(--orbe-ink);
-  --ob-p-sell-bg: var(--action-press); --ob-p-sell-fg: var(--orbe-straw);
-  --ob-p-rec-bg: var(--orbe-sky);      --ob-p-rec-fg: var(--action-press);
-  --ob-p-pod-bg: var(--orbe-peony);    --ob-p-pod-fg: var(--orbe-claret);
+  --ob-p-sell-bg: var(--orbe-cobalt-deep); --ob-p-sell-fg: var(--orbe-straw);
+  --ob-p-rec-bg: var(--orbe-sky);      --ob-p-rec-fg: var(--orbe-cobalt-deep);
+  --ob-p-pod-bg: var(--orbe-peony);    --ob-p-pod-fg: var(--orbe-claret-deep);
   --ob-p-also-bg: var(--orbe-ink);     --ob-p-also-fg: var(--orbe-sky);
   --ob-p-note-lt: var(--orbe-chalk);   --ob-p-note-dk: color-mix(in srgb, var(--orbe-paper) 70%, var(--orbe-linen));
   --ob-p-spon-lt: color-mix(in srgb, var(--orbe-straw) 55%, var(--orbe-chalk)); --ob-p-spon-dk: color-mix(in srgb, var(--orbe-straw) 78%, var(--orbe-ochre));
-  --ob-p-sell-lt: color-mix(in srgb, var(--action-press) 86%, var(--orbe-cobalt)); --ob-p-sell-dk: color-mix(in srgb, var(--action-press) 84%, var(--orbe-ink));
+  --ob-p-sell-lt: color-mix(in srgb, var(--orbe-cobalt-deep) 86%, var(--orbe-cobalt)); --ob-p-sell-dk: color-mix(in srgb, var(--orbe-cobalt-deep) 84%, var(--orbe-ink));
   --ob-p-rec-lt: color-mix(in srgb, var(--orbe-sky) 50%, var(--orbe-chalk)); --ob-p-rec-dk: color-mix(in srgb, var(--orbe-sky) 80%, var(--orbe-water));
   --ob-p-pod-lt: color-mix(in srgb, var(--orbe-peony) 62%, var(--orbe-blush)); --ob-p-pod-dk: color-mix(in srgb, var(--orbe-peony) 86%, var(--orbe-claret));
   --ob-p-also-lt: color-mix(in srgb, var(--orbe-ink) 84%, var(--orbe-graphite)); --ob-p-also-dk: var(--orbe-ink);
@@ -106,22 +109,24 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 }
 @media (prefers-reduced-transparency: reduce) { .ob-grain::after { display: none; } }
 
-/* gradient light on a field: a little lighter at the top left, a touch deeper toward the lower right, grain under the words */
+/*
+  A field: one solid, saturated colour with the grit under the words. No
+  washed light: a chalk gradient across a field is what greyed it. The -lt
+  and -dk tokens stay for anything that draws on the field.
+*/
 .ob-lit {
   --ob-field: var(--orbe-sky);
   --ob-field-lt: color-mix(in srgb, var(--ob-field) 62%, var(--orbe-chalk));
   --ob-field-dk: color-mix(in srgb, var(--ob-field) 84%, var(--orbe-water));
   background-color: var(--ob-field);
-  background-image:
-    var(--ob-grit),
-    radial-gradient(70% 80% at 14% 10%, var(--ob-field-lt) 0%, transparent 72%),
-    radial-gradient(60% 70% at 96% 104%, var(--ob-field-dk) 0%, transparent 70%);
-  background-size: 180px 180px, 100% 100%, 100% 100%;
+  background-image: var(--ob-grit);
+  background-size: 180px 180px;
 }
+/* the deep Cobalt band: Chalk words on it at 7.85:1 */
 .ob-lit-cobalt {
-  --ob-field: var(--orbe-cobalt);
-  --ob-field-lt: color-mix(in srgb, var(--orbe-cobalt) 90%, var(--orbe-sky));
-  --ob-field-dk: var(--action-press);
+  --ob-field: var(--action-press);
+  --ob-field-lt: var(--orbe-cobalt);
+  --ob-field-dk: var(--orbe-cobalt-deep);
 }
 
 /* content that sits above the pointer trail: the trail draws over fields, under this */
@@ -135,15 +140,16 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 .ob-page :focus-visible { outline: 2px solid var(--ob-focus, var(--orbe-cobalt)); outline-offset: 3px; border-radius: 2px; }
 
 /* ---------------------------------------------------------------- the type ladder */
-.ob-display { font: 500 var(--ob-t-hero)/0.86 var(--font-display); letter-spacing: -0.04em; }
-.ob-giant { font: 500 var(--ob-t-giant)/0.95 var(--font-display); letter-spacing: -0.045em; text-wrap: balance; }
-.ob-figure { font: 500 var(--ob-t-figure)/0.9 var(--font-display); letter-spacing: -0.04em; white-space: nowrap; }
+.ob-display { font: var(--ob-w-display) var(--ob-t-hero)/0.86 var(--font-display); letter-spacing: -0.04em; }
+.ob-giant { font: var(--ob-w-display) var(--ob-t-giant)/0.95 var(--font-display); letter-spacing: -0.045em; text-wrap: balance; }
+.ob-figure { font: var(--ob-w-display) var(--ob-t-figure)/0.9 var(--font-display); letter-spacing: -0.04em; white-space: nowrap; }
 /* two tones: a softer first line, then the claim in Ink */
-.ob-h2 { font: 400 var(--ob-t-head)/1.18 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.ob-h2 { font: var(--ob-w-head) var(--ob-t-head)/1.18 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
 /* a page's title: the same two tones, one size larger, on every band */
-.ob-title { font: 500 var(--ob-t-title)/1.04 var(--font-display); letter-spacing: -0.035em; text-wrap: balance; }
-.ob-h2-soft { display: block; color: var(--orbe-graphite); }
-.ob-h3 { font: 400 var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.ob-title { font: var(--ob-w-display) var(--ob-t-title)/1.04 var(--font-display); letter-spacing: -0.035em; text-wrap: balance; }
+/* the soft half: the ink mixed into its field, visibly softer and never under 5:1 (Paper 6.1, Sky 5.5, Straw 5.4) */
+.ob-h2-soft { display: block; color: color-mix(in srgb, var(--ob-ink) 68%, var(--ob-field, var(--orbe-paper))); }
+.ob-h3 { font: var(--ob-w-head) var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
 .ob-lede { font-size: var(--ob-t18); line-height: 28px; max-width: 48ch; text-wrap: pretty; }
 .ob-says { font: 500 var(--ob-t16)/1.35 var(--font-text); }
 .ob-note { font-size: var(--ob-t14); line-height: 1.45; color: var(--ob-ink-soft); max-width: 46ch; }
@@ -166,19 +172,19 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 */
 .ob-btn {
   --ob-orb: var(--orbe-sky);
-  --ob-btn-top: color-mix(in srgb, var(--orbe-ink) 82%, var(--orbe-graphite));
+  --ob-btn-top: color-mix(in srgb, var(--orbe-ink) 92%, var(--orbe-graphite));
   --ob-btn-bottom: var(--orbe-ink);
   --ob-btn-edge: rgba(251, 250, 246, 0.12);
   --ob-btn-ring: var(--orbe-ink);
   position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: 48px; padding: 0 22px 0 20px;
-  font: 500 var(--ob-t16)/1 var(--font-text); color: var(--orbe-chalk);
+  font: 600 var(--ob-t16)/1 var(--font-text); color: var(--orbe-chalk);
   background: linear-gradient(180deg, var(--ob-btn-top), var(--ob-btn-bottom));
   border: 0; border-radius: 8px; text-decoration: none; cursor: pointer; white-space: nowrap;
   box-shadow: inset 0 1px 0 var(--ob-btn-edge), 0 0 0 1px var(--ob-btn-ring), var(--ob-lift);
   transition: box-shadow 160ms var(--ob-ease), transform 160ms var(--ob-ease), color 160ms var(--ob-ease);
 }
-.ob-btn:hover { --ob-btn-edge: rgba(251, 250, 246, 0.2); --ob-btn-top: color-mix(in srgb, var(--orbe-ink) 74%, var(--orbe-graphite)); }
+.ob-btn:hover { --ob-btn-edge: rgba(251, 250, 246, 0.2); --ob-btn-top: color-mix(in srgb, var(--orbe-ink) 80%, var(--orbe-graphite)); }
 .ob-btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 var(--ob-btn-edge), 0 0 0 1px var(--ob-btn-ring); }
 .ob-btn:focus-visible { outline-color: var(--orbe-ink); }
 .ob-orb {
@@ -193,7 +199,7 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --ob-btn-top: var(--orbe-chalk);
   --ob-btn-bottom: var(--orbe-paper);
   --ob-btn-edge: rgba(255, 255, 255, 0.9);
-  --ob-btn-ring: rgba(20, 19, 17, 0.14);
+  --ob-btn-ring: rgba(20, 19, 17, 0.22);
   color: var(--orbe-ink);
 }
 .ob-btn--light:hover { --ob-btn-top: #FFFFFF; --ob-btn-edge: #FFFFFF; }
@@ -254,7 +260,7 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 /* ---------------------------------------------------------------- the window: Orbe's one panel
   A 1px Ink rule, a Chalk title row (a file name left, one quiet control
   right), and a body. With data-pair="note|spon|sell|rec|pod|also" the body
-  takes that product's colour pair as a soft mesh with grain, and every ink,
+  takes that product's colour pair as a solid field with grit, and every ink,
   rule and focus ring inside follows it.
 */
 .ob-win {
@@ -291,11 +297,8 @@ html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --ob-ink: var(--pfg); --ob-ink-soft: var(--pfg); --rule-strong: var(--pfg); --ob-focus: var(--pfg);
   --rule: color-mix(in srgb, var(--pfg) 28%, transparent);
   color: var(--pfg); background-color: var(--pbg);
-  background-image:
-    var(--ob-grit),
-    radial-gradient(80% 70% at 10% 0%, var(--plt) 0%, transparent 70%),
-    radial-gradient(70% 70% at 100% 100%, var(--pdk) 0%, transparent 72%);
-  background-size: 180px 180px, 100% 100%, 100% 100%;
+  background-image: var(--ob-grit);
+  background-size: 180px 180px;
 }
 .ob-win[data-pair] .ob-input { color: var(--orbe-ink); }
 .ob-win[data-pair="note"] { --pbg: var(--ob-p-note-bg); --pfg: var(--ob-p-note-fg); --plt: var(--ob-p-note-lt); --pdk: var(--ob-p-note-dk); }

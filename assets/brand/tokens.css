@@ -14,14 +14,16 @@
 :root {
   /* ---------------------------------------------------------------- raw palette */
   /* Primary */
-  --orbe-sky: #9EE9FB;       /* the field */
+  --orbe-sky: #94E6FF;       /* the field: a clear, saturated sky (was #9EE9FB) */
   --orbe-cobalt: #1F4BFF;    /* action, the ball, the deep panel */
+  --orbe-cobalt-deep: #0E2AAE; /* deep Cobalt: words on Sky 7.7:1, Straw on it 7.3:1, Chalk on it 10.3:1 */
   --orbe-ink: #141311;       /* type */
   --orbe-paper: #F3F0E8;     /* the page, the card */
   --orbe-ember: #FF5A1F;     /* the spark: decoration and moments, never body text on light */
   /* The alternative scheme, and a minor accent in the blue one */
   --orbe-peony: #F2879E;
   --orbe-claret: #6F1726;
+  --orbe-claret-deep: #3F0814; /* words on a Peony field: 6.95:1 */
   /* Papers */
   --orbe-chalk: #FBFAF6;
   --orbe-linen: #E7E2D7;
@@ -29,12 +31,12 @@
   --orbe-blush: #FBD9E0;
   /* Inks */
   --orbe-soot: #2A2824;
-  --orbe-graphite: #45413A;
+  --orbe-graphite: #38342E;   /* secondary words: 10.8:1 on Paper, 8.6 on Sky, 8.2 on Straw (was #45413A, 8.9 on Paper) */
   --orbe-stone: #A29E95;
   /* Painterly, for the idyll illustrations only */
   --orbe-meadow: #8E9A4A;
   --orbe-ochre: #C9A84C;
-  --orbe-straw: #EED56A;
+  --orbe-straw: #F5D34A;      /* fuller yellow (was #EED56A): Ink on it 12.6:1 */
   --orbe-grove: #262B12;
   --orbe-water: #4D9AD0;
   --orbe-dawn: #F2A58E;
@@ -50,7 +52,7 @@
   /* ---------------------------------------------------------------- semantic colour (blue scheme) */
   --field: var(--orbe-sky);
   --on-field: var(--orbe-ink);
-  --on-field-soft: #24464D;          /* 7.53:1 on sky */
+  --on-field-soft: #1F3C43;          /* 8.41:1 on sky */
   --field-tint: var(--orbe-mist);
 
   --surface: var(--orbe-paper);
@@ -70,7 +72,7 @@
   --spark: var(--orbe-ember);        /* bars, creatures, the crayon loop: never a meaning on its own */
   --minor: var(--orbe-peony);        /* the dawn in the paintings, a sticker, never a field in this scheme */
 
-  --deep: var(--orbe-cobalt);        /* the one deep panel */
+  --deep: var(--action-press);      /* the one deep panel: Chalk on it 7.85:1 */
   --on-deep: var(--orbe-chalk);
   --night: var(--orbe-ink);
   --on-night: var(--orbe-paper);
@@ -162,7 +164,7 @@
 [data-scheme="pink"] {
   --field: var(--orbe-peony);
   --on-field: var(--orbe-ink);
-  --on-field-soft: #4D1F28;          /* 5.66:1 on peony */
+  --on-field-soft: #3A1219;          /* 6.82:1 on peony */
   --field-tint: var(--orbe-blush);
   --action: var(--orbe-ink);
   --on-action: var(--orbe-peony);
@@ -184,7 +186,7 @@
 /* ---------------------------------------------------------------- surfaces: repoint text and rules for a block */
 [data-surface="field"] { background: var(--field); color: var(--on-field); --text: var(--on-field); --text-soft: var(--on-field-soft); --rule: rgba(20, 19, 17, 0.22); }
 [data-surface="paper"] { background: var(--surface); color: var(--text); }
-[data-surface="night"] { background: var(--night); color: var(--on-night); --text: var(--on-night); --text-soft: var(--orbe-stone); --rule: rgba(243, 240, 232, 0.2); --rule-strong: var(--orbe-paper); --focus: var(--night-accent); --link: var(--night-accent); --action: var(--night-accent); --on-action: var(--orbe-ink); }
+[data-surface="night"] { background: var(--night); color: var(--on-night); --text: var(--on-night); --text-soft: #C2BEB5; --rule: rgba(243, 240, 232, 0.2); --rule-strong: var(--orbe-paper); --focus: var(--night-accent); --link: var(--night-accent); --action: var(--night-accent); --on-action: var(--orbe-ink); }
 [data-surface="deep"] { background: var(--deep); color: var(--on-deep); --text: var(--on-deep); --text-soft: color-mix(in srgb, var(--on-deep) 94%, var(--deep)); --rule: rgba(251, 250, 246, 0.3); --rule-strong: var(--on-deep); --focus: var(--orbe-chalk); --link: var(--on-deep); --action: var(--orbe-chalk); --on-action: var(--deep); }
 
 /* ---------------------------------------------------------------- reduced motion */
