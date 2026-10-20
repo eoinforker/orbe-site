@@ -1,13 +1,16 @@
 /*
   Protect: the page. Every fingerprint, distance and verdict comes from the
   engine (../../assets/engine/protect/), the same code as product/src/protect.
-  Pictures and videos are decoded here, by the browser, onto a canvas. Nothing
+  Pictures and videos are decoded here, by the browser, onto a canvas; audio
+  (and the soundtrack of a video) through the Web Audio API's decoder. Nothing
   is uploaded: there is no network call on this page beyond its own files.
 */
 import { shell, $, $$, esc, dropZone } from "../assets/shell.js";
 import {
   fingerprintImage, compare, bits, toHex, toRightsRef, makePhoto, cropBy, resize, grade, recompress,
   sampleTimes, fingerprintVideo, findClip, SAME_MAX, EDITED_MAX, MIN_RUN,
+  fingerprintAudio, fingerprintSamples, matchAudio, AUDIO_RATE, FRAME_SECONDS, MIN_ALIGNED,
+  melody, speech, chirps, tones, mixOver, mp3Like, gain, concat, slice, normalise, encodeWav,
 } from "../../assets/engine/protect/index.js";
 
 shell("protect");
@@ -224,6 +227,153 @@ for (const slot of $$("[data-vslot]")) {
       out.innerHTML = `<p class="err" role="alert">Your browser could not play that file. Try an MP4 or WebM.</p>`;
     }
     renderVideoResult();
+  });
+}
+
+/* ---------------------------------------------------------------- tabs */
+
+/* Tabs with arrow keys: Left and Right move between them, Home and End jump. */
+for (const list of $$("[data-tabs]")) {
+  const tabs = $$('[role="tab"]', list);
+  const pick = (tab, focus) => {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    }
+    if (focus) tab.focus();
+    if (tab.id === "tab-da") audioDemo();
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => pick(t));
+    t.addEventListener("keydown", (e) => {
+      const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (to === undefined) return;
+      e.preventDefault();
+      pick(tabs[(to + tabs.length) % tabs.length], true);
+    });
+  });
+}
+
+/* ---------------------------------------------------------------- audio: drawing */
+
+const VERDICT_A = { same: "Same recording", contains: "Contains your audio", different: "Different" };
+const CHIP_A = { same: "same", contains: "edited", different: "different" };
+const verdictChipA = (v) => `<span class="vd vd-${CHIP_A[v]}">${VERDICT_A[v]}</span>`;
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#141311";
+
+/* The constellation as a strip: time across, pitch up. `mark` shades a stretch, in seconds. */
+function strip(fp, { mark, label }) {
+  const c = document.createElement("canvas");
+  const w = 720, h = 72;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr;
+  c.className = "astrip";
+  c.setAttribute("role", "img");
+  c.setAttribute("aria-label", label);
+  const g = c.getContext("2d");
+  g.scale(dpr, dpr);
+  const frames = Math.max(1, fp.duration / FRAME_SECONDS);
+  if (mark && mark.duration > 0) {
+    g.fillStyle = css("--orbe-sky");
+    g.fillRect((mark.start / fp.duration) * w, 0, Math.max(2, (mark.duration / fp.duration) * w), h);
+  }
+  g.fillStyle = css("--orbe-ink");
+  const p = fp.peaks;
+  for (let i = 0; i < p.length; i += 2) {
+    const x = (p[i] / frames) * w, y = h - 3 - (p[i + 1] / 511) * (h - 6);
+    g.fillRect(x - 0.75, y - 0.75, 1.5, 1.5);
+  }
+  return c;
+}
+
+function wavUrl(x) {
+  return URL.createObjectURL(new Blob([encodeWav(normalise(x, 0.8), AUDIO_RATE)], { type: "audio/wav" }));
+}
+
+/* ---------------------------------------------------------------- audio: the demo */
+
+let audioDemoDone = false;
+async function audioDemo() {
+  if (audioDemoDone) return;
+  audioDemoDone = true;
+  const box = $("[data-ademo]");
+  await new Promise((r) => setTimeout(r, 30));
+  try {
+    const original = normalise(mixOver(melody(21, 12), speech(22, 12), -4), 0.8);
+    const unrelated = normalise(mixOver(melody(42, 12), speech(41, 12), -4), 0.8);
+    const comp = concat(chirps(31, 7), tones(32, 7), gain(slice(original, 2, 10), -3), speech(33, 7), melody(34, 7));
+    const items = [
+      { name: "The original", how: "Made up, seeds 21 and 22.", x: original },
+      { name: "Recompressed", how: "Squeezed like a low-bitrate MP3: no top end, coarse samples.", x: mp3Like(original) },
+      { name: "Music over it", how: "Another tune mixed on top, nearly as loud.", x: mixOver(original, melody(51, 12), -2) },
+      { name: "A compilation", how: "36 seconds of other sounds with 8 seconds of the original in the middle.", x: comp },
+      { name: "Unrelated", how: "Another made-up tune and voice, from different seeds.", x: unrelated },
+    ];
+    const ofp = fingerprintSamples(original);
+    box.innerHTML = "";
+    for (const [i, it] of items.entries()) {
+      const fp = i === 0 ? ofp : fingerprintSamples(it.x);
+      const m = i === 0 ? null : matchAudio(ofp, fp);
+      const row = document.createElement("div");
+      row.className = `arow${i === 0 ? " arow-orig" : ""}`;
+      row.innerHTML = `<div class="a-say"><p class="dname">${esc(it.name)} ${m ? verdictChipA(m.verdict) : ""}</p><p class="small">${esc(it.how)}</p></div><div class="a-play"><audio controls preload="none" src="${wavUrl(it.x)}" aria-label="Play ${esc(it.name.toLowerCase())}"></audio></div><div class="a-fp"></div><div class="a-words">${m ? `<p class="dwords">${esc(m.words)}</p><p class="small">${m.verdict === "different" ? `${m.aligned} landmark pairs agree; ${MIN_ALIGNED} are needed.` : `${m.aligned} landmark pairs agree on the offset; confidence ${Math.round(m.confidence * 100)}%.`}</p>` : `<code class="ref">${esc(toRightsRef(ofp))}</code>`}</div>`;
+      $(".a-fp", row).append(strip(fp, { mark: m && m.verdict !== "different" ? { start: m.offset, duration: m.duration } : null, label: `${it.name}: fingerprint of ${Math.round(fp.duration)} seconds${m && m.verdict !== "different" ? `, your audio from ${Math.round(m.offset)} s` : ""}` }));
+      box.append(row);
+    }
+  } catch {
+    box.innerHTML = `<p class="err" role="alert">The audio demo could not be generated in this browser.</p>`;
+  }
+}
+
+/* ---------------------------------------------------------------- audio: your own files */
+
+const auds = { a: null, b: null };
+
+async function decodeAudio(file) {
+  const buf = await file.arrayBuffer();
+  const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const ctx = new Ctx(1, 1, 44100);
+  const audio = await ctx.decodeAudioData(buf);
+  const channels = [];
+  for (let c = 0; c < audio.numberOfChannels; c++) channels.push(audio.getChannelData(c));
+  return { sampleRate: audio.sampleRate, channels };
+}
+
+function renderAudioResult() {
+  const out = $("[data-aud-result]");
+  if (!auds.a || !auds.b) { out.innerHTML = `<p class="small">${auds.a || auds.b ? "Now add the other file." : "Add both files to compare them. Your browser decodes them; long files take a few seconds."}</p>`; return; }
+  const m = matchAudio(auds.a.fp, auds.b.fp);
+  const found = m.verdict !== "different";
+  out.innerHTML = `<div class="verdict"><p class="v-head">${verdictChipA(m.verdict)} <span class="v-score"><b class="fig">${Math.round(m.confidence * 100)}%</b> <span class="small">confidence</span></span></p><p class="v-words">${esc(m.words)}</p><p class="small">${m.aligned} landmark pairs agree on one offset; the next best offset gathered ${m.runnerUp}. ${found ? "A match is a reason to listen, not a claim: commentary and parody can use work fairly." : ""}</p></div>`;
+  for (const k of ["a", "b"]) {
+    const slot = $(`[data-aslot="${k}"] .a-fp`);
+    if (!slot) continue;
+    const mark = found ? (k === "a" ? { start: m.originalStart, duration: m.duration } : { start: m.offset, duration: m.duration }) : null;
+    slot.replaceChildren(strip(auds[k].fp, { mark, label: `${auds[k].name}: fingerprint${mark ? `, shared stretch from ${Math.round(mark.start)} s` : ""}` }));
+  }
+}
+
+for (const slot of $$("[data-aslot]")) {
+  const key = slot.dataset.aslot;
+  const out = $("[data-out]", slot);
+  dropZone($("[data-drop]", slot), $("[data-file]", slot), async (file) => {
+    out.innerHTML = `<p class="small">Decoding ${esc(file.name)} on this device.</p>`;
+    auds[key] = null;
+    renderAudioResult();
+    try {
+      if (!/^(audio|video)\//.test(file.type) && !/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|mp4|m4v|mov|webm)$/i.test(file.name)) throw new Error("not audio");
+      const input = await decodeAudio(file);
+      await new Promise((r) => setTimeout(r, 20));
+      const fp = fingerprintAudio(input);
+      auds[key] = { fp, name: file.name };
+      out.innerHTML = `<div class="fp-say"><span class="fname">${esc(file.name)}</span><span class="small">${clock(fp.duration)} long, ${fp.hashes.length.toLocaleString("en-GB")} landmark pairs</span><code class="ref">${esc(toRightsRef(fp))}</code></div><div class="a-fp"></div>`;
+      $(".a-fp", out).append(strip(fp, { label: `${file.name}: fingerprint of ${Math.round(fp.duration)} seconds` }));
+    } catch {
+      out.innerHTML = `<p class="err" role="alert">Your browser could not decode sound from that file. Try an MP3, M4A, WAV, MP4 or WebM.</p>`;
+    }
+    renderAudioResult();
   });
 }
 

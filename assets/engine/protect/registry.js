@@ -10,6 +10,7 @@
 */
 import { hamming, toHex } from "./image.js";
 import { compare, EDITED_MAX } from "./compare.js";
+import { readVotes } from "./audio.js";
 /** A BK-tree over 64-bit hashes. Hamming distance is a metric, so the triangle inequality prunes whole branches. */
 export class BKTree {
     root = null;
@@ -84,7 +85,8 @@ function fnv64(s) {
 /**
   A stable id for the rights record: `fp:<algo>:<hex>`. An image is referred to by
   its whole-frame pHash; a video by a 64-bit FNV-1a of its sampling interval and
-  keyframe hashes, so the same file sampled the same way always gives the same id.
+  keyframe hashes, so the same file sampled the same way always gives the same id;
+  audio by a 64-bit FNV-1a of its landmark hashes and their frames.
   The rights module stores this string; it never needs this module's types.
 */
 export function toRightsRef(fp) {
@@ -92,10 +94,16 @@ export function toRightsRef(fp) {
         return `fp:${fp.algo}:${toHex(fp.hash)}`;
     if (fp.kind === "image")
         return `fp:phash:${toHex(fp.phash)}`;
+    if (fp.kind === "audio") {
+        let txt = "";
+        for (let i = 0; i < fp.hashes.length; i++)
+            txt += `${fp.hashes[i].toString(36)}@${fp.frames[i].toString(36)},`;
+        return `fp:audio:${fnv64(txt)}`;
+    }
     return `fp:vphash:${fnv64(`${fp.interval}|${fp.hashes.map(toHex).join("")}`)}`;
 }
 export function parseRightsRef(ref) {
-    const m = /^fp:(phash|dhash|vphash):([0-9a-f]{16})$/.exec(ref);
+    const m = /^fp:(phash|dhash|vphash|audio):([0-9a-f]{16})$/.exec(ref);
     return m ? { algo: m[1], hex: m[2] } : null;
 }
 /**
@@ -143,3 +151,69 @@ export function createRegistry() {
 }
 /* Each entry sits in the tree once per window. */
 const WINDOW_FANOUT = 10;
+/**
+  An in-memory audio registry: an inverted index from each 24-bit landmark hash to
+  the (entry, frame) pairs it occurs at. A query reads only the postings of its
+  own hashes, votes on (entry, offset), and reads the votes the same way
+  matchAudio does, so a registry hit and a one-to-one match always agree.
+*/
+export function createAudioRegistry() {
+    const postings = new Map(); // hash -> [entry, frame, entry, frame, ...]
+    const entries = [];
+    const byRef = new Map();
+    let visited = 0;
+    return {
+        get size() { return entries.length; },
+        get lastVisited() { return visited; },
+        add(e) {
+            const ref = e.ref ?? toRightsRef(e.fingerprint);
+            const at = byRef.get(ref);
+            if (at !== undefined)
+                return entries[at];
+            const entry = { ref, owner: e.owner, addedAt: e.addedAt, fingerprint: e.fingerprint, ...(e.title !== undefined ? { title: e.title } : {}) };
+            const id = entries.push(entry) - 1;
+            byRef.set(ref, id);
+            const fp = e.fingerprint;
+            for (let i = 0; i < fp.hashes.length; i++) {
+                const h = fp.hashes[i];
+                let p = postings.get(h);
+                if (!p)
+                    postings.set(h, (p = []));
+                p.push(id, fp.frames[i]);
+            }
+            return entry;
+        },
+        get: (ref) => { const i = byRef.get(ref); return i === undefined ? undefined : entries[i]; },
+        query(suspect, { k = 5, includeDifferent = false } = {}) {
+            // votes per entry: offset (suspect frame - registered frame) -> registered frames
+            const votes = new Map();
+            visited = 0;
+            for (let i = 0; i < suspect.hashes.length; i++) {
+                const p = postings.get(suspect.hashes[i]);
+                if (!p)
+                    continue;
+                const ts = suspect.frames[i];
+                for (let j = 0; j < p.length; j += 2) {
+                    visited++;
+                    const id = p[j], tr = p[j + 1];
+                    let m = votes.get(id);
+                    if (!m)
+                        votes.set(id, (m = new Map()));
+                    const d = ts - tr;
+                    let a = m.get(d);
+                    if (!a)
+                        m.set(d, (a = []));
+                    a.push(tr);
+                }
+            }
+            const out = [];
+            for (const [id, v] of votes) {
+                const entry = entries[id];
+                const match = readVotes(v, entry.fingerprint, suspect);
+                if (includeDifferent || match.verdict !== "different")
+                    out.push({ entry, match });
+            }
+            return out.sort((a, b) => b.match.aligned - a.match.aligned).slice(0, k);
+        },
+    };
+}

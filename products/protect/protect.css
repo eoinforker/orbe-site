@@ -84,3 +84,22 @@
 .next-col { display: grid; align-content: start; justify-items: start; gap: 8px; min-width: 0; }
 .next-col p { margin: 0; font-size: var(--ob-t14); line-height: 1.5; color: var(--ob-ink-soft); max-width: 44ch; }
 .fair-use { margin-top: 20px; max-width: 72ch; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--orbe-ink) 5%, transparent); }
+
+/* ---------------------------------------------------------------- tabs, and the audio parts */
+.section-head .seg { flex: none; }
+[role="tabpanel"][hidden] { display: none; }
+.demo-say { margin: 0; max-width: 80ch; }
+.alist { display: grid; }
+.arow { display: grid; gap: 8px 20px; padding: 14px 0; border-top: 1px solid var(--rule); grid-template-columns: minmax(0, 1fr); align-items: center; }
+.arow:first-child { border-top: 0; padding-top: 4px; }
+.arow p { margin: 0; }
+.a-say { display: grid; gap: 4px; min-width: 0; }
+.a-play audio { display: block; width: 100%; max-width: 320px; height: 40px; }
+.a-fp { min-width: 0; }
+.astrip { display: block; width: 100%; height: 56px; border-radius: 6px; background: var(--orbe-chalk); box-shadow: inset 0 0 0 1px var(--rule); }
+.a-words { display: grid; gap: 4px; min-width: 0; }
+@media (min-width: 1024px) {
+  .arow { grid-template-columns: 15rem 15rem minmax(0, 1fr) 18rem; }
+  .arow .a-say .small, .arow .a-words .small { font-size: var(--ob-t12); }
+}
+#panel-ca .slot-out .fp-say { margin-bottom: 4px; }
