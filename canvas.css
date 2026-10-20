@@ -157,7 +157,6 @@
 .chip-bar { color: var(--orbe-graphite); }
 .ob-card .ghost { background: color-mix(in srgb, var(--orbe-ink) 28%, transparent); }
 .ob-says { margin-bottom: 4px; }
-.lend a:hover { text-decoration-thickness: 2px; }
 .mid { font: 500 var(--ob-t32)/1.05 var(--font-mono); letter-spacing: -0.03em; font-feature-settings: "tnum" 1; }
 .solid { background: var(--ob-ink); }
 .ghost { background: color-mix(in srgb, var(--ob-ink) 35%, transparent); }
@@ -193,8 +192,6 @@
 .beat-side { grid-column: 1 / span 3; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
 .beat-side .beat-h { margin: 0; }
 .beat-p { font-size: var(--ob-t16); line-height: 1.5; text-wrap: pretty; }
-.lend { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--rule-strong); font-size: var(--ob-t14); line-height: 1.45; }
-.lend a { font-weight: 600; text-underline-offset: 3px; margin-right: 4px; }
 .c-pod { grid-column: 1 / span 7; }
 .c-mid { grid-column: 8 / span 5; }
 .pod-in { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -440,7 +437,6 @@
   /* beat three as one line of words above its windows, not a column of its own */
   .beat-side { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 4px 24px; margin-top: 8px; }
   .beat-side .beat-h { align-self: baseline; }
-  .beat-side .lend { grid-column: 1 / -1; margin-top: 0; padding-top: 8px; }
   /* the letter and the guide keep their point and lose their second paragraph */
   .note-body > [data-n="detail"], .steps span { display: none; }
   .c-sell .ob-strip dd { font-size: var(--ob-t12); }
