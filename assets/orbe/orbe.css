@@ -574,7 +574,7 @@ html.ob-sheet-on { overflow: hidden; }
   .ob-foot-col h3 { margin-bottom: 0; }
   .ob-foot-line a { display: inline-flex; align-items: center; min-height: 44px; }
 }
-/* on a phone a two-link column sits on one row, so the footer stays short */
+/* on a phone every column stacks the same way, with tap-sized rows that stay compact */
 @media (pointer: coarse) and (max-width: 720px) {
-  .ob-foot-col ul:not(:has(> li:nth-child(3))) { display: flex; flex-wrap: wrap; column-gap: 20px; }
+  .ob-foot-col a { min-height: 36px; }
 }

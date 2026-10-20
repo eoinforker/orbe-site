@@ -608,7 +608,7 @@ const say = (text, bad = null) => {
 };
 handleIn.addEventListener("input", () => {
   const h = cleanHandle(handleIn.value).toLowerCase();
-  say(h ? `orbe.vc/@${h}. We check it’s yours when ratings open.` : NOTE_IDLE);
+  say(h ? `@${h}. We check it’s yours when ratings open.` : NOTE_IDLE);
 });
 emailIn.addEventListener("input", () => { if (emailIn.hasAttribute("aria-invalid") && EMAIL.test(emailIn.value.trim())) say(NOTE_IDLE); });
 let sending = false;
@@ -623,7 +623,7 @@ form.addEventListener("submit", async (e) => {
   sending = true;
   const res = await reserve({ handle: h, kind, email }).finally(() => { sending = false; });
   if (!res.ok) return say(res.reason === "taken" ? "That handle is taken. Try another." : "Type the handle you’d like first.", handleIn);
-  say(res.via === "email" ? `Your email app has the request for orbe.vc/@${h}. Held once it arrives.` : `Reserved. We’ll email you at ${email} when ratings open.`);
+  say(res.via === "email" ? `Your email app has the request for @${h}. Held once it arrives.` : `Reserved. We’ll email you at ${email} when ratings open.`);
 });
 
 /* ---------------------------------------------------------------- windows open, once

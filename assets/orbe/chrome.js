@@ -354,6 +354,13 @@ export function mountGiant(box, svgHost, cap, people, { reduce = false } = {}) {
     box.dataset.head = k === "sell" || k === "also" ? "dark" : "light";
     cap.textContent = `${who.name} · ${who.beats} in 100 · made up`;
   };
+  /* after the first turn the word stays whole: only the O's level and the colours move, so it is never seen empty */
+  let prevBeats = 0;
+  const hold = (t, who) => {
+    lines.forEach((p, i) => { p.setAttribute("stroke-dashoffset", 0); p.setAttribute("stroke-width", +p.dataset.w * 0.86); });
+    const k = ease(clamp(t / 1200));
+    setLevel((prevBeats + (who.beats - prevBeats) * k) / 100);
+  };
   const frame = (t, who) => {
     const open = ease(clamp((t - OPEN[0]) / (OPEN[1] - OPEN[0]))) - ease(clamp((t - CLOSE[0]) / (CLOSE[1] - CLOSE[0])));
     lines.forEach((p, i) => {
@@ -376,9 +383,10 @@ export function mountGiant(box, svgHost, cap, people, { reduce = false } = {}) {
   const loop = (now) => {
     if (!t0) t0 = now - at;
     let t = now - t0;
-    if (t >= TURN) { turn++; t0 = now; t = 0; setPair(turn); }
+    if (t >= TURN) { prevBeats = people[turn % people.length].beats; turn++; t0 = now; t = 0; setPair(turn); }
     at = t;
-    frame(t, people[turn % people.length]);
+    if (turn === 0) frame(Math.min(t, 2400), people[0]);
+    else hold(t, people[turn % people.length]);
     raf = requestAnimationFrame(loop);
   };
   new IntersectionObserver((es) => {
