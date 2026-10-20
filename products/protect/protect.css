@@ -22,8 +22,10 @@
 .vd { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px 0 8px; border-radius: 999px; font: 500 var(--ob-t12)/1 var(--font-text); white-space: nowrap; vertical-align: 2px; }
 .vd::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .vd-same { color: var(--orbe-chalk); background: var(--orbe-ink); }
-.vd-edited { color: var(--orbe-warning); background: var(--orbe-warning-tint); }
-.vd-different { color: var(--orbe-positive); background: var(--orbe-positive-tint); }
+.vd-edited { color: var(--orbe-ink); background: var(--orbe-warning-tint); }
+.vd-edited::before { background: var(--orbe-warning); }
+.vd-different { color: var(--orbe-ink); background: var(--orbe-positive-tint); }
+.vd-different::before { background: var(--orbe-positive); }
 
 /* ---------------------------------------------------------------- the demo */
 .demo .section-head { align-items: end; }

@@ -41,10 +41,10 @@
   }
   .nf-in { max-width: 760px; }
   .nf .ob-display { font-size: clamp(2.5rem, 0.6rem + 6vw, 6rem); }
-  .nf-soft { color: #3E6E7A; }
+  .nf-soft { color: color-mix(in srgb, var(--orbe-ink) 68%, var(--ob-field, var(--orbe-sky))); }
   .nf .ob-lede { margin-top: 24px; }
   .nf-ctas { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 32px; margin-top: 32px; }
-  .nf-tools { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 40px; padding-top: 16px; border-top: 1px solid rgba(20, 19, 17, 0.2); font-size: var(--ob-t14); }
+  .nf-tools { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 40px; padding-top: 16px; border-top: 1px solid color-mix(in srgb, var(--orbe-ink) 20%, transparent); font-size: var(--ob-t14); }
   .nf-tools a { text-underline-offset: 4px; border-radius: 2px; }
   .nf-tools a:hover { text-decoration-thickness: 2px; }
   .nf-k { color: var(--orbe-graphite); width: 100%; }

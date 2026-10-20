@@ -48,11 +48,11 @@ export const WORLDS = [
   // cobalt field, paper bar, ink: deep blue against warm pale
   { bg: "#1F4BFF", bar: "#F3F0E8", ink: "#141311", lines: LINES[0] },
   // ink field, sky bar, ink: near black against pale cyan
-  { bg: "#141311", bar: "#9EE9FB", ink: "#141311", lines: LINES[1] },
+  { bg: "#141311", bar: "#94E6FF", ink: "#141311", lines: LINES[1] },
   // paper field, cobalt bar, chalk ink: warm pale against saturated deep
   { bg: "#F3F0E8", bar: "#1F4BFF", ink: "#FBFAF6", lines: LINES[2] },
   // sky field, ink bar, sky ink: pale cyan against near black
-  { bg: "#9EE9FB", bar: "#141311", ink: "#9EE9FB", lines: LINES[3] },
+  { bg: "#94E6FF", bar: "#141311", ink: "#94E6FF", lines: LINES[3] },
   // ember field, ink bar, paper ink: hot orange against neutral dark
   { bg: "#FF5A1F", bar: "#141311", ink: "#F3F0E8", lines: LINES[4] },
 ];

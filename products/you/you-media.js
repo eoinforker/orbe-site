@@ -17,8 +17,8 @@ import { seeded } from "../../assets/engine/rating/fixtures.js";
 import { clock } from "./you-data.js";
 
 const C = {
-  sky: "#9EE9FB", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", chalk: "#FBFAF6", linen: "#E7E2D7", mist: "#D6F6FD",
-  water: "#4D9AD0", meadow: "#8E9A4A", ochre: "#C9A84C", straw: "#EED56A", dawn: "#F2A58E", peony: "#F2879E", stone: "#A29E95", grove: "#262B12", soot: "#2A2824",
+  sky: "#94E6FF", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", chalk: "#FBFAF6", linen: "#E7E2D7", mist: "#D6F6FD",
+  water: "#4D9AD0", meadow: "#8E9A4A", ochre: "#C9A84C", straw: "#F5D34A", dawn: "#F2A58E", peony: "#F2879E", stone: "#A29E95", grove: "#262B12", soot: "#2A2824",
 };
 /* Moods: top of the sky, low sky, the disc, the land or water, the object. */
 const MOODS = [

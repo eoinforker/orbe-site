@@ -24,8 +24,8 @@
 // Index roles match the strip builder: 0 white, 5 and 8 the darks.
 export const PALETTE = [
   "#FFFFFF", // white
-  "#9EE9FB", // sky
-  "#EED56A", // straw
+  "#94E6FF", // sky
+  "#F5D34A", // straw
   "#1F4BFF", // cobalt
   "#FF5A1F", // ember, the spark
   "#141311", // ink

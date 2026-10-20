@@ -113,10 +113,10 @@ export function mountOrbs(band, cv, { reduce = false, you = 93 } = {}) {
   if (!band || !cv || !cv.getContext) return { setYou() {} };
   const ctx = cv.getContext("2d");
   const C = {
-    chalk: css("--orbe-chalk", "#FBFAF6"), mist: css("--orbe-mist", "#D6F6FD"), sky: css("--orbe-sky", "#9EE9FB"),
+    chalk: css("--orbe-chalk", "#FBFAF6"), mist: css("--orbe-mist", "#D6F6FD"), sky: css("--orbe-sky", "#94E6FF"),
     edge: css("--action-press", "#1238D6"), water: css("--orbe-water", "#4D9AD0"),
     ember: css("--orbe-ember", "#FF5A1F"), claret: css("--orbe-claret", "#6F1726"),
-    dawn: css("--orbe-dawn", "#F2A58E"), straw: css("--orbe-straw", "#EED56A"),
+    dawn: css("--orbe-dawn", "#F2A58E"), straw: css("--orbe-straw", "#F5D34A"),
   };
   const LIQ = {
     sky: { top: C.mist, body: C.sky, deep: C.water, bubble: C.chalk, glint: null },

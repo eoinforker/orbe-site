@@ -12,8 +12,8 @@ const SERIF = '"Newsreader", Georgia, serif';
 const MONO = '"Commit Mono", ui-monospace, Menlo, monospace';
 
 const C = {
-  sky: "#9EE9FB", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", ember: "#FF5A1F",
-  peony: "#F2879E", claret: "#6F1726", mist: "#D6F6FD", blush: "#FBD9E0", straw: "#EED56A",
+  sky: "#94E6FF", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", ember: "#FF5A1F",
+  peony: "#F2879E", claret: "#6F1726", mist: "#D6F6FD", blush: "#FBD9E0", straw: "#F5D34A",
   meadow: "#8E9A4A", water: "#4D9AD0", chalk: "#FBFAF6", lime: "#C6F432", mint: "#9FF0C8",
 };
 

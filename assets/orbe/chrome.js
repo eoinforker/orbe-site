@@ -52,12 +52,12 @@ export const PILLARS = [
     ["Diligence", "products/diligence/", "The report a buyer reads first.", "rec"],
   ]],
   ["Protect", "Your work, and who may use it.", [
-    ["Protect", "products/protect/", "Fingerprints for images, video and audio.", "rec"],
-    ["Rights", "products/rights/", "Who agreed to what, until when.", "note"],
+    ["Protect", "products/protect/", "Find your work wherever it goes.", "rec"],
+    ["Rights", "products/rights/", "Who may use what, until when.", "note"],
   ]],
   ["Teams", "For the people around creators.", [
     ["Roster", "products/roster/", "Every creator you look after.", "note"],
-    ["For teams", "teams/", "Rights tooling for brands and agencies.", "spon"],
+    ["For teams", "teams/", "Rights tooling for brands.", "spon"],
     ["For developers", "developers/", "Orbe for agents, over MCP.", "pod"],
   ]],
 ];
@@ -79,6 +79,98 @@ export const FOOTER = [
 ];
 
 /*
+  The menus come in two directions, the same on a phone and a desktop:
+    "a"  the index: product names set large in the display face, pillars
+         as numbered mono heads down the left, nothing else
+    "b"  the catalogue: Your Orbe as a Sky tile, then every tool as a row
+         with a small pixel tile in its colour pair and one line on it
+  ?menu=a or ?menu=b picks one (for review); MENU is the default. The
+  choice is set on <html data-menu> so the CSS can scope to it.
+*/
+export const MENU = "b";
+function menuDirection() {
+  try { const q = new URLSearchParams(location.search).get("menu"); if (q === "a" || q === "b") return q; } catch (e) {}
+  return MENU;
+}
+
+/* each tool's pixel glyph, five by five, drawn in its pair's word colour on its pair's field */
+const GLYPH = {
+  "products/you/": ".###.|#...#|#.#.#|#...#|.###.",
+  "products/rate/": "....#|..#.#|..#.#|#.#.#|#.#.#",
+  "products/podcasts/": "..#..|#.#.#|#.#.#|#.#.#|..#..",
+  "products/sponsorships/": "#####|#...#|#####|.....|#####",
+  "products/offer/": ".....|....#|...#.|#.#..|.#...",
+  "products/selling/": ".####|...##|..#.#|.#..#|#....",
+  "products/diligence/": "###..|.....|#####|.....|####.",
+  "products/protect/": "#####|#####|#####|.###.|..#..",
+  "products/rights/": "###..|#.#..|#####|..#.#|..###",
+  "products/roster/": "#.#.#|.....|#.#.#|.....|#.#.#",
+  "teams/": "##.##|##.##|.....|##.##|##.##",
+  "developers/": "#....|.#...|..#..|.#...|#.###",
+};
+function glyph(path, k) {
+  const g = GLYPH[path];
+  if (!g) return "";
+  const cells = g.split("|").flatMap((row, y) => [...row].map((c, x) => (c === "#" ? `<rect x="${x}" y="${y}" width="1" height="1"/>` : ""))).join("");
+  return `<span class="ob-px" data-k="${k}" aria-hidden="true"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" focusable="false">${cells}</svg></span>`;
+}
+
+/*
+  The two directions' markup: the desktop panel's inside and the phone
+  sheet's nav. Every item that rises in on open carries --i, its place in
+  the stagger.
+*/
+function menuMarkup(dir, href, cur) {
+  const n2 = (i) => String(i + 1).padStart(2, "0");
+  const allLink = (cls) => `<a class="${cls}" href="${esc(href(ALL_PRODUCTS[1]))}"${cur(ALL_PRODUCTS[1])}><span class="ob-dd-t">${esc(ALL_PRODUCTS[0])}</span><span class="ob-dd-d">${esc(ALL_PRODUCTS[2])}</span></a>`;
+  if (dir === "a") {
+    let r = 0;
+    const panel = `
+          <div class="ob-ix-cols">${PILLARS.map(([h, , items], i) => `
+            <div class="ob-ix-col">
+              <p class="ob-ix-h" id="ob-dd-g${i}" style="--i:${i}"><span>${n2(i)}</span>${esc(h)}</p>
+              <ul class="ob-ix-list" aria-labelledby="ob-dd-g${i}">${items.map(([t, p, d]) => `
+                <li style="--i:${i + (r++ % 4) + 1}"><a href="${esc(href(p))}"${cur(p)}><span class="ob-dd-t">${esc(t)}</span><span class="ob-dd-d">${esc(d)}</span></a></li>`).join("")}
+              </ul>
+            </div>`).join("")}
+          </div>
+          ${allLink("ob-ix-all")}`;
+    const sheet = PILLARS.map(([h, , items], i) => `
+        <div class="ob-ix-g" role="group" aria-labelledby="ob-sh-g${i}" style="--i:${i}">
+          <p class="ob-ix-gh" id="ob-sh-g${i}"><span>${n2(i)}</span>${esc(h)}</p>
+          <div class="ob-ix-gl">${items.map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</div>
+        </div>`).join("");
+    return { panel, sheet };
+  }
+  const [lt, lp, ld] = LEAD;
+  const panel = `
+          <div class="ob-cat">
+            <a class="ob-cat-lead" href="${esc(href(lp))}"${cur(lp)} style="--i:0">
+              <span class="ob-cat-mark">${portalMarkup({ cut: "small" })}</span>
+              <span class="ob-cat-lt">${esc(lt)}</span>
+              <span class="ob-cat-ld">${esc(ld)}</span>
+              <span class="ob-cat-go">Open your Orbe</span>
+            </a>
+            <div class="ob-cat-cols">${PILLARS.map(([h, , items], i) => `
+              <div class="ob-cat-col">
+                <p class="ob-cat-h" id="ob-dd-g${i}" style="--i:${i + 1}">${esc(h)}</p>
+                <ul class="ob-cat-list" aria-labelledby="ob-dd-g${i}">${items.filter(([, p]) => p !== lp).map(([t, p, d, k], j) => `
+                  <li style="--i:${i + j + 2}"><a href="${esc(href(p))}"${cur(p)}>${glyph(p, k)}<span class="ob-dd-t">${esc(t)}</span><span class="ob-dd-d">${esc(d)}</span></a></li>`).join("")}
+                </ul>
+              </div>`).join("")}
+            </div>
+          </div>
+          ${allLink("ob-cat-all")}`;
+  const sheet = `
+        <a class="ob-cat-lead" href="${esc(href(lp))}"${cur(lp)} style="--i:0"><span class="ob-cat-mark">${portalMarkup({ cut: "small" })}</span><span class="ob-cat-lt">${esc(lt)}</span><span class="ob-cat-ld">${esc(ld)}</span></a>${PILLARS.map(([h, , items], i) => `
+        <div class="ob-cat-g" role="group" aria-labelledby="ob-sh-g${i}" style="--i:${i + 1}">
+          <p class="ob-cat-h" id="ob-sh-g${i}">${esc(h)}</p>
+          <div class="ob-cat-gl">${items.filter(([, p]) => p !== lp).map(([t, p, , k]) => `<a href="${esc(href(p))}"${cur(p)}>${glyph(p, k)}<span>${esc(t)}</span></a>`).join("")}</div>
+        </div>`).join("")}`;
+  return { panel, sheet };
+}
+
+/*
   Where a link goes. home is the homepage's URL from this page (root by
   default; "./" on the homepage itself), and the homepage's anchors resolve
   against it, so on the homepage they stay on the page.
@@ -98,40 +190,39 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   const cur = (p) => (p === current ? " aria-current=\"page\"" : "");
   /* the Products button is underlined on a product page; For teams and Pricing underline their own links */
   const inMenu = current && current.startsWith("products/") && [...PRODUCTS.map(([, p]) => p), ALL_PRODUCTS[1]].includes(current);
-  const gid = (i) => `ob-dd-g${i}`;
+  const dir = menuDirection();
+  document.documentElement.dataset.menu = dir;
+  const menu = menuMarkup(dir, href, cur);
   bar.innerHTML = `
     <a class="ob-bar-mark ob-lockup" data-part href="${esc(home ?? root)}" aria-label="Orbe, home"><span class="ob-lockup-mark">${portalMarkup({ cut: "small" })}</span><span data-ob-wordmark></span></a>
     <nav class="ob-bar-links" aria-label="Main">
       <div class="ob-dd">
         <button class="ob-dd-btn${inMenu ? " is-here" : ""}" data-part type="button" aria-expanded="false" aria-controls="ob-dd-panel">Products<i aria-hidden="true"></i></button>
-        <div class="ob-dd-panel" id="ob-dd-panel" hidden>
-          <div class="ob-dd-cols">${PILLARS.map(([h, line, items], i) => `
-            <div class="ob-dd-col">
-              <p class="ob-dd-h" id="${gid(i)}"><span>${esc(h)}</span>${esc(line)}</p>
-              <ul class="ob-dd-list" aria-labelledby="${gid(i)}">${items.map(([t, p, d, k]) => `
-                <li><a href="${esc(href(p))}"${cur(p)}><span class="ob-dd-sw" data-k="${k}" aria-hidden="true"></span><span class="ob-dd-t">${esc(t)}</span><span class="ob-dd-d">${esc(d)}</span></a></li>`).join("")}
-              </ul>
-            </div>`).join("")}
-          </div>
-          <a class="ob-dd-all" href="${esc(href(ALL_PRODUCTS[1]))}"${cur(ALL_PRODUCTS[1])}><span class="ob-dd-t">${esc(ALL_PRODUCTS[0])}</span><span class="ob-dd-d">${esc(ALL_PRODUCTS[2])}</span></a>
+        <div class="ob-dd-panel" id="ob-dd-panel" data-dir="${dir}" hidden>${menu.panel}
         </div>
       </div>${NAV.map(([t, p]) => `<a data-part href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}
     </nav>
     <a class="ob-btn ob-btn--s" data-part href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
     <button class="ob-bar-menu" data-part type="button" aria-expanded="false" aria-controls="ob-sheet">Menu<i aria-hidden="true"></i></button>
-    <div class="ob-sheet" id="ob-sheet" hidden>
-      <nav class="ob-sheet-nav" aria-label="Products">
-        <a class="ob-sheet-lead" href="${esc(href(LEAD[1]))}"${cur(LEAD[1])}><span>${esc(LEAD[0])}</span><small>${esc(LEAD[2])}</small></a>${PILLARS.map(([h, line, items], i) => `
-        <div class="ob-sheet-g" role="group" aria-labelledby="ob-sh-g${i}">
-          <p class="ob-sheet-h" id="ob-sh-g${i}">${esc(h)}</p>
-          <div class="ob-sheet-links">${items.filter(([, p]) => p !== LEAD[1]).map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</div>
-        </div>`).join("")}
+    <div class="ob-sheet" id="ob-sheet" data-dir="${dir}" hidden>
+      <nav class="ob-sheet-nav" aria-label="Products">${menu.sheet}
       </nav>
-      <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
-      <p class="ob-sheet-small">${NAV.filter(([, p]) => p !== "teams/").map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</p>
+      <div class="ob-sheet-foot" style="--i:5">
+        <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
+        <p class="ob-sheet-small">${[...NAV.filter(([, p]) => p !== "teams/"), ALL_PRODUCTS.slice(0, 2)].map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</p>
+      </div>
     </div>`;
   const reduce = reducedMotion();
   mountWordmark(bar.querySelector("[data-ob-wordmark]"), { animate: animate ?? !reduce });
+
+  /* open at once; close with a 140ms fade (is-out), or at once under reduced motion */
+  const show = (el, on) => {
+    clearTimeout(el._out);
+    el.classList.remove("is-out");
+    if (on || reduce) { el.hidden = !on; return; }
+    el.classList.add("is-out");
+    el._out = setTimeout(() => { el.classList.remove("is-out"); el.hidden = true; }, 140);
+  };
 
   const parts = [...bar.querySelectorAll("[data-part]")];
   const under = new Set();
@@ -139,9 +230,9 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
 
   /*
     The menu, on a phone: a full-width sheet under the bar that fits one
-    screen: Your Orbe as the lead link, the four pillars with their tools two
-    to a row, the Reserve button, then How it works, For teams, Pricing and
-    All products in one quiet row. Focus stays inside it
+    390 by 844 screen: every tool by pillar (as menuMarkup draws it for the
+    direction), the Reserve button, then How it works, Pricing and All
+    products in one quiet row. Focus stays inside it
     (the menu button included) until it closes: Escape, the button again,
     any link in it, or the screen growing past a phone.
   */
@@ -150,7 +241,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   function setMenu(on, { focus = true } = {}) {
     if (on === open) return;
     open = on;
-    sheet.hidden = !on;
+    show(sheet, on);
     menuBtn.setAttribute("aria-expanded", String(on));
     menuBtn.firstChild.textContent = on ? "Close" : "Menu";
     document.documentElement.classList.toggle("ob-sheet-on", on);
@@ -184,7 +275,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   function setDd(on, { focus = false } = {}) {
     if (on === ddOpen) return;
     ddOpen = on;
-    panel.hidden = !on;
+    show(panel, on);
     ddBtn.setAttribute("aria-expanded", String(on));
     if (!on && focus) ddBtn.focus();
   }

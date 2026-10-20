@@ -78,7 +78,7 @@
 /* two tones: what it is, softer, then what it does for you, in the pair's ink */
 .pr-title { font: var(--ob-w-display) var(--ob-t-title)/1.04 var(--font-display); letter-spacing: -0.035em; max-width: 20ch; text-wrap: balance; }
 /* softer, and never under 4.5:1 on any pair (60% read 4.4 on Sky and 5.5 on Ink) */
-.pr-title-soft { color: color-mix(in srgb, var(--ob-ink) 76%, var(--ob-field, var(--orbe-paper))); }
+.pr-title-soft { color: color-mix(in srgb, var(--ob-ink) 80%, var(--ob-field, var(--orbe-paper))); }
 @media (min-width: 1180px) { .pr-title { max-width: 22ch; } }
 .pr-band .ob-lede { margin-top: 14px; }
 .pr-band .ob-chips { margin-top: 16px; }
@@ -101,7 +101,7 @@
 .section { margin-top: var(--ob-sec); }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 20px; }
 .section-head .ob-h2 { max-width: 30ch; }
-.h1 { font: 500 var(--ob-t48)/1 var(--font-display); letter-spacing: -0.035em; }
+.h1 { font: var(--ob-w-display) var(--ob-t48)/1 var(--font-display); letter-spacing: -0.035em; }
 .h2, h2.h2 { font: var(--ob-w-head) var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; }
 .h3, h3.h3 { font: 500 var(--ob-t18)/1.3 var(--font-text); letter-spacing: -0.01em; }
 .sub { font-size: var(--ob-t16); color: var(--ob-ink-soft); max-width: 56ch; text-wrap: pretty; }
@@ -124,7 +124,7 @@
 .pr-out > .ob-win-body > .panel,
 .pr-out > .ob-win-body > .grid > .panel {
   --ob-ink: var(--orbe-ink); --ob-ink-soft: var(--orbe-graphite); --rule-strong: var(--orbe-ink); --ob-focus: var(--orbe-cobalt);
-  --rule: rgba(20, 19, 17, 0.14);
+  --rule: color-mix(in srgb, var(--orbe-ink) 14%, transparent);
   padding: 16px; border: 0; border-radius: 8px; background: var(--orbe-chalk); color: var(--orbe-ink); box-shadow: var(--ob-lift);
 }
 .pr-out > .ob-win-body > * + * { margin-top: 16px; }
@@ -269,15 +269,17 @@ output { font-weight: 600; font-feature-settings: "tnum" 1; }
 .tag.good::before { background: var(--orbe-positive); }
 .tag.warn::before { background: var(--orbe-warning-fill); box-shadow: inset 0 0 0 1px var(--orbe-warning); }
 .tag.bad::before { background: var(--orbe-negative); }
-.tag.band { font: 400 var(--ob-t32)/1 var(--font-display); letter-spacing: -0.02em; color: var(--ob-ink); }
+.tag.band { font: var(--ob-w-head) var(--ob-t32)/1 var(--font-display); letter-spacing: -0.02em; color: var(--ob-ink); }
 .tag-l { font-size: var(--ob-t18); }
 .err { color: var(--orbe-negative); font-size: var(--ob-t14); }
 .err:empty { display: none; }
 .ok { color: var(--orbe-positive); font-size: var(--ob-t14); }
 .verdict-word { font-weight: 600; }
-.verdict-word.good { color: var(--orbe-positive); }
-.verdict-word.warn { color: var(--orbe-warning); }
-.verdict-word.bad { color: var(--orbe-negative); }
+/* the word in Ink, its state in a dot beside it: the status colours read at 5 to 6:1, under the 7:1 for words */
+.verdict-word::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; vertical-align: 0; background: var(--vw, var(--ob-ink)); }
+.verdict-word.good { --vw: var(--orbe-positive); }
+.verdict-word.warn { --vw: var(--orbe-warning); }
+.verdict-word.bad { --vw: var(--orbe-negative); }
 .state { display: inline-flex; align-items: center; gap: 6px; font: 500 var(--ob-t14)/1.3 var(--font-text); color: var(--ob-ink-soft); white-space: nowrap; }
 .state.waiting { color: var(--orbe-cobalt); }
 .state.good { color: var(--orbe-positive); }
@@ -422,7 +424,7 @@ iframe.doc.is-in { outline: 2px solid var(--orbe-cobalt); outline-offset: -2px; 
 .proof .ob-win-body { gap: 12px; padding: 20px 24px 20px; min-height: 236px; }
 .proof-n { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .proof-num { font: var(--ob-w-display) var(--ob-t-figure)/0.9 var(--font-display); letter-spacing: -0.04em; font-feature-settings: "lnum" 1, "pnum" 1; white-space: nowrap; }
-.proof-band { font: 400 var(--ob-t32)/1 var(--font-display); letter-spacing: -0.02em; }
+.proof-band { font: var(--ob-w-head) var(--ob-t32)/1 var(--font-display); letter-spacing: -0.02em; }
 .proof-parts { display: flex; gap: 4px 16px; flex-wrap: wrap; font-size: var(--ob-t12); min-height: 18px; }
 .proof-parts b { font-weight: 600; }
 .proof-cap { min-height: 4.35em; }
@@ -443,7 +445,7 @@ iframe.doc.is-in { outline: 2px solid var(--orbe-cobalt); outline-offset: -2px; 
 .tool.tool-lead .ob-note { font-size: var(--ob-t18); max-width: 34ch; }
 .lead-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: auto 0 0; padding: 16px 0 0; list-style: none; }
 .lead-list li { padding-top: 10px; border-top: 1px solid var(--rule-strong); font-size: var(--ob-t14); line-height: 1.45; }
-.lead-list b { display: block; font: 400 var(--ob-t18)/1.3 var(--font-display); }
+.lead-list b { display: block; font: var(--ob-w-head) var(--ob-t18)/1.3 var(--font-display); }
 .tool-lead .ob-chips { margin-top: 0; }
 @media (max-width: 640px) { .lead-list { grid-template-columns: minmax(0, 1fr); gap: 8px; } .lead-list li { padding-top: 6px; } }
 @media (max-width: 1279px) { .pillar[data-n="4"] .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

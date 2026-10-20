@@ -62,7 +62,7 @@ export function mountTrail({ loud = null, quiet = 0.45, cell = 11.28, life = 900
   const palette = (el) => {
     const v = el ? getComputedStyle(el).getPropertyValue("--ob-trail").trim() : "";
     const list = v.split(/\s+(?![^(]*\))/).filter(Boolean);
-    return list.length ? list : ["#9EE9FB", "#EED56A", "#F2879E"];
+    return list.length ? list : ["#94E6FF", "#F5D34A", "#F2879E"];
   };
   const add = (x, y, now, pal, strength) => {
     const i = (((x * 7 + y * 3) % pal.length) + pal.length) % pal.length;

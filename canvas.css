@@ -8,7 +8,7 @@
   layers   the trail canvas draws at z 1; the art at 2, the words at 3, the
            instrument at 4; the wall, its heading and the band's words at 2
 */
-:root { --word: #2A5260; }
+:root { --word: var(--on-field-soft); }
 .sr-inline { display: inline-block; width: 1px; height: 1px; margin-right: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; vertical-align: top; }
 
 /* ---------------------------------------------------------------- screen one: fal's field */
@@ -47,7 +47,7 @@
 /* who it is for, in one line: each name jumps to its part of the page and lights it */
 .aud { font-size: var(--ob-t16); line-height: 24px; margin-top: 12px; }
 .aud-k { color: var(--orbe-graphite); }
-.aud a { text-decoration: underline; text-decoration-color: rgba(20, 19, 17, 0.35); text-underline-offset: 4px; border-radius: 2px; }
+.aud a { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--orbe-ink) 35%, transparent); text-underline-offset: 4px; border-radius: 2px; }
 .aud a:hover { text-decoration-color: currentColor; text-decoration-thickness: 2px; }
 .aud-dot { margin: 0 4px; }
 .ctas { display: flex; align-items: center; gap: 12px 32px; flex-wrap: wrap; margin-top: 32px; }
@@ -102,12 +102,12 @@
 .kind-list button:hover { background: color-mix(in srgb, var(--ctint) 86%, var(--cbg)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ctfg) 35%, transparent); }
 .kind-list button[aria-pressed="true"] { background: var(--cbg); color: var(--cfg); box-shadow: var(--ob-lift); }
 .kind-list button:focus-visible { outline: 2px solid var(--orbe-ink); outline-offset: 2px; }
-[data-kind="explainer"]    { --cbg: var(--orbe-straw);    --cfg: var(--orbe-ink);    --ctint: #F6EBBE; --ctfg: var(--orbe-ink); }
-[data-kind="devlog"]       { --cbg: var(--orbe-ink);      --cfg: var(--orbe-sky);    --ctint: #E4E3DF; --ctfg: var(--orbe-ink); }
-[data-kind="podcast"]      { --cbg: var(--orbe-peony);    --cfg: var(--orbe-claret-deep); --ctint: #F8D8DC; --ctfg: var(--orbe-claret); }
-[data-kind="letsplay"]     { --cbg: var(--orbe-cobalt-deep); --cfg: var(--orbe-straw); --ctint: #DFE3F2; --ctfg: var(--orbe-cobalt-deep); }
-[data-kind="recipe"]       { --cbg: var(--orbe-blush);    --cfg: var(--orbe-claret); --ctint: #FBE3E7; --ctfg: var(--orbe-claret); }
-[data-kind="longexposure"] { --cbg: var(--orbe-claret);   --cfg: var(--orbe-blush);  --ctint: #EADFDD; --ctfg: var(--orbe-claret); }
+[data-kind="explainer"]    { --cbg: var(--orbe-straw);    --cfg: var(--orbe-ink);    --ctint: color-mix(in srgb, var(--orbe-straw) 38%, var(--orbe-chalk)); --ctfg: var(--orbe-ink); }
+[data-kind="devlog"]       { --cbg: var(--orbe-ink);      --cfg: var(--orbe-sky);    --ctint: color-mix(in srgb, var(--orbe-ink) 10%, var(--orbe-chalk)); --ctfg: var(--orbe-ink); }
+[data-kind="podcast"]      { --cbg: var(--orbe-peony);    --cfg: var(--orbe-claret-deep); --ctint: color-mix(in srgb, var(--orbe-peony) 30%, var(--orbe-chalk)); --ctfg: var(--orbe-claret); }
+[data-kind="letsplay"]     { --cbg: var(--orbe-cobalt-deep); --cfg: var(--orbe-straw); --ctint: color-mix(in srgb, var(--orbe-cobalt-deep) 11%, var(--orbe-chalk)); --ctfg: var(--orbe-cobalt-deep); }
+[data-kind="recipe"]       { --cbg: var(--orbe-blush);    --cfg: var(--orbe-claret); --ctint: color-mix(in srgb, var(--orbe-blush) 70%, var(--orbe-chalk)); --ctfg: var(--orbe-claret); }
+[data-kind="longexposure"] { --cbg: var(--orbe-claret);   --cfg: var(--orbe-blush);  --ctint: color-mix(in srgb, var(--orbe-claret) 12%, var(--orbe-chalk)); --ctfg: var(--orbe-claret); }
 .picks button {
   font: 500 var(--ob-t14)/1 var(--font-text); color: var(--ob-ink); background: transparent; border: 0; border-radius: 4px;
   height: 32px; padding: 0 8px; cursor: pointer; transition: background-color 200ms var(--ob-ease);
@@ -229,7 +229,7 @@
 .tile.held { cursor: grabbing; box-shadow: var(--ob-lift-held); }
 .tile.shown { cursor: default; }
 .tile-mark { flex: none; display: grid; grid-template-columns: repeat(3, 7px); gap: 2px; }
-.tile-mark i { width: 7px; height: 7px; box-shadow: inset 0 0 0 1px rgba(20, 19, 17, 0.35); transition: background-color 450ms var(--ob-ease); }
+.tile-mark i { width: 7px; height: 7px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--orbe-ink) 35%, transparent); transition: background-color 450ms var(--ob-ease); }
 .tile-mark i.on { background: var(--orbe-ink); box-shadow: none; }
 .tile-mark i.you { background: var(--orbe-cobalt); box-shadow: none; }
 .tile-t { display: grid; min-width: 0; }
@@ -347,7 +347,7 @@
 .goliath .ob-giant { max-width: 100%; }
 .block-lede { font-size: var(--ob-t18); line-height: 28px; margin-top: 16px; max-width: 34em; color: var(--orbe-chalk); text-wrap: balance; }
 .reserve { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-.handle { display: flex; align-items: center; width: 248px; height: 48px; background: var(--orbe-chalk); border-radius: 8px; color: var(--orbe-ink); box-shadow: inset 0 1px 2px rgba(20, 19, 17, 0.12); }
+.handle { display: flex; align-items: center; width: 248px; height: 48px; background: var(--orbe-chalk); border-radius: 8px; color: var(--orbe-ink); box-shadow: inset 0 1px 2px color-mix(in srgb, var(--orbe-ink) 12%, transparent); }
 .handle:focus-within { outline: 2px solid var(--orbe-chalk); outline-offset: 2px; }
 .handle-pre { font: var(--ob-t16)/1 var(--font-mono); padding-left: 14px; color: var(--orbe-graphite); }
 .reserve .ob-input { height: 46px; border: 0; padding-left: 2px; background: transparent; color: var(--orbe-ink); }

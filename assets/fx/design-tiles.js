@@ -27,7 +27,7 @@ export const WORDS = ["rated", "against", "creators", "your", "size"];
 export const SWATCHES = [
   { bg: "#141311", fg: "#F3F0E8" }, // Ink
   { bg: "#1F4BFF", fg: "#FBFAF6" }, // Cobalt
-  { bg: "#9EE9FB", fg: "#141311" }, // Sky
+  { bg: "#94E6FF", fg: "#141311" }, // Sky
   { bg: "#FF5A1F", fg: "#141311" }, // Ember
   { bg: "#F3F0E8", fg: "#141311" }, // Paper
 ];
@@ -44,7 +44,7 @@ export const SWATCHES_PINK = [
 
 // The field each scheme sets the bar on. The tile that wears the field's own
 // colour reads as a word set straight on the field, so it never ends a row.
-export const GROUND = { blue: "#9EE9FB", pink: "#F2879E" };
+export const GROUND = { blue: "#94E6FF", pink: "#F2879E" };
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const REF_FS = 100;

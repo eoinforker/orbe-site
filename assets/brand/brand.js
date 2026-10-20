@@ -18,11 +18,11 @@
 */
 
 export const COLOURS = {
-  sky: "#9EE9FB", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", ember: "#FF5A1F",
+  sky: "#94E6FF", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", ember: "#FF5A1F",
   peony: "#F2879E", claret: "#6F1726",
   chalk: "#FBFAF6", linen: "#E7E2D7", mist: "#D6F6FD", blush: "#FBD9E0",
-  soot: "#2A2824", graphite: "#45413A", stone: "#A29E95",
-  meadow: "#8E9A4A", ochre: "#C9A84C", straw: "#EED56A", grove: "#262B12", water: "#4D9AD0", dawn: "#F2A58E",
+  soot: "#2A2824", graphite: "#38342E", stone: "#A29E95",
+  meadow: "#8E9A4A", ochre: "#C9A84C", straw: "#F5D34A", grove: "#262B12", water: "#4D9AD0", dawn: "#F2A58E",
 };
 
 const C = COLOURS;
@@ -224,10 +224,10 @@ export function pixelStripe({ w = 1440, cell = 8, rows = 3, colours = [C.cobalt,
 
 /** The idyll palettes. "sky" is the brand's own: the field colour in the sky, cobalt water, warm painterly ground. */
 export const LANDSCAPES = {
-  sky: { sky: ["#9EE9FB", "#B6F0FC", "#86DDF5", "#A9ECFA"], streak: ["#F7F4EA", "#1F4BFF", "#FBFAF6"], far: ["#1F4BFF", "#3E6BFF", "#5FC3E0"], trees: ["#1E2410", "#2C3316", "#161B0C", "#3C4219"], treeLit: ["#C9A84C", "#EED56A"], field: ["#C9A84C", "#B99A45", "#D8BC64", "#8E9A4A", "#E1CB7E"], grass: ["#EED56A", "#F4E7A8", "#FF5A1F", "#E3C04F"], low: ["#7E8A42", "#E9D9B8", "#1F4BFF"] },
-  dawn: { sky: ["#F2A58E", "#F2879E", "#F6B3A3", "#EE9A8A"], streak: ["#FBE3D8", "#F7EEDF", "#9EE9FB"], far: ["#4F7F62", "#9EE9FB", "#2F5A44"], trees: ["#1A2414", "#25301B", "#121A0E", "#33401F"], treeLit: ["#E9B44C", "#F6B3C1"], field: ["#8EA35B", "#A3AE62", "#C6B26A", "#6F8A4A", "#D8C27A"], grass: ["#F6D3DA", "#EFC85A", "#FBEFC6"], low: ["#5D7340", "#F2879E", "#2F3A1A"] },
-  noon: { sky: ["#3E95D8", "#2F86CF", "#5AA8E0", "#2A7BC4"], streak: ["#CFE4F4", "#F4F1EA"], far: ["#9EE9FB", "#6FB0C9"], trees: ["#24301A", "#30381B", "#1B2412"], treeLit: ["#B98C3B", "#D3A447"], field: ["#E2A845", "#D8973A", "#EAC160", "#8EA35B", "#C6B26A"], grass: ["#F0D46A", "#E6C255", "#F6E2A0"], low: ["#2B3318", "#A39B87", "#F2E9DA"] },
-  night: { sky: ["#141311", "#1B2A44", "#10182A", "#22314F"], streak: ["#1F4BFF", "#9EE9FB"], far: ["#1F4BFF", "#2D5B84"], trees: ["#0B0F0A", "#121812", "#070A07"], treeLit: ["#FF5A1F", "#F6C46E"], field: ["#1D2A2E", "#22343A", "#2A3E3E", "#33473E"], grass: ["#9EE9FB", "#C9A84C", "#5E7A8E"], low: ["#0B0F0A", "#1F4BFF", "#FF5A1F"] },
+  sky: { sky: ["#94E6FF", "#B6F0FC", "#86DDF5", "#A9ECFA"], streak: ["#F7F4EA", "#1F4BFF", "#FBFAF6"], far: ["#1F4BFF", "#3E6BFF", "#5FC3E0"], trees: ["#1E2410", "#2C3316", "#161B0C", "#3C4219"], treeLit: ["#C9A84C", "#F5D34A"], field: ["#C9A84C", "#B99A45", "#D8BC64", "#8E9A4A", "#E1CB7E"], grass: ["#F5D34A", "#F4E7A8", "#FF5A1F", "#E3C04F"], low: ["#7E8A42", "#E9D9B8", "#1F4BFF"] },
+  dawn: { sky: ["#F2A58E", "#F2879E", "#F6B3A3", "#EE9A8A"], streak: ["#FBE3D8", "#F7EEDF", "#94E6FF"], far: ["#4F7F62", "#94E6FF", "#2F5A44"], trees: ["#1A2414", "#25301B", "#121A0E", "#33401F"], treeLit: ["#E9B44C", "#F6B3C1"], field: ["#8EA35B", "#A3AE62", "#C6B26A", "#6F8A4A", "#D8C27A"], grass: ["#F6D3DA", "#EFC85A", "#FBEFC6"], low: ["#5D7340", "#F2879E", "#2F3A1A"] },
+  noon: { sky: ["#3E95D8", "#2F86CF", "#5AA8E0", "#2A7BC4"], streak: ["#CFE4F4", "#F4F1EA"], far: ["#94E6FF", "#6FB0C9"], trees: ["#24301A", "#30381B", "#1B2412"], treeLit: ["#B98C3B", "#D3A447"], field: ["#E2A845", "#D8973A", "#EAC160", "#8EA35B", "#C6B26A"], grass: ["#F0D46A", "#E6C255", "#F6E2A0"], low: ["#2B3318", "#A39B87", "#F2E9DA"] },
+  night: { sky: ["#141311", "#1B2A44", "#10182A", "#22314F"], streak: ["#1F4BFF", "#94E6FF"], far: ["#1F4BFF", "#2D5B84"], trees: ["#0B0F0A", "#121812", "#070A07"], treeLit: ["#FF5A1F", "#F6C46E"], field: ["#1D2A2E", "#22343A", "#2A3E3E", "#33473E"], grass: ["#94E6FF", "#C9A84C", "#5E7A8E"], low: ["#0B0F0A", "#1F4BFF", "#FF5A1F"] },
 };
 
 function ribbon(R, x0, y0, x1, y1, w, bend = 0) {

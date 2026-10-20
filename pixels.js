@@ -9,7 +9,7 @@
 */
 const W = 48, H = 40, S = 1.4;
 export const GW = Math.round(W * S), GH = Math.round(H * S), CELL = 11.28;
-const INK = "#141311", COBALT = "#1F4BFF", CHALK = "#FBFAF6", STRAW = "#EED56A";
+const INK = "#141311", COBALT = "#1F4BFF", CHALK = "#FBFAF6", STRAW = "#F5D34A";
 
 const disc = (cx, cy, r) => (x, y) => (x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r;
 const ell = (cx, cy, rx, ry) => (x, y) => ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1;

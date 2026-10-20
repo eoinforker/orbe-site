@@ -51,9 +51,9 @@ export const CELL = 5.64;
 
 /* ---------------------------------------------------------------- colour */
 const FALLBACK = {
-  ink: "#141311", paper: "#F3F0E8", chalk: "#FBFAF6", linen: "#E7E2D7", stone: "#A29E95", graphite: "#45413A", soot: "#2A2824",
-  sky: "#9EE9FB", mist: "#D6F6FD", water: "#4D9AD0", cobalt: "#1F4BFF", press: "#1238D6",
-  straw: "#EED56A", ochre: "#C9A84C", ember: "#FF5A1F", dawn: "#F2A58E", peony: "#F2879E", blush: "#FBD9E0", claret: "#6F1726",
+  ink: "#141311", paper: "#F3F0E8", chalk: "#FBFAF6", linen: "#E7E2D7", stone: "#A29E95", graphite: "#38342E", soot: "#2A2824",
+  sky: "#94E6FF", mist: "#D6F6FD", water: "#4D9AD0", cobalt: "#1F4BFF", press: "#1238D6",
+  straw: "#F5D34A", ochre: "#C9A84C", ember: "#FF5A1F", dawn: "#F2A58E", peony: "#F2879E", blush: "#FBD9E0", claret: "#6F1726",
 };
 let tokens = null;
 /* a brand colour by name (read from --orbe-*, --action-press for press), or a hex as given */
@@ -361,7 +361,7 @@ export function mic({ head = ["chalk", "blush", "peony", "claret"], body = ["peo
     body    stops for their Chalk
     accent  their Cobalt and Straw
 */
-const SRC = { ink: "#141311", cobalt: "#1F4BFF", chalk: "#FBFAF6", straw: "#EED56A" };
+const SRC = { ink: "#141311", cobalt: "#1F4BFF", chalk: "#FBFAF6", straw: "#F5D34A" };
 function noPairs(cells) {
   const key = (x, y) => `${x},${y}`;
   const ink = new Map(cells.filter((p) => p.c === SRC.ink).map((p) => [key(p.x, p.y), p]));

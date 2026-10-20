@@ -27,12 +27,12 @@ const MONO = '"Commit Mono", ui-monospace, Menlo, monospace';
 
 const DEFAULT_STICKERS = [
   { word: "views", font: SANS, weight: 800, style: "normal", base: "#FBFAF6", fill: "#1F4BFF", x: 0.2, y: 0.24, rot: -8 },
-  { word: "renewals", font: SERIF, weight: 500, style: "italic", base: "#EED56A", fill: "#6F1726", x: 0.68, y: 0.2, rot: 6 },
+  { word: "renewals", font: SERIF, weight: 500, style: "italic", base: "#F5D34A", fill: "#6F1726", x: 0.68, y: 0.2, rot: 6 },
   { word: "payout", font: MONO, weight: 600, style: "normal", base: "#FF5A1F", fill: "#141311", x: 0.8, y: 0.62, rot: -5 },
   { word: "your size", font: SERIF, weight: 700, style: "normal", base: "#1F4BFF", fill: "#FBFAF6", x: 0.3, y: 0.6, rot: 4 },
   { word: "sponsor", font: SANS, weight: 500, style: "italic", base: "#F2879E", fill: "#141311", x: 0.56, y: 0.84, rot: -3 },
   { word: "ship it", font: SANS, weight: 900, style: "normal", base: "#C6F432", fill: "#141311", x: 0.2, y: 0.84, rot: 9 },
-  { word: "open rate", font: SERIF, weight: 400, style: "italic", base: "#141311", fill: "#9EE9FB", x: 0.6, y: 0.38, rot: -6 },
+  { word: "open rate", font: SERIF, weight: 400, style: "italic", base: "#141311", fill: "#94E6FF", x: 0.6, y: 0.38, rot: -6 },
 ];
 
 const FRICTION = 0.92;
