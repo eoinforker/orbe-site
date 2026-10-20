@@ -9,7 +9,7 @@
 import { rate, rateWorks, topStat, focusAreas, explain, personalBests, personalBestLine, recordMetric, SPECS, FIXTURE_NOW, fixtureSnapshot, signed, RATING_LABEL } from "../../assets/engine/rating/browser.js";
 import { maturedShare, prepare, measure, measurePart } from "../../assets/engine/rating/measure.js";
 import { priorFor, PROVISIONAL_PRIORS } from "../../assets/engine/rating/priors.js";
-import { logZ, linearZ, normalCdf, median } from "../../assets/engine/rating/stats.js";
+import { logZ, linearZ, normalCdf, median, clampZ } from "../../assets/engine/rating/stats.js";
 import { bandFor, RATING_SCALE } from "../../assets/engine/rating/rate.js";
 import { seeded } from "../../assets/engine/rating/fixtures.js";
 import { scaleSnapshot } from "../../assets/engine/rating/fixtures.js";
@@ -262,7 +262,7 @@ function build(k) {
     sponsor, rec,
     shareLine, primaryUnit: w.unit,
     audience: snap.account.audience,
-    snap, ...game(k, spec, w, snap, r, band, sizeBand, focus, best, byId),
+    snap, ...game(k, spec, w, snap, r, band, sizeBand, best, last),
   };
 }
 
@@ -316,108 +316,247 @@ export const SELLING = {
 };
 
 /* ==================================================================
-   The game layer: a report for every work, levels, seasons, weekly
-   challenges and (opt-in, coming) rivals. Every rule lives here as
-   data, with its one-line explanation; you.js only draws what these
-   return. The maths underneath is the engine's: each stat line is the
-   engine's own part measure, run on one work, against the same
-   provisional priors the rating uses. Rules marked provisional are
-   Orbe's own, written on the page, and will change with the seasons.
+   The game layer. Two numbers, as a match platform keeps them:
+   - the Orbe Rating is performance: signed, zero is typical for your
+     size, and it can go down;
+   - the Level is progress: craft points that only ever go up.
+   Every rule below is data with its one-line explanation, written on
+   the page; you.js only draws what these return. The maths underneath
+   each line is the engine's own part measure, run on one work, against
+   the same provisional priors the rating uses. Rules marked provisional
+   are Orbe's own and will change with the seasons.
    ================================================================== */
 
-/** How a stat line is coloured: the thresholds the page uses everywhere (beats more than 55 in 100, fewer than 45). */
-export const LINE_RULE = { better: 55, worse: 45 };
-export const verdictOf = (score) => (score == null ? "none" : score > LINE_RULE.better ? "better" : score < LINE_RULE.worse ? "worse" : "typical");
-export const VERDICT_WORDS = { better: "Better than typical", typical: "Typical", worse: "Below typical", none: "Not yet" };
-
+const round2 = (x) => Math.round(x * 100) / 100;
+/** Your own spread: the median distance from your median, scaled to match a standard deviation (1.4826). */
+const madSpread = (xs) => { if (xs.length < 2) return 0; const m = median(xs); return 1.4826 * median(xs.map((x) => Math.abs(x - m))); };
 const zOf = (part, prior, v) => (part.scale === "log" ? logZ(v, prior.median, prior.sigma) : linearZ(v, prior.median, prior.sigma));
 const pctOf = (z) => Math.max(1, Math.min(99, Math.round(normalCdf(z) * 100)));
+const hashId = (id) => { let h = 2166136261; for (const ch of String(id)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
 
+/* ---------------------------------------------------------------- bands */
+/** Five percentile bands, 10 / 20 / 40 / 20 / 10. The middle 40% is plain typical and carries no colour. */
+export const BANDS = [
+  { key: "top", at: 90, word: "Well above typical", short: "Well above" },
+  { key: "up", at: 70, word: "Above typical", short: "Above" },
+  { key: "mid", at: 30, word: "Typical", short: "Typical" },
+  { key: "low", at: 10, word: "A little below typical", short: "A little below" },
+  { key: "bottom", at: 0, word: "Below typical", short: "Below" },
+];
+export const BAND_LINE = "Bands are percentiles: the top 10% is well above typical, the next 20% above, the middle 40% typical, then a little below and below. Below is never red.";
+/** Thin data is never called below typical: under this many works to go on, a low reading shows as Typical. */
+export const THIN_RULE = { works: 10, line: "With fewer than 10 works to compare with, nothing is called below typical." };
+export function bandOf(pct, thin = false) {
+  if (pct == null) return { key: "none", word: "Too early to say", short: "Too early" };
+  const b = BANDS.find((x) => pct >= x.at);
+  return thin && b.at < 30 ? { ...BANDS[2], thinned: true } : b;
+}
+export const isBelow = (b) => b.key === "low" || b.key === "bottom";
+
+/* ---------------------------------------------------------------- one work's lines */
 /*
-  One line per part of the rating, for one work.
-  - ratio and median parts: the engine's measure on this work alone, against your size band's prior.
-  - momentum: the engine's measure with this work as the "recent" one, against the works before it.
-  - hit rate: this work's figure against your own median, ranked among your own works.
+  - ratio and median parts: the engine's measure on this work alone, against your size band's prior;
+  - momentum: the engine's measure with this work as the recent one, against the works before it;
+  - hit rate: this work's figure against your own median, scored with the engine's per-work spread;
   - cadence: the engine's cadence measure as it stood on the day this work went out.
+  Each line carries a z-score, so its share of the work's rating can be shown and summed.
 */
-function workLines(spec, w, same, p, audience, bandKey) {
+function workLines(spec, w, same, p, audience, bandKey, thinCreator) {
   const settledOlder = same.filter((x) => x.ageDays > p.ageDays && x.ageDays >= spec.minAgeDays);
   return spec.parts.map((part) => {
     const prior = priorFor(PROVISIONAL_PRIORS, spec, p.format, bandKey, part);
     const type = part.measure.type;
-    const line = { key: part.key, name: part.name, weight: part.weight, type, against: "size", score: null, raw: null, value: null, typical: null, note: "", what: part.what, advice: part.advice };
+    const line = { key: part.key, name: part.name, weight: part.weight, type, against: "size", z: null, score: null, raw: null, value: null, typical: null, note: "", what: part.what, advice: part.advice, pool: null };
     if (type === "ratio" || type === "median") {
       const got = measurePart(spec, part, [p], same, audience);
-      if (got) { line.raw = got.value; line.score = pctOf(zOf(part, prior, got.value)); line.value = formatDisplay(part.display, got.display).value; }
-      else line.note = `Reads once the ${w.work} is ${part.minAgeDays ?? spec.minAgeDays} days old.`;
+      if (got) { line.raw = got.value; line.z = zOf(part, prior, got.value); line.value = formatDisplay(part.display, got.display).value; }
+      else line.note = `Too early to say: reads once the ${w.work} is ${part.minAgeDays ?? spec.minAgeDays} days old.`;
       line.typical = `${formatDisplay(part.display, prior.median).value} typical at your size`;
     } else if (type === "momentum") {
       line.against = "own";
       const pool = [p, ...settledOlder.slice(0, part.measure.before)];
+      line.pool = pool.length - 1;
       const got = pool.length >= 4 ? measure(spec, { ...part.measure, recent: 1 }, pool, same, audience) : null;
-      if (got) { line.raw = got.value; line.score = pctOf(zOf(part, prior, got.value)); line.value = `${formatDisplay(part.display, got.display).value} on the ${pool.length - 1} before it`; }
-      else line.note = `Needs three earlier ${w.works} to compare with.`;
-      line.typical = "where level with them is typical";
+      if (got) { line.raw = got.value; line.z = zOf(part, prior, got.value); line.value = `${formatDisplay(part.display, got.display).value} on the ${pool.length - 1} before it`; }
+      else line.note = `Too early to say: needs three earlier ${w.works}.`;
+      line.typical = "level with them is typical";
     } else if (type === "hits") {
       line.against = "own";
       const m = part.measure.metric;
       const mine = p.matured[m];
       const others = same.filter((x) => x !== p && x.ageDays >= spec.minAgeDays).slice(0, spec.maxWorks).map((x) => x.matured[m]).filter(Number.isFinite);
+      line.pool = others.length;
       if (Number.isFinite(mine) && others.length >= 3) {
         const mult = mine / Math.max(median(others), 1e-9);
         line.raw = mult;
-        line.score = Math.max(1, Math.min(99, Math.round((100 * others.filter((v) => v < mine).length) / others.length)));
+        line.z = clampZ(Math.log(Math.max(mult, 1e-3)) / spec.work.sigma);
         line.hit = mult >= part.measure.multiple;
         line.value = `${times(mult)} your median${line.hit ? ", a hit" : ""}`;
-      } else line.note = `Needs more ${w.works} to compare with.`;
+      } else line.note = `Too early to say: needs more ${w.works}.`;
       line.typical = `${part.measure.multiple}× your median makes a hit`;
     } else if (type === "cadence") {
       const then = same.filter((x) => x.ageDays >= p.ageDays).map((x) => ({ ...x, ageDays: x.ageDays - p.ageDays }));
       const got = measure(spec, part.measure, [], then, audience);
-      if (got) { line.raw = got.value; line.score = pctOf(zOf(part, prior, got.value)); line.value = `${formatDisplay(part.display, got.display).value} when it went out`; }
+      if (got) { line.raw = got.value; line.z = zOf(part, prior, got.value); line.value = `${formatDisplay(part.display, got.display).value} when it went out`; }
       line.typical = `${formatDisplay(part.display, prior.median).value} typical at your size`;
     }
-    line.verdict = verdictOf(line.score);
+    if (line.z != null) line.score = pctOf(line.z);
+    line.thin = thinCreator || (line.against === "own" && (line.pool ?? 0) < THIN_RULE.works);
+    line.band = bandOf(line.score, line.thin);
     return line;
   });
 }
 
-/* ---------------------------------------------------------------- levels */
-/** Levels 1 to 10, shaped like a match rating: you gain or lose points by how a work did against what your level expects. */
-export const LEVEL_RULE = {
-  start: 500, perLevel: 100, top: 10, cap: 30, floor: 0, ceiling: 999,
-  level: (pts) => Math.min(10, Math.floor(pts / 100) + 1),
-  expects: (pts) => Math.round(pts / 10),
-  move(score, pts) { return Math.max(-this.cap, Math.min(this.cap, Math.round(score - pts / 10))); },
-  /** A work's score, 0 to 100: half against your own typical (the engine's work rating), half against your size (its stat lines, weighted as the rating weights them). */
-  score(rating, lines) {
-    const own = pctOf(rating / RATING_SCALE);
-    const sized = lines.filter((l) => l.against === "size" && l.score != null);
-    const wt = sized.reduce((t, l) => t + l.weight, 0);
-    const size = wt ? Math.round(sized.reduce((t, l) => t + l.weight * l.score, 0) / wt) : own;
-    return { own, size, score: Math.round((own + size) / 2) };
-  },
-  line: "Provisional rule: each released work scores 0 to 100 (half against your typical, half against your size) and moves your points by that score minus a tenth of your points, 30 at most. 100 points a level; weeks off never cost.",
+/**
+  Where the result came from: the work's rating is the engine's own formula (twice the weighted mean
+  of the parts' z-scores) run on this work's lines, so each line's signed share adds up to it exactly.
+*/
+export const BREAKDOWN_LINE = "Each line's share is twice its weight times how far it sits from typical; the shares add up to the rating.";
+function breakdown(lines) {
+  const used = lines.filter((l) => l.z != null);
+  const W = used.reduce((t, l) => t + l.weight, 0);
+  for (const l of lines) l.contribution = l.z == null || !W ? null : round2(RATING_SCALE * (l.weight / W) * l.z);
+  return round2(used.reduce((t, l) => t + l.contribution, 0));
+}
+
+/* ---------------------------------------------------------------- against your own usual */
+/** The consistency gauge: this work against your own spread, the middle 40% of your own works being on par. */
+export const GAUGE_RULE = {
+  cut: 0.524, // the 30th and 70th percentiles of a normal curve
+  of(z) { return z > this.cut ? "Overperforming" : z < -this.cut ? "Underperforming" : "On par"; },
+  line: "Against your own spread: your middle 40% is on par, your top 30% overperforming, your bottom 30% underperforming.",
 };
+
+/* ---------------------------------------------------------------- the level: craft points that only go up */
+export const LEVEL_RULE = {
+  thresholds: [0, 60, 150, 280, 450, 670, 950, 1300, 1750, 2300],
+  ship: 10, reflect: 5, experiment: 5,
+  /** Beating creators your size: 2 points just above typical, rising to 10 at the 90th percentile. Never negative. */
+  beat: (pct) => (pct > 50 ? Math.round(2 + 8 * Math.min(1, (pct - 50) / 40)) : 0),
+  /** The nth work in a calendar week: the first three in full, the next two at half, then nothing more. */
+  taper: (nth) => (nth <= 3 ? 1 : nth <= 5 ? 0.5 : 0),
+  level(pts) { let l = 1; this.thresholds.forEach((t, i) => { if (pts >= t) l = i + 1; }); return l; },
+  next(pts) { return this.thresholds.find((t) => t > pts) ?? null; },
+  line: "Provisional: craft points only go up. Shipping a work earns 10, a one-line reflection 5, a declared experiment 5, and beating creators your size 2 to 10. A week's first three works count in full, the next two at half, then nothing. No decay, no resets.",
+};
+/** Badge tiers: a cool palette that warms with level, never red. */
+export const LEVEL_TIERS = [{ upTo: 1, tone: "t1" }, { upTo: 3, tone: "t2" }, { upTo: 7, tone: "t3" }, { upTo: 9, tone: "t4" }, { upTo: 10, tone: "t5" }];
+export const tierOf = (level) => LEVEL_TIERS.find((t) => level <= t.upTo).tone;
 
 /* ---------------------------------------------------------------- seasons */
 export const SEASON_RULE = {
-  resetShare: 0.25,
   of(ms) {
     const d = new Date(ms); const q = Math.floor(d.getUTCMonth() / 3);
     return { n: q + 1, year: d.getUTCFullYear(), start: Date.UTC(d.getUTCFullYear(), q * 3, 1), end: Date.UTC(d.getUTCFullYear(), q * 3 + 3, 1) };
   },
-  reset(pts) { return Math.round(pts - (pts - LEVEL_RULE.start) * this.resetShare); },
-  line: "Provisional: a season is a quarter, closing with the State of the Middle; on day one your points move a quarter of the way back to 500.",
+  line: "A season is a quarter and closes with the State of the Middle, the seasonal benchmarks for your size. Nothing resets: your level carries over and every season high is kept for good.",
 };
 
-/* ---------------------------------------------------------------- awards */
-/** Two or three at most, in this order of priority. Each has a real rule, says why, and points at a next step. */
+/* ---------------------------------------------------------------- the journal, made up for the demo */
+/* Reflections and experiments are things a creator writes; these made-up ones are seeded per work. */
+const JOURNAL = {
+  youtube: {
+    experiments: ["The sound first, the explanation after", "A question in the title", "A cold open, no intro", "One shot held for ten seconds"],
+    reflections: ["The cold open did the work. Keep it.", "Too long before the first sound. Cut sooner.", "The comments asked where it was. Say it on screen.", "The middle sagged. Trim the second walk."],
+  },
+  substack: {
+    experiments: ["A subject line that asks a question", "One link, high up", "Send at 7am instead of noon", "Open on a quote"],
+    reflections: ["The first line carried it. Start with the find.", "Too many links at the bottom.", "Replies wanted more pictures of the pages.", "The postscript got more clicks than the body."],
+  },
+  twitch: {
+    experiments: ["The big moment in the middle, not the start", "A chat poll every hour", "A fixed go-live time", "Raid out to a smaller stream"],
+    reflections: ["Chat stayed for the build. Do more of it.", "The first hour dragged. Start with the challenge.", "The poll woke chat up.", "Ended too abruptly. Give a goodbye segment."],
+  },
+  podcast: {
+    experiments: ["Cut the warm-up to one minute", "Say what listeners get in the first minute", "A guest with their own audience", "A title that names the question"],
+    reflections: ["The cold open kept people. Keep it.", "The tangent at minute ten lost them.", "Listeners wrote in about the recipe. Do a follow-up.", "Ran long. Two episodes next time."],
+  },
+  photography: {
+    experiments: ["Lead with the strongest frame", "Post at blue hour", "A set with one clear theme", "Licensing link on every frame"],
+    reflections: ["The first frame did the work.", "Too many similar frames. Cut to eight.", "Saves came from the quiet frames.", "The caption mattered more than expected."],
+  },
+};
+function journalFor(kind, id, settled) {
+  const r = seeded(hashId(id));
+  const j = JOURNAL[kind];
+  const reflect = settled && r() < 0.6 ? j.reflections[Math.floor(r() * j.reflections.length)] : null;
+  const experiment = r() < 0.3 ? j.experiments[Math.floor(r() * j.experiments.length)] : null;
+  const triedFocus = r() < 0.25;
+  return { reflect, experiment, triedFocus };
+}
+
+/* ---------------------------------------------------------------- focus, one at a time */
+/** importance × relevance × gap to the next band. Cadence is never a focus: Orbe does not ask anyone to post more often. */
+export const FOCUS_RULE = {
+  exclude: ["cadence"],
+  minRelevance: 1 / 6,
+  goals: [10, 30, 70, 90],
+  line: "Your focus is the part with the most to gain: its weight in the rating × how often it applies to your work × the gap to the next band. Parts that apply to under a sixth of your works are left out, and so is cadence.",
+};
+function focusFor(spec, parts, relevance) {
+  const out = parts
+    .filter((p) => !FOCUS_RULE.exclude.includes(p.key) && (relevance[p.key] ?? 0) >= FOCUS_RULE.minRelevance)
+    .map((p) => {
+      const part = spec.parts.find((x) => x.key === p.key);
+      const goal = FOCUS_RULE.goals.find((g) => g > p.score) ?? null;
+      const gap = goal == null ? 0 : goal - p.score;
+      return { key: p.key, name: p.name, score: p.score, value: p.value, goal, gap, importance: part.weight, relevance: relevance[p.key], priority: part.weight * relevance[p.key] * gap, advice: part.advice, what: part.what };
+    })
+    .filter((x) => x.gap > 0)
+    .sort((a, b) => b.priority - a.priority || (a.key < b.key ? -1 : 1));
+  return { pick: out[0] ?? null, ranked: out };
+}
+
+/* ---------------------------------------------------------------- strengths: identities, not awards */
+/** A part you hold at Above typical or better earns its name. About a dozen, across the kinds. */
+export const STRENGTH_AT = 70;
+export const STRENGTHS = {
+  reach: { name: "Gets seen", line: "Your work reaches more of your audience than most your size." },
+  engagement: { name: "Starts conversations", line: "People answer your work." },
+  momentum: { name: "On the rise", line: "Your newest work is running ahead of the work before it." },
+  hits: { name: "Hit maker", line: "More of your work breaks out than most." },
+  cadence: { name: "Steady hand", line: "A rhythm you keep, without bursts." },
+  hold: { name: "Holds the room", line: "Viewers stay after the peak." },
+  follows: { name: "Wins followers", line: "Watching turns into following." },
+  completion: { name: "Heard to the end", line: "Listeners stay to the last minute." },
+  tail: { name: "Evergreen", line: "Your episodes keep finding listeners for weeks." },
+  conversion: { name: "Turns readers paid", line: "Readers move to paid more often than most." },
+  growth: { name: "Grows the list", line: "Your issues bring in new readers." },
+  saves: { name: "Kept and saved", line: "People keep your work to come back to." },
+  licensing: { name: "Sells the frame", line: "Your frames get licensed." },
+};
+
+/* ---------------------------------------------------------------- the season recap identity */
+/** Drawn from your best line this season. Always flattering, always true: the fallback names what you did. */
+export const IDENTITY_AT = 55;
+export const IDENTITIES = {
+  reach: "The Headliner", engagement: "The Conversation Starter", momentum: "The Climber", hits: "The Hit Maker",
+  cadence: "The Steady Hand", hold: "The Room Holder", follows: "The Recruiter", completion: "The Finisher",
+  tail: "The Evergreen", conversion: "The Closer", growth: "The Grower", saves: "The Keeper", licensing: "The Seller",
+};
+export const IDENTITY_FALLBACK = "The Regular";
+
+/* ---------------------------------------------------------------- the monthly mission */
+/** Five craft steps, any order, the same for every creator. Never a reach target. */
+export const PACING_LINE = "None of these asks you to post more. One work this month can clear all five, and a month off costs nothing: unfinished steps simply lapse.";
+export const MISSION = {
+  name: (ms) => `${new Date(ms).toLocaleDateString("en-GB", { month: "long", timeZone: "UTC" })} mission`,
+  steps: [
+    { key: "ship", title: (x) => `Ship one ${x.w.work}, at your usual pace`, check: (x, wk) => wk && `“${wk.title}” went out on ${dayName(wk.at)}.` },
+    { key: "reflect", title: () => "Write a one-line reflection on a work report", check: (x, wk) => wk?.journal.reflect && `On “${wk.title}”: “${wk.journal.reflect}”` },
+    { key: "experiment", title: () => "Declare an experiment before you post", check: (x, wk) => wk?.journal.experiment && `On “${wk.title}”: ${wk.journal.experiment.toLowerCase()}.` },
+    { key: "focus", title: (x) => `Try your focus tip on one ${x.w.work}`, check: (x, wk) => wk?.journal.triedFocus && `You tagged “${wk.title}”.`, tagged: true },
+    { key: "revisit", title: (x) => `Give an older ${x.w.work} a second life: a new title, a re-cut or a re-share`, check: () => null, tagged: true },
+  ],
+};
+
+/* ---------------------------------------------------------------- awards for a single work */
 export const AWARD_LIMIT = 3;
 const NEXT_FOR = {
   reach: (x) => `Before the next ${x.w.work}, put its title and first frame next to this one's. Reuse the pattern, not the topic.`,
   engagement: (x) => `People answered this one. End the next ${x.w.work} with the same kind of question.`,
 };
+const atLeastAbove = (l) => l.band.key === "top" || l.band.key === "up";
 export const AWARDS = [
   {
     id: "record",
@@ -444,62 +583,35 @@ export const AWARDS = [
     },
   },
   {
-    // Every scored line, against your size and against your own, must be in the "better" band. One weak line and it does not fire.
+    // Every scored line must be Above typical or better. One typical or weak line and it does not fire.
     id: "all-above",
-    test: (x) => x.scored.length >= 3 && x.scored.every((l) => l.score > LINE_RULE.better) && {
-      name: "Better than typical on every line",
-      why: `All ${x.scored.length} lines beat more than ${LINE_RULE.better} in 100; the lowest was ${x.lowest.name.toLowerCase()} at ${x.lowest.score}.`,
+    test: (x) => x.scored.length >= 3 && x.scored.every(atLeastAbove) && {
+      name: "Above typical on every line",
+      why: `All ${x.scored.length} lines are above typical; the lowest was ${x.lowest.name.toLowerCase()} at ${x.lowest.score} in 100.`,
       next: "Nothing to fix here. Keep the format and spend the next idea on the premise.",
     },
   },
   {
-    // Only when nothing else was earned: something true to say about a steady work.
+    // Only when nothing else was earned, and only for a work at or above your own typical.
     id: "floor", fallback: true,
-    test: (x) => x.multiple >= 1 && x.multiple < 1.5 && x.rating >= 0 && {
+    test: (x) => x.multiple >= 1 && x.multiple < 1.5 && x.ownRating >= 0 && {
       name: "At or above your typical",
-      why: `${times(x.multiple)} your typical ${x.w.work}, rated ${minus(signed(x.rating))} against your own median.`,
+      why: `${times(x.multiple)} your typical ${x.w.work}.`,
       next: "Floors are what grow. Keep the rhythm that got you here and try one new thing at a time.",
     },
   },
 ];
 
-/* ---------------------------------------------------------------- challenges */
-/** Three a week: two from your weakest parts, one from your best work. None asks you to post more. */
-export const PACING_LINE = "None of these asks you to post more. One work at your usual pace can clear all three, and a week off pauses the clock without costing a point.";
-const TITLE_WORD = { youtube: "title", substack: "subject line", podcast: "title", twitch: "stream title" };
-export const CHALLENGES = {
-  // Packaging is the lever for reach: a short title is read whole on a phone.
-  reach: {
-    when: (x) => TITLE_WORD[x.kind],
-    title: (x) => `Try a ${TITLE_WORD[x.kind]} under 50 characters on your next ${x.w.work}`,
-    tip: (x) => `Reach is ${x.lever === "reach" ? "your lowest part" : "one of your lower parts"}, and short ${TITLE_WORD[x.kind]}s are read whole on a phone.`,
-    check: (x, wk) => wk.title.length < 50 && `“${wk.title}” is ${wk.title.length} characters.`,
-  },
-  // Any other part: one work above typical for your size on that line.
-  part: {
-    title: (x, part) => `Get ${part.name.toLowerCase()} above typical for your size on one ${x.w.work}`,
-    tip: (x, part) => part.advice,
-    check: (x, wk, part) => { const l = wk.lines.find((y) => y.key === part.key); return l?.score != null && l.score > 50 && `“${wk.title}”: ${l.value}, beats ${l.score} in 100.`; },
-  },
-  followup: {
-    title: (x) => `Post a follow-up to “${x.best.title}” within 7 days`,
-    tip: (x) => `It did ${times(x.best.multiple)} your typical. Hits come from ideas, so the next one borrows its premise.`,
-    // You tag the follow-up when you post it; Orbe checks the date. Nothing is tagged in the demo.
-    check: (x, wk) => wk.followUpOf === x.best.id && `“${wk.title}” is tagged as the follow-up.`,
-    tagged: true,
-  },
-};
-
-/* ---------------------------------------------------------------- top moments */
-/** Retention needs the platform's analytics, which arrive with the API. Until then the report shows a made-up shape, labelled. */
+/* ---------------------------------------------------------------- top moments, made up until the API */
 const MOMENT_AXIS = {
-  youtube: { n: 30, label: (i, n, d) => clock((i / n) * d), unit: "still watching" },
-  podcast: { n: 30, label: (i, n, d) => clock((i / n) * d), unit: "still listening" },
-  twitch: { n: 30, label: (i, n, d) => clock((i / n) * d), unit: "of the peak watching" },
-  substack: { n: 20, label: (i, n) => `${Math.round((i / n) * 100)}% down`, unit: "still reading" },
-  photography: { n: 12, label: (i) => `frame ${i + 1}`, unit: "stopped on it", frames: true },
+  youtube: { n: 30, unit: "still watching" },
+  twitch: { n: 30, unit: "of the peak watching" },
+  podcast: { n: 30, unit: "still listening" },
+  substack: { n: 20, unit: "still reading", label: (f) => `${Math.round(f * 100)}% down` },
+  photography: { n: 12, unit: "stopped on it", frames: true, label: (f, i) => `Frame ${i + 1}` },
 };
-const clock = (sec) => { const s = Math.round(sec); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60; return h ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}` : `${m}:${String(r).padStart(2, "0")}`; };
+export const clock = (sec) => { const s = Math.round(sec); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60; return h ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}` : `${m}:${String(r).padStart(2, "0")}`; };
+/** Moments are picked against this work's own average, so a calm work still gets its best parts. */
 function madeUpMoments(kind, seed, durationSec) {
   const ax = MOMENT_AXIS[kind];
   const rand = seeded(seed);
@@ -509,96 +621,179 @@ function madeUpMoments(kind, seed, durationSec) {
     if (ax.frames) pts.push(Math.round(25 + rand() * 60));
     else { pts.push(Math.round(v)); v = Math.min(96, Math.max(8, v * (0.93 + rand() * 0.05) + (rand() > 0.82 ? 6 + rand() * 6 : 0))); }
   }
-  // A moment is where the line rose, or for frames the frames people stopped on most.
-  const lifts = pts.map((y, i) => ({ i, lift: ax.frames ? y : i ? y - pts[i - 1] : -1 })).filter((m) => ax.frames || (m.i > 0 && m.lift > 0)).sort((a, b) => b.lift - a.lift).reduce((got, m) => (got.length < 3 && got.every((g) => Math.abs(g.i - m.i) >= ax.n / 6) ? [...got, m] : got), []).sort((a, b) => a.i - b.i);
-  return { pts, unit: ax.unit, frames: !!ax.frames, top: lifts.map((m) => ({ i: m.i, at: ax.label(m.i, ax.n, durationSec || 900), y: pts[m.i], lift: m.lift })) };
+  const avg = pts.reduce((t, y) => t + y, 0) / pts.length;
+  // A moment is where the work held people above its own curve (the average of its neighbours), or for
+  // frames, the frames people stopped on most against the set's own average. Three, spread apart.
+  const near = (i) => { const xs = pts.slice(Math.max(0, i - 3), i + 4).filter((_, k, a) => a.length && k !== Math.min(3, i)); return xs.reduce((t, y) => t + y, 0) / xs.length; };
+  const lifts = pts.map((y, i) => ({ i, lift: ax.frames ? y - avg : y - near(i) }))
+    .filter((m) => ax.frames || m.i > 0)
+    .sort((a, b) => b.lift - a.lift || a.i - b.i)
+    .reduce((got, m) => (got.length < 3 && got.every((g) => Math.abs(g.i - m.i) >= ax.n / 6) ? [...got, m] : got), [])
+    .sort((a, b) => a.i - b.i);
+  const label = (f, i) => (ax.label ? ax.label(f, i) : clock(f * (durationSec || 900)));
+  return { pts, unit: ax.unit, frames: !!ax.frames, avg: Math.round(avg), top: lifts.map((m) => { const f = m.i / (ax.n - 1); return { i: m.i, f, at: label(f, m.i), y: pts[m.i], lift: Math.round(m.lift) }; }) };
+}
+
+/* ---------------------------------------------------------------- media */
+/*
+  Every creator here is made up, so every picture, clip and sound is generated in the browser
+  (./you-media.js) and labelled Made up. For a real creator the same player takes the video IDs and
+  feed URLs already in their export: the YouTube embedded player and thumbnails, and the podcast
+  feed's audio enclosure. That path is below, data-driven, and switched off in the demo.
+*/
+export const REAL_MEDIA = false;
+export const MEDIA_LINE = "For a real creator this uses the video IDs and feed URLs already in their export: the YouTube embedded player and its thumbnails, and the podcast feed's audio.";
+export const MEDIA_SOURCES = {
+  youtube: (w) => w.youtubeId && { type: "embed", src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(w.youtubeId)}?enablejsapi=1`, thumb: `https://i.ytimg.com/vi/${encodeURIComponent(w.youtubeId)}/hqdefault.jpg`, seek: (sec) => `&start=${Math.floor(sec)}` },
+  podcast: (w) => w.enclosureUrl && { type: "audio", src: w.enclosureUrl },
+};
+const PLAYER = { youtube: "video", twitch: "video", podcast: "audio", photography: "image", substack: "issue" };
+export function mediaFor(kind, work, seed) {
+  const real = REAL_MEDIA && MEDIA_SOURCES[kind]?.(work);
+  return { player: PLAYER[kind], kind, seed, durationSec: work.durationSec || 0, clipSec: 24, real: real || null };
 }
 
 /* ---------------------------------------------------------------- the whole layer, for one creator */
-function game(k, spec, w, snap, r, band, sizeBand, focus, best, byId) {
+function isoWeek(ms) { const d = new Date(ms); const day = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day); }
+
+function game(k, spec, w, snap, r, band, sizeBand, best, last) {
   const audience = snap.account.audience;
   const prepared = prepare(spec, snap.works, NOW);
-  const rated = new Map(rateWorks(snap, FIXTURE_NOW).map((x) => [x.workId, x]));
-  const primary = spec.work.primary;
+  const own = new Map(rateWorks(snap, FIXTURE_NOW).map((x) => [x.workId, x]));
+  const settledAll = prepared.filter((p) => p.ageDays >= spec.minAgeDays);
+  const thinCreator = settledAll.length < THIN_RULE.works;
 
-  // Every work, with its lines and its score.
+  // Your own spread, per format: how far your works usually sit from your own median.
+  const spread = {};
+  for (const f of new Set(prepared.map((p) => p.format))) {
+    const logs = settledAll.filter((p) => p.format === f).map((p) => own.get(p.work.id)).filter(Boolean).map((x) => Math.log(Math.max(x.multiple, 1e-3)));
+    spread[f] = Math.max(madSpread(logs), 0.1);
+  }
+
   const works = prepared.map((p) => {
     const same = prepared.filter((x) => x.format === p.format);
-    const lines = workLines(spec, w, same, p, audience, band.key);
-    const rr = rated.get(p.work.id);
+    const lines = workLines(spec, w, same, p, audience, band.key, thinCreator);
     const settled = p.ageDays >= spec.minAgeDays;
+    const rating = settled ? breakdown(lines) : null;
+    const o = own.get(p.work.id);
+    const zOwn = o ? Math.log(Math.max(o.multiple, 1e-3)) / spread[p.format] : null;
+    const pct = rating == null ? null : pctOf(rating / RATING_SCALE);
     return {
       id: p.work.id, title: p.work.title, at: Date.parse(p.work.publishedAt), ageDays: p.ageDays, p, lines, settled,
-      rating: rr?.rating ?? null, multiple: rr?.multiple ?? null,
-      band: rr ? bandFor(rr.rating) : null,
-      ...(rr ? LEVEL_RULE.score(rr.rating, lines) : { own: null, size: null, score: null }),
+      rating, pct, band: bandOf(pct, thinCreator && pct != null && pct < 30),
+      multiple: o?.multiple ?? null, ownRating: o?.rating ?? null, zOwn, gauge: zOwn == null ? null : GAUGE_RULE.of(zOwn),
+      journal: journalFor(k.kind, p.work.id, settled),
     };
   });
   const byWork = new Map(works.map((x) => [x.id, x]));
 
-  // Levels and seasons: replay every settled work oldest first, resetting lightly at each season's first day.
-  const events = works.filter((x) => x.settled && x.score != null).sort((a, b) => a.at - b.at);
-  let pts = LEVEL_RULE.start;
-  let season = events.length ? SEASON_RULE.of(events[0].at) : SEASON_RULE.of(NOW);
-  const history = [];
-  const resets = [];
-  const settle = (until) => {
-    while (season.end <= until) { const before = pts; season = SEASON_RULE.of(season.end); pts = SEASON_RULE.reset(pts); resets.push({ at: season.start, before, after: pts }); }
-  };
-  for (const e of events) {
-    settle(e.at);
-    const move = LEVEL_RULE.move(e.score, pts);
-    const before = pts;
-    pts = Math.max(LEVEL_RULE.floor, Math.min(LEVEL_RULE.ceiling, pts + move));
-    e.points = { before, move, after: pts, expects: LEVEL_RULE.expects(before) };
-    history.push(e);
+  // Craft points: replayed oldest first, never subtracted, tapered by the work's place in its week.
+  let pts = 0;
+  const weekCount = new Map();
+  for (const x of [...works].sort((a, b) => a.at - b.at)) {
+    const wk = isoWeek(x.at);
+    const nth = (weekCount.get(wk) ?? 0) + 1;
+    weekCount.set(wk, nth);
+    const t = LEVEL_RULE.taper(nth);
+    const cp = {
+      nth, taper: t,
+      ship: Math.round(LEVEL_RULE.ship * t),
+      reflect: x.journal.reflect ? Math.round(LEVEL_RULE.reflect * t) : 0,
+      experiment: x.journal.experiment ? Math.round(LEVEL_RULE.experiment * t) : 0,
+      beat: x.pct == null ? 0 : LEVEL_RULE.beat(x.pct),
+    };
+    cp.total = cp.ship + cp.reflect + cp.experiment + cp.beat;
+    cp.before = pts;
+    pts += cp.total;
+    cp.after = pts;
+    x.cp = cp;
   }
-  settle(NOW);
-  const nowSeason = SEASON_RULE.of(NOW);
-  const seasonStartPts = resets.at(-1)?.at === nowSeason.start ? resets.at(-1).after : (history.find((h) => h.at >= nowSeason.start)?.points.before ?? pts);
-  const lastMoved = history.at(-1) ?? null;
-  const pending = works.filter((x) => !x.settled);
+  const newest = [...works].sort((a, b) => b.at - a.at)[0];
+  const lv = LEVEL_RULE.level(pts);
+  const next = LEVEL_RULE.next(pts);
   const level = {
-    points: pts, level: LEVEL_RULE.level(pts), into: pts % LEVEL_RULE.perLevel, perLevel: LEVEL_RULE.perLevel,
-    toNext: LEVEL_RULE.level(pts) >= LEVEL_RULE.top ? null : LEVEL_RULE.perLevel - (pts % LEVEL_RULE.perLevel),
-    expects: LEVEL_RULE.expects(pts),
-    last: lastMoved && { id: lastMoved.id, title: lastMoved.title, move: lastMoved.points.move, score: lastMoved.score },
-    pending: pending.map((x) => ({ id: x.id, title: x.title, inDays: Math.ceil(spec.minAgeDays - x.ageDays) })),
-  };
-  const inSeason = works.filter((x) => x.at >= nowSeason.start);
-  const seasonBest = inSeason.filter((x) => x.rating != null).sort((a, b) => b.rating - a.rating)[0] ?? null;
-  const seasonInfo = {
-    n: nowSeason.n, year: nowSeason.year, start: nowSeason.start, end: nowSeason.end,
-    daysLeft: Math.ceil((nowSeason.end - NOW) / DAY),
-    works: inSeason.length,
-    best: seasonBest && { id: seasonBest.id, title: seasonBest.title, rating: seasonBest.rating, multiple: seasonBest.multiple },
-    startPoints: seasonStartPts, startLevel: LEVEL_RULE.level(seasonStartPts),
-    pointsChange: pts - seasonStartPts, levelChange: LEVEL_RULE.level(pts) - LEVEL_RULE.level(seasonStartPts),
+    points: pts, level: lv, tone: tierOf(lv), next, from: LEVEL_RULE.thresholds[lv - 1],
+    last: newest && { id: newest.id, title: newest.title, cp: newest.cp.total, settled: newest.settled },
   };
 
-  // This week's challenges, drawn from your weakest parts that a single work can move.
-  const workLevel = r.parts.filter((x) => { const t = spec.parts.find((y) => y.key === x.key).measure.type; return t === "ratio" || t === "median"; }).sort((a, b) => a.score - b.score);
-  const week = works.filter((x) => x.ageDays <= 7).sort((a, b) => a.ageDays - b.ageDays);
-  const bestW = byWork.get(best.workId);
-  const cx = { kind: k.kind, w, lever: workLevel[0]?.key, best: { id: best.workId, title: best.work.title, multiple: best.multiple } };
-  const picks = workLevel.slice(0, 2).map((x) => {
-    const part = spec.parts.find((y) => y.key === x.key);
-    const t = CHALLENGES[x.key]?.when?.(cx) ? CHALLENGES[x.key] : CHALLENGES.part;
-    return { t, part, from: `${part.name}: beats ${x.score} in 100 ${spec.peers} your size` };
-  });
-  picks.push({ t: CHALLENGES.followup, part: null, from: `Your best ${w.work} of ${PERIOD_WORDS}` });
-  const challenges = picks.map(({ t, part, from }) => {
-    let done = null;
-    for (const wk of week) { const why = t.check(cx, wk, part); if (why) { done = { id: wk.id, why }; break; } }
-    return { title: t.title(cx, part), tip: t.tip(cx, part), from, done, tagged: !!t.tagged };
-  });
-  const weekEnds = NOW + ((7 - new Date(NOW).getUTCDay()) % 7 || 7) * DAY;
+  // Seasons: chapters, never resets. Season highs are kept for good.
+  const seasons = [];
+  for (const x of [...works].sort((a, b) => a.at - b.at)) {
+    const s = SEASON_RULE.of(x.at);
+    let row = seasons.find((y) => y.start === s.start);
+    if (!row) { row = { ...s, works: [], startPoints: x.cp.before }; seasons.push(row); }
+    row.works.push(x);
+    row.endPoints = x.cp.after;
+  }
+  for (const s of seasons) {
+    const rated = s.works.filter((x) => x.rating != null);
+    s.count = s.works.length;
+    s.median = rated.length ? round2(median(rated.map((x) => x.rating))) : null;
+    s.high = rated.reduce((a, x) => (!a || x.rating > a.rating ? x : a), null);
+    s.levelsGained = LEVEL_RULE.level(s.endPoints) - LEVEL_RULE.level(s.startPoints);
+    s.cp = s.endPoints - s.startPoints;
+  }
+  const nowS = SEASON_RULE.of(NOW);
+  const current = seasons.find((s) => s.start === nowS.start) ?? { ...nowS, works: [], count: 0, median: null, high: null, levelsGained: 0, cp: 0 };
+  const pastFull = seasons.filter((s) => s.start !== nowS.start && s.median != null && s.works.filter((x) => x.rating != null).length >= 3);
+  const bestSeason = pastFull.reduce((a, s) => (!a || s.median > a.median ? s : a), null);
 
-  // Rivals: made up, three of your size within a level of yours. Names are never shown.
-  const L = level.level;
-  const rivals = [Math.min(10, L + 1), L, Math.max(1, L - 1)].map((lv, i) => ({ band: sizeBand, level: lv, note: ["a level up", "your level", "a level down"][lv - L + 1] ?? "", key: `r${i}` }));
+  // The recap identity, from your best line this season.
+  const seasonRated = current.works.filter((x) => x.settled);
+  const lineMedians = spec.parts.map((part) => {
+    const xs = seasonRated.map((x) => x.lines.find((l) => l.key === part.key)?.score).filter((v) => v != null);
+    return { key: part.key, name: part.name, median: xs.length ? Math.round(median(xs)) : null, n: xs.length };
+  }).filter((x) => x.median != null);
+  const topLine = lineMedians.reduce((a, x) => (!a || x.median > a.median ? x : a), null);
+  const identity = topLine && topLine.median >= IDENTITY_AT
+    ? { name: IDENTITIES[topLine.key], key: topLine.key, line: `Your ${topLine.name.toLowerCase()} beat ${topLine.median} in 100 on a typical ${w.work} this season, your best line.` }
+    : { name: IDENTITY_FALLBACK, key: null, line: `${current.count} ${current.count === 1 ? w.work : w.works} out this season, at your own pace.` };
+  const season = {
+    n: nowS.n, year: nowS.year, start: nowS.start, end: nowS.end, daysLeft: Math.ceil((nowS.end - NOW) / DAY),
+    works: current.count, high: current.high && { id: current.high.id, title: current.high.title, rating: current.high.rating },
+    median: current.median, levelsGained: current.levelsGained, cp: current.cp, identity, topLine,
+    best: bestSeason && { n: bestSeason.n, year: bestSeason.year, median: bestSeason.median, count: bestSeason.count, high: bestSeason.high && { id: bestSeason.high.id, title: bestSeason.high.title, rating: bestSeason.high.rating } },
+    all: seasons.map((s) => ({ n: s.n, year: s.year, count: s.count, median: s.median, high: s.high && { id: s.high.id, title: s.high.title, rating: s.high.rating }, current: s.start === nowS.start, best: s === bestSeason })),
+  };
 
-  return { workList: works, byWork, level, season: seasonInfo, challenges, weekEndsDays: Math.round((weekEnds - NOW) / DAY), rivals, primaryKey: primary };
+  // Focus: one at a time, with a cheer when the last one was met.
+  const relevance = {};
+  for (const part of spec.parts) relevance[part.key] = settledAll.length ? works.filter((x) => x.settled && x.lines.find((l) => l.key === part.key)?.score != null).length / works.filter((x) => x.settled).length : 0;
+  const nowFocus = focusFor(spec, r.parts, relevance);
+  const thenFocus = last.status === "rated" ? focusFor(spec, last.parts, relevance).pick : null;
+  let cheer = null;
+  if (thenFocus && nowFocus.pick && thenFocus.key !== nowFocus.pick.key) {
+    const nowScore = r.parts.find((p) => p.key === thenFocus.key)?.score;
+    if (nowScore != null && nowScore >= thenFocus.goal) cheer = { name: thenFocus.name, from: thenFocus.score, to: nowScore, goal: thenFocus.goal };
+  }
+  const focusArea = nowFocus.pick && { ...nowFocus.pick, band: bandOf(nowFocus.pick.score), goalBand: bandOf(nowFocus.pick.goal), ranked: nowFocus.ranked, cheer };
+
+  const strengths = r.parts.filter((p) => p.score >= STRENGTH_AT && STRENGTHS[p.key]).sort((a, b) => b.score - a.score).map((p) => ({ key: p.key, score: p.score, ...STRENGTHS[p.key] }));
+
+  // Recent form: your last five works against your last thirty, line by line.
+  const settledNewest = works.filter((x) => x.settled).sort((a, b) => a.ageDays - b.ageDays);
+  const last5 = settledNewest.slice(0, 5), last30 = settledNewest.slice(0, 30);
+  const form = spec.parts.map((part) => {
+    const med = (xs) => { const v = xs.map((x) => x.lines.find((l) => l.key === part.key)?.score).filter((s) => s != null); return v.length ? Math.round(median(v)) : null; };
+    const a = med(last5), b = med(last30);
+    return { key: part.key, name: part.name, recent: a, usual: b, delta: a == null || b == null ? null : a - b };
+  });
+
+  // This month's mission.
+  const monthStart = Date.UTC(new Date(NOW).getUTCFullYear(), new Date(NOW).getUTCMonth(), 1);
+  const monthEnd = Date.UTC(new Date(NOW).getUTCFullYear(), new Date(NOW).getUTCMonth() + 1, 1);
+  const inMonth = works.filter((x) => x.at >= monthStart).sort((a, b) => b.at - a.at);
+  const mx = { w };
+  const mission = {
+    name: MISSION.name(NOW), daysLeft: Math.ceil((monthEnd - NOW) / DAY),
+    steps: MISSION.steps.map((st) => {
+      let done = null;
+      for (const wk of inMonth) { const why = st.check(mx, wk); if (why) { done = { id: wk.id, why }; break; } }
+      return { key: st.key, title: st.title(mx), done, tagged: !!st.tagged };
+    }),
+  };
+
+  return { workList: works, byWork, level, season, focusArea, strengths, form, mission, recentSettled: last5.map((x) => x.id), thinCreator, primaryKey: spec.work.primary };
 }
 
 /* ---------------------------------------------------------------- one work's report */
@@ -615,40 +810,33 @@ export function workReport(c, id) {
   const typical = x.multiple ? primary / x.multiple : null;
   const scored = x.lines.filter((l) => l.score != null);
   const mvp = scored.reduce((a, l) => (!a || l.score > a.score ? l : a), null);
-  // What held it back: the weakest line, whatever kind, if it is below typical.
   const lowest = scored.reduce((a, l) => (!a || l.score < a.score ? l : a), null);
   const held = lowest && lowest.score < 50 && lowest !== mvp ? lowest : null;
   const sizeLines = x.lines.filter((l) => l.against === "size" && l.score != null && (l.type === "ratio" || l.type === "median"));
-  const reachLine = x.lines.find((l) => l.key === "reach");
 
-  // Best line among the last twelve: the work-level line where this work's figure is the highest.
   let bestOf = null;
   if (inRecent && recent12.length >= 4) for (const l of sizeLines) {
     const others = recent12.filter((y) => y.id !== id).map((y) => y.lines.find((z) => z.key === l.key)?.raw).filter((v) => v != null);
     if (others.length >= 3 && others.every((v) => l.raw > v) && (!bestOf || l.score > bestOf.score)) bestOf = l;
   }
-  // A standing record this work holds.
-  const standing = personalBests(c.snap, { includeBaseline: true });
   const holders = new Map();
-  for (const e of standing) holders.set(e.metric, e);
+  for (const e of personalBests(c.snap, { includeBaseline: true })) holders.set(e.metric, e);
   let record = null;
   for (const [metric, e] of holders) if (e.workId === id) {
     const rec = spec.records.find((y) => recordMetric(y) === metric);
     const unit = spec.metrics.find((m) => m.key === metric.split("@")[0])?.unit ?? "count";
     if (unit === "count" && rec) { record = { label: rec.label, value: e.value, previous: e.previous }; break; }
   }
-  const ax = { w, peers: c.peers, multiple: x.multiple ?? 0, rating: x.rating ?? 0, primary, typical, bestOf, of: recent12.length, record, sizeLines, scored, lowest };
+  const ax = { w, peers: c.peers, multiple: x.multiple ?? 0, ownRating: x.ownRating ?? 0, primary, typical, bestOf, of: recent12.length, record, sizeLines, scored, lowest };
   const earned = AWARDS.filter((a) => !a.fallback).map((a) => { const got = a.test(ax); return got ? { id: a.id, ...got } : null; }).filter(Boolean);
   const awards = (earned.length ? earned : AWARDS.filter((a) => a.fallback).map((a) => { const got = a.test(ax); return got ? { id: a.id, ...got } : null; }).filter(Boolean)).slice(0, AWARD_LIMIT);
 
-  // The first week: this work and your usual, along the engine's maturity curve for the primary figure.
   const metric = spec.metrics.find((m) => m.key === spec.work.primary);
   const firstWeek = metric.maturity && typical ? [1 / 24, 1, 7].map((age) => {
     const share = maturedShare(metric.maturity, age);
     return { age, label: age < 1 ? "1 hour" : age === 1 ? "1 day" : "7 days", you: primary * share, usual: typical * share, reached: p.ageDays >= age };
   }) : null;
 
-  // Next time: one move from what held it back, one from what carried it.
   const next = [];
   if (held) next.push({ title: `Fix ${held.name.toLowerCase()} first`, body: held.advice, why: `${held.name} beat ${held.score} in 100 here (${held.value}), this ${w.work}'s weakest line.` });
   if (mvp) next.push(x.multiple >= 1.5
@@ -656,21 +844,23 @@ export function workReport(c, id) {
     : { title: `Keep ${mvp.name.toLowerCase()}`, body: `${mvp.value}, beating ${mvp.score} in 100. ${held ? `Keep that while you fix ${held.name.toLowerCase()}.` : "Whatever you did here, do it on purpose next time."}`, why: `${mvp.name} was this ${w.work}'s best line.` });
 
   const idx = recent12.findIndex((y) => y.id === id);
+  const seed = hashId(id);
   return {
     id, title: x.title, on: dayName(x.at), ageDays: x.ageDays, settled: x.settled,
-    rating: x.rating, signed: x.rating == null ? "n/a" : minus(signed(x.rating)), band: x.band,
-    multiple: x.multiple, primary, typical, unit: w.unit,
-    reach: reachLine?.score != null ? { score: reachLine.score, value: reachLine.value } : null,
-    rank, of: recent12.length,
-    score: x.score, own: x.own, size: x.size, points: x.points ?? null,
+    rating: x.rating, signed: x.rating == null ? "n/a" : minus(signed(x.rating)), pct: x.pct, band: x.band,
+    multiple: x.multiple, gauge: x.gauge, zOwn: x.zOwn, gaugePos: x.zOwn == null ? null : normalCdf(Math.max(-3, Math.min(3, x.zOwn))), primary, typical, unit: w.unit,
+    rank, of: recent12.length, cp: x.cp, journal: x.journal,
     lines: x.lines, mvp: mvp?.key ?? null, held: held?.key ?? null,
     firstWeek, awards,
-    moments: madeUpMoments(c.k.kind, recent12.length + Number(id.slice(-3)) + 7, p.work.durationSec),
+    moments: madeUpMoments(c.k.kind, seed % 100000, p.work.durationSec),
+    media: mediaFor(c.k.kind, p.work, seed),
     next: next.slice(0, 2),
     older: idx > 0 ? recent12[idx - 1].id : null, newer: idx >= 0 && idx < recent12.length - 1 ? recent12[idx + 1].id : null,
-    shareLine: `${c.k.name}: “${x.title}” rated ${x.rating == null ? "n/a" : minus(signed(x.rating))}, ${times(x.multiple ?? 0)} my typical ${w.work}. ${RATING_LABEL}.`,
+    shareLine: `${c.k.name}: “${x.title}” rated ${x.rating == null ? "n/a" : minus(signed(x.rating))} against ${c.peers} my size, ${x.band.word.toLowerCase()}. ${RATING_LABEL}.`,
   };
 }
 
 /** Which made-up creator a work belongs to, from its id. */
 export const kindOfWork = (id) => KINDS.find((k) => String(id).startsWith(`wk_fixture_${k.kind}_`))?.key ?? null;
+/** A stable seed for a work's generated pictures and sound. */
+export const seedOf = hashId;

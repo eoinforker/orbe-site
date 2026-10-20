@@ -87,8 +87,9 @@
     <section class="yo-sec" aria-labelledby="yo-hl-h">
       <div class="yo-sec-head">
         <h2 class="ob-h2" id="yo-hl-h">Highlights. <span class="ob-h2-soft" data-hl-soft>The best of the last five weeks.</span></h2>
-        <p class="ob-note">Every work is measured against your own typical, so a highlight means better than you, not better than someone else.</p>
+        <p class="ob-note">Picked against your own average, so a quiet stretch still has its best works. Every picture here is made up.</p>
       </div>
+      <div class="yo-thumbs" data-thumbs></div>
       <div class="yo-hl" data-highlights></div>
     </section>
 
@@ -99,26 +100,24 @@
       </div>
       <div class="yo-seg" role="tablist" aria-label="Compare with" data-cmp-tabs>
         <button type="button" role="tab" id="cmp-t-size" aria-controls="cmp-panel" aria-selected="true" data-v="size">Typical at your size</button>
-        <button type="button" role="tab" id="cmp-t-past" aria-controls="cmp-panel" aria-selected="false" tabindex="-1" data-v="past">You, five weeks ago</button>
+        <button type="button" role="tab" id="cmp-t-form" aria-controls="cmp-panel" aria-selected="false" tabindex="-1" data-v="form">Recent form</button>
         <button type="button" role="tab" id="cmp-t-next" aria-controls="cmp-panel" aria-selected="false" tabindex="-1" data-v="next">The next size up</button>
       </div>
       <div class="yo-cmp" id="cmp-panel" role="tabpanel" aria-labelledby="cmp-t-size" tabindex="0" data-cmp></div>
     </section>
 
-    <!-- 5. The season: level, this week's three challenges, the season so far, rivals -->
+    <!-- 5. The season: this month's mission, your focus, the season recap -->
     <section class="yo-sec yo-season-sec" id="season" aria-labelledby="yo-season-h">
       <div class="yo-sec-head">
-        <h2 class="ob-h2" id="yo-season-h"><span data-season-name>This season.</span> <span class="ob-h2-soft">Your level, this week&rsquo;s three, and the season so far.</span></h2>
-        <p class="ob-note">Levels are earned against creators your size, not raw audience, so a small channel can sit at level 8.</p>
+        <h2 class="ob-h2" id="yo-season-h"><span data-season-name>This season.</span> <span class="ob-h2-soft">Your month, your focus, and the season so far.</span></h2>
+        <p class="ob-note">Your level is progress and only goes up. Your rating is performance, and it can go down. They are kept apart on purpose.</p>
       </div>
-      <div class="yo-play">
-        <div class="yo-chal-wrap">
-          <h3 class="yo-sub" data-chal-h>Three for this week</h3>
-          <ol class="yo-chal" data-challenges></ol>
-          <p class="ob-note" data-pacing></p>
-        </div>
-        <div class="yo-season" data-season></div>
+      <div class="yo-seg" role="tablist" aria-label="Your season" data-ss-tabs>
+        <button type="button" role="tab" id="ss-t-month" aria-controls="ss-panel" aria-selected="true" data-v="month">This month</button>
+        <button type="button" role="tab" id="ss-t-focus" aria-controls="ss-panel" aria-selected="false" tabindex="-1" data-v="focus">Your focus</button>
+        <button type="button" role="tab" id="ss-t-recap" aria-controls="ss-panel" aria-selected="false" tabindex="-1" data-v="recap">Season recap</button>
       </div>
+      <div class="yo-ss-panel" id="ss-panel" role="tabpanel" aria-labelledby="ss-t-month" tabindex="0" data-ss></div>
     </section>
 
     <!-- 6. What opens as you grow -->
