@@ -179,33 +179,49 @@ function paint(r) {
 }
 
 /*
-  The piece's place. Wide: measure the words, then take the larger of two
-  boxes, beside lines two to four or below the whole headline, right of the
-  lede and buttons. Either box stops 32px short of the instrument, and the
-  piece sits in its lower right corner, bleeding off both edges.
+  The piece's place. Wide: measure the words, then take the largest of three
+  boxes: beside lines two to four, right of the lede and buttons, or below
+  the buttons in the left column, down to the bottom of the band. Every box
+  stops 32px short of the instrument, and the piece sits in its lower right
+  corner, bleeding off both edges. If none fits a piece of 3px cells, the
+  band grows at the bottom just enough for one, so it shows at every width.
   Narrower: a band below the instrument (set in CSS), the piece in its corner.
 */
 const heroSec = $(".hero"), artBox = $("[data-art-box]"), artCanvas = $("[data-art]");
-const BLEED_X = 0.16, BLEED_Y = 0.12;
+const BLEED_X = 0.16, BLEED_Y = 0.12, MIN_CELL = 3;
 const textBox = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); };
 let lastCell = 0;
 function placeArt() {
   let cell;
   let wide = false;
   try { wide = matchMedia("(min-width: 861px)").matches; } catch (e) {}
+  heroSec.style.paddingBottom = "";
   if (wide) {
-    const H = heroSec.getBoundingClientRect();
-    const right = $(".stage").getBoundingClientRect().left - H.left - 32;
-    const lines = $$(".h-line").map(textBox);
-    const aLeft = Math.max(...lines.slice(1).map((b) => b.right)) - H.left + 48;
-    const aTop = lines[0].bottom - H.top + 24;
-    const bLeft = Math.max(textBox($(".hero-copy .ob-lede")).right, ...$$(".ctas > a").map((b) => b.getBoundingClientRect().right)) - H.left + 48;
-    const bTop = lines[3].bottom - H.top + 32;
-    const fit = (left, top) => { const w = right - left, h = H.height - top; return w < 160 || h < 160 ? 0 : Math.min(w / (GW * (1 - BLEED_X)), h / (GH * (1 - BLEED_Y))); };
-    const a = fit(aLeft, aTop), b = fit(bLeft, bTop);
-    const [left, top] = a >= b ? [aLeft, aTop] : [bLeft, bTop];
-    cell = Math.min(11.28, Math.floor(Math.max(a, b) * 4) / 4);
-    artBox.hidden = cell < 3;
+    const boxes = () => {
+      const H = heroSec.getBoundingClientRect();
+      const right = $(".stage").getBoundingClientRect().left - H.left - 32;
+      const lines = $$(".h-line").map(textBox);
+      const ctas = $$(".ctas > a").map((el) => el.getBoundingClientRect());
+      const copyLeft = $(".hero-copy").getBoundingClientRect().left - H.left;
+      const fit = (left, top, min) => { const w = right - left, h = H.height - top; return w < min || h < min ? 0 : Math.min(w / (GW * (1 - BLEED_X)), h / (GH * (1 - BLEED_Y))); };
+      const aLeft = Math.max(...lines.slice(1).map((r) => r.right)) - H.left + 48, aTop = lines[0].bottom - H.top + 24;
+      const bLeft = Math.max(textBox($(".hero-copy .ob-lede")).right, ...ctas.map((r) => r.right)) - H.left + 48, bTop = lines[3].bottom - H.top + 32;
+      const cLeft = copyLeft, cTop = Math.max(...ctas.map((r) => r.bottom)) - H.top + 24;
+      const list = [[fit(aLeft, aTop, 160), aLeft, aTop], [fit(bLeft, bTop, 160), bLeft, bTop], [fit(cLeft, cTop, 64), cLeft, cTop]];
+      const best = list.reduce((x, y) => (y[0] > x[0] ? y : x));
+      return { H, right, best, c: { left: cLeft, top: cTop, w: right - cLeft } };
+    };
+    let { H, right, best, c } = boxes();
+    if (best[0] < MIN_CELL && c.w > GW * MIN_CELL * (1 - BLEED_X)) {
+      /* nothing fits: grow the band under the buttons, just enough for 3px cells */
+      const need = GH * MIN_CELL * (1 - BLEED_Y) - (H.height - c.top);
+      const pad = parseFloat(getComputedStyle(heroSec).paddingBottom) || 0;
+      heroSec.style.paddingBottom = `${Math.ceil(pad + Math.max(0, need))}px`;
+      ({ H, right, best } = boxes());
+    }
+    const [fitCell, left, top] = best;
+    cell = Math.min(11.28, Math.floor(fitCell * 4) / 4);
+    artBox.hidden = cell < MIN_CELL;
     Object.assign(artBox.style, { left: `${left}px`, top: `${top}px`, width: `${right - left}px`, height: `${H.height - top}px` });
   } else {
     artBox.hidden = false;
@@ -463,6 +479,18 @@ function paintQuote() {
   const text = int && int.status === "suggested" ? `${gbp(int.low.amount)} to ${gbp(int.high.amount)}` : "Not enough to price";
   $("[data-spon-int]").textContent = text;
   sponIn.setAttribute("aria-valuetext", `${count(v)} views. ${text} an integrated read.`);
+  paintOffer(int);
+}
+/* the Fair offer check, in brief: a made-up offer against that range, judged the way the Fair offer check page judges it */
+const OFFER = 180000;
+function paintOffer(s) {
+  const w = $("[data-offer-w]"), ask = $("[data-offer-ask]");
+  $("[data-offer-amt]").textContent = gbp(OFFER);
+  if (!s || s.status !== "suggested") { w.textContent = "Not enough to judge"; ask.textContent = ""; return; }
+  const low = s.low.amount, high = s.high.amount, mid = (low + high) / 2, up10 = (x) => Math.ceil(x / 1000) * 1000;
+  const [word, line] = OFFER < low ? ["Low.", `Ask for ${gbp(up10(mid))}.`] : OFFER > high ? ["Strong.", "Take it, in writing."] : OFFER < mid ? ["Fair.", `The middle is ${gbp(up10(mid))}.`] : ["Fair.", "Take it, or ask for a second placement."];
+  w.textContent = word; ask.textContent = line;
+  w.dataset.v = word === "Low." ? "low" : "ok";
 }
 sponIn.addEventListener("input", paintQuote);
 paintQuote();
@@ -541,6 +569,27 @@ fillMid();
 
 /* ---------------------------------------------------------------- Diligence, from the engine's fee table */
 $("[data-dil]").textContent = gbp(TAKE_RATE.buyers.report.standard);
+
+/* ---------------------------------------------------------------- fingerprint.txt: three made-up copies against their originals
+  Each original is 64 bits from a fixed seed; each copy flips a few of them
+  (also seeded), and the match is counted from the bits, not typed. Pictures
+  and video frames are 8 by 8; audio is a strip, time across, pitch up. */
+{
+  const rnd = (seed) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const PRINTS = [
+    { kind: "Image", what: "cropped and recompressed", cols: 8, seed: 11, flips: 3 },
+    { kind: "Video", what: "a re-upload, re-coloured", cols: 8, seed: 29, flips: 5 },
+    { kind: "Audio", what: "talked over, in a compilation", cols: 16, seed: 47, flips: 7 },
+  ];
+  $("[data-prints]").innerHTML = PRINTS.map((f) => {
+    const r = rnd(f.seed), orig = Array.from({ length: 64 }, () => r() < 0.5), copy = orig.slice();
+    const diff = new Set();
+    while (diff.size < f.flips) diff.add(Math.floor(r() * 64));
+    for (const i of diff) copy[i] = !copy[i];
+    const same = copy.filter((b, i) => b === orig[i]).length;
+    return `<li class="print"><p class="ob-k">${f.kind}</p><div class="fp" style="--cols:${f.cols}" aria-hidden="true">${copy.map((b, i) => `<i class="${b ? "on" : ""}${diff.has(i) ? " d" : ""}"></i>`).join("")}</div><p class="print-v"><b>Yours.</b> ${same} of 64 match, ${f.what}.</p></li>`;
+  }).join("");
+}
 
 /* ---------------------------------------------------------------- reserve */
 /* what you make follows the kind chosen in the instrument above */
@@ -644,7 +693,7 @@ function put(w, x, y) {
   const o = off.get(w);
   const r = w.getBoundingClientRect(), S = w.closest("section").getBoundingClientRect(), pad = 8;
   /* the instrument never goes up under the fixed header */
-  const padTop = w === hero ? $("[data-bar]").offsetHeight + 8 : pad;
+  const padTop = w === hero ? $("[data-ob-bar]").offsetHeight + 8 : pad;
   const baseL = r.left - o.x, baseT = r.top - o.y;
   o.x = Math.round(Math.max(S.left + pad - baseL, Math.min(S.right - pad - r.width - baseL, x)));
   o.y = Math.round(Math.max(S.top + padTop - baseT, Math.min(S.bottom - pad - r.height - baseT, y)));

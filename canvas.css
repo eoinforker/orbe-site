@@ -364,6 +364,48 @@
 @media (max-width: 1279px) { .goliath .ob-btn-q { display: none; } }
 .form-note { font-size: var(--ob-t14); line-height: 1.45; margin-top: 16px; min-height: 1.45em; color: color-mix(in srgb, var(--orbe-chalk) 90%, var(--orbe-cobalt)); }
 
+/* ---------------------------------------------------------------- the pillars on the wall: each beat says which one it is */
+.beat-k { display: inline-block; margin-left: 8px; padding: 0 8px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--rule-strong); font: 500 var(--ob-t12)/20px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; vertical-align: 4px; color: var(--orbe-graphite); }
+.beat-lnk { margin-left: 12px; letter-spacing: 0; white-space: nowrap; }
+/* the Fair offer check, in brief, under the sponsorship price */
+.offer-v { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule-strong); font-size: var(--ob-t14); line-height: 1.45; }
+.offer-v a { display: block; font-weight: 600; text-underline-offset: 3px; border-radius: 4px; }
+.offer-w { font-weight: 600; }
+/* beat four, Protect: the words beside, one window of three fingerprints and a rights line */
+.beat-4 { margin-top: 8px; }
+.beat-4 .beat-p { max-width: 40ch; }
+.c-prot { grid-column: 4 / span 9; margin-top: 8px; }
+.prot-body { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+.prints { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.print .ob-k { margin-bottom: 6px; }
+.fp { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 2px; max-width: calc(var(--cols) * 15px); }
+.fp i { aspect-ratio: 1; border-radius: 1px; background: color-mix(in srgb, currentColor 12%, transparent); }
+.fp i.on { background: currentColor; }
+.fp i.d { box-shadow: 0 0 0 1.5px var(--orbe-ember); }
+.print-v { margin-top: 8px; font-size: var(--ob-t12); line-height: 1.45; }
+.print-v b { font-weight: 600; }
+.grant { display: flex; flex-direction: column; gap: 6px; padding-left: 24px; border-left: 1px solid var(--rule-strong); align-self: stretch; }
+.grant-line { font-size: var(--ob-t14); line-height: 1.45; }
+.grant-line b { display: block; font: 500 var(--ob-t16)/1.3 var(--font-text); }
+.grant-ok { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; font-size: var(--ob-t14); line-height: 1.45; }
+.grant-ok b { font-weight: 600; }
+.grant-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; align-self: center; }
+.grant .ob-win-end { margin-top: auto; padding-top: 6px; }
+.grant .ob-chips { display: inline-flex; align-items: center; gap: 8px; margin: 0; vertical-align: middle; }
+@media (max-width: 1279px) {
+  .beat-4 { grid-column: 1 / -1; }
+  .c-prot { grid-column: 1 / -1; margin-top: 0; }
+}
+@media (max-width: 720px) {
+  .beat-lnk { display: block; margin: 4px 0 0; }
+  .beat-k { vertical-align: 2px; }
+  .prot-body { grid-template-columns: minmax(0, 1fr); }
+  .prints { gap: 12px; }
+  .print-v { font-size: var(--ob-t12); }
+  .grant { padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--rule-strong); }
+  .c-prot { grid-column: 1 / -1; }
+}
+
 /* ---------------------------------------------------------------- narrower */
 /* a tablet keeps two columns: the words left, the instrument right, the piece only where it fits */
 @media (min-width: 861px) and (max-width: 1180px) {

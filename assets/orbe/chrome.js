@@ -9,9 +9,11 @@
   "../" one folder down, "../../" two down). Every link is built from it.
 
   The header, the one navigation on every page: the lockup (the Portal, then
-  the Carved wordmark, both in currentColor), the Products menu (every tool
-  with one line on it, and All products), How it works, Pricing and the Reserve
-  button; on a phone, a Menu button and a sheet with every tool. At the
+  the Carved wordmark, both in currentColor), the Products menu (the four
+  pillars, Grow, Earn, Protect and Teams, as columns, each tool with one line
+  on it, and All products), How it works, For teams, Pricing and the Reserve
+  button; on a phone, a Menu button and a sheet with every tool, grouped by
+  pillar. At the
   very top it has no bar and each part takes the colour of the field under it;
   once the page moves it is a solid bar (Paper, or Ink over a dark field), so
   text never shows through. A field says what it is with data-head="light" or
@@ -19,7 +21,8 @@
   crossings: one IntersectionObserver on a one pixel line through the header,
   and a passive scroll listener that only flips a flag.
 
-  The footer: the public footer (Products, For creators, Company, Legal), the
+  The footer: the public footer (one compact column per pillar, then Orbe
+  and Legal), the
   honesty line, and the whole wordmark looping through the six product pairs
   while it is on screen, its O filled to a made-up creator's place in their
   hundred. Reduced motion holds one still frame.
@@ -31,35 +34,48 @@ import { portalMarkup } from "./mark.js";
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[c]);
 
 /*
-  Every tool, by path from the site root: its name, one line on what it does,
-  and its colour pair. The header's Products menu and the phone sheet both
-  list these, then "All products".
+  Orbe in four pillars, each with a short line, and every tool under its
+  pillar by path from the site root: its name, one line on what it does,
+  and its colour pair. The header's Products menu sets the four as columns,
+  the phone sheet as grouped sections, and the footer as compact columns.
 */
-export const PRODUCTS = [
-  ["Your Orbe", "products/you/", "Your highlights, against your size.", "also"],
-  ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
-  ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
-  ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
-  ["Fair offer check", "products/offer/", "Is this offer fair for your size?", "spon"],
-  ["Protect", "products/protect/", "Find your work wherever it travels.", "rec"],
-  ["Selling", "products/selling/", "An indicative value, fees in full.", "sell"],
-  ["Diligence", "products/diligence/", "The report a buyer reads first.", "rec"],
-  ["Roster", "products/roster/", "Every creator you look after.", "note"],
-  ["Rights", "products/rights/", "Who agreed to what, until when.", "note"],
+export const PILLARS = [
+  ["Grow", "Know where you stand, and get better.", [
+    ["Your Orbe", "products/you/", "Your home: a report for every piece.", "also"],
+    ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
+    ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
+  ]],
+  ["Earn", "Get paid fairly when money moves.", [
+    ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
+    ["Fair offer check", "products/offer/", "Is this offer fair for your size?", "spon"],
+    ["Selling", "products/selling/", "An indicative value, fees in full.", "sell"],
+    ["Diligence", "products/diligence/", "The report a buyer reads first.", "rec"],
+  ]],
+  ["Protect", "Your work, and who may use it.", [
+    ["Protect", "products/protect/", "Fingerprints for images, video and audio.", "rec"],
+    ["Rights", "products/rights/", "Who agreed to what, until when.", "note"],
+  ]],
+  ["Teams", "For the people around creators.", [
+    ["Roster", "products/roster/", "Every creator you look after.", "note"],
+    ["For teams", "teams/", "Rights tooling for brands and agencies.", "spon"],
+    ["For developers", "developers/", "Orbe for agents, over MCP.", "pod"],
+  ]],
 ];
-export const ALL_PRODUCTS = ["All products", "products/", "Every tool, running in your browser."];
+/* every entry in the menu, flat, in pillar order */
+export const PRODUCTS = PILLARS.flatMap(([, , items]) => items);
+export const ALL_PRODUCTS = ["All products", "products/", "Every tool, by pillar, running in your browser."];
 
 /* the links beside the Products menu ("#..." is the homepage's own anchor) */
 export const NAV = [["How it works", "#tools"], ["For teams", "teams/"], ["Pricing", "pricing/"]];
 
-/* the sheet on a phone: every tool, then all products */
+/* the sheet on a phone leads with Your Orbe, the home, then groups the rest by PILLARS; SHEET is the same set, flat */
+export const LEAD = PRODUCTS[0];
 export const SHEET = [...PRODUCTS.map(([t, p]) => [t, p]), ALL_PRODUCTS.slice(0, 2)];
 
-/* the public footer, by path from the site root; "#..." entries are the homepage's own anchors */
+/* the public footer, by path from the site root: one compact column per pillar, then Orbe and Legal; "#..." entries are the homepage's own anchors */
 export const FOOTER = [
-  ["Products", [["Your Orbe", "products/you/"], ["Rate my work", "products/rate/"], ["Podcasts", "products/podcasts/"], ["Sponsorships", "products/sponsorships/"], ["Fair offer check", "products/offer/"], ["Protect", "products/protect/"], ["Selling", "products/selling/"], ["Diligence", "products/diligence/"], ["Roster", "products/roster/"], ["Rights", "products/rights/"]]],
-  ["For creators", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"], ["Pricing", "pricing/"]]],
-  ["Company", [["For teams", "teams/"], ["For developers", "developers/"], ["Brand", "brand/"]]],
+  ...PILLARS.map(([h, , items]) => [h, items.map(([t, p]) => [t, p])]),
+  ["Orbe", [["Reserve your handle", "#reserve"], ["How it works", "#tools"], ["All products", "products/"], ["Pricing", "pricing/"], ["Brand", "brand/"]]],
   ["Legal", [["Terms", "legal/terms.html"], ["Privacy", "legal/privacy.html"]]],
 ];
 
@@ -81,16 +97,23 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   bar.className = "ob-bar";
   bar.dataset.obBar = "";
   const cur = (p) => (p === current ? " aria-current=\"page\"" : "");
-  const inMenu = current && [...PRODUCTS.map(([, p]) => p), ALL_PRODUCTS[1]].includes(current);
+  /* the Products button is underlined on a product page; For teams and Pricing underline their own links */
+  const inMenu = current && current.startsWith("products/") && [...PRODUCTS.map(([, p]) => p), ALL_PRODUCTS[1]].includes(current);
+  const gid = (i) => `ob-dd-g${i}`;
   bar.innerHTML = `
     <a class="ob-bar-mark ob-lockup" data-part href="${esc(home ?? root)}" aria-label="Orbe, home"><span class="ob-lockup-mark">${portalMarkup({ cut: "small" })}</span><span data-ob-wordmark></span></a>
     <nav class="ob-bar-links" aria-label="Main">
       <div class="ob-dd">
         <button class="ob-dd-btn${inMenu ? " is-here" : ""}" data-part type="button" aria-expanded="false" aria-controls="ob-dd-panel">Products<i aria-hidden="true"></i></button>
         <div class="ob-dd-panel" id="ob-dd-panel" hidden>
-          <ul class="ob-dd-list">${PRODUCTS.map(([t, p, d, k]) => `
-            <li><a href="${esc(href(p))}"${cur(p)}><span class="ob-dd-sw" data-k="${k}" aria-hidden="true"></span><span class="ob-dd-t">${esc(t)}</span><span class="ob-dd-d">${esc(d)}</span></a></li>`).join("")}
-          </ul>
+          <div class="ob-dd-cols">${PILLARS.map(([h, line, items], i) => `
+            <div class="ob-dd-col">
+              <p class="ob-dd-h" id="${gid(i)}"><span>${esc(h)}</span>${esc(line)}</p>
+              <ul class="ob-dd-list" aria-labelledby="${gid(i)}">${items.map(([t, p, d, k]) => `
+                <li><a href="${esc(href(p))}"${cur(p)}><span class="ob-dd-sw" data-k="${k}" aria-hidden="true"></span><span class="ob-dd-t">${esc(t)}</span><span class="ob-dd-d">${esc(d)}</span></a></li>`).join("")}
+              </ul>
+            </div>`).join("")}
+          </div>
           <a class="ob-dd-all" href="${esc(href(ALL_PRODUCTS[1]))}"${cur(ALL_PRODUCTS[1])}><span class="ob-dd-t">${esc(ALL_PRODUCTS[0])}</span><span class="ob-dd-d">${esc(ALL_PRODUCTS[2])}</span></a>
         </div>
       </div>${NAV.map(([t, p]) => `<a data-part href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}
@@ -98,9 +121,15 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
     <a class="ob-btn ob-btn--s" data-part href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
     <button class="ob-bar-menu" data-part type="button" aria-expanded="false" aria-controls="ob-sheet">Menu<i aria-hidden="true"></i></button>
     <div class="ob-sheet" id="ob-sheet" hidden>
-      <nav class="ob-sheet-nav" aria-label="Products">${SHEET.map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</nav>
+      <nav class="ob-sheet-nav" aria-label="Products">
+        <a class="ob-sheet-lead" href="${esc(href(LEAD[1]))}"${cur(LEAD[1])}><span>${esc(LEAD[0])}</span><small>${esc(LEAD[2])}</small></a>${PILLARS.map(([h, line, items], i) => `
+        <div class="ob-sheet-g" role="group" aria-labelledby="ob-sh-g${i}">
+          <p class="ob-sheet-h" id="ob-sh-g${i}"><span>${esc(h)}</span>${esc(line)}</p>
+          <div class="ob-sheet-links">${items.filter(([, p]) => p !== LEAD[1]).map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</div>
+        </div>`).join("")}
+      </nav>
       <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
-      <p class="ob-sheet-small">${NAV.map(([t, p]) => `<a href="${esc(href(p))}">${esc(t)}</a>`).join("")}<a href="${esc(href("brand/"))}">Brand</a><a href="${esc(href("legal/terms.html"))}">Terms</a><a href="${esc(href("legal/privacy.html"))}">Privacy</a></p>
+      <p class="ob-sheet-small">${NAV.map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}<a href="${esc(href(ALL_PRODUCTS[1]))}"${cur(ALL_PRODUCTS[1])}>${esc(ALL_PRODUCTS[0])}</a></p>
     </div>`;
   const reduce = reducedMotion();
   mountWordmark(bar.querySelector("[data-ob-wordmark]"), { animate: animate ?? !reduce });
@@ -110,8 +139,10 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   let fields = [], io = null, solid = false, open = false;
 
   /*
-    The menu, on a phone: a full-width sheet under the bar with every
-    product, the Reserve button and the small links. Focus stays inside it
+    The menu, on a phone: a full-width sheet under the bar that fits one
+    screen: Your Orbe as the lead link, the four pillars with their tools two
+    to a row, the Reserve button, then How it works, For teams, Pricing and
+    All products in one quiet row. Focus stays inside it
     (the menu button included) until it closes: Escape, the button again,
     any link in it, or the screen growing past a phone.
   */
@@ -141,8 +172,8 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   try { matchMedia("(min-width: 721px)").addEventListener("change", (m) => { if (m.matches) setMenu(false, { focus: false }); }); } catch (e) {}
 
   /*
-    The Products menu, from a tablet up: a button that shows a panel of every
-    tool under the bar. A disclosure, not an application menu: Tab moves
+    The Products menu, from a tablet up: a button that shows a panel under
+    the bar, the four pillars as columns with every tool under its pillar. A disclosure, not an application menu: Tab moves
     through the links as usual, and the arrow keys move between them too.
     Escape closes it and puts focus back on the button; so does the button.
     A click outside it, focus leaving it, any link in it, or the screen

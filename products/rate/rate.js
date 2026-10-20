@@ -189,6 +189,7 @@ function show(snapshot, at, meta) {
       </div>
       <p class="sub" style="margin-top:0">Zero is typical for ${esc(spec.peers)} with ${esc(result.sizeBand)} ${esc(spec.audienceNoun)}. ${d.provisional ? "On provisional benchmarks: the engine's starting baselines, replaced by measured ones as creators consent to be counted." : ""}</p>
       <p class="small">${esc(ratingNotice(kind))}</p>
+      <p class="small rate-next"><a class="ob-lnk ob-lnk--s" href="../you/">Next: Your Orbe, your home</a> A report for every piece, your level and your focus areas.</p>
       ${d.confidence && d.confidence !== "normal" ? `<p class="note warn">Confidence is ${esc(d.confidence)}: with ${d.works} ${esc(d.formatName)}, sub-scores are pulled towards typical until there are ten.</p>` : ""}
     </div>
 

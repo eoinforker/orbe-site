@@ -5,7 +5,7 @@ The homepage (`site/try-d/`, promoted to `site/index.html`) is built on these fi
 | File | What it is |
 | --- | --- |
 | `orbe.css` | Tokens and components: page, grain, gradient light, type ladder, buttons, links, fields, the window with its colour pairs, chips, the stat strip, focus, the header and the footer. |
-| `chrome.js` | `mountHeader` and `mountFooter`, the shared header (the lockup, the Products menu, How it works, Pricing and the Reserve button: the one navigation on every page) and the public footer with the looping wordmark. `PRODUCTS` lists every tool, with one line on it and its colour pair. |
+| `chrome.js` | `mountHeader` and `mountFooter`, the shared header (the lockup, the Products menu, How it works, For teams, Pricing and the Reserve button: the one navigation on every page) and the public footer with the looping wordmark. `PILLARS` is the one list of what Orbe is: four pillars (Grow, Earn, Protect, Teams), each with a short line and its tools, each tool with one line on it and its colour pair. `PRODUCTS` is the same tools, flat; `LEAD` is Your Orbe, the home; `NAV`, `SHEET`, `FOOTER` and `ALL_PRODUCTS` are built from them. |
 | `mark.js` | The Portal, Orbe's mark: both cuts as paths, `portalMarkup` (bare, currentColor), `tileMarkup` (on a coloured tile) and `LOCKUP`, the lockup's numbers. `.ob-lockup` in `orbe.css` sets the mark beside the wordmark. |
 | `trail.js` | `mountTrail`, the pointer trail for any page. |
 | `ease.js` | The one easing as a function (`ease`), its CSS string (`EASE`) and `reducedMotion()`. |
@@ -51,18 +51,35 @@ Everything is built on the palette in `../brand/tokens.css` (`--orbe-*`, plus `-
 - Mount the footer before the header. The header then sees the footer's fields. If a page adds fields later, call `header.rescan()`.
 - `mountFooter` accepts `people`, a list of `{ name, beats }` from the engine, for the looping wordmark. Without it, the footer reads the made-up creators in `../r5/examples.js`. Pass `note` to change the honesty line. It must still say the creators are made up and that Orbe calculated the figures.
 
+## Orbe's four pillars
+
+Orbe is creator tooling in four pillars, and every list of tools on the site uses them in this order, with these names:
+
+| Pillar | Short line | Tools |
+| --- | --- | --- |
+| Grow | Know where you stand, and get better. | Your Orbe (the home), Rate my work, Podcasts |
+| Earn | Get paid fairly when money moves. | Sponsorships, Fair offer check, Selling, Diligence |
+| Protect | Your work, and who may use it. | Protect (fingerprints for images, video and audio), Rights |
+| Teams | For the people around creators. | Roster, For teams, For developers |
+
+Edit `PILLARS` in `chrome.js` to add or move a tool; the menu, the phone sheet and the footer follow. The products page (`site/products/`) groups its cards the same way. Chips use four labels only: Works today, With the API, Coming and Made up.
+
 ## The Products menu
 
-From 721px up the header holds the lockup, a Products button, How it works, Pricing and the Reserve button. There is no second row of links under it on any page.
+From 721px up the header holds the lockup, a Products button, How it works, For teams, Pricing and the Reserve button. There is no second row of links under it on any page.
 
-- **The panel:** solid Paper under the bar, set to the right gutter, 12px radius, the held shadow. Every tool in two columns (a small swatch in its colour pair, its name, one line on what it does), then All products under a hairline. The page you are on is Chalk with its name underlined.
-- **Keyboard:** the button carries `aria-expanded`. Enter or Space opens it; the arrow keys open it too and move between the links (Home and End as well), and Tab moves through them as usual. Escape closes it and puts focus back on the button.
+- **The panel:** a mega menu in solid Paper under the bar, across the content column (from gutter to gutter), 12px radius, the held shadow. The four pillars are four columns with hairlines between them (two by two on a tablet): the pillar's name in mono capitals and its short line, then each tool (a small swatch in its colour pair, its name, one line on what it does). All products sits under a hairline across the bottom. The page you are on is Chalk with its name underlined.
+- **Keyboard:** the button carries `aria-expanded`. Enter or Space opens it; the arrow keys open it too and move between the links in reading order, column by column (Home and End as well), and Tab moves through them as usual. Each pillar's list is labelled by its heading. Escape closes it and puts focus back on the button.
 - **Closing:** the button, Escape, any link, a click outside it, focus leaving it, or the screen shrinking to a phone.
-- **Colours:** the button is a header part, so it recolours with the links over light and dark fields; the panel stays Paper.
+- **Colours:** the button is a header part, so it recolours with the links over light and dark fields; the panel stays Paper. The Products button is underlined on a product page; For teams and Pricing underline their own links.
 
 ## The header on a phone
 
-Up to 720px the links and the Reserve button move into a sheet. The bar keeps the wordmark and a Menu button (44px). The sheet is full width, solid Paper, under the bar: every tool and All products as 56px rows with a hairline, the Reserve button at full width, then How it works, Pricing, Brand, Terms and Privacy. Focus stays inside it (the Menu button included) while it is open; Escape, the button, any link in it, or the screen growing past 720px closes it, and the page behind does not scroll.
+Up to 720px the links and the Reserve button move into a sheet. The bar keeps the wordmark and a Menu button (44px). The sheet is full width, solid Paper, and starts under the bar (which turns opaque Paper while it is open), so nothing ever scrolls under the logo or Close. It fits one 390 by 844 screen without scrolling: Your Orbe as the one large lead link, then the four pillars, each a compact mono heading with its short line and its tools two to a row (18px, 44px rows), then the Reserve button at full height, then one quiet row of How it works, For teams, Pricing and All products. Brand, Terms and Privacy live in the footer. Focus stays inside the sheet (the Menu button included) while it is open; Escape, the button, any link in it, or the screen growing past 720px closes it, and the page behind does not scroll.
+
+## The footer
+
+One compact column per pillar (Grow, Earn, Protect, Teams), then Orbe (Reserve your handle, How it works, All products, Pricing, Brand) and Legal: six columns beside the mark on a desktop, three on a tablet, two on a phone.
 
 ## How the header picks its colours
 

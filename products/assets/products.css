@@ -425,12 +425,39 @@ iframe.doc.is-in { outline: 2px solid var(--orbe-cobalt); outline-offset: -2px; 
 .proof-parts { display: flex; gap: 4px 16px; flex-wrap: wrap; font-size: var(--ob-t12); min-height: 18px; }
 .proof-parts b { font-weight: 600; }
 .proof-cap { min-height: 4.35em; }
-.tools-h { margin-bottom: 24px; }
+.tools-h { margin-bottom: 16px; }
+/* the hub: Orbe's four pillars, each a heading with one line, then its tools */
+.pillar-jump { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 8px; font: 500 var(--ob-t12)/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.pillar-jump a { display: inline-flex; align-items: center; min-height: 32px; color: var(--orbe-ink); text-underline-offset: 4px; border-radius: 4px; }
+.pillar { padding-top: 24px; margin-top: 24px; border-top: 1px solid var(--rule-strong); scroll-margin-top: calc(var(--ob-head) + 8px); }
+.pillar-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--ob-gap); align-items: baseline; margin-bottom: 16px; }
+.pillar-h { grid-column: 1 / span 3; font: 400 var(--ob-t32)/1.1 var(--font-display); letter-spacing: -0.02em; }
+.pillar-p { grid-column: 4 / -1; font-size: var(--ob-t16); line-height: 1.5; max-width: 60ch; color: var(--orbe-graphite); }
 .tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ob-gap); }
-.tool-wide { grid-column: 1 / -1; }
-.tool.tool-wide .ob-win-body { min-height: 0; }
-@media (max-width: 1023px) { .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .tools { grid-template-columns: minmax(0, 1fr); } }
+.pillar[data-n="4"] .tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pillar[data-n="2"] .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Grow leads with Your Orbe, the home: two columns wide and two cards tall */
+.tool-lead { grid-column: span 2; grid-row: span 2; }
+.tool.tool-lead .ob-says { font-size: var(--ob-t32); }
+.tool.tool-lead .ob-note { font-size: var(--ob-t18); max-width: 34ch; }
+.lead-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: auto 0 0; padding: 16px 0 0; list-style: none; }
+.lead-list li { padding-top: 10px; border-top: 1px solid var(--rule-strong); font-size: var(--ob-t14); line-height: 1.45; }
+.lead-list b { display: block; font: 400 var(--ob-t18)/1.3 var(--font-display); }
+.tool-lead .ob-chips { margin-top: 0; }
+@media (max-width: 640px) { .lead-list { grid-template-columns: minmax(0, 1fr); gap: 8px; } .lead-list li { padding-top: 6px; } }
+@media (max-width: 1279px) { .pillar[data-n="4"] .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1023px) {
+  .tools, .pillar[data-n] .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tool-lead { grid-column: 1 / -1; grid-row: auto; }
+  .tool.tool-lead .ob-win-body { min-height: 0; }
+  .pillar[data-n="3"] .tool:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .pillar-h { grid-column: 1 / -1; font-size: var(--ob-t24); }
+  .pillar-p { grid-column: 1 / -1; font-size: var(--ob-t14); margin-top: 4px; }
+  .pillar { padding-top: 20px; margin-top: 20px; }
+}
+@media (max-width: 640px) { .tools, .pillar[data-n] .tools { grid-template-columns: minmax(0, 1fr); } .pillar[data-n="3"] .tool:last-child:nth-child(odd) { grid-column: auto; } }
 .tool .ob-win-body { gap: 8px; padding: 20px; min-height: 196px; }
 .tool .ob-says { font: 400 var(--ob-t24)/1.15 var(--font-display); letter-spacing: -0.02em; }
 .tool .ob-says a { text-decoration: none; }
