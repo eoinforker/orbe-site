@@ -6,8 +6,9 @@
   plausibility model): it checks the input against its JSON Schema, shapes
   it into what the engine takes, and labels what comes back. No new maths.
 
-  The engine is passed in rather than imported, and this file has only type
-  imports, so the same code runs in two places: the MCP server on Node
+  The engine is passed in rather than imported, and the only value this file
+  imports is the rating label (build.ts points it at assets/engine for the
+  browser), so the same code runs in two places: the MCP server on Node
   (engine.ts hands it the TypeScript modules) and the developers page in the
   browser (a type-stripped copy, site/developers/tools.js, handed the compiled
   modules in site/assets/engine). build.ts writes that copy; a test fails if
@@ -19,6 +20,7 @@
 */
 
                                                                                      
+import { RATING_LABEL } from "../assets/engine/rating/label.js";
                                                           
                                                          
                                                             
@@ -82,7 +84,7 @@
   
 
 /** Word for word on every result. */
-export const ATTRIBUTION = "Independently calculated by Orbe.";
+export const ATTRIBUTION = `${RATING_LABEL}.`;
 
 /** On every result built from figures the caller typed. */
 export const SUPPLIED_NOTE = "Built from figures you supplied. Orbe did not read them at source, so they are not verified.";
