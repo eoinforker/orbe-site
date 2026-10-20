@@ -80,12 +80,12 @@ function rowMarkup(kind, i, v = {}) {
   const ms = metricsFor(kind);
   return `<div class="panel" style="padding:12px" data-row>
     <div class="fields cols2">
-      <label class="field"><span>Title</span><input class="input" data-f="title" value="${esc(v.title ?? "")}" placeholder="Work ${i + 1}"></label>
-      <label class="field"><span>Published</span><input class="input" type="date" data-f="date" value="${esc(v.date ?? "")}"></label>
-      ${HAS_LENGTH[kind] ? `<label class="field"><span>Length, minutes</span><input class="input" type="number" min="0" step="any" inputmode="decimal" data-f="minutes" value="${esc(v.minutes ?? "")}"></label>` : ""}
-      ${ms.map((m) => `<label class="field"><span>${esc(m.name)}${m.unit === "ratio" ? ", %" : m.unit === "minor_units" ? ", £" : ""}</span><input class="input" type="number" min="0" step="any" inputmode="decimal" data-m="${m.key}" data-unit="${m.unit}" value="${esc(v[m.key] ?? "")}"></label>`).join("")}
+      <label class="field"><span>Title</span><input class="ob-input" data-f="title" value="${esc(v.title ?? "")}" placeholder="Work ${i + 1}"></label>
+      <label class="field"><span>Published</span><input class="ob-input" type="date" data-f="date" value="${esc(v.date ?? "")}"></label>
+      ${HAS_LENGTH[kind] ? `<label class="field"><span>Length, minutes</span><input class="ob-input" type="number" min="0" step="any" inputmode="decimal" data-f="minutes" value="${esc(v.minutes ?? "")}"></label>` : ""}
+      ${ms.map((m) => `<label class="field"><span>${esc(m.name)}${m.unit === "ratio" ? ", %" : m.unit === "minor_units" ? ", £" : ""}</span><input class="ob-input" type="number" min="0" step="any" inputmode="decimal" data-m="${m.key}" data-unit="${m.unit}" value="${esc(v[m.key] ?? "")}"></label>`).join("")}
     </div>
-    <div class="btns" style="margin-top:8px"><button class="btn btn-ghost btn-sm" type="button" data-remove>Remove</button></div>
+    <div class="btns" style="margin-top:8px"><button class="ob-btn ob-btn--light ob-btn--s" type="button" data-remove>Remove</button></div>
   </div>`;
 }
 function resetRows(kind, n = 3) {
@@ -270,7 +270,7 @@ function warnings(list) {
 }
 
 function keptLine(el, key, focus = false) {
-  el.innerHTML = `<p class="ask-done" tabindex="-1"><span class="state good">Kept on this device</span><span>Your last file is in this browser only. Rate a newer export after your next post to see new bests.</span><button class="btn btn-ghost btn-sm" type="button" data-forget>Forget it</button></p>`;
+  el.innerHTML = `<p class="ask-done" tabindex="-1"><span class="state good">Kept on this device</span><span>Your last file is in this browser only. Rate a newer export after your next post to see new bests.</span><button class="ob-btn ob-btn--light ob-btn--s" type="button" data-forget>Forget it</button></p>`;
   if (focus) el.firstElementChild.focus({ preventScroll: true });
   $("[data-forget]", el).addEventListener("click", () => {
     try { localStorage.removeItem(key); } catch {}

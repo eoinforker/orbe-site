@@ -58,7 +58,7 @@ function recordCell(r) {
 }
 
 /* ---------------------------------------------------------------- the table */
-const thead = $("[data-head]");
+const thead = $("[data-thead]");
 const tbody = $("[data-body]");
 const sortSel = $("[data-f-sort]");
 sortSel.innerHTML = COLS.flatMap((c) => (c.num || c.key === "name" || c.key === "record" || c.key === "size"
@@ -147,19 +147,19 @@ function detail(r) {
       <div><p class="d-k mono">${esc(k.label)} ${esc(k.noun)}, made up. ${esc(r.handle)}, ${count(r.audience)} ${esc(R.sizeBand.split(" ").pop())}</p>
         <p class="d-big"><span class="disp">${esc(R.signed)}</span> <span class="band-w">${esc(R.band)}</span></p>
         <p class="small">Zero is typical for ${esc(R.peers)} with ${esc(R.sizeBand.replace(/^(Under|Over)/, (w) => w.toLowerCase()))}. ${esc(RATING_LABEL)}.</p></div>
-      <div class="pitch"><p class="pitch-k mono">For a pitch email</p><p class="pitch-line">${esc(line)}</p><button type="button" class="btn btn-sm" data-copy="${esc(line)}">${copyLabel("Copy the line")}</button></div>
+      <div class="pitch"><p class="pitch-k mono">For a pitch email</p><p class="pitch-line">${esc(line)}</p><button type="button" class="ob-btn ob-btn--light ob-btn--s" data-copy="${esc(line)}">${copyLabel("Copy the line")}</button></div>
     </div>
     <div class="d-grid">
-      <section class="win" data-pair="note" aria-label="The rating's parts"><div class="win-bar"><h4 class="win-title">rating_parts.txt</h4><span class="win-ctl"><span class="win-tag">Of 100 their size</span></span></div>
-        <div class="win-body"><ul class="parts">${R.parts.map((p) => `<li><span class="p-n">${esc(p.name)}</span><span class="p-v">${esc(p.value)}</span><span class="p-t" aria-hidden="true"><i style="width:${Math.max(2, p.score)}%"></i><b class="p-mid"></b></span><span class="p-s">beats <b>${p.score}</b> in 100</span><span class="p-w">${esc(p.what)}</span></li>`).join("")}</ul>
+      <section class="ob-win" data-head="light" data-pair="note" aria-label="The rating's parts"><div class="ob-win-bar"><h4 class="ob-win-title">rating_parts.txt</h4><span class="ob-win-ctl"><span class="ob-win-tag">Of 100 their size</span></span></div>
+        <div class="ob-win-body"><ul class="parts">${R.parts.map((p) => `<li><span class="p-n">${esc(p.name)}</span><span class="p-v">${esc(p.value)}</span><span class="p-t" aria-hidden="true"><i style="width:${Math.max(2, p.score)}%"></i><b class="p-mid"></b></span><span class="p-s">beats <b>${p.score}</b> in 100</span><span class="p-w">${esc(p.what)}</span></li>`).join("")}</ul>
         ${R.unavailable?.length ? `<p class="small">Set aside, no figures: ${esc(R.unavailable.map((u) => u.name ?? u.key ?? u).join(", "))}.</p>` : ""}
         <p class="small">Model ${esc(R.modelVersion)}${R.provisional ? ", on provisional priors" : ""}. The middle mark is typical.</p></div></section>
-      <section class="win" data-pair="note" aria-label="The last twelve works"><div class="win-bar"><h4 class="win-title">last_twelve.txt</h4><span class="win-ctl"><span class="win-tag">Against their typical</span></span></div>
-        <div class="win-body">${twelve(r)}</div></section>
-      <section class="win" data-pair="spon" aria-label="Rate card"><div class="win-bar"><h4 class="win-title">rate_card.txt</h4><span class="win-ctl"><span class="win-tag">Sponsor engine</span></span></div>
-        <div class="win-body">${card(r)}</div></section>
-      <section class="win" data-pair="rec" aria-label="The Record"><div class="win-bar"><h4 class="win-title">record.txt</h4><span class="win-ctl"><span class="win-tag">Record engine</span></span></div>
-        <div class="win-body">${record(r)}</div></section>
+      <section class="ob-win" data-head="light" data-pair="note" aria-label="The last twelve works"><div class="ob-win-bar"><h4 class="ob-win-title">last_twelve.txt</h4><span class="ob-win-ctl"><span class="ob-win-tag">Against their typical</span></span></div>
+        <div class="ob-win-body">${twelve(r)}</div></section>
+      <section class="ob-win" data-head="light" data-pair="spon" aria-label="Rate card"><div class="ob-win-bar"><h4 class="ob-win-title">rate_card.txt</h4><span class="ob-win-ctl"><span class="ob-win-tag">Sponsor engine</span></span></div>
+        <div class="ob-win-body">${card(r)}</div></section>
+      <section class="ob-win" data-head="light" data-pair="rec" aria-label="The Record"><div class="ob-win-bar"><h4 class="ob-win-title">record.txt</h4><span class="ob-win-ctl"><span class="ob-win-tag">Record engine</span></span></div>
+        <div class="ob-win-body">${record(r)}</div></section>
     </div>
     <p class="d-foot small">${esc(r.name)} chose to share: ${[r.shown.rating && "the rating", r.shown.prices && "prices", r.shown.record && "the Record"].filter(Boolean).join(", ")}. They can leave this roster at any time. <button type="button" class="link-btn" data-leave="${esc(r.id)}">See what happens when a creator leaves</button></p>
   </div>`;

@@ -10,9 +10,9 @@ const vf = $("[data-val-form]");
 const STREAMS = ["ads", "sponsorship", "subscriptions", "memberships", "products", "licensing", "tips", "other"];
 const STREAM_NAME = { ads: "Ads", sponsorship: "Sponsorship", subscriptions: "Subscriptions", memberships: "Memberships", products: "Products", licensing: "Licensing", tips: "Tips", other: "Other" };
 const streamRow = (v = {}) => `<div class="fields cols3 stream-row" data-stream style="align-items:end">
-  <label class="field"><span>Stream</span><select class="input" data-s="stream">${STREAMS.map((s) => `<option value="${s}"${s === v.stream ? " selected" : ""}>${STREAM_NAME[s]}</option>`).join("")}</select></label>
-  <label class="field"><span>£ a month</span><input class="input" type="number" min="0" step="10" data-s="amount" value="${esc(v.amount ?? "")}"></label>
-  <label class="field"><span>Main payer (optional)</span><input class="input" data-s="who" value="${esc(v.who ?? "")}" placeholder="e.g. a sponsor"></label>
+  <label class="field"><span>Stream</span><select class="ob-input" data-s="stream">${STREAMS.map((s) => `<option value="${s}"${s === v.stream ? " selected" : ""}>${STREAM_NAME[s]}</option>`).join("")}</select></label>
+  <label class="field"><span>£ a month</span><input class="ob-input" type="number" min="0" step="10" data-s="amount" value="${esc(v.amount ?? "")}"></label>
+  <label class="field"><span>Main payer (optional)</span><input class="ob-input" data-s="who" value="${esc(v.who ?? "")}" placeholder="e.g. a sponsor"></label>
 </div>`;
 const streamsEl = $("[data-streams]");
 streamsEl.innerHTML = streamRow({ stream: "ads" }) + streamRow({ stream: "sponsorship" });
@@ -95,7 +95,7 @@ function valueIt({ kind, declared, margin, face, pasted, sample = false }) {
   const FACTOR = { base: "Starting multiple", verification: "Verification", diversification: "Spread of streams", face: "Needs you", history: "History", growth: "Growth", concentration: "One big payer", size: "Size" };
   $("[data-val-out]").innerHTML = `<div class="panel stack">
       <p class="small" style="margin:0">${sample ? "A made-up example. " : ""}Indicative. Confidence ${esc(v.confidence)}.</p>
-      ${v.range ? `<p class="big num" style="font-size:clamp(40px,9vw,72px)">${esc(money(v.range.low))} to ${esc(money(v.range.high))}</p>
+      ${v.range ? `<p class="big num big-m">${esc(money(v.range.low))} to ${esc(money(v.range.high))}</p>
         <p class="small">${v.multiples.low}× to ${v.multiples.high}× a year's profit, centred on ${v.multiples.centre}×.</p>` : `<p class="h2">No range</p>`}
       ${sample ? `<div class="sample"><span><b>A made-up YouTube channel:</b> ads, a sponsor and memberships, £${(EXAMPLE.streams.reduce((t, x) => t + x.amount, 0)).toLocaleString("en-GB")} a month at a ${margin}% margin. Shown until you value your own: enter your revenue and press Value it.</span></div>` : ""}
       <dl class="dl"><dt>Revenue, last twelve months${v.annualised ? " (annualised)" : ""}</dt><dd>${esc(money(v.ttmRevenue))}</dd><dt>Profit</dt><dd>${esc(money(v.ttmProfit))}</dd><dt>Verified share</dt><dd>${pct(v.verifiedShare)}</dd><dt>Growth</dt><dd>${v.growth === null ? "n/a" : pct(v.growth)}</dd><dt>Largest stream</dt><dd>${pct(v.largestStreamShare)}</dd></dl>
@@ -132,8 +132,8 @@ function fees() {
   const fee = s.successFee;
   const prem = s.buyerPremium;
   out.innerHTML = `<div class="grid two">
-      <div class="panel stack"><p class="small">The seller receives</p><p class="big num" style="font-size:40px">${esc(money(s.sellerReceives))}</p><p class="small">The price less Orbe's fee${f.vat.checked ? " and its VAT" : ""} and half the escrow fee.</p></div>
-      <div class="panel stack"><p class="small">The buyer pays in</p><p class="big num" style="font-size:40px">${esc(money(s.buyerPays))}</p><p class="small">The price, the buyer's premium${f.vat.checked ? " and its VAT" : ""}, and half the escrow fee.</p></div>
+      <div class="panel stack"><p class="small">The seller receives</p><p class="big num big-s">${esc(money(s.sellerReceives))}</p><p class="small">The price less Orbe's fee${f.vat.checked ? " and its VAT" : ""} and half the escrow fee.</p></div>
+      <div class="panel stack"><p class="small">The buyer pays in</p><p class="big num big-s">${esc(money(s.buyerPays))}</p><p class="small">The price, the buyer's premium${f.vat.checked ? " and its VAT" : ""}, and half the escrow fee.</p></div>
     </div>
     ${fold("The working", `success fee ${esc(money(fee.fee))}${prem ? `, premium ${esc(money(prem.fee))}` : ""}`, `    <div class="stack">
       <h3 class="h3">Seller's success fee: ${esc(money(fee.fee))} (${bps(fee.effectiveRateBps)} effective)</h3>

@@ -1,7 +1,0 @@
-@import "_base.css";
-@font-face { font-family: "C Schibsted"; src: url("../../fonts/schibsted-grotesk/schibsted-grotesk-latin-wght-normal.woff2") format("woff2"); font-weight: 400 900; font-display: block; }
-@font-face { font-family: "C Literata"; src: url("../../fonts/literata/literata-latin-opsz-normal.woff2") format("woff2"); font-weight: 200 900; font-display: block; }
-@font-face { font-family: "C Literata"; src: url("../../fonts/literata/literata-latin-opsz-italic.woff2") format("woff2"); font-weight: 200 900; font-style: italic; font-display: block; }
-@font-face { font-family: "C Fragment"; src: url("../../fonts/fragment-mono/fragment-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; }
-:root { --sans: "C Schibsted", sans-serif; --serif: "C Literata", serif; --mono: "C Fragment", monospace;
-  --disp-w: 450; --h1-tr: -0.04em; --h2-tr: -0.035em; --it-w: 380; --it-tr: -0.03em; --fig-big-w: 400; --fig-big-tr: -0.04em; --fig: "C Schibsted", sans-serif; --plain-fs: 20px; --plain-lh: 1.45; }

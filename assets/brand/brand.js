@@ -21,7 +21,7 @@ export const COLOURS = {
   sky: "#9EE9FB", cobalt: "#1F4BFF", ink: "#141311", paper: "#F3F0E8", ember: "#FF5A1F",
   peony: "#F2879E", claret: "#6F1726",
   chalk: "#FBFAF6", linen: "#E7E2D7", mist: "#D6F6FD", blush: "#FBD9E0",
-  soot: "#2A2824", graphite: "#5D584F", stone: "#A29E95",
+  soot: "#2A2824", graphite: "#45413A", stone: "#A29E95",
   meadow: "#8E9A4A", ochre: "#C9A84C", straw: "#EED56A", grove: "#262B12", water: "#4D9AD0", dawn: "#F2A58E",
 };
 

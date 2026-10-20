@@ -1,0 +1,515 @@
+/*
+  Orbe, the shared system. One file every page can adopt, after the brand tokens:
+
+    <link rel="stylesheet" href="../assets/fonts.css">
+    <link rel="stylesheet" href="../assets/brand/tokens.css">
+    <link rel="stylesheet" href="../assets/orbe/orbe.css">
+    <body class="ob-page ob-grain">
+
+  Everything here is built from the --orbe-* palette in tokens.css. Classes and
+  tokens carry the ob- prefix, so this file can sit beside the older
+  components.css (.o-*) while a page moves across. The guide: README.md here.
+
+  widths   phone to 720, tablet 721 to 1023, desktop 1024 to 1439, wide from 1440,
+           where the content stops growing (1328px) and centres
+  grid     12 columns, 24px gap (16px on a phone)
+  gutter   16px on a phone, then fluid from 32px at 768 to 56px at 1440 (--ob-g);
+           --ob-edge is the gutter plus whatever the cap leaves at the sides
+  rhythm   --ob-sec, the space between sections: 48, 64, then 80 from 1024
+  space    4 8 12 16 24 32 48 64
+  type     12 14 16 18 24 32 48, then four fluid roles (title, head, hero, figure)
+           and giant: 12 sizes, nothing under 12px. The fluid ones grow between
+           390 and 1440 and stop there, as every.to's do
+  touch    every control is at least 44px tall under a coarse pointer, by its
+           own height or by a hit area (.ob-hit) that reaches past its edges
+  radii    4 (fields, chips' corners, small controls), 8 (buttons, cards inside windows),
+           12 (windows and bands), and the pill (status chips, the orb)
+  easing   one: cubic-bezier(0.6, 0.04, 0.3, 1), no overshoot
+  shadow   one soft stack (--ob-lift), and a slightly deeper one for a held window
+*/
+:root {
+  --ob-ease: cubic-bezier(0.6, 0.04, 0.3, 1);
+  --ob-t12: 0.75rem; --ob-t14: 0.875rem; --ob-t16: 1rem; --ob-t18: 1.125rem; --ob-t24: 1.5rem; --ob-t32: 2rem; --ob-t48: 3rem;
+  /* fluid roles: a page title, a section head */
+  --ob-t-title: clamp(2rem, 1.2rem + 2.45vw, 3.25rem);
+  --ob-t-head: clamp(1.5rem, 1.15rem + 1.05vw, 2.125rem);
+  --ob-t-hero: clamp(2.5rem, 0.4rem + 8.6vw, 8rem);
+  --ob-t-figure: clamp(4.5rem, 3rem + 2.8vw, 7rem);
+  --ob-t-giant: clamp(3.5rem, 1rem + 6.4vw, 8rem);
+  --ob-g: clamp(32px, 0.29rem + 3.57vw, 56px);
+  --ob-max: 1328px;
+  /* the gutter, or more where the cap leaves room: use it for a full-bleed band's sides */
+  --ob-edge: max(var(--ob-g), calc((100% - var(--ob-max)) / 2));
+  --ob-gap: 24px;
+  --ob-sec: 80px;
+  --ob-head: 64px;
+  --ob-win-row: 36px;
+  /* the contextual ink: a window's colour pair re-points these, and everything inside follows */
+  --ob-ink: var(--orbe-ink);
+  --ob-ink-soft: var(--orbe-graphite);
+  /* a stack of very soft shadows: no offset block, no glow */
+  --ob-lift: 0 0.5px 0.5px rgba(20, 19, 17, 0.1), 0 1px 1px rgba(20, 19, 17, 0.06), 0 2px 2px rgba(20, 19, 17, 0.04), 0 4px 4px rgba(20, 19, 17, 0.025), 0 6px 6px rgba(20, 19, 17, 0.01);
+  --ob-lift-held: 0 0.5px 0.5px rgba(20, 19, 17, 0.12), 0 2px 2px rgba(20, 19, 17, 0.07), 0 4px 4px rgba(20, 19, 17, 0.05), 0 6px 6px rgba(20, 19, 17, 0.04), 0 12px 12px rgba(20, 19, 17, 0.02);
+  /* a well-drawn arrow: two strokes, round ends */
+  --ob-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6h8M6.5 2.5 10 6l-3.5 3.5'/%3E%3C/svg%3E");
+  /* paper grain: fractal noise, tinted ink, at a few percent */
+  --ob-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* the tactile grain for coloured fields: coarser, a little stronger, laid under the words */
+  --ob-grit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+
+  /*
+    One colour pair per product: a field, its words, its light (top left) and
+    its shade (lower right), kept close so the words keep their contrast.
+    Body text: note 16.3, sponsorships 12.7, selling 5.6, record 6.05,
+    podcasts 4.78, also 13.7 (all to 1).
+  */
+  --ob-p-note-bg: var(--orbe-paper);   --ob-p-note-fg: var(--orbe-ink);
+  --ob-p-spon-bg: var(--orbe-straw);   --ob-p-spon-fg: var(--orbe-ink);
+  --ob-p-sell-bg: var(--action-press); --ob-p-sell-fg: var(--orbe-straw);
+  --ob-p-rec-bg: var(--orbe-sky);      --ob-p-rec-fg: var(--action-press);
+  --ob-p-pod-bg: var(--orbe-peony);    --ob-p-pod-fg: var(--orbe-claret);
+  --ob-p-also-bg: var(--orbe-ink);     --ob-p-also-fg: var(--orbe-sky);
+  --ob-p-note-lt: var(--orbe-chalk);   --ob-p-note-dk: color-mix(in srgb, var(--orbe-paper) 70%, var(--orbe-linen));
+  --ob-p-spon-lt: color-mix(in srgb, var(--orbe-straw) 55%, var(--orbe-chalk)); --ob-p-spon-dk: color-mix(in srgb, var(--orbe-straw) 78%, var(--orbe-ochre));
+  --ob-p-sell-lt: color-mix(in srgb, var(--action-press) 86%, var(--orbe-cobalt)); --ob-p-sell-dk: color-mix(in srgb, var(--action-press) 84%, var(--orbe-ink));
+  --ob-p-rec-lt: color-mix(in srgb, var(--orbe-sky) 50%, var(--orbe-chalk)); --ob-p-rec-dk: color-mix(in srgb, var(--orbe-sky) 80%, var(--orbe-water));
+  --ob-p-pod-lt: color-mix(in srgb, var(--orbe-peony) 62%, var(--orbe-blush)); --ob-p-pod-dk: color-mix(in srgb, var(--orbe-peony) 86%, var(--orbe-claret));
+  --ob-p-also-lt: color-mix(in srgb, var(--orbe-ink) 84%, var(--orbe-graphite)); --ob-p-also-dk: var(--orbe-ink);
+
+  /* the pointer trail's colours: a section, or any element, sets its own three */
+  --ob-trail: var(--orbe-sky) var(--orbe-straw) var(--orbe-peony);
+}
+@media (max-width: 1023px) { :root { --ob-sec: 64px; } }
+@media (max-width: 720px) { :root { --ob-g: 16px; --ob-gap: 16px; --ob-head: 56px; --ob-sec: 48px; } }
+
+/* ---------------------------------------------------------------- the page: Paper, one grain */
+.ob-page, .ob-page * { box-sizing: border-box; }
+html:has(.ob-page) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html:has(.ob-page) { scroll-behavior: auto; } }
+.ob-page {
+  margin: 0; background: var(--orbe-paper); color: var(--ob-ink);
+  font-family: var(--font-text); font-size: var(--ob-t16); line-height: 1.5;
+  font-feature-settings: "lnum" 1; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+.ob-page :where(h1, h2, h3, h4, p, dl, dd, ul, ol, figure) { margin: 0; padding: 0; }
+.ob-page :where(ul, ol) { list-style: none; }
+.ob-page :where(a) { color: inherit; }
+/* anything you can press says so, everywhere */
+.ob-page :where(a[href], button:not(:disabled), summary, select, label[for], input[type="range"], [role="button"]) { cursor: pointer; }
+/* anchors land below the fixed header */
+.ob-page [id] { scroll-margin-top: calc(var(--ob-head) + 16px); }
+
+/* one grain for the whole page, coloured fields included: fixed, multiplied, never in the way */
+.ob-grain::after {
+  content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none;
+  background-image: var(--ob-grain); background-size: 220px 220px; mix-blend-mode: multiply;
+}
+@media (prefers-reduced-transparency: reduce) { .ob-grain::after { display: none; } }
+
+/* gradient light on a field: a little lighter at the top left, a touch deeper toward the lower right, grain under the words */
+.ob-lit {
+  --ob-field: var(--orbe-sky);
+  --ob-field-lt: color-mix(in srgb, var(--ob-field) 62%, var(--orbe-chalk));
+  --ob-field-dk: color-mix(in srgb, var(--ob-field) 84%, var(--orbe-water));
+  background-color: var(--ob-field);
+  background-image:
+    var(--ob-grit),
+    radial-gradient(70% 80% at 14% 10%, var(--ob-field-lt) 0%, transparent 72%),
+    radial-gradient(60% 70% at 96% 104%, var(--ob-field-dk) 0%, transparent 70%);
+  background-size: 180px 180px, 100% 100%, 100% 100%;
+}
+.ob-lit-cobalt {
+  --ob-field: var(--orbe-cobalt);
+  --ob-field-lt: color-mix(in srgb, var(--orbe-cobalt) 90%, var(--orbe-sky));
+  --ob-field-dk: var(--action-press);
+}
+
+/* content that sits above the pointer trail: the trail draws over fields, under this */
+.ob-layer { position: relative; z-index: 2; }
+
+/* ---------------------------------------------------------------- reading aids and focus */
+.ob-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ob-skip { position: fixed; left: 16px; top: -60px; background: var(--orbe-ink); color: var(--orbe-chalk); padding: 10px 14px; border-radius: 4px; z-index: 40; font-size: var(--ob-t14); }
+.ob-skip:focus { top: 12px; }
+.ob-page :focus { outline: none; }
+.ob-page :focus-visible { outline: 2px solid var(--ob-focus, var(--orbe-cobalt)); outline-offset: 3px; border-radius: 2px; }
+
+/* ---------------------------------------------------------------- the type ladder */
+.ob-display { font: 500 var(--ob-t-hero)/0.86 var(--font-display); letter-spacing: -0.04em; }
+.ob-giant { font: 500 var(--ob-t-giant)/0.95 var(--font-display); letter-spacing: -0.045em; text-wrap: balance; }
+.ob-figure { font: 500 var(--ob-t-figure)/0.9 var(--font-display); letter-spacing: -0.04em; white-space: nowrap; }
+/* two tones: a softer first line, then the claim in Ink */
+.ob-h2 { font: 400 var(--ob-t-head)/1.18 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+/* a page's title: the same two tones, one size larger, on every band */
+.ob-title { font: 500 var(--ob-t-title)/1.04 var(--font-display); letter-spacing: -0.035em; text-wrap: balance; }
+.ob-h2-soft { display: block; color: var(--orbe-graphite); }
+.ob-h3 { font: 400 var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.ob-lede { font-size: var(--ob-t18); line-height: 28px; max-width: 48ch; text-wrap: pretty; }
+.ob-says { font: 500 var(--ob-t16)/1.35 var(--font-text); }
+.ob-note { font-size: var(--ob-t14); line-height: 1.45; color: var(--ob-ink-soft); max-width: 46ch; }
+.ob-note a { color: var(--ob-ink); text-underline-offset: 3px; }
+.ob-note a:hover { text-decoration-thickness: 2px; }
+.ob-k { font: 500 var(--ob-t14)/1.4 var(--font-text); }
+/* stage directions: a few mono cues where something can be moved or picked */
+.ob-cue { font: 500 var(--ob-t12)/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--orbe-graphite); white-space: nowrap; }
+.ob-mono { font-family: var(--font-mono); font-feature-settings: "tnum" 1; }
+@media (max-width: 720px) {
+  .ob-lede { font-size: var(--ob-t16); line-height: 24px; }
+}
+
+/* ---------------------------------------------------------------- buttons: one family
+  Primary: an Ink gradient, a hairline of light on its top edge, the soft
+  stack, and the orb, filled to its middle (zero is typical), full on hover.
+  Light: the same on a dark field, Chalk to Paper. Secondary: words and the
+  outlined orb with its arrow. Hover lifts the top light a touch; press
+  drops the button 1px. Nothing glossy, nothing that glows.
+*/
+.ob-btn {
+  --ob-orb: var(--orbe-sky);
+  --ob-btn-top: color-mix(in srgb, var(--orbe-ink) 82%, var(--orbe-graphite));
+  --ob-btn-bottom: var(--orbe-ink);
+  --ob-btn-edge: rgba(251, 250, 246, 0.12);
+  --ob-btn-ring: var(--orbe-ink);
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: 48px; padding: 0 22px 0 20px;
+  font: 500 var(--ob-t16)/1 var(--font-text); color: var(--orbe-chalk);
+  background: linear-gradient(180deg, var(--ob-btn-top), var(--ob-btn-bottom));
+  border: 0; border-radius: 8px; text-decoration: none; cursor: pointer; white-space: nowrap;
+  box-shadow: inset 0 1px 0 var(--ob-btn-edge), 0 0 0 1px var(--ob-btn-ring), var(--ob-lift);
+  transition: box-shadow 160ms var(--ob-ease), transform 160ms var(--ob-ease), color 160ms var(--ob-ease);
+}
+.ob-btn:hover { --ob-btn-edge: rgba(251, 250, 246, 0.2); --ob-btn-top: color-mix(in srgb, var(--orbe-ink) 74%, var(--orbe-graphite)); }
+.ob-btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 var(--ob-btn-edge), 0 0 0 1px var(--ob-btn-ring); }
+.ob-btn:focus-visible { outline-color: var(--orbe-ink); }
+.ob-orb {
+  flex: none; width: 10px; height: 10px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--ob-orb);
+  background: linear-gradient(var(--ob-orb), var(--ob-orb)) bottom / 100% 50% no-repeat;
+  transition: background-size 220ms var(--ob-ease);
+}
+.ob-btn:hover .ob-orb, .ob-btn:focus-visible .ob-orb { background-size: 100% 100%; }
+.ob-btn--light {
+  --ob-orb: var(--orbe-cobalt);
+  --ob-btn-top: var(--orbe-chalk);
+  --ob-btn-bottom: var(--orbe-paper);
+  --ob-btn-edge: rgba(255, 255, 255, 0.9);
+  --ob-btn-ring: rgba(20, 19, 17, 0.14);
+  color: var(--orbe-ink);
+}
+.ob-btn--light:hover { --ob-btn-top: #FFFFFF; --ob-btn-edge: #FFFFFF; }
+.ob-btn--light:focus-visible { outline-color: var(--orbe-chalk); }
+.ob-btn--s { height: 40px; gap: 10px; padding: 0 16px 0 14px; font-size: var(--ob-t14); }
+.ob-btn--s .ob-orb { width: 9px; height: 9px; }
+/* the secondary: a label and an outlined orb holding an arrow; the orb fills on hover */
+.ob-btn-q {
+  --ob-q-on: var(--orbe-sky);
+  display: inline-flex; align-items: center; gap: 12px; height: 48px; font: 500 var(--ob-t16)/1 var(--font-text);
+  color: var(--orbe-ink); text-decoration: none; white-space: nowrap; border-radius: 4px;
+}
+.ob-q { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; transition: background-color 200ms var(--ob-ease); }
+.ob-q::before {
+  content: ""; width: 12px; height: 12px; background: currentColor; transition: background-color 200ms var(--ob-ease), transform 450ms var(--ob-ease);
+  -webkit-mask: var(--ob-arrow) center / 100% no-repeat; mask: var(--ob-arrow) center / 100% no-repeat;
+}
+.ob-q--down::before { transform: rotate(90deg); }
+.ob-q--up::before { transform: rotate(-90deg); }
+.ob-btn-q:hover .ob-q { background: currentColor; }
+.ob-btn-q:hover .ob-q::before { background: var(--ob-q-on); }
+.ob-btn-q:hover .ob-q:not(.ob-q--down):not(.ob-q--up)::before { transform: translateX(2px); }
+.ob-btn-q:hover .ob-q--down::before { transform: rotate(90deg) translateX(2px); }
+.ob-btn-q:hover .ob-q--up::before { transform: rotate(-90deg) translateX(2px); }
+.ob-btn-q--light { color: var(--orbe-chalk); --ob-q-on: var(--orbe-cobalt); }
+
+/* ---------------------------------------------------------------- links: an underline and a small arrow, nothing boxed */
+.ob-lnk {
+  display: inline-flex; align-items: center; gap: 7px; font: 500 var(--ob-t16)/1.2 var(--font-text); color: var(--ob-ink);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; white-space: nowrap;
+}
+.ob-lnk::after {
+  content: ""; flex: none; width: 12px; height: 12px; background: currentColor;
+  -webkit-mask: var(--ob-arrow) center / 100% no-repeat; mask: var(--ob-arrow) center / 100% no-repeat;
+  transition: transform 160ms var(--ob-ease);
+}
+.ob-lnk:hover { text-decoration-thickness: 2px; }
+.ob-lnk:hover::after { transform: translateX(2px); }
+.ob-lnk--s { display: inline; font-size: var(--ob-t14); font-weight: 600; text-underline-offset: 3px; }
+.ob-lnk--s::after { display: inline-block; width: 10px; height: 10px; margin-left: 4px; vertical-align: -1px; }
+
+/* ---------------------------------------------------------------- fields and the slider */
+.ob-input {
+  width: 100%; height: 44px; font: 16px/1 var(--font-text); color: var(--ob-ink); background: var(--orbe-chalk);
+  border: 1px solid var(--rule-strong); border-radius: 4px; padding: 0 12px;
+}
+/* a field shows its ring whenever it has focus (a date field's picker button included); so does a document shown in a frame */
+.ob-input:focus-visible, .ob-input:focus, .ob-input:focus-within, .ob-page iframe:focus, .ob-page iframe:focus-within { outline: 2px solid var(--ob-focus, var(--orbe-cobalt)); outline-offset: 1px; }
+.ob-range { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; background: transparent; margin: 0; cursor: pointer; }
+.ob-range::-webkit-slider-runnable-track { height: 2px; background: var(--ob-ink); }
+.ob-range::-moz-range-track { height: 2px; background: var(--ob-ink); }
+.ob-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -9px; background: var(--orbe-chalk); border: 1px solid var(--orbe-ink); border-radius: 4px; box-shadow: var(--ob-lift); transition: transform 160ms var(--ob-ease); }
+.ob-range::-moz-range-thumb { width: 18px; height: 18px; background: var(--orbe-chalk); border: 1px solid var(--orbe-ink); border-radius: 4px; }
+.ob-range:hover::-webkit-slider-thumb { transform: scale(1.1); }
+.ob-range:focus-visible { outline-offset: 2px; }
+.ob-range:focus-visible::-webkit-slider-thumb { border-color: var(--ob-focus, var(--orbe-cobalt)); box-shadow: 0 0 0 2px var(--ob-focus, var(--orbe-cobalt)); }
+
+/* ---------------------------------------------------------------- the window: Orbe's one panel
+  A 1px Ink rule, a Chalk title row (a file name left, one quiet control
+  right), and a body. With data-pair="note|spon|sell|rec|pod|also" the body
+  takes that product's colour pair as a soft mesh with grain, and every ink,
+  rule and focus ring inside follows it.
+*/
+.ob-win {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  background: var(--orbe-paper); color: var(--ob-ink);
+  border: 1px solid var(--rule-strong); border-radius: 12px; overflow: hidden;
+  box-shadow: var(--ob-lift);
+}
+.ob-win-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: var(--ob-win-row); padding: 0 8px 0 14px; border-bottom: 1px solid var(--rule-strong);
+  background: var(--orbe-chalk); color: var(--orbe-ink);
+}
+.ob-win-title { min-width: 0; font: 500 var(--ob-t12)/var(--ob-win-row) var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-radius: 4px; }
+.ob-win-ctl { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.ob-win-btn {
+  flex: none; display: inline-flex; align-items: center; height: 24px; padding: 0 8px;
+  font: 500 var(--ob-t12)/1 var(--font-text); color: var(--orbe-ink); background: transparent;
+  border: 0; border-radius: 4px; text-decoration: none; cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--rule); transition: background-color 160ms var(--ob-ease);
+}
+.ob-win-btn:hover { background: var(--orbe-linen); box-shadow: inset 0 0 0 1px var(--rule-strong); }
+.ob-win-btn[hidden] { display: none; }
+.ob-win-lnk {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 6px;
+  font: 500 var(--ob-t12)/1 var(--font-text); color: var(--orbe-ink); text-decoration: underline; text-decoration-color: rgba(20, 19, 17, 0.35); text-underline-offset: 3px; border-radius: 4px;
+}
+.ob-win-lnk::after { content: ""; width: 10px; height: 10px; background: currentColor; -webkit-mask: var(--ob-arrow) center / 100% no-repeat; mask: var(--ob-arrow) center / 100% no-repeat; transition: transform 160ms var(--ob-ease); }
+.ob-win-lnk:hover { text-decoration-color: currentColor; }
+.ob-win-lnk:hover::after { transform: translateX(2px); }
+.ob-win-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 16px; }
+.ob-win-end { margin-top: auto; padding-top: 4px; }
+.ob-win[data-pair] .ob-win-body {
+  --ob-ink: var(--pfg); --ob-ink-soft: var(--pfg); --rule-strong: var(--pfg); --ob-focus: var(--pfg);
+  --rule: color-mix(in srgb, var(--pfg) 28%, transparent);
+  color: var(--pfg); background-color: var(--pbg);
+  background-image:
+    var(--ob-grit),
+    radial-gradient(80% 70% at 10% 0%, var(--plt) 0%, transparent 70%),
+    radial-gradient(70% 70% at 100% 100%, var(--pdk) 0%, transparent 72%);
+  background-size: 180px 180px, 100% 100%, 100% 100%;
+}
+.ob-win[data-pair] .ob-input { color: var(--orbe-ink); }
+.ob-win[data-pair="note"] { --pbg: var(--ob-p-note-bg); --pfg: var(--ob-p-note-fg); --plt: var(--ob-p-note-lt); --pdk: var(--ob-p-note-dk); }
+.ob-win[data-pair="spon"] { --pbg: var(--ob-p-spon-bg); --pfg: var(--ob-p-spon-fg); --plt: var(--ob-p-spon-lt); --pdk: var(--ob-p-spon-dk); }
+.ob-win[data-pair="sell"] { --pbg: var(--ob-p-sell-bg); --pfg: var(--ob-p-sell-fg); --plt: var(--ob-p-sell-lt); --pdk: var(--ob-p-sell-dk); }
+.ob-win[data-pair="rec"]  { --pbg: var(--ob-p-rec-bg);  --pfg: var(--ob-p-rec-fg);  --plt: var(--ob-p-rec-lt);  --pdk: var(--ob-p-rec-dk); }
+.ob-win[data-pair="pod"]  { --pbg: var(--ob-p-pod-bg);  --pfg: var(--ob-p-pod-fg);  --plt: var(--ob-p-pod-lt);  --pdk: var(--ob-p-pod-dk); }
+.ob-win[data-pair="also"] { --pbg: var(--ob-p-also-bg); --pfg: var(--ob-p-also-fg); --plt: var(--ob-p-also-lt); --pdk: var(--ob-p-also-dk); }
+/* the live control, on a crisp Chalk card that floats on the field */
+.ob-card {
+  --ob-ink: var(--orbe-ink); --ob-ink-soft: var(--orbe-graphite); --rule-strong: var(--orbe-ink); --ob-focus: var(--orbe-cobalt);
+  --rule: rgba(20, 19, 17, 0.14);
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 8px;
+  background: var(--orbe-chalk); color: var(--orbe-ink); box-shadow: var(--ob-lift);
+}
+
+/* ---------------------------------------------------------------- chips: a small status pill with a 12px mark */
+.ob-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ob-chip {
+  display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px 0 6px; border-radius: 999px;
+  font: 500 var(--ob-t12)/1 var(--font-text); white-space: nowrap; vertical-align: 1px;
+  background: color-mix(in srgb, currentColor 11%, transparent);
+}
+.ob-chip[data-i]::before {
+  content: ""; flex: none; width: 12px; height: 12px; background: currentColor;
+  -webkit-mask: var(--i) center / 100% no-repeat; mask: var(--i) center / 100% no-repeat;
+}
+.ob-chip[data-i="source"] { --i: url("../icons/bold/source.svg"); }
+.ob-chip[data-i="payout"] { --i: url("../icons/bold/payout.svg"); }
+.ob-chip[data-i="record"] { --i: url("../icons/bold/record.svg"); }
+.ob-chip[data-i="time"] { --i: url("../icons/bold/time.svg"); }
+
+/* ---------------------------------------------------------------- the stat strip: three figures, hairlines between */
+.ob-strip { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.2fr); margin-top: 4px; border-top: 1px solid var(--rule); padding-top: 8px; }
+.ob-strip > div { padding: 0 8px; border-left: 1px solid var(--rule); min-width: 0; }
+.ob-strip > div:first-child { padding-left: 0; border-left: 0; }
+.ob-strip dt { font-size: var(--ob-t12); color: var(--ob-ink-soft); }
+.ob-strip dd { margin: 0; font: 500 var(--ob-t14)/1.4 var(--font-text); font-feature-settings: "tnum" 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ob-strip b { font-weight: 600; }
+
+/*
+  The lockup, as the social kit draws it: the Portal exactly as tall as the
+  Carved O (726 of the wordmark's 755 units), standing on the same line, then
+  a gap of 420 units, then the wordmark. Size it with --wm-h, the wordmark's
+  height. Both parts are currentColor. Under 50px tall the mark takes its
+  small cut (chosen in script, as the wordmark's is).
+*/
+.ob-lockup { --wm-h: 0.78em; display: inline-flex; align-items: flex-end; gap: calc(var(--wm-h) * 420 / 755); line-height: 0; }
+.ob-lockup > span { display: block; line-height: 0; }
+.ob-lockup-mark svg { display: block; width: calc(var(--wm-h) * 726 / 755); height: calc(var(--wm-h) * 726 / 755); }
+
+/* ---------------------------------------------------------------- the header
+  Fixed. At the very top of the page it has no bar, and each part (the
+  mark, the links, the button) takes the colour of what is under it. Once
+  the page moves it becomes a solid bar, so text never runs under the
+  words: solid Paper with a hairline and the soft stack, or solid Ink
+  with Paper words over a dark field. No blur, no glass. 160ms, colour only.
+*/
+.ob-bar {
+  position: fixed; z-index: 30; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
+  display: flex; align-items: center; gap: 32px; height: var(--ob-head); padding: 0 var(--ob-edge);
+  background-color: transparent; border-bottom: 1px solid transparent; box-shadow: none;
+  transition: background-color 160ms var(--ob-ease), border-color 160ms var(--ob-ease), box-shadow 160ms var(--ob-ease);
+}
+.ob-bar[data-solid] {
+  background-color: var(--orbe-paper);
+  border-bottom-color: var(--rule); box-shadow: var(--ob-lift);
+}
+.ob-bar[data-solid="dark"] {
+  background-color: var(--orbe-ink);
+  border-bottom-color: rgba(243, 240, 232, 0.14);
+}
+.ob-bar [data-part] { color: var(--orbe-ink); transition: color 160ms var(--ob-ease); }
+.ob-bar [data-part][data-on="dark"] { color: var(--orbe-paper); }
+.ob-bar-mark { --wm-h: 22px; text-decoration: none; flex: none; height: var(--wm-h); border-radius: 4px; }
+.ob-bar-links { display: flex; gap: 4px; margin-left: auto; }
+.ob-bar-links a { font-size: var(--ob-t14); font-weight: 500; text-decoration: none; padding: 6px 12px; border-radius: 4px; transition: background-color 200ms var(--ob-ease), color 160ms var(--ob-ease); }
+.ob-bar-links a:hover { background: rgba(20, 19, 17, 0.06); }
+.ob-bar-links a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+.ob-bar-links a[data-on="dark"]:hover { background: rgba(251, 250, 246, 0.12); }
+.ob-bar [data-on="dark"]:focus-visible { outline-color: var(--orbe-paper); }
+/* the Reserve button takes the light variant over a dark field */
+.ob-bar .ob-btn[data-part] { color: var(--orbe-chalk); }
+.ob-bar .ob-btn[data-on="dark"] {
+  --ob-orb: var(--orbe-cobalt); --ob-btn-top: var(--orbe-chalk); --ob-btn-bottom: var(--orbe-paper);
+  --ob-btn-edge: rgba(255, 255, 255, 0.9); --ob-btn-ring: rgba(20, 19, 17, 0.14); color: var(--orbe-ink);
+}
+@media (min-width: 721px) and (max-width: 1023px) { .ob-bar { gap: 16px; } .ob-bar-links { gap: 0; } }
+/* the menu: only on a phone, where the links and the Reserve button move into a sheet */
+.ob-bar-menu {
+  display: none; align-items: center; gap: 10px; height: 44px; margin: 0 -10px 0 auto; padding: 0 10px;
+  font: 500 var(--ob-t16)/1 var(--font-text); background: none; border: 0; border-radius: 8px; cursor: pointer;
+}
+.ob-bar-menu i { position: relative; display: block; width: 18px; height: 10px; }
+.ob-bar-menu i::before, .ob-bar-menu i::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 1.5px; border-radius: 1px; background: currentColor;
+  transition: transform 200ms var(--ob-ease), top 200ms var(--ob-ease);
+}
+.ob-bar-menu i::before { top: 0; }
+.ob-bar-menu i::after { top: 8.5px; }
+.ob-bar-menu[aria-expanded="true"] i::before { top: 4.25px; transform: rotate(45deg); }
+.ob-bar-menu[aria-expanded="true"] i::after { top: 4.25px; transform: rotate(-45deg); }
+.ob-sheet {
+  position: fixed; z-index: -1; left: 0; right: 0; top: 0; height: 100dvh; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 24px; padding: calc(var(--ob-head) + 8px) var(--ob-g) calc(24px + env(safe-area-inset-bottom, 0px));
+  background: var(--orbe-paper); color: var(--orbe-ink);
+}
+.ob-sheet[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) { .ob-sheet:not([hidden]) { animation: ob-sheet 220ms var(--ob-ease) both; } }
+@keyframes ob-sheet { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.ob-sheet-nav { display: grid; border-top: 1px solid var(--rule); }
+.ob-sheet-nav a {
+  display: flex; align-items: center; justify-content: space-between; min-height: 56px; border-bottom: 1px solid var(--rule);
+  font: 400 var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; color: var(--orbe-ink); text-decoration: none;
+}
+.ob-sheet-nav a::after { content: ""; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--ob-arrow) center / 100% no-repeat; mask: var(--ob-arrow) center / 100% no-repeat; }
+.ob-sheet-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+.ob-sheet .ob-btn { width: 100%; }
+.ob-sheet-small { display: flex; flex-wrap: wrap; gap: 0 24px; margin-top: auto; font-size: var(--ob-t14); color: var(--orbe-graphite); }
+.ob-sheet-small a { display: inline-flex; align-items: center; min-height: 44px; color: var(--orbe-ink); text-underline-offset: 3px; }
+html.ob-sheet-on { overflow: hidden; }
+@media (max-width: 720px) {
+  .ob-bar { gap: 12px; }
+  .ob-bar-links, .ob-bar > .ob-btn { display: none; }
+  .ob-bar-menu { display: inline-flex; }
+}
+@media (min-width: 721px) { .ob-sheet { display: none; } }
+
+/* ---------------------------------------------------------------- the footer: the mark and a line, four short columns, then the whole mark */
+.ob-foot { position: relative; padding: 40px var(--ob-edge) 32px; background-color: var(--orbe-paper); color: var(--orbe-ink); border-top: 1px solid var(--rule); }
+.ob-foot > * { position: relative; z-index: 2; }
+.ob-foot-top { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--ob-gap); row-gap: 28px; }
+.ob-foot-intro { grid-column: 1 / span 4; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.ob-foot-mark { --wm-h: 24px; display: inline-flex; height: 24px; text-decoration: none; border-radius: 4px; }
+.ob-foot-sign { font: 400 var(--ob-t18)/1.35 var(--font-serif); font-style: italic; max-width: 22ch; color: var(--orbe-ink); }
+.ob-foot-cols { grid-column: 5 / -1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 0.8fr); column-gap: var(--ob-gap); row-gap: 24px; }
+/* a long column sets in two, so no column runs past three lines */
+.ob-foot-col ul:has(> li:nth-child(4)) { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--ob-gap); }
+.ob-foot-col h3 { font: 500 var(--ob-t12)/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--orbe-graphite); margin: 0 0 12px; }
+.ob-foot-col ul { display: grid; gap: 4px; }
+.ob-foot-col a { font-size: var(--ob-t14); line-height: 1.5; text-decoration: none; color: var(--orbe-ink); border-radius: 4px; text-underline-offset: 4px; }
+.ob-foot-col a:hover { text-decoration: underline; }
+.ob-foot-line { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 24px; margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--rule); font: var(--ob-t14)/1.5 var(--font-text); color: var(--orbe-graphite); }
+.ob-foot-line a { color: inherit; text-underline-offset: 3px; border-radius: 4px; }
+.ob-foot-line a:hover { color: var(--orbe-ink); }
+/*
+  The whole mark, the width of the page. It loops through the six product
+  pairs while it is on screen: its strokes cut in, the O fills to a made-up
+  creator's place in their hundred, then it is cut away for the next.
+  Reduced motion holds one still frame.
+*/
+.ob-giant-mark {
+  --gbg: var(--ob-p-note-bg); --gfg: var(--ob-p-note-fg);
+  position: relative; margin-top: 24px; padding: 16px 24px 24px; border: 1px solid var(--orbe-ink); border-radius: 12px;
+  background: var(--gbg); color: var(--gfg); box-shadow: var(--ob-lift); transition: background-color 360ms var(--ob-ease), color 360ms var(--ob-ease);
+}
+.ob-giant-cap { font: 500 var(--ob-t12)/1 var(--font-mono); height: 12px; margin-bottom: 16px; font-feature-settings: "tnum" 1; }
+.ob-giant-svg svg { display: block; width: 100%; height: auto; overflow: visible; }
+@media (max-width: 1180px) {
+  .ob-foot { padding-top: 32px; }
+  .ob-giant-mark { padding: 12px 16px 16px; }
+  .ob-giant-cap { margin-bottom: 12px; }
+  .ob-foot-intro { grid-column: 1 / span 3; }
+  .ob-foot-sign { font-size: var(--ob-t16); }
+  .ob-foot-cols { grid-column: 4 / -1; }
+}
+@media (max-width: 1023px) {
+  .ob-foot-intro { grid-column: 1 / -1; flex-direction: row; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+  .ob-foot-sign { max-width: none; font-size: var(--ob-t16); }
+  .ob-foot-cols { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .ob-foot { padding: 24px 16px 20px; }
+  .ob-foot-top { row-gap: 20px; }
+  .ob-giant-mark { margin-top: 16px; }
+  .ob-foot-intro { flex-direction: column; gap: 8px; }
+  /* the whole mark is just below: on a phone the small one gives way */
+  .ob-foot-mark { display: none; }
+  .ob-foot-line > :last-child { display: none; }
+  .ob-foot-cols { grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); column-gap: 12px; }
+  .ob-foot-col ul:has(> li:nth-child(4)) { column-gap: 8px; }
+  .ob-foot-col h3 { margin-bottom: 8px; }
+  .ob-foot-col ul { gap: 2px; }
+  .ob-foot-line { margin-top: 24px; font-size: var(--ob-t12); }
+  .ob-giant-mark { padding: 14px 12px 16px; }
+}
+
+/* ---------------------------------------------------------------- the pointer trail (trail.js): fixed, under content marked .ob-layer */
+.ob-trail { position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none; }
+
+/* ---------------------------------------------------------------- the band scene (scene.js): under the words, in the band's free space */
+.ob-scene { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; display: block; }
+.ob-scene[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- touch: 44px for every control
+  Under a coarse pointer, a control that is drawn smaller than 44px tall
+  gets a hit area that reaches past its edges to 44px, centred on it, so
+  nothing moves on the page. A page can add the same to its own small
+  controls with .ob-hit. Lists of links (the footer) get real 44px rows.
+*/
+@media (pointer: coarse) {
+  .ob-hit, .ob-win-btn, .ob-win-lnk, .ob-bar-mark, .ob-foot-mark, .ob-bar-links a, .ob-lnk, .ob-btn--s,
+  .ob-page summary { position: relative; }
+  .ob-hit::before, .ob-win-btn::before, .ob-win-lnk::before, .ob-bar-mark::before, .ob-foot-mark::before, .ob-bar-links a::before, .ob-lnk::before, .ob-btn--s::before,
+  .ob-page summary::before {
+    content: ""; position: absolute; left: -4px; right: -4px; top: min(0px, calc(50% - 22px)); bottom: min(0px, calc(50% - 22px));
+  }
+  .ob-input { min-height: 44px; }
+  .ob-foot-col ul { gap: 0; }
+  .ob-foot-col a { display: flex; align-items: center; min-height: 44px; }
+  .ob-foot-col h3 { margin-bottom: 0; }
+  .ob-foot-line a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+/* on a phone a two-link column sits on one row, so the footer stays short */
+@media (pointer: coarse) and (max-width: 720px) {
+  .ob-foot-col ul:not(:has(> li:nth-child(3))) { display: flex; flex-wrap: wrap; column-gap: 20px; }
+}

@@ -1,0 +1,36 @@
+/*
+  The legal pages, on the shared system (../assets/orbe/orbe.css): one calm
+  column about 68 characters wide, the two-tone title, hairlines between
+  sections. Only what is these pages' own lives here.
+*/
+.lg { padding: calc(var(--ob-head) + clamp(32px, 1rem + 2.4vw, 56px)) var(--ob-g) calc(var(--ob-sec) + 16px); }
+.lg-art { max-width: 68ch; margin: 0 auto; font-size: var(--ob-t18); line-height: 1.6; }
+.lg-crumb { font-size: var(--ob-t14); color: var(--orbe-graphite); margin-bottom: 24px; }
+.lg-crumb a { color: var(--orbe-ink); text-underline-offset: 3px; border-radius: 2px; }
+.lg-title { font: 500 var(--ob-t-title)/1.04 var(--font-display); letter-spacing: -0.035em; text-wrap: balance; }
+.lg-title .ob-h2-soft { font-size: var(--ob-t24); line-height: 1.3; letter-spacing: -0.02em; margin-bottom: 8px; }
+.lg-draft { margin-top: 32px; padding: 16px 18px; border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--orbe-chalk); font-size: var(--ob-t16); line-height: 1.5; box-shadow: var(--ob-lift); }
+.lg-draft b { display: block; font: 600 var(--ob-t14)/1.4 var(--font-text); margin-bottom: 4px; }
+.lg-art h2 { font: 400 var(--ob-t24)/1.25 var(--font-display); letter-spacing: -0.02em; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.lg-art h2 + p, .lg-art h2 + ul { margin-top: 12px; }
+.lg-art p + p { margin-top: 16px; }
+.lg-art ul { list-style: none; display: grid; gap: 10px; }
+.lg-art li { position: relative; padding-left: 20px; }
+.lg-art li::before { content: ""; position: absolute; left: 2px; top: 0.72em; width: 6px; height: 6px; border-radius: 50%; background: var(--orbe-ink); }
+.lg-art a { color: var(--orbe-ink); text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; border-radius: 2px; }
+.lg-art a:hover { text-decoration-thickness: 2px; }
+.lg-end { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: var(--ob-t14); line-height: 1.5; color: var(--orbe-graphite); }
+.lg-end a { color: var(--orbe-ink); }
+.lg-also { margin-top: 32px; }
+/* the index: two rows, each a link with a line under it */
+.lg-list { margin-top: 40px; display: grid; border-top: 1px solid var(--rule); }
+.lg-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 4px 16px; padding: 20px 0; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.lg-list a:hover .lg-list-t { text-decoration: underline; text-underline-offset: 5px; }
+.lg-list-t { font: 400 var(--ob-t32)/1.15 var(--font-display); letter-spacing: -0.02em; }
+.lg-list-s { grid-column: 1; font-size: var(--ob-t16); color: var(--orbe-graphite); }
+.lg-list .ob-q { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+@media (max-width: 720px) {
+  .lg-art { font-size: var(--ob-t16); }
+  .lg-title .ob-h2-soft { font-size: var(--ob-t18); }
+  .lg-list-t { font-size: var(--ob-t24); }
+}

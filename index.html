@@ -3,54 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orbe, the canvas</title>
+<title>Orbe</title>
 <meta name="description" content="Understand your work, know where you stand against creators your size, and get better. Free for creators, for good.">
+<meta name="theme-color" content="#F3F0E8">
 <link rel="icon" href="./assets/r5/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="./assets/r5/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="./assets/r5/apple-touch-icon.png">
+<link rel="manifest" href="./assets/r5/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Orbe">
+<meta property="og:url" content="https://eoinforker.github.io/orbe-site/">
+<meta property="og:title" content="Orbe: your work, rated against creators your size">
+<meta property="og:description" content="Understand your work, know where you stand against creators your size, and get better. Free for creators, for good.">
+<meta property="og:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Orbe lockup and the line Your work, rated against creators your size., beside pixel drawings of a bulb, a camera and two half-filled orbs on a sky field.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Orbe: your work, rated against creators your size">
+<meta name="twitter:description" content="Understand your work, know where you stand against creators your size, and get better. Free for creators, for good.">
+<meta name="twitter:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
 <link rel="stylesheet" href="./assets/fonts.css">
 <link rel="stylesheet" href="./assets/brand/tokens.css">
+<link rel="stylesheet" href="./assets/orbe/orbe.css">
 <link rel="stylesheet" href="canvas.css">
 </head>
-<body>
-<a class="skip" href="#main">Skip to the rating</a>
+<body class="ob-page ob-grain">
+<a class="ob-skip" href="#main">Skip to the rating</a>
 
-<header class="bar" data-bar>
-  <a class="mark" data-part href="./" aria-label="Orbe, home"><span data-wordmark></span></a>
-  <nav class="links" aria-label="Products">
-    <a data-part href="./products/rate/">Ratings</a>
-    <a data-part href="./products/podcasts/">Podcasts</a>
-    <a data-part href="./products/sponsorships/">Sponsorships</a>
-    <a data-part href="./products/selling/">Selling</a>
-  </nav>
-  <a class="btn-go btn-s" data-part href="#reserve"><span class="go" aria-hidden="true"></span>Reserve your handle</a>
-</header>
+<header data-ob-header></header>
 
 <main id="main">
   <!-- Screen one: a Sky field, the sentence, the pixel piece and the instrument -->
-  <section class="hero" data-head="light" aria-labelledby="h1">
-    <canvas class="trail" data-trail aria-hidden="true"></canvas>
+  <section class="hero ob-lit" data-head="light" aria-labelledby="h1">
     <div class="art-box" data-art-box><canvas class="art" data-art aria-hidden="true"></canvas></div>
     <div class="hero-copy">
-      <h1 id="h1" class="display enter">
+      <h1 id="h1" class="ob-display enter">
         <span class="h-line">Your <span class="slot" data-slot><span class="sr-inline" data-slot-sr>explainer</span><span class="slot-word" aria-hidden="true" data-slot-word></span></span></span>
         <span class="h-line">rated against</span>
         <span class="h-line">creators</span>
         <span class="h-line">your size.</span>
       </h1>
-      <p class="lede enter">Orbe is the intelligence layer for the creator economy: free, honest numbers for creators, the tools the people around them use, and help when money moves.</p>
+      <p class="ob-lede enter">Orbe is the intelligence layer for the creator economy: free, honest numbers for creators, the tools the people around them use, and help when money moves.</p>
       <p class="aud enter" data-aud><span class="aud-k">For</span> <a href="#main" data-to="hero">creators</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-managers" data-to="for-managers"><span class="ph-off">managers and </span>agencies</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-brands" data-to="for-brands">brands</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-buyers" data-to="for-buyers for-funds"><span class="ph-off">buyers and </span>funds</a></p>
       <div class="ctas enter">
-        <a class="btn-go" href="./products/rate/"><span class="go" aria-hidden="true"></span>See where you stand</a>
-        <a class="btn-q" href="#tools">How it works<span class="q q-down" aria-hidden="true"></span></a>
+        <a class="ob-btn" href="./products/rate/"><span class="ob-orb" aria-hidden="true"></span>See where you stand</a>
+        <a class="ob-btn-q" href="#tools">How it works<span class="ob-q ob-q--down" aria-hidden="true"></span></a>
       </div>
     </div>
 
     <div class="stage enter enter-late">
-      <article class="win win-hero" data-head="light" data-hero aria-labelledby="hero-t">
-        <div class="win-bar">
-          <span class="win-title" id="hero-t" data-frame-name data-grip>rating.txt / Field Recordings</span>
-          <span class="win-ctl"><span class="chip chip-bar" data-i="record">Made up</span><button class="win-btn" type="button" data-pause aria-pressed="false">Pause</button></span>
+      <article class="ob-win win-hero" data-head="light" data-hero aria-labelledby="hero-t">
+        <div class="ob-win-bar">
+          <span class="ob-win-title" id="hero-t" data-frame-name data-grip>rating.txt / Field Recordings</span>
+          <span class="ob-win-ctl"><span class="ob-chip chip-bar" data-i="record">Made up</span><button class="ob-win-btn" type="button" data-pause aria-pressed="false">Pause</button></span>
         </div>
-        <div class="win-body hero-body">
+        <div class="ob-win-body hero-body">
           <div class="kinds" data-kinds-wrap><div class="kind-list" role="group" aria-label="Kind of work" data-kinds></div></div>
 
           <div class="who">
@@ -59,7 +68,7 @@
           </div>
 
           <div class="score" aria-live="polite">
-            <p class="figure"><span data-rating>+1.23</span></p>
+            <p class="ob-figure"><span data-rating>+1.23</span></p>
             <div class="score-side">
               <p class="band" data-band>Good</p>
               <p class="zero">Zero is typical.</p>
@@ -79,7 +88,7 @@
           <div class="drag">
             <label for="views" class="drag-label">A typical <span data-noun-2>upload</span>’s <span data-unit>views</span></label>
             <output for="views" class="drag-out" data-views-out>152,203</output>
-            <input id="views" class="range" type="range" min="-100" max="100" step="1" value="0" data-views>
+            <input id="views" class="ob-range" type="range" min="-100" max="100" step="1" value="0" data-views>
           </div>
 
           <p class="foot">A made-up creator, rated live by the Orbe engine. Independently calculated by Orbe.</p>
@@ -90,19 +99,19 @@
 
   <!-- Screen two: what Orbe does, in three beats of windows you can move -->
   <section class="tools" data-head="light" id="tools" aria-labelledby="tools-h">
-    <div class="tools-head">
-      <h2 id="tools-h" class="h2"><span class="h2-soft">Your work, read properly.</span> Every figure live, every creator made up.</h2>
-      <p class="tidy-row" data-tidy-row hidden><span class="cue" id="tidy-hint">→ Drag a window by its title</span><button class="win-btn tidy" type="button" data-tidy>Tidy</button><span class="sr" aria-live="polite" data-tidy-say></span></p>
+    <div class="tools-head ob-layer">
+      <h2 id="tools-h" class="ob-h2"><span class="ob-h2-soft">Your work, read properly.</span> Every figure live, every creator made up.</h2>
+      <p class="tidy-row" data-tidy-row hidden><span class="ob-cue" id="tidy-hint">→ Drag a window by its title</span><button class="ob-win-btn tidy" type="button" data-tidy>Tidy</button><span class="ob-sr" aria-live="polite" data-tidy-say></span></p>
     </div>
 
-    <div class="wall" data-wall>
+    <div class="wall ob-layer" data-wall>
       <h3 class="beat-h b-1"><span class="beat-n">1</span>Understand your work.</h3>
 
       <!-- The Sunday note: the rating, as a letter -->
-      <article class="win c-note" data-head="light" data-pair="note" aria-labelledby="note-t" data-note data-win>
-        <div class="win-bar"><span class="win-title" id="note-t" data-grip>sunday_note.txt</span><a class="win-lnk" href="./products/rate/">Get yours</a></div>
-        <div class="win-body note-body" data-note-body>
-          <p class="says n-line">Your Sunday note, written from your numbers.</p>
+      <article class="ob-win c-note" data-head="light" data-pair="note" aria-labelledby="note-t" data-note data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="note-t" data-grip>sunday_note.txt</span><a class="ob-win-lnk" href="./products/rate/">Get yours</a></div>
+        <div class="ob-win-body note-body" data-note-body>
+          <p class="ob-says n-line">Your Sunday note, written from your numbers.</p>
           <p class="n-date n-line" data-n="date">Sunday the eighteenth of October, 2026</p>
           <h4 class="n-dear n-line">Dear <span data-n="name">Field Recordings</span>,</h4>
           <p class="n-line" data-n="open">Your uploads, read properly this week.</p>
@@ -118,15 +127,15 @@
       </article>
 
       <!-- The guide, after a post: one work against your typical and your size, then three next steps -->
-      <article class="win c-post" data-head="light" data-pair="note" aria-labelledby="post-t" data-win data-post>
-        <div class="win-bar"><span class="win-title" id="post-t" data-grip>after_post.txt</span><a class="win-lnk" href="./products/rate/">Try yours</a></div>
-        <div class="win-body">
-          <p class="says">Know which <span data-post-one>upload</span> is quietly doing well.</p>
+      <article class="ob-win c-post" data-head="light" data-pair="note" aria-labelledby="post-t" data-win data-post>
+        <div class="ob-win-bar"><span class="ob-win-title" id="post-t" data-grip>after_post.txt</span><a class="ob-win-lnk" href="./products/rate/">Try yours</a></div>
+        <div class="ob-win-body">
+          <p class="ob-says">Know which <span data-post-one>upload</span> is quietly doing well.</p>
           <div class="game" role="group" aria-labelledby="game-q" data-game>
             <div class="game-head">
-              <p class="win-k" id="game-q">The guide. Above or below your typical? <span class="game-n" data-game-n>1 of 5</span></p>
-              <p class="cue" aria-hidden="true" data-game-cue>← Drag the tile →</p>
-              <button class="win-btn game-next" type="button" data-game-next hidden>Next upload</button>
+              <p class="ob-k" id="game-q">The guide. Above or below your typical? <span class="game-n" data-game-n>1 of 5</span></p>
+              <p class="ob-cue" aria-hidden="true" data-game-cue>← Drag the tile →</p>
+              <button class="ob-win-btn game-next" type="button" data-game-next hidden>Next upload</button>
             </div>
             <div class="game-row">
               <button class="game-side" type="button" data-guess="below">Below</button>
@@ -153,7 +162,7 @@
           </div>
           <h4 class="steps-h">Three next steps</h4>
           <ol class="steps" data-post-steps></ol>
-          <p class="note win-end post-end">Worked out here, by rule. The full guide, after every post. <span class="chip" data-i="source">With the API</span></p>
+          <p class="ob-note ob-win-end post-end">Worked out here, by rule. The full guide, after every post. <span class="ob-chip" data-i="source">With the API</span></p>
         </div>
       </article>
 
@@ -161,42 +170,42 @@
 
       <div class="row row-2">
       <!-- Podcasts, with what you get back and the plausibility check -->
-      <article class="win c-pod" data-head="light" data-pair="pod" aria-labelledby="pod-t" data-win>
-        <div class="win-bar"><span class="win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="win-lnk" href="./products/podcasts/">Open</a></div>
-        <div class="win-body">
+      <article class="ob-win c-pod" data-head="light" data-pair="pod" aria-labelledby="pod-t" data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="ob-win-lnk" href="./products/podcasts/">Open</a></div>
+        <div class="ob-win-body">
           <div class="pod-in">
-            <p class="says">Know who’s listening, for free.</p>
-            <label class="win-k" for="show">Podcasts. Your show</label>
-            <input id="show" class="field" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
+            <p class="ob-says">Know who’s listening, for free.</p>
+            <label class="ob-k" for="show">Podcasts. Your show</label>
+            <input id="show" class="ob-input" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
             <p class="mono-out" data-show-out>m.orbe.vc/p/thelongtable/…/ep1.mp3</p>
             <div class="claim">
-              <label class="win-k" for="pl">Plausibility. A claim of <output data-pl-claim for="pl">120,000</output> a month</label>
-              <input id="pl" class="range" type="range" min="0" max="1000" step="1" value="500" data-pl>
+              <label class="ob-k" for="pl">Plausibility. A claim of <output data-pl-claim for="pl">120,000</output> a month</label>
+              <input id="pl" class="ob-range" type="range" min="0" max="1000" step="1" value="500" data-pl>
               <p class="claim-v"><b data-pl-verdict aria-live="polite">Questions</b> <span data-pl-why>2.3× a public count of 52,000.</span></p>
             </div>
           </div>
           <div class="pod-get">
-            <p class="win-k">You get back <b data-pod-total>4,773</b> downloads in 28 days</p>
+            <p class="ob-k">You get back <b data-pod-total>4,773</b> downloads in 28 days</p>
             <div class="bars" role="img" aria-label="Downloads by day for the made-up sample" data-pod-bars></div>
-            <p class="note" data-pod-apps>Apple Podcasts 1,961, Spotify 1,280, Overcast 369</p>
-            <p class="note win-end">Sample listening for a made-up show. Free, where Chartable used to be.</p>
+            <p class="ob-note" data-pod-apps>Apple Podcasts 1,961, Spotify 1,280, Overcast 369</p>
+            <p class="ob-note ob-win-end">Sample listening for a made-up show. Free, where Chartable used to be.</p>
           </div>
         </div>
       </article>
 
       <!-- The State of the Middle: where you sit -->
-      <article class="win c-mid" data-head="dark" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
-        <div class="win-bar"><span class="win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="win-lnk" href="./products/">Open</a></div>
-        <div class="win-body">
-          <p class="says">Know what typical looks like at your size.</p>
+      <article class="ob-win c-mid" data-head="dark" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="ob-win-lnk" href="./products/">Open</a></div>
+        <div class="ob-win-body">
+          <p class="ob-says">Know what typical looks like at your size.</p>
           <div class="mid-pick">
-            <label class="win-k" for="mid-kind">The State of the Middle, for a</label>
-            <select id="mid-kind" class="field" data-mid-kind></select>
+            <label class="ob-k" for="mid-kind">The State of the Middle, for a</label>
+            <select id="mid-kind" class="ob-input" data-mid-kind></select>
           </div>
           <div class="picks" role="group" aria-label="Size band" data-mid-bands></div>
           <p class="mid" data-mid-fig>10%</p>
-          <p class="note" data-mid-what aria-live="polite">Typical reach for channels with 250k to 1M subscribers.</p>
-          <p class="note win-end">The engine’s starting baselines, until the first season. <span class="chip" data-i="source">Seasons with the API</span></p>
+          <p class="ob-note" data-mid-what aria-live="polite">Typical reach for channels with 250k to 1M subscribers.</p>
+          <p class="ob-note ob-win-end">The engine’s starting baselines, until the first season. <span class="ob-chip" data-i="source">Seasons with the API</span></p>
         </div>
       </article>
 
@@ -205,32 +214,32 @@
       <div class="beat-side beat-3">
         <h3 class="beat-h"><span class="beat-n">3</span>When money moves, Orbe can help.</h3>
         <p class="beat-p">Optional, and free until money moves. Brands and buyers pay the fees; a sale’s fee comes out of the sale.</p>
-        <p class="lend"><a href="./products/">Lending</a> A fixed <span data-lend>£250</span> a file, never a cut. <span class="chip" data-i="source">With the API</span></p>
+        <p class="lend"><a href="./products/">Lending</a> A fixed <span data-lend>£250</span> a file, never a cut. <span class="ob-chip" data-i="source">With the API</span></p>
       </div>
 
       <div class="row row-3">
       <!-- Sponsorships -->
-      <article class="win c-spon" data-head="light" data-pair="spon" aria-labelledby="spon-t" data-win>
-        <div class="win-bar"><span class="win-title" id="spon-t" data-grip>sponsorship_quote.txt</span><a class="win-lnk" href="./products/sponsorships/">Open</a></div>
-        <div class="win-body">
-          <p class="says">Know what a slot is worth.</p>
-          <div class="card">
-            <p class="win-k">Sponsorships. An integrated read</p>
+      <article class="ob-win c-spon" data-head="light" data-pair="spon" aria-labelledby="spon-t" data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="spon-t" data-grip>sponsorship_quote.txt</span><a class="ob-win-lnk" href="./products/sponsorships/">Open</a></div>
+        <div class="ob-win-body">
+          <p class="ob-says">Know what a slot is worth.</p>
+          <div class="ob-card">
+            <p class="ob-k">Sponsorships. An integrated read</p>
             <p class="mid" data-spon-int>£2,250 to £3,950</p>
-            <label class="win-k" for="spon"><output data-spon-views for="spon">155,000</output> views at 30 days</label>
-            <input id="spon" class="range" type="range" min="0" max="1000" step="1" value="500" data-spon>
+            <label class="ob-k" for="spon"><output data-spon-views for="spon">155,000</output> views at 30 days</label>
+            <input id="spon" class="ob-range" type="range" min="0" max="1000" step="1" value="500" data-spon>
           </div>
-          <p class="note win-end">15% if Orbe finds the brand, 5% if you bring it. The brand pays.</p>
+          <p class="ob-note ob-win-end">15% if Orbe finds the brand, 5% if you bring it. The brand pays.</p>
         </div>
       </article>
 
       <!-- The Record: estimate against paid, a race you can rerun -->
-      <article class="win c-record" data-head="light" data-pair="rec" aria-labelledby="rec-t" data-win data-race>
-        <div class="win-bar"><span class="win-title" id="rec-t" data-grip>estimate_vs_paid.txt</span><button class="win-btn" type="button" data-race-go>Replay</button></div>
-        <div class="win-body">
-          <p class="says">See what was paid, not estimated.</p>
-          <div class="card">
-            <p class="win-k">The Record. September’s ads</p>
+      <article class="ob-win c-record" data-head="light" data-pair="rec" aria-labelledby="rec-t" data-win data-race>
+        <div class="ob-win-bar"><span class="ob-win-title" id="rec-t" data-grip>estimate_vs_paid.txt</span><button class="ob-win-btn" type="button" data-race-go>Replay</button></div>
+        <div class="ob-win-body">
+          <p class="ob-says">See what was paid, not estimated.</p>
+          <div class="ob-card">
+            <p class="ob-k">The Record. September’s ads</p>
             <div class="race-row">
               <p class="race-k">Estimated</p>
               <p class="race-fig"><span data-race-est>£6,474.47</span></p>
@@ -242,20 +251,20 @@
               <div class="track"><i class="solid" data-race-paid-bar></i></div>
             </div>
           </div>
-          <p class="note win-end"><span data-race-line aria-live="polite">Read from payouts, not estimates.</span> <span class="chips"><span class="chip" data-i="payout">Read-only Stripe App</span><span class="chip" data-i="source">With the API</span></span></p>
+          <p class="ob-note ob-win-end"><span data-race-line aria-live="polite">Read from payouts, not estimates.</span> <span class="ob-chips"><span class="ob-chip" data-i="payout">Read-only Stripe App</span><span class="ob-chip" data-i="source">With the API</span></span></p>
         </div>
       </article>
 
       <!-- Selling, with every fee and diligence -->
-      <article class="win c-sell" data-head="dark" data-pair="sell" aria-labelledby="sell-t" data-win>
-        <div class="win-bar"><span class="win-title" id="sell-t" data-grip>selling.txt</span><a class="win-lnk" href="./products/selling/">Open</a></div>
-        <div class="win-body">
-          <p class="says">Know what you’d keep if you sold.</p>
-          <div class="card">
-            <label class="win-k" for="sell">Selling. If it sold for</label>
+      <article class="ob-win c-sell" data-head="dark" data-pair="sell" aria-labelledby="sell-t" data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="sell-t" data-grip>selling.txt</span><a class="ob-win-lnk" href="./products/selling/">Open</a></div>
+        <div class="ob-win-body">
+          <p class="ob-says">Know what you’d keep if you sold.</p>
+          <div class="ob-card">
+            <label class="ob-k" for="sell">Selling. If it sold for</label>
             <p class="mid"><output data-sell-price for="sell">£220,000</output></p>
-            <input id="sell" class="range" type="range" min="0" max="1000" step="1" value="0" data-sell>
-            <dl class="strip">
+            <input id="sell" class="ob-range" type="range" min="0" max="1000" step="1" value="0" data-sell>
+            <dl class="ob-strip">
               <div><dt>Fee</dt><dd data-sell-fee-s>£17,600</dd></div>
               <div><dt>Buyer adds</dt><dd data-sell-prem-s>£4,400</dd></div>
               <div><dt>You keep</dt><dd><b data-sell-net>£202,400</b></dd></div>
@@ -270,8 +279,8 @@
               <div class="total"><dt>You keep</dt><dd data-sell-net-2>£202,400</dd></div>
             </dl>
             <ol class="slices" data-sell-slices></ol>
-            <p class="note">8% to £500k, 5% to £2M, 3% above, £4,000 minimum, nothing if it doesn’t sell. Buyer’s premium 2%, 1% above £2M, £1,000 minimum.</p>
-            <p class="note"><a href="./products/diligence/">Diligence</a>, the buyer’s report: <span data-dil>£1,500</span>, charged only if they walk away.</p>
+            <p class="ob-note">8% to £500k, 5% to £2M, 3% above, £4,000 minimum, nothing if it doesn’t sell. Buyer’s premium 2%, 1% above £2M, £1,000 minimum.</p>
+            <p class="ob-note"><a href="./products/diligence/">Diligence</a>, the buyer’s report: <span data-dil>£1,500</span>, charged only if they walk away.</p>
           </details>
         </div>
       </article>
@@ -279,100 +288,62 @@
     </div>
 
     <!-- Who else it is for: one plain line each, and the tool that exists -->
-    <article class="win for" data-head="light" aria-labelledby="for-h">
-      <div class="win-bar"><h3 class="win-title" id="for-h">who_its_for.txt <span class="for-sub">Besides you</span></h3></div>
-      <div class="win-body for-body">
+    <article class="ob-win for ob-layer" data-head="light" aria-labelledby="for-h">
+      <div class="ob-win-bar"><h3 class="ob-win-title" id="for-h">who_its_for.txt <span class="for-sub">Besides you</span></h3></div>
+      <div class="ob-win-body for-body">
         <div class="for-i" id="for-brands" tabindex="-1">
           <h4 class="for-k">Brands</h4>
           <p class="for-fig" data-for-brand>£2,250 to £3,950</p>
           <p class="for-cap" data-for-brand-cap>A read at 155,000 views, made up</p>
-          <p class="for-t">Price a slot from what a creator’s work actually delivered, and get a shortlist for your brief. <a class="lnk lnk-s" href="./products/sponsorships/">Sponsorships</a></p>
+          <p class="for-t">Price a slot from what a creator’s work actually delivered, and get a shortlist for your brief. <a class="ob-lnk ob-lnk--s" href="./products/sponsorships/">Sponsorships</a></p>
         </div>
         <div class="for-i" id="for-managers" tabindex="-1">
           <h4 class="for-k">Managers and agencies</h4>
           <p class="for-fig" data-for-roster>−0.12 to +1.23</p>
           <p class="for-cap" data-for-roster-cap>Six made-up clients, rated by size</p>
-          <p class="for-t">Your whole roster, rated fairly against creators their size, with rate cards you can defend to a brand. <a class="lnk lnk-s" href="./products/roster/">The roster</a></p>
+          <p class="for-t">Your whole roster, rated fairly against creators their size, with rate cards you can defend to a brand. <a class="ob-lnk ob-lnk--s" href="./products/roster/">The roster</a></p>
         </div>
         <div class="for-i" id="for-buyers" tabindex="-1">
           <h4 class="for-k">Buyers, M&amp;A and PE</h4>
           <p class="for-fig" data-for-gap>£1,849.85</p>
           <p class="for-cap">Estimated, never paid, one made-up month</p>
-          <p class="for-t">Revenue read from payouts, a diligence report before any offer, and buyers matched by size. <a class="lnk lnk-s" href="./products/diligence/">Diligence</a></p>
+          <p class="for-t">Revenue read from payouts, a diligence report before any offer, and buyers matched by size. <a class="ob-lnk ob-lnk--s" href="./products/diligence/">Diligence</a></p>
         </div>
         <div class="for-i" id="for-funds" tabindex="-1">
           <h4 class="for-k">Funds and investors</h4>
           <p class="for-fig" data-for-mid>10%</p>
           <p class="for-cap" data-for-mid-cap>Typical reach, 250k to 1M subscribers</p>
-          <p class="for-t">The State of the Middle: honest seasonal benchmarks for the creators most data ignores. <a class="lnk lnk-s" href="#benchmarks">The benchmarks</a></p>
+          <p class="for-t">The State of the Middle: honest seasonal benchmarks for the creators most data ignores. <a class="ob-lnk ob-lnk--s" href="#benchmarks">The benchmarks</a></p>
         </div>
       </div>
     </article>
   </section>
 
-  <!-- Screen three: build your goliath -->
-  <section class="goliath" data-head="light" id="reserve" aria-labelledby="gol-h">
-    <div class="block" data-head="dark" data-block>
-      <canvas class="block-art" data-block-art aria-hidden="true"></canvas>
-      <div class="block-copy">
-        <h2 id="gol-h" class="giant">Build your goliath.</h2>
-        <p class="block-lede">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
-        <form class="reserve" data-reserve novalidate>
-          <label class="sr" for="handle">Your handle</label>
-          <div class="handle">
-            <span class="handle-pre" aria-hidden="true">orbe.vc/@</span>
-            <input id="handle" class="field" name="handle" type="text" autocomplete="username" spellcheck="false" placeholder="yourname" required aria-describedby="reserve-note" data-handle>
-          </div>
-          <button class="btn-go btn-light" type="submit"><span class="go" aria-hidden="true"></span>Reserve my handle</button>
-          <a class="btn-q" href="#main" data-to-hero>See where you stand<span class="q q-up" aria-hidden="true"></span></a>
-        </form>
-        <p class="form-note" id="reserve-note" data-reserve-note aria-live="polite">Free for creators, for good. Held once your email arrives; we check it’s yours when ratings open.</p>
-      </div>
+  <!-- Screen three: build your goliath, on a full Cobalt band over a field of a hundred orbs -->
+  <section class="goliath ob-lit ob-lit-cobalt" data-head="dark" id="reserve" aria-labelledby="gol-h" data-block>
+    <canvas class="orbs" data-orbs aria-hidden="true"></canvas>
+    <div class="block-copy ob-layer">
+      <h2 id="gol-h" class="ob-giant">Build your goliath.</h2>
+      <p class="block-lede">Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
+      <form class="reserve" data-reserve novalidate>
+        <label class="ob-sr" for="handle">Your handle</label>
+        <div class="handle">
+          <span class="handle-pre" aria-hidden="true">orbe.vc/@</span>
+          <input id="handle" class="ob-input" name="handle" type="text" autocomplete="username" spellcheck="false" placeholder="yourname" required aria-describedby="reserve-note" data-handle>
+        </div>
+        <label class="ob-sr" for="email">Your email</label>
+        <div class="handle mail">
+          <input id="email" class="ob-input" name="email" type="email" inputmode="email" autocomplete="email" spellcheck="false" placeholder="Your email" required aria-describedby="reserve-note" data-email>
+        </div>
+        <button class="ob-btn ob-btn--light" type="submit"><span class="ob-orb" aria-hidden="true"></span>Reserve my handle</button>
+        <a class="ob-btn-q ob-btn-q--light" href="#main" data-to-hero>See where you stand<span class="ob-q ob-q--up" aria-hidden="true"></span></a>
+      </form>
+      <p class="form-note" id="reserve-note" data-reserve-note aria-live="polite">Free for creators, for good. We check the handle is yours when ratings open.</p>
     </div>
   </section>
 </main>
 
-<footer class="site-foot" data-head="light" aria-labelledby="foot-h">
-  <h2 class="sr" id="foot-h">Orbe</h2>
-  <nav class="foot-cols" aria-label="Footer">
-    <div class="foot-col">
-      <h3>Products</h3>
-      <ul>
-        <li><a href="./products/rate/">Rate my work</a></li>
-        <li><a href="./products/podcasts/">Podcasts</a></li>
-        <li><a href="./products/sponsorships/">Sponsorships</a></li>
-        <li><a href="./products/selling/">Selling</a></li>
-        <li><a href="./products/diligence/">Diligence</a></li>
-      </ul>
-    </div>
-    <div class="foot-col">
-      <h3>Creators</h3>
-      <ul>
-        <li><a href="#reserve">Reserve your handle</a></li>
-        <li><a href="#tools">How it works</a></li>
-        <li><a href="./products/">Every tool</a></li>
-      </ul>
-    </div>
-    <div class="foot-col">
-      <h3>Company</h3>
-      <ul>
-        <li><a href="./brand/">Brand</a></li>
-        <li><a href="./rounds/">Rounds</a></li>
-      </ul>
-    </div>
-    <div class="foot-col">
-      <h3>Legal</h3>
-      <ul>
-        <li><a href="./legal/">Terms and privacy</a></li>
-      </ul>
-    </div>
-  </nav>
-  <p class="foot-line"><span>Independently calculated by Orbe. Every creator on this page is made up.</span> <span class="foot-sign">Made by people who refresh the same pages you do. The Orbe team, London.</span></p>
-  <div class="giant-mark" data-head="light" data-giant aria-hidden="true">
-    <p class="giant-cap" data-giant-cap>Field Recordings · 93 in 100 · made up</p>
-    <div class="giant-svg" data-giant-svg></div>
-  </div>
-</footer>
+<footer data-ob-footer></footer>
 
 <script type="module" src="canvas.js"></script>
 </body>

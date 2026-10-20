@@ -1,7 +1,0 @@
-@import "_base.css";
-@font-face { font-family: "C Geist"; src: url("../../fonts/geist/geist-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
-@font-face { font-family: "C SourceSerif"; src: url("../../fonts/source-serif-4/source-serif-4-latin-opsz-normal.woff2") format("woff2"); font-weight: 200 900; font-display: block; }
-@font-face { font-family: "C SourceSerif"; src: url("../../fonts/source-serif-4/source-serif-4-latin-opsz-italic.woff2") format("woff2"); font-weight: 200 900; font-style: italic; font-display: block; }
-@font-face { font-family: "C GeistMono"; src: url("../../fonts/geist-mono/geist-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
-:root { --sans: "C Geist", sans-serif; --serif: "C SourceSerif", serif; --mono: "C GeistMono", monospace;
-  --disp-w: 450; --h1-tr: -0.045em; --h2-tr: -0.04em; --it-tr: -0.025em; --it-w: 360; --fig-big-w: 350; --fig-big-tr: -0.045em; --fig: "C GeistMono", monospace; }

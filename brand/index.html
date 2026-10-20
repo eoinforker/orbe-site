@@ -3,273 +3,508 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orbe Brand Book</title>
-<meta name="description" content="Orbe's identity as the site uses it: colour, type, what Orbe draws, shape, voice and three applications. Blue leads.">
+<title>Orbe brand book</title>
+<meta name="description" content="How Orbe looks and sounds: the mark, colour, type, the components every page is built from, texture and motion, the voice, and where the files live. Every specimen is the real component.">
+<meta name="theme-color" content="#F3F0E8">
 <link rel="icon" href="../assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../assets/r5/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../assets/r5/favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="../assets/r5/apple-touch-icon.png">
-<script>
-  /* The scheme before first paint: ?scheme=, else the last choice, else blue. */
-  (function () {
-    var s = null;
-    try { s = new URLSearchParams(location.search).get("scheme"); } catch (e) {}
-    if (s !== "blue" && s !== "pink") { try { s = localStorage.getItem("orbe-brand-scheme"); } catch (e) {} }
-    if (s === "pink") document.documentElement.setAttribute("data-scheme", "pink");
-  })();
-</script>
+<link rel="manifest" href="../assets/r5/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Orbe">
+<meta property="og:url" content="https://eoinforker.github.io/orbe-site/brand/">
+<meta property="og:title" content="Orbe brand book">
+<meta property="og:description" content="How Orbe looks and sounds: the mark, colour, type, the components every page is built from, texture and motion, the voice, and where the files live. Every specimen is the real component.">
+<meta property="og:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Orbe lockup and the line Your work, rated against creators your size., beside pixel drawings of a bulb, a camera and two half-filled orbs on a sky field.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Orbe brand book">
+<meta name="twitter:description" content="How Orbe looks and sounds: the mark, colour, type, the components every page is built from, texture and motion, the voice, and where the files live. Every specimen is the real component.">
+<meta name="twitter:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
 <link rel="stylesheet" href="../assets/fonts.css">
 <link rel="stylesheet" href="../assets/brand/tokens.css">
-<link rel="stylesheet" href="../assets/brand/components.css">
-<link rel="stylesheet" href="apps.css">
-<link rel="stylesheet" href="book.css">
+<link rel="stylesheet" href="../assets/orbe/orbe.css">
+<link rel="stylesheet" href="brand.css">
 </head>
-<body>
-<a class="bk-skip" href="#main">Skip to the book</a>
+<body class="ob-page ob-grain">
+<a class="ob-skip" href="#main">Skip to the book</a>
 
-<header class="bk-top" data-surface="field">
-  <a class="wm" href="../" aria-label="Orbe, the site index"><span data-wm>Orbe</span></a>
-  <nav aria-label="Sections">
-    <a href="#colour">Colour</a><a href="#type">Type</a><a href="#draws">What Orbe draws</a><a href="#voice">Voice</a><a href="#applications">Applications</a><a href="icons.html">Icons</a>
-  </nav>
-  <div class="o-toggle" role="group" aria-label="Colour scheme">
-    <button type="button" data-scheme-set="blue" aria-pressed="true" style="--dot: var(--orbe-sky)">Blue</button>
-    <button type="button" data-scheme-set="pink" aria-pressed="false" style="--dot: var(--orbe-peony)">Pink</button>
-  </div>
-</header>
+<header data-ob-header></header>
 
 <main id="main">
 
-<!-- 00 cover: the field, the line, the painted ground -->
-<section class="bk-cover" id="top" data-surface="field">
-  <div class="bk-wrap bk-cover-in">
-    <p class="o-label">Brand book · October 2026</p>
-    <h1 class="o-display is-hero"><span>Bright enough to post.</span> <span>Exact enough for money.</span></h1>
-    <p class="o-lede bk-cover-lede"><span data-only="blue">The system the site uses today: a sky field, ink type, one cobalt action, an ember spark, painted ground for people and square windows for every figure.</span><span data-only="pink">The pink alternative: a peony field, ink type, one ink action, a claret panel, an ember spark, painted ground for people and square windows for every figure. Blue is the scheme that ships.</span></p>
+<!-- The cover: a Sky field, the line, the contents -->
+<section class="bk-cover ob-lit" data-head="light" aria-labelledby="bk-h1">
+  <div class="bk-cover-copy ob-layer">
+    <p class="ob-k bk-kick">Brand book, October 2026</p>
+    <h1 class="ob-display" id="bk-h1">How Orbe looks, <span class="bk-word">and why.</span></h1>
+    <p class="ob-lede">The system behind every Orbe page, shown live. Each specimen below is the real component, loaded from the same files the site uses, so this book can’t drift from what ships.</p>
+    <div class="bk-ctas">
+      <a class="ob-btn" href="#mark"><span class="ob-orb" aria-hidden="true"></span>Start with the mark</a>
+      <a class="ob-btn-q" href="#files">Where the files live<span class="ob-q ob-q--down" aria-hidden="true"></span></a>
+    </div>
   </div>
-  <canvas class="bk-paint bk-cover-ground" data-scene="hero" data-seed="43" aria-hidden="true"></canvas>
+  <nav class="bk-toc ob-layer" aria-labelledby="toc-t">
+    <article class="ob-win" data-head="light">
+      <div class="ob-win-bar"><span class="ob-win-title" id="toc-t">contents.txt</span></div>
+      <div class="ob-win-body">
+        <ol>
+          <li><a href="#mark"><span class="bk-toc-n">01</span><span class="bk-toc-t">The mark</span><span class="bk-toc-s">The Portal, the lockup, clear space, the orb</span></a></li>
+          <li><a href="#colour"><span class="bk-toc-n">02</span><span class="bk-toc-t">Colour</span><span class="bk-toc-s">Tokens, product pairs, archetype pairs</span></a></li>
+          <li><a href="#type"><span class="bk-toc-n">03</span><span class="bk-toc-t">Type</span><span class="bk-toc-s">Three faces, ten sizes, two tones</span></a></li>
+          <li><a href="#components"><span class="bk-toc-n">04</span><span class="bk-toc-t">Components</span><span class="bk-toc-s">Buttons, the window, chips, fields, header</span></a></li>
+          <li><a href="#texture"><span class="bk-toc-n">05</span><span class="bk-toc-t">Texture and motion</span><span class="bk-toc-s">Grain, light, the lattice, one easing</span></a></li>
+          <li><a href="#voice"><span class="bk-toc-n">06</span><span class="bk-toc-t">Voice</span><span class="bk-toc-s">Creator first, honest about size</span></a></li>
+          <li><a href="#files"><span class="bk-toc-n">07</span><span class="bk-toc-t">Files</span><span class="bk-toc-s">Where everything lives</span></a></li>
+        </ol>
+      </div>
+    </article>
+  </nav>
 </section>
 
-<!-- 01 colour -->
-<section class="bk-sec" id="colour" data-surface="paper">
-  <div class="bk-wrap">
-    <p class="o-label bk-kick">01 Colour</p>
-    <h2 class="o-display">Blue leads. Pink is the dawn.</h2>
-    <p class="o-lede bk-measure">A sky field with ink type, a cobalt action and an ember spark, on warm paper. Blue is the colour people already trust with money, so the fun reads as confidence. Pink stays in the paintings and is never a field beside cobalt.</p>
-    <p class="o-small bk-measure bk-pinknote" data-only="pink">You are looking at the pink alternative. The rules here are written for blue, the scheme that ships: in pink, read peony for sky, ink for the cobalt action and claret for the deep panel.</p>
+<!-- 01 The mark -->
+<section class="bk-sec" id="mark" data-head="light" aria-labelledby="mark-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">01</p>
+    <h2 class="ob-h2" id="mark-h"><span class="ob-h2-soft">The mark.</span> The Portal, then the word.</h2>
+    <p class="ob-note">The Portal is a block with one corner cut flat, a round counter, and a channel rising through it, flaring into the counter and fine at both ends: a way in, and a line going up. Beside it, Orbe is lettered the way names are cut into stone: every stem narrows at its waist and flares to a flat cut end. Both are drawn as paths, never set in a font.</p>
+  </div>
+  <div class="bk-body ob-layer">
+    <div class="bk-block">
+      <article class="ob-win" data-pair="note" data-head="light" aria-labelledby="wm-t">
+        <div class="ob-win-bar"><span class="ob-win-title" id="wm-t">lockup.svg</span><span class="ob-win-ctl"><button class="ob-win-btn" type="button" data-recut>Cut it again</button></span></div>
+        <div class="ob-win-body bk-mark-body">
+          <div class="bk-clear"><span class="ob-lockup" data-lockup-big role="img" aria-label="Orbe"></span></div>
+          <p class="bk-cap bk-clear-k">The lockup: the Portal exactly as tall as the O, on the same line, then a gap of 0.42 of the word’s height. The dashed frame is the clear space, a third of the lockup’s height on every side. Nothing comes inside it.</p>
+        </div>
+      </article>
+      <p class="bk-cap"><b>The cut.</b> In the header the word is cut once on load, 1.1 seconds: a chisel runs each stroke in writing order, then the flares open at the ends. The Portal never moves. Under reduced motion both are always still.</p>
+    </div>
 
-    <div class="bk-site">
-      <figure class="bk-shot">
-        <div class="bk-story" data-surface="field" data-story></div>
-        <figcaption><b>The story, moment one</b> <span>On the homepage. The figure is the headline; the reach track says where it sits out of 100.</span></figcaption>
-      </figure>
-      <figure class="bk-shot">
-        <div class="bk-post" data-surface="field">
-          <div class="bk-post-scene">
-            <canvas class="bk-paint" data-painter="e" data-scene="post" data-seed="7" aria-hidden="true"></canvas>
-            <div class="bk-post-win" data-post-win></div>
+    <div class="bk-block">
+      <p class="ob-k">The Portal on its own</p>
+      <div class="bk-marks">
+        <figure class="bk-markfig"><div class="bk-markbox" data-tile="sky"></div><figcaption class="bk-cap"><b>Ink on Sky.</b> The avatar, everywhere a profile picture goes.</figcaption></figure>
+        <figure class="bk-markfig"><div class="bk-markbox is-icon" data-tile="cobalt"></div><figcaption class="bk-cap"><b>Paper on Cobalt.</b> The app icon and the favicon tile.</figcaption></figure>
+        <figure class="bk-markfig"><div class="bk-markbox" data-tile="paper"></div><figcaption class="bk-cap"><b>Ink on Paper.</b> Print and documents.</figcaption></figure>
+        <figure class="bk-markfig"><div class="bk-markbox" data-tile="ink"></div><figcaption class="bk-cap"><b>Paper on Ink.</b> Dark grounds.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">Small</p>
+      <div class="bk-small">
+        <div class="bk-small-row" data-small></div>
+        <p class="bk-cap">Under 48px the small cut takes over: the channel runs even instead of tapering, so it stays open at 16px. It is chosen for you by size. The favicon is the small cut in Paper on a rounded Cobalt tile.</p>
+      </div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">The lockup, one flat colour, on four grounds</p>
+      <div class="bk-tiles">
+        <div class="bk-tile bk-tile-paper"><span class="ob-lockup" data-lockup role="img" aria-label="Orbe"></span><p class="bk-cap">Ink on Paper. The default.</p></div>
+        <div class="bk-tile bk-tile-ink"><span class="ob-lockup" data-lockup role="img" aria-label="Orbe"></span><p class="bk-cap">Paper on Ink.</p></div>
+        <div class="bk-tile bk-tile-sky"><span class="ob-lockup" data-lockup role="img" aria-label="Orbe"></span><p class="bk-cap">Ink on Sky, the field.</p></div>
+        <div class="bk-tile bk-tile-chalk"><span class="ob-lockup bk-lockup-s" data-lockup role="img" aria-label="Orbe"></span><p class="bk-cap">The header size, 22px: both small cuts.</p></div>
+      </div>
+      <div class="bk-rules">
+        <div><h3>Always</h3><ul>
+          <li>Size the lockup by the word’s height (<code class="ob-mono">--wm-h</code>) and keep its proportions and its gap.</li>
+          <li>Use the Portal alone where a square is needed: tabs, app icons, avatars.</li>
+          <li>One flat colour from the palette, the same for the mark and the word.</li>
+        </ul></div>
+        <div><h3>Never</h3><ul>
+          <li>Rotate it. The channel rises left to right, always.</li>
+          <li>Add effects: no shadow, glow, gradient, glass, bevel or 3D.</li>
+          <li>Outline it, or draw it as a stroke.</li>
+          <li>Stretch it, redraw it, or set “Orbe” in a font as a stand in.</li>
+          <li>Put it in a circle, seal or badge.</li>
+        </ul></div>
+      </div>
+      <div class="bk-donts" data-donts aria-label="Three things never to do with the mark"></div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">The orb</p>
+      <article class="ob-win" data-pair="rec" data-head="light" aria-labelledby="orb-t">
+        <div class="ob-win-bar"><span class="ob-win-title" id="orb-t">the_orb.txt</span></div>
+        <div class="ob-win-body">
+          <div class="bk-orb">
+            <div data-orb-svg aria-hidden="true"></div>
+            <div class="bk-orb-ctl">
+              <p class="ob-says">The O is the orb. It fills to a creator’s place in their hundred.</p>
+              <p class="bk-p">Zero is typical, so the orb on every primary button sits half full and fills on hover. The footer’s mark fills its O to a made-up creator’s place, and the closing band’s small orb is you.</p>
+              <label class="ob-k" for="orb-n">A place in the hundred</label>
+              <div class="bk-range-row"><span class="bk-hint">Drag to fill</span><output class="bk-orb-out" for="orb-n" data-orb-out>50 in 100</output></div>
+              <input id="orb-n" class="ob-range" type="range" min="1" max="99" step="1" value="50" data-orb-n>
+            </div>
           </div>
-          <p class="bk-post-said" data-said></p>
-          <div class="bk-post-row"><button type="button" class="bk-post-copy" data-copy>Copy the line</button><span class="bk-post-link" data-post-link></span></div>
-          <p class="bk-post-done" data-copied aria-live="polite"></p>
         </div>
-        <figcaption><b>The story, moment three</b> <span>On the homepage. Painted ground for the person, a square window for the figure, and the line they post.</span></figcaption>
-      </figure>
-    </div>
-
-    <h3 class="bk-sub o-label" data-prop-label>The proportions on a page</h3>
-    <div class="bk-propbar" data-proportions></div>
-
-    <div class="bk-primary" data-swatches="primary"></div>
-
-    <details class="bk-cdet bk-fold" data-fold>
-      <summary><span class="o-label">The full palette</span><span class="bk-csum">Pink-led, papers, inks, paint and functional colours</span></summary>
-    <div class="bk-rows">
-      <div class="bk-rowsw"><h3 class="o-label">Pink-led, the alternative</h3><div data-chips="pink"></div></div>
-      <div class="bk-rowsw"><h3 class="o-label">Papers</h3><div data-chips="papers"></div></div>
-      <div class="bk-rowsw"><h3 class="o-label">Inks</h3><div data-chips="inks"></div></div>
-      <div class="bk-rowsw"><h3 class="o-label">Paint, for the paintings only</h3><div data-chips="painterly"></div></div>
-      <div class="bk-rowsw"><h3 class="o-label">Functional, product states only</h3><div data-chips="functional"></div></div>
-    </div>
-    </details>
-
-    <details class="bk-cdet" data-cdet data-fold>
-      <summary><span class="o-label">Contrast, computed (WCAG 2.2)</span><span class="bk-csum" data-csum></span></summary>
-      <p class="o-small bk-measure">Text needs 4.5:1 for AA and 7:1 for AAA. Large text (24px, or 19px bold) needs 3:1 and 4.5:1. A shape that carries meaning needs 3:1. Computed live from the hex values.</p>
-      <div class="bk-tables" data-contrast></div>
-    </details>
-
-    <div class="bk-rules">
-      <div><h3 class="o-title">Always</h3><ul>
-        <li>One field per screen. Sky is the field; paper is where people read and products live.</li>
-        <li>Ink for type on sky, paper and ember. Cobalt for the one action and links.</li>
-        <li>Ember as a spark: one brush stroke under a figure. On a light field it never carries meaning alone.</li>
-        <li>Functional colours only for states in the product, always with words beside them.</li>
-      </ul></div>
-      <div><h3 class="o-title">Never</h3><ul>
-        <li>Never colour a rating red or green. A rating measures; it does not judge.</li>
-        <li>Never put paper or white text on sky or peony, or body text in cobalt on sky.</li>
-        <li>Never set peony beside cobalt as two fields.</li>
-        <li>Never use gradients, glows, purple or a second field on one screen. No seals, badges or ticks.</li>
-        <li>Never recolour a creator's work to match the brand.</li>
-      </ul></div>
+      </article>
     </div>
   </div>
 </section>
 
-<!-- 02 type -->
-<section class="bk-sec" id="type" data-surface="field">
-  <div class="bk-wrap">
-    <p class="o-label bk-kick">02 Type</p>
-    <h2 class="o-display">Big and tight, then warm, then exact.</h2>
+<!-- 02 Colour -->
+<section class="bk-sec" id="colour" data-head="light" aria-labelledby="colour-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">02</p>
+    <h2 class="ob-h2" id="colour-h"><span class="ob-h2-soft">Colour.</span> Sky and Ink do the work. The rest is art.</h2>
+    <p class="ob-note">Warm Paper for reading, Sky for the field, Ink for type, Cobalt for the band and the action’s deep blue. Straw, Peony and Claret paint the product windows. Every value and ratio here is read from the live tokens.</p>
+  </div>
+  <div class="bk-body ob-layer">
+    <div class="bk-block">
+      <p class="ob-k">The primaries</p>
+      <div class="bk-swatches is-primary" data-swatches="primary"></div>
+    </div>
+    <div class="bk-block">
+      <p class="ob-k">Papers, inks and accents</p>
+      <div class="bk-swatches" data-swatches="rest"></div>
+    </div>
+    <div class="bk-block">
+      <p class="ob-k">Product pairs: a field and its words</p>
+      <p class="bk-p">Each product has one pair. A window’s body takes it, and every ink, rule and focus ring inside follows. Ratios are words on field, computed here from the tokens (WCAG 2.2; body text needs 4.5 to 1).</p>
+      <div class="bk-pairs" data-pairs></div>
+    </div>
+    <div class="bk-block">
+      <p class="ob-k">Archetype pairs: one per kind of work</p>
+      <p class="bk-p">On the homepage’s instrument each kind of work brings its own field, words and the cell that is you.</p>
+      <div class="bk-kinds" data-kinds></div>
+    </div>
+    <div class="bk-block">
+      <p class="ob-k">The rules</p>
+      <div class="bk-rules">
+        <div><h3>Always</h3><ul>
+          <li><b>Accents are art.</b> Straw, Peony, Claret and Ember paint fields, windows and pixels. They are never the colour of a sentence on Paper.</li>
+          <li><b>Ember is the single “you”.</b> One small orb on the closing band holds a creator’s own place. Ember appears nowhere else on a screen.</li>
+          <li><b>Words on a field use its pair.</b> If a pair isn’t listed above, it hasn’t been checked.</li>
+        </ul></div>
+        <div><h3>Never</h3><ul>
+          <li><b>No purple</b>, at any strength, anywhere: not in a gradient, a hover or a chart.</li>
+          <li><b>No glows.</b> Depth is one soft stack of shadows, never a coloured halo.</li>
+          <li><b>No red or green for a rating.</b> A rating measures; it does not judge.</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 Type -->
+<section class="bk-sec" id="type" data-head="light" aria-labelledby="type-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">03</p>
+    <h2 class="ob-h2" id="type-h"><span class="ob-h2-soft">Type.</span> Three faces, one ladder.</h2>
+    <p class="ob-note">Ten sizes, none under 12px. Display is set medium and tight; the serif carries warmth; mono is for file names and figures, and nothing else.</p>
+  </div>
+  <div class="bk-body ob-layer">
     <div class="bk-faces">
-      <article class="o-window"><div class="o-window-bar"><span>Schibsted Grotesk</span><span>400 to 900</span></div><div class="o-window-body"><p class="bk-face-a">Aa</p><p class="o-small"><b>The voice and the figures.</b> Display at 800, tight; titles at 700; body at 400. Every rating, count and sum.</p></div></article>
-      <article class="o-window"><div class="o-window-bar"><span>Newsreader</span><span>300 to 700</span></div><div class="o-window-body"><p class="bk-face-b">Aa <i>Aa</i></p><p class="o-small"><b>The warmth.</b> Ledes, folder tabs and the italic band word: <i>Average</i>, <i>Good</i>.</p></div></article>
-      <article class="o-window"><div class="o-window-bar"><span>Commit Mono</span><span>400 to 600</span></div><div class="o-window-body"><p class="bk-face-c">orbe.vc/@</p><p class="o-small"><b>The machine.</b> Handles, dates and short capital labels on windows. Never sentences, never money.</p></div></article>
+      <div class="bk-face"><p class="bk-face-aa bk-face-a" aria-hidden="true">Aa</p><p class="bk-face-n">Schibsted Grotesk</p><p class="bk-cap">The voice: display, headings, body, buttons. Display at 500, tracked in.</p></div>
+      <div class="bk-face"><p class="bk-face-aa bk-face-b" aria-hidden="true">Aa <i>Aa</i></p><p class="bk-face-n">Newsreader</p><p class="bk-cap">The warmth: the Sunday note, a signed line, the footer’s sign off. Italic is the only emphasis.</p></div>
+      <div class="bk-face"><p class="bk-face-aa bk-face-c" aria-hidden="true">note.txt</p><p class="bk-face-n">Commit Mono</p><p class="bk-cap">The machine: file names on windows, figures in columns, a handle.</p></div>
     </div>
 
-    <details class="bk-cdet bk-fold" data-fold>
-      <summary><span class="o-label">Web scale</span><span class="bk-csum">Six steps, fluid from 390 to 1440</span></summary>
-    <div class="bk-scale">
-      <div class="bk-step"><span class="o-label">Display 1 · 800 · 64 to 200</span><p class="o-display is-hero">Rated.</p></div>
-      <div class="bk-step"><span class="o-label">Display 3 · 800 · 36 to 72</span><p class="o-display is-3">Zero is typical.</p></div>
-      <div class="bk-step"><span class="o-label">Serif 1 · Newsreader 400 · 34 to 64</span><p class="o-serif">Filed beside creators your size.</p></div>
-      <div class="bk-step"><span class="o-label">Lede · Newsreader 400 · 20 to 24</span><p class="o-lede">A channel, a newsletter, a podcast, a portfolio: each one rated fairly against its own kind.</p></div>
-      <div class="bk-step"><span class="o-label">Body · 400 · 16 to 17</span><p class="o-body">Orbe earns 15% when it finds the brand and 5% when you bring it, paid by the brand. Creators never pay.</p></div>
-      <div class="bk-step"><span class="o-label">Label · Commit Mono 500 · 12, the floor</span><p class="o-label">Checked 18 Oct 2026 · model 2026.10</p></div>
+    <div class="bk-block">
+      <p class="ob-k">The ladder</p>
+      <div class="bk-ladder" data-ladder></div>
     </div>
-    </details>
 
-    <div class="bk-figures">
-      <div><p class="o-figure" data-fig>+1.23 <span class="o-band">Good</span></p><p class="o-small">Ratings: Schibsted 700, a true minus (−0.20), a plus on positives, the band in Newsreader italic. Money in columns is tabular.</p></div>
-      <div><p class="bk-figrule"><b>Write it</b> 25,877 · £12,400 · 3.7× · 51% · 18 Oct 2026 · 5k to 25k</p><p class="bk-figrule"><b>Never</b> <s>25.9K views!! · ~£12k · 3.7x · 18/10/26</s></p></div>
+    <div class="bk-block">
+      <p class="ob-k">Two-tone heads</p>
+      <div class="bk-two">
+        <h3 class="ob-h2"><span class="ob-h2-soft">Your work, read properly.</span> Every figure live, every creator made up.</h3>
+        <p class="bk-cap">A softer first line in Graphite sets the scene; the claim follows in Ink. One per section head, never two in a row. On a phone the head steps down to 24px.</p>
+      </div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">When mono is allowed</p>
+      <div class="bk-rules">
+        <div><h3>File names and figures</h3><ul>
+          <li><span class="bk-mono-ok">sponsorship_quote.txt</span> on a window’s title row</li>
+          <li><span class="bk-mono-ok">£4,624.62</span> and <span class="bk-mono-ok">93 in 100</span> where figures line up</li>
+          <li><span class="bk-mono-ok">orbe.vc/@yourname</span> as the handle’s prefix</li>
+        </ul></div>
+        <div><h3>Never</h3><ul>
+          <li>A sentence, a heading or a button in mono.</li>
+          <li>Mono to make something look technical.</li>
+          <li>A rating’s band word: <i>Good</i> is set in the text face.</li>
+        </ul></div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- 03 what Orbe draws: the survivors -->
-<section class="bk-sec" id="draws" data-surface="paper">
-  <div class="bk-wrap">
-    <p class="o-label bk-kick">03 What Orbe draws</p>
-    <h2 class="o-display">Square for numbers. Paint for people.</h2>
-    <p class="o-lede bk-measure">Three pieces, each already on a page or chosen for one. Nothing is drawn that does not count something or hold someone's work.</p>
-
-    <div class="bk-draw">
-      <figure class="bk-piece is-brush">
-        <div class="bk-brush">
-          <canvas class="bk-paint bk-brush-land" data-scene="hero" data-seed="7" aria-hidden="true"></canvas>
-          <div class="bk-brush-marks" data-brush></div>
+<!-- 04 Components -->
+<section class="bk-sec" id="components" data-head="light" aria-labelledby="comp-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">04</p>
+    <h2 class="ob-h2" id="comp-h"><span class="ob-h2-soft">Components.</span> One family, four radii.</h2>
+    <p class="ob-note">4px for fields and small controls, 8px for buttons and cards, 12px for windows and bands, and the pill for chips and orbs. One soft shadow stack. Everything you can press says so.</p>
+  </div>
+  <div class="bk-body ob-layer">
+    <div class="bk-block">
+      <p class="ob-k">Buttons and their states</p>
+      <div class="bk-spec">
+        <div class="bk-states">
+          <div class="bk-state"><span class="ob-btn bk-fake"><span class="ob-orb" aria-hidden="true"></span>See where you stand</span><span class="bk-cap">Primary, at rest</span></div>
+          <div class="bk-state"><span class="ob-btn bk-fake is-hover"><span class="ob-orb" aria-hidden="true"></span>See where you stand</span><span class="bk-cap">Hover: the orb fills</span></div>
+          <div class="bk-state"><span class="ob-btn bk-fake is-press"><span class="ob-orb" aria-hidden="true"></span>See where you stand</span><span class="bk-cap">Pressed: down 1px</span></div>
+          <div class="bk-state"><span class="ob-btn bk-fake is-focus"><span class="ob-orb" aria-hidden="true"></span>See where you stand</span><span class="bk-cap">Focus: a 2px ring</span></div>
         </div>
-        <figcaption><b>The brush</b> <span>Under the homepage's moment three. Ground painted stroke by stroke in code, one ember stroke under the figure, ink bars as long as each part's score.</span></figcaption>
-      </figure>
-      <figure class="bk-piece is-yard">
-        <div><div class="bk-ow"><span class="bk-ow-tab" data-yard-tab>One upload, three yardsticks</span><ol class="bk-yard" data-yard></ol><div class="bk-rt" data-rt></div></div><p class="bk-why" data-why></p></div>
-        <figcaption><b>The yardstick window</b> <span>The homepage's moment two. One piece of work against the smallest, the biggest and its own size. The two wrong verdicts are struck once read.</span></figcaption>
-      </figure>
-      <figure class="bk-piece is-stamp">
-        <div class="bk-fx bk-fx-stamp" data-stamp></div>
-        <figcaption><b>Stamp type</b> <span>A printed poster loop for social posts and the launch, in the brand colours only. Never behind a figure.</span></figcaption>
-      </figure>
+        <div class="bk-row"><button class="ob-btn" type="button" data-try><span class="ob-orb" aria-hidden="true"></span>Try the real one</button><button class="ob-btn ob-btn--s" type="button" data-try><span class="ob-orb" aria-hidden="true"></span>Small</button><span class="bk-cap" data-try-say aria-live="polite">One primary per view.</span></div>
+      </div>
+      <div class="bk-spec ob-lit ob-lit-cobalt is-cobalt">
+        <div class="bk-states">
+          <div class="bk-state"><span class="ob-btn ob-btn--light bk-fake"><span class="ob-orb" aria-hidden="true"></span>Reserve my handle</span><span class="bk-cap">Light, at rest</span></div>
+          <div class="bk-state"><span class="ob-btn ob-btn--light bk-fake is-hover"><span class="ob-orb" aria-hidden="true"></span>Reserve my handle</span><span class="bk-cap">Hover</span></div>
+          <div class="bk-state"><span class="ob-btn ob-btn--light bk-fake is-press"><span class="ob-orb" aria-hidden="true"></span>Reserve my handle</span><span class="bk-cap">Pressed</span></div>
+          <div class="bk-state"><span class="ob-btn ob-btn--light bk-fake is-focus"><span class="ob-orb" aria-hidden="true"></span>Reserve my handle</span><span class="bk-cap">Focus</span></div>
+        </div>
+        <p class="bk-cap">On a dark field: Chalk to Paper, with a Cobalt orb.</p>
+      </div>
+      <div class="bk-spec">
+        <div class="bk-states">
+          <div class="bk-state"><span class="ob-btn-q bk-fake">How it works<span class="ob-q ob-q--down" aria-hidden="true"></span></span><span class="bk-cap">Secondary, at rest</span></div>
+          <div class="bk-state"><span class="ob-btn-q bk-fake is-hover">Every tool<span class="ob-q" aria-hidden="true"></span></span><span class="bk-cap">Hover: the orb fills</span></div>
+          <div class="bk-state"><a class="ob-lnk" href="../products/">Every tool</a><span class="bk-cap">Link, with its arrow</span></div>
+          <div class="bk-state"><p class="ob-note">Inline: <a class="ob-lnk ob-lnk--s" href="../products/diligence/">Diligence</a></p><span class="bk-cap">Small link, in a sentence</span></div>
+        </div>
+      </div>
     </div>
 
-    <ul class="bk-list bk-measure">
-      <li><b>Counting marks:</b> square windows with an ink bar, the band rule with a square marker, the reach track out of 100, the struck verdict.</li>
-      <li><b>People's marks:</b> paper folders with a named tab, painted ground, a small dark tooltip naming the work: <span class="o-pill is-tip"><b>upload</b> the marsh at 4am</span></li>
-      <li><b>Their work</b> is shown as they made it, cropped to fill, never filtered or painted over. Orbe's paintings stand in only where there is no work, and say they are made up.</li>
-      <li><b>Parked:</b> Tiles waits in the <a href="../fx/">motion lab</a> until a page has a closing line for it.</li>
-    </ul>
+    <div class="bk-block">
+      <p class="ob-k">The window, with its title row and colour pair</p>
+      <div class="bk-winrow">
+        <article class="ob-win bk-win" data-pair="spon" data-head="light" aria-labelledby="demo-t" data-demo-win>
+          <div class="ob-win-bar"><span class="ob-win-title" id="demo-t">sponsorship_quote.txt</span><a class="ob-win-lnk" href="../products/sponsorships/">Open</a></div>
+          <div class="ob-win-body">
+            <p class="ob-says">Know what a slot is worth.</p>
+            <div class="ob-card">
+              <p class="ob-k">Sponsorships. An integrated read</p>
+              <p class="bk-fig">£2,250 to £3,950</p>
+              <dl class="ob-strip"><div><dt>Views at 30 days</dt><dd>155,000</dd></div><div><dt>If Orbe finds it</dt><dd>15%</dd></div><div><dt>If you bring it</dt><dd>5%</dd></div></dl>
+            </div>
+            <div class="ob-chips"><span class="ob-chip" data-i="source">With the API</span><span class="ob-chip" data-i="record">Made up</span></div>
+            <p class="ob-note ob-win-end">A made-up creator, priced live. The brand pays the fee.</p>
+          </div>
+        </article>
+        <div class="bk-field">
+          <p class="ob-k" id="pair-l">Paint the body with a pair</p>
+          <div class="bk-seg" role="group" aria-labelledby="pair-l" data-pair-pick></div>
+          <p class="bk-cap">A 1px rule, a Chalk title row with a file name on the left and one quiet control on the right, then the body. The live control sits on a crisp Chalk card that floats on the field. Windows on a dark pair also tell the header they are dark.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bk-grid bk-g2">
+      <div class="bk-block">
+        <p class="ob-k">Chips</p>
+        <div class="ob-chips"><span class="ob-chip" data-i="source">With the API</span><span class="ob-chip" data-i="payout">Read from payouts</span><span class="ob-chip" data-i="record">Made up</span><span class="ob-chip" data-i="time">Checked 18 Oct 2026</span></div>
+        <p class="bk-cap">A small status, in words, with a 12px mark. Never a seal, a badge or a tick.</p>
+      </div>
+      <div class="bk-block">
+        <p class="ob-k">The stat strip</p>
+        <dl class="ob-strip"><div><dt>Fee</dt><dd>£17,600</dd></div><div><dt>Buyer adds</dt><dd>£4,400</dd></div><div><dt>You keep</dt><dd><b>£202,400</b></dd></div></dl>
+        <p class="bk-cap">Three figures with hairlines between. Made-up sale of £220,000.</p>
+      </div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">Fields</p>
+      <div class="bk-grid bk-g2">
+        <div class="bk-field">
+          <label class="ob-k" for="f-show">Your show</label>
+          <input id="f-show" class="ob-input" type="text" value="thelongtable" autocomplete="off" spellcheck="false">
+          <p class="bk-hint">16px text, so a phone never zooms. A 2px Cobalt ring on focus.</p>
+        </div>
+        <div class="bk-field">
+          <div class="bk-range-row"><label class="ob-k" for="f-views">Views at 30 days</label><output for="f-views" data-views-out>155,000</output></div>
+          <input id="f-views" class="ob-range" type="range" min="5000" max="500000" step="5000" value="155000" data-views>
+          <p class="bk-hint">The slider: an Ink track and a Chalk thumb, 4px corners.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">The header</p>
+      <div class="bk-bars" inert>
+        <div class="bk-barbox is-top" aria-hidden="true"><div class="ob-bar" data-bar-demo="top"></div><div class="bk-bar-under"><p>At the very top: no bar. Each part takes the colour of the field under it.</p></div></div>
+        <div class="bk-barbox" aria-hidden="true"><div class="ob-bar" data-solid="light" data-bar-demo="light"></div><div class="bk-bar-under"><p>Once the page moves: solid Paper, a hairline and the soft stack.</p></div></div>
+        <div class="bk-barbox is-dark" aria-hidden="true"><div class="ob-bar" data-solid="dark" data-bar-demo="dark"></div><div class="bk-bar-under"><p>Over a dark field: solid Ink, Paper words, the light button.</p></div></div>
+      </div>
+      <p class="bk-cap">No blur and no glass, so words never show through. 160ms, colour only. Scroll this page to see the real one change.</p>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">The footer</p>
+      <p class="bk-p">The mark and a signed line, four short columns, the honesty line, then the whole mark the width of the page, its O filled to a made-up creator’s place. It is the one thing on Orbe that loops, and only while it is on screen. <a class="ob-lnk ob-lnk--s" href="#footer">See it below</a></p>
+    </div>
+
+    <div class="bk-block" id="icons">
+      <p class="ob-k">Icons</p>
+      <p class="bk-p">Phosphor (MIT), vendored in <code class="ob-mono">assets/icons/</code>. Bold at 18px and under, regular above, so the stroke stays near the brand’s 1.5px line. Icons are for actions found by shape and the few nouns people scan for, never on every label.</p>
+      <div class="bk-icon-demo">
+        <button class="bk-ibtn" type="button" aria-label="Copy" data-ibtn="copy"></button>
+        <button class="bk-ibtn" type="button" aria-label="Search" data-ibtn="search"></button>
+        <button class="bk-ibtn" type="button" aria-label="Share" data-ibtn="share"></button>
+        <button class="bk-ibtn" type="button" aria-label="Close" data-ibtn="close"></button>
+        <span class="bk-cap">20px regular in an icon button; 16px bold beside a word.</span>
+      </div>
+      <div class="bk-icons" data-icons></div>
+    </div>
   </div>
 </section>
 
-<!-- 04 shape, UI and motion -->
-<section class="bk-sec bk-sunk" id="shape" data-surface="paper">
-  <div class="bk-wrap">
-    <p class="o-label bk-kick">04 Shape, UI and motion</p>
-    <h2 class="o-display">Square holds money. Round holds people.</h2>
-    <div class="bk-ui">
-      <div class="bk-ui-block"><h3 class="bk-sub o-label">Buttons</h3>
-        <div class="bk-row"><span class="o-btn">Reserve your handle</span><span class="o-btn is-press">Pressed</span><span class="o-btn is-quiet">For buyers</span></div>
-        <p class="o-small">One action per view, in cobalt. It lifts on a hard ink shadow and presses flat.</p></div>
-      <div class="bk-ui-block"><h3 class="bk-sub o-label">Inputs, 16px</h3>
-        <label class="o-input"><span class="o-input-pre">orbe.vc/@</span><input placeholder="yourhandle" aria-label="Handle, example"></label>
-        <label class="o-input is-error"><span class="o-input-pre">orbe.vc/@</span><input value="field recordings" aria-label="Handle, error example"></label><p class="o-hint is-error">Handles use letters, numbers, dots and dashes.</p></div>
-      <div class="bk-ui-block"><h3 class="bk-sub o-label">Status, in words</h3>
-        <p class="o-status is-positive">Read from payouts, checked 18 Oct 2026</p>
-        <p class="o-status is-warning">Two payouts do not add up; your record says so</p>
-        <p class="o-status is-negative">Orbe can no longer read this account</p>
-        <p class="o-small">A dot and a sentence. Never a seal, a badge or a tick.</p></div>
+<!-- 05 Texture and motion -->
+<section class="bk-sec" id="texture" data-head="light" aria-labelledby="tex-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">05</p>
+    <h2 class="ob-h2" id="tex-h"><span class="ob-h2-soft">Texture and motion.</span> Explain once, then stop.</h2>
+    <p class="ob-note">Paper has grain and fields have light, so the screen feels made rather than rendered. Motion shows how something works one time and then holds still.</p>
+  </div>
+  <div class="bk-body ob-layer">
+    <div class="bk-block">
+      <p class="ob-k">Paper grain and gradient light</p>
+      <div class="bk-fields">
+        <div class="bk-fieldtile bk-flat">Flat Sky</div>
+        <div class="bk-fieldtile ob-lit">Sky, lit, with grit</div>
+        <div class="bk-fieldtile ob-lit bk-lit-straw">Straw, lit</div>
+        <div class="bk-fieldtile ob-lit ob-lit-cobalt">Cobalt, the band</div>
+      </div>
+      <p class="bk-cap">The whole page carries one fixed grain, multiplied at a few percent; it is off under reduced transparency. A field is lit from the top left and deepens to the lower right, with a coarser grit under the words. Never a glossy highlight.</p>
     </div>
-    <details class="bk-cdet bk-fold" data-fold>
-      <summary><span class="o-label">Motion curves</span><span class="bk-csum">Settle, standard, play and chisel</span></summary>
-    <div class="bk-motion" data-motion></div>
-    </details>
-    <p class="o-small bk-measure bk-after">Motion explains: a figure counts up once, a folder lifts, a wrong verdict is struck, the wordmark is cut once. Play may overshoot; figures, fees and payouts never bounce. Reduced motion makes every change instant.</p>
+
+    <div class="bk-block">
+      <p class="ob-k">The lattice and pixel objects</p>
+      <div class="bk-lattice-row">
+        <div class="bk-lattice" data-loud><p data-trail-say>Move your pointer here. The trail lands on the 11.28px lattice.</p></div>
+        <div class="bk-piece">
+          <div class="bk-piece-box"><canvas data-piece aria-hidden="true"></canvas></div>
+          <div class="bk-seg" role="group" aria-label="Pixel object" data-piece-pick></div>
+        </div>
+      </div>
+      <p class="bk-cap">One object per kind of work, in three colours, shaded by omission: a shadowed cell is left out, never darkened. When it changes, each column’s cells travel straight up or down, once. No faces, no characters.</p>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">The one easing</p>
+      <div class="bk-ease">
+        <svg viewBox="-8 -8 216 216" aria-hidden="true">
+          <path class="bk-ease-axis" d="M0 0V200H200"/>
+          <path class="bk-ease-hand" d="M0 200L120 192M200 0L60 0"/>
+          <path class="bk-ease-line" d="M0 200C120 192 60 0 200 0"/>
+          <circle class="bk-ease-dot" cx="120" cy="192" r="4"/><circle class="bk-ease-dot" cx="60" cy="0" r="4"/>
+        </svg>
+        <div>
+          <p class="bk-code">cubic-bezier(0.6, 0.04, 0.3, 1)</p>
+          <p class="bk-cap">A slow start, a long settle and no overshoot. Nothing bounces: not a figure, not a fee, not a window. CSS uses <code class="ob-mono">var(--ob-ease)</code>; scripts use <code class="ob-mono">ease()</code> from <code class="ob-mono">ease.js</code>.</p>
+          <div class="bk-track" data-track><i></i></div>
+          <div class="bk-row" style="margin-top:12px"><button class="ob-win-btn" type="button" data-play>Play once</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bk-block">
+      <p class="ob-k">What moves, and when it stops</p>
+      <ul class="bk-motion-list">
+        <li><b>The wordmark</b><span>Cut once in the header on load, then still.</span></li>
+        <li><b>A figure</b><span>Counts to its value once when it first shows.</span></li>
+        <li><b>A pixel object</b><span>Rises into place up its columns once; travels once when its word changes.</span></li>
+        <li><b>The pointer trail</b><span>Follows a mouse and fades in 0.9s. Off on touch. No frame runs once the last cell has gone.</span></li>
+        <li><b>The footer mark</b><span>The one loop. Cuts, fills and turns through the six product pairs, only while it is on screen.</span></li>
+      </ul>
+      <p class="bk-now">Reduced motion on this device: <span class="ob-chip" data-i="time" data-rm>off</span></p>
+      <p class="bk-cap">Under reduced motion every piece is drawn settled: the mark still, the trail off, the footer on one still frame, smooth scrolling off, every change instant.</p>
+    </div>
   </div>
 </section>
 
-<!-- 05 voice -->
-<section class="bk-sec" id="voice" data-surface="deep">
-  <div class="bk-wrap">
-    <p class="o-label bk-kick">05 Voice</p>
-    <h2 class="o-display">Cheeky with creators. Exact with money.</h2>
+<!-- 06 Voice -->
+<section class="bk-sec bk-dark" id="voice" data-head="dark" aria-labelledby="voice-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">06</p>
+    <h2 class="ob-h2" id="voice-h"><span class="ob-h2-soft">Voice.</span> A friend who is very good with numbers.</h2>
+    <p class="ob-note">Warm first, exact always, short. One person, second person, British English. No dashes, no exclamation marks in product copy, no hype.</p>
+  </div>
+  <div class="bk-body ob-layer">
+    <div class="bk-block">
+      <p class="bk-manifesto"><em>Build your goliath.</em> Somewhere tonight someone is uploading at 3am to a channel nobody has found yet. That is how every enormous thing starts.</p>
+      <p class="bk-cap">Free for creators, for good. Made by people who refresh the same pages you do.</p>
+    </div>
     <div class="bk-voice">
-      <div>
-        <h3 class="o-title">For creators: a mate who knows the numbers</h3>
-        <p class="o-small">Short, warm, second person, a little cheeky. Celebrate the work, then give the figure.</p>
-        <ul class="bk-do">
-          <li><b>Do</b><span>Your most watched upload yet. Post it.</span></li>
-          <li><b>Do</b><span>Zero is typical. You are at +1.23.</span></li>
-          <li><b>Do</b><span>Free, for good. Creators never pay.</span></li>
-          <li class="is-dont"><b>Don't</b><span>Unlock your creator economy potential with AI-powered insights!</span></li>
-          <li class="is-dont"><b>Don't</b><span>Your content scored 64/100. Try harder.</span></li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="o-title">For brands, buyers and backers: the plain facts</h3>
-        <p class="o-small">When money is in the sentence the jokes stop. Say what the figure is, where it came from and the day it was checked.</p>
-        <ul class="bk-do">
-          <li><b>Do</b><span>Read from payouts, not estimates. Checked 18 Oct 2026.</span></li>
-          <li><b>Do</b><span>15% when Orbe finds the brand, 5% when you bring it, paid by the brand.</span></li>
-          <li><b>Do</b><span>Orbe introduces. You negotiate and sign with your own advisers.</span></li>
-          <li class="is-dont"><b>Don't</b><span>Verified creators. Bank-grade. Guaranteed returns.</span></li>
-          <li class="is-dont"><b>Don't</b><span>Revenue ~£12k/mo (est.)</span></li>
-        </ul>
-      </div>
+      <div><h3>Creator first</h3><p>Their work, then their number, then what it means for them. Talk about what they are building; the deal is never the point.</p></div>
+      <div><h3>Honest about size</h3><p>“Creators your size” is the whole idea. Zero is typical, and that’s how big things get built. Never “only”, “just” or “small” beside someone’s numbers.</p></div>
+      <div><h3>Money only when it moves</h3><p>Free for creators, for good. Orbe earns when money moves, and says plainly who pays. Read from payouts, not estimates.</p></div>
+      <div><h3>Made-up labels</h3><p>Every example creator is invented and says so: “A made-up creator, rated live by the Orbe engine.” “Independently calculated by Orbe.”</p></div>
+    </div>
+    <div class="bk-block">
+      <p class="ob-k">In practice</p>
+      <ul class="bk-say">
+        <li><b>Say</b><span>You beat 93 in 100 channels your size.</span></li>
+        <li class="is-not"><b>Not</b><span>Top 7%! You’re crushing it!</span></li>
+        <li><b>Say</b><span>Zero is typical. Most weeks are, and that’s how big things get built.</span></li>
+        <li class="is-not"><b>Not</b><span>Your score is 0. Try posting more consistently.</span></li>
+        <li><b>Say</b><span>YouTube estimated £412. AdSense paid £388. Your record uses £388.</span></li>
+        <li class="is-not"><b>Not</b><span>Verified revenue, powered by our proprietary pipeline.</span></li>
+      </ul>
+    </div>
+    <div class="bk-words">
+      <div><h3>Words we use</h3><p>work, uploads, letters, episodes, photos, your size, typical, personal best, record, paid, read, building</p></div>
+      <div><h3>Words we don’t</h3><p>content, unlock, hustle, grind, journey, monetise, funnel, users, AI-powered</p></div>
     </div>
   </div>
 </section>
 
-<!-- 06 applications -->
-<section class="bk-sec bk-appsec" id="applications" data-surface="night">
-  <div class="bk-wrap">
-    <p class="o-label bk-kick">06 Applications</p>
-    <h2 class="o-display">Four at work.</h2>
-    <p class="o-small bk-measure">The first two are the homepage itself, loaded live at its own size and scaled to fit, so they always match what ships. The post and the email are drawn at native size from the site's own parts. Exports: <code>shots/app-*-blue.png</code> and <code>shots/app-*-pink.png</code>. Every figure is from the Orbe engine's made-up examples.</p>
-    <div class="bk-apps" data-apps></div>
+<!-- 07 Files -->
+<section class="bk-sec" id="files" data-head="light" aria-labelledby="files-h">
+  <div class="bk-side ob-layer">
+    <p class="bk-n">07</p>
+    <h2 class="ob-h2" id="files-h"><span class="ob-h2-soft">Files.</span> Where everything lives.</h2>
+    <p class="ob-note">Plain CSS and JavaScript modules, no build step. A page links four stylesheets and mounts the header, footer and trail.</p>
+  </div>
+  <div class="bk-body ob-layer">
+    <table class="bk-files">
+      <thead><tr><th scope="col">File</th><th scope="col">What it is</th></tr></thead>
+      <tbody>
+        <tr><td><a href="../assets/orbe/orbe.css"><code>assets/orbe/orbe.css</code></a></td><td>The system: page, grain, light, the ladder, buttons, links, fields, the window and its pairs, chips, the strip, focus, header and footer.</td></tr>
+        <tr><td><a href="../assets/orbe/chrome.js"><code>assets/orbe/chrome.js</code></a></td><td><code class="ob-mono">mountHeader</code> and <code class="ob-mono">mountFooter</code>: the shared header and the public footer.</td></tr>
+        <tr><td><a href="../assets/orbe/trail.js"><code>assets/orbe/trail.js</code></a></td><td><code class="ob-mono">mountTrail</code>, the pointer trail.</td></tr>
+        <tr><td><a href="../assets/orbe/ease.js"><code>assets/orbe/ease.js</code></a></td><td>The one easing, as a function and a string, and <code class="ob-mono">reducedMotion()</code>.</td></tr>
+        <tr><td><a href="../assets/orbe/README.md"><code>assets/orbe/README.md</code></a></td><td>The guide to mounting a page on the system.</td></tr>
+        <tr><td><a href="../assets/brand/tokens.css"><code>assets/brand/tokens.css</code></a></td><td>The palette (<code class="ob-mono">--orbe-*</code>), rules and font stacks the system is built on.</td></tr>
+        <tr><td><a href="../assets/fonts.css"><code>assets/fonts.css</code></a></td><td>Schibsted Grotesk, Newsreader and Commit Mono, all SIL OFL.</td></tr>
+        <tr><td><a href="../assets/r5/wordmark.js"><code>assets/r5/wordmark.js</code></a></td><td>The Carved wordmark: <code class="ob-mono">mountWordmark</code>, both cuts and the cut animation. The favicons and app icons beside it.</td></tr>
+        <tr><td><a href="../assets/orbe/mark.js"><code>assets/orbe/mark.js</code></a></td><td>The Portal: both cuts as paths, <code class="ob-mono">portalMarkup</code>, <code class="ob-mono">tileMarkup</code> and the lockup’s numbers.</td></tr>
+        <tr><td><a href="../assets/mark/orbe-lockup-ink.svg"><code>assets/mark/</code></a></td><td>The files to hand over: the lockup in Ink and Paper, the Portal on Sky, Cobalt, Paper and Ink, and PNGs of the avatar and app icon.</td></tr>
+        <tr><td><a href="../assets/icons/icons.js"><code>assets/icons/icons.js</code></a></td><td>Phosphor, as <code class="ob-mono">icon(name, { size })</code>, with the SVGs in <code class="ob-mono">regular/</code> and <code class="ob-mono">bold/</code>.</td></tr>
+      </tbody>
+    </table>
+    <div class="bk-block">
+      <p class="ob-k">Mounting a page</p>
+<pre class="bk-pre"><code>&lt;link rel="stylesheet" href="../assets/fonts.css"&gt;
+&lt;link rel="stylesheet" href="../assets/brand/tokens.css"&gt;
+&lt;link rel="stylesheet" href="../assets/orbe/orbe.css"&gt;
+&lt;body class="ob-page ob-grain"&gt;
+  &lt;header data-ob-header&gt;&lt;/header&gt;
+  &lt;main id="main"&gt;...&lt;/main&gt;
+  &lt;footer data-ob-footer&gt;&lt;/footer&gt;
+
+import { mountHeader, mountFooter } from "../assets/orbe/chrome.js";
+import { mountTrail } from "../assets/orbe/trail.js";
+mountFooter(footer, { root: "../" });
+mountHeader(header, { root: "../" });
+mountTrail();</code></pre>
+    </div>
   </div>
 </section>
 
 </main>
 
-<footer class="bk-foot" data-surface="field">
-  <div class="bk-wrap bk-foot-grid">
-    <div><h3 class="o-title">Adopt it</h3>
-<pre><code>&lt;link rel="stylesheet" href="/assets/fonts.css"&gt;
-&lt;link rel="stylesheet" href="/assets/brand/tokens.css"&gt;
-&lt;link rel="stylesheet" href="/assets/brand/components.css"&gt;
-&lt;html data-scheme="blue"&gt;</code></pre></div>
-    <div><h3 class="o-title">Files</h3><p class="o-small"><code>docs/BRAND.md</code> the system · <code>assets/brand/tokens.css</code> · <code>components.css</code> · <code>painter.js</code> the brush · <code>assets/fx/</code> stamp type · <code>assets/r5/wordmark.js</code></p>
-      <p class="o-small bk-links"><a href="../">The site index</a> · <a href="icons.html">Icons</a> · <a href="../fx/">Motion lab</a></p>
-      <div class="o-toggle bk-foot-toggle" role="group" aria-label="Colour scheme, in the footer">
-        <button type="button" data-scheme-set="blue" aria-pressed="true" style="--dot: var(--orbe-sky)">Blue</button>
-        <button type="button" data-scheme-set="pink" aria-pressed="false" style="--dot: var(--orbe-peony)">Pink</button>
-      </div></div>
-  </div>
-</footer>
+<footer data-ob-footer id="footer"></footer>
 
-<script>
-  /* Reference sections stay folded at every width; the scheme's buttons are set before first paint. */
-  if (document.documentElement.dataset.scheme === "pink") for (const b of document.querySelectorAll("[data-scheme-set]")) b.setAttribute("aria-pressed", String(b.dataset.schemeSet === "pink"));
-</script>
-<script type="module" src="book.js"></script>
+<script type="module" src="brand.js"></script>
 </body>
 </html>

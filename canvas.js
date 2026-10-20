@@ -3,11 +3,12 @@
   Orbe engine. Motion: the headline word turns once through the six kinds
   (450ms reflow, 24ms stagger) and stops; nothing else moves on its own.
 */
-import { mountWordmark, wordmarkSVG } from "./assets/r5/wordmark.js";
+import { wordmarkSVG } from "./assets/r5/wordmark.js";
+import { mountHeader, mountFooter } from "./assets/orbe/chrome.js";
+import { mountTrail } from "./assets/orbe/trail.js";
 import { mountArt, ease, GW, GH } from "./pixels.js";
 import { reserve, cleanHandle } from "./assets/r5/reserve.js";
-import { mountGiant } from "./footer.js";
-import { mountBlockArt } from "./block.js";
+import { mountOrbs } from "./block.js";
 import {
   KINDS, rated, sale, quote, plausible, prefixed, disagree,
   count, gbp, gbpExact, TAKE_RATE, OP3_SAMPLE, letterFor, noteDate, signed, minus,
@@ -21,7 +22,14 @@ let reduce = false;
 try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
 const EASE = "cubic-bezier(0.6, 0.04, 0.3, 1)";
 
-mountWordmark($("[data-wordmark]"), { animate: !reduce });
+/* the shared chrome: the footer first, so the header sees the footer's fields; this page is the homepage */
+const ROOT = { root: "./", home: "./" };
+mountFooter($("[data-ob-footer]"), { ...ROOT, people: KINDS.map((k) => ({ name: k.name, beats: Math.max(1, Math.min(99, rated(k.key, 1).beats)) })), reduce: reduce || !("IntersectionObserver" in window) });
+const header = mountHeader($("[data-ob-header]"), ROOT);
+/* the pointer trail runs over the whole page, under the words; full strength in the hero, quieter below */
+mountTrail({ loud: ".hero" });
+/* the close: a hundred orbs, you in Ember */
+const orbs = mountOrbs($("[data-block]"), $("[data-orbs]"), { reduce, you: Math.max(1, Math.min(99, rated(KINDS[0].key, 1).beats)) });
 if (!reduce) document.documentElement.classList.add("motion");
 
 /*
@@ -184,14 +192,14 @@ let lastCell = 0;
 function placeArt() {
   let cell;
   let wide = false;
-  try { wide = matchMedia("(min-width: 1181px)").matches; } catch (e) {}
+  try { wide = matchMedia("(min-width: 861px)").matches; } catch (e) {}
   if (wide) {
     const H = heroSec.getBoundingClientRect();
     const right = $(".stage").getBoundingClientRect().left - H.left - 32;
     const lines = $$(".h-line").map(textBox);
     const aLeft = Math.max(...lines.slice(1).map((b) => b.right)) - H.left + 48;
     const aTop = lines[0].bottom - H.top + 24;
-    const bLeft = Math.max(textBox($(".lede")).right, ...$$(".ctas .btn").map((b) => b.getBoundingClientRect().right)) - H.left + 48;
+    const bLeft = Math.max(textBox($(".hero-copy .ob-lede")).right, ...$$(".ctas > a").map((b) => b.getBoundingClientRect().right)) - H.left + 48;
     const bTop = lines[3].bottom - H.top + 32;
     const fit = (left, top) => { const w = right - left, h = H.height - top; return w < 160 || h < 160 ? 0 : Math.min(w / (GW * (1 - BLEED_X)), h / (GH * (1 - BLEED_Y))); };
     const a = fit(aLeft, aTop), b = fit(bLeft, bTop);
@@ -330,6 +338,7 @@ function show(key, animateWord) {
   const r = rated(key, 1);
   hero.dataset.kindPair = key;
   hero.dataset.head = DARK_KINDS.has(key) ? "dark" : "light";
+  heroSec.dataset.kind = key;
   art.show(key, animateWord && !reduce);
   $("[data-frame-name]").textContent = `rating.txt / ${k.name}`;
   $("[data-who-name]").textContent = k.name;
@@ -343,6 +352,7 @@ function show(key, animateWord) {
   revealKind(key);
   setWord(k.word, animateWord);
   paint(r);
+  orbs.setYou(beatsOf(r));
   fillNote(key, animateWord);
   fillPost(key);
 }
@@ -433,7 +443,7 @@ function race() {
   raceRaf = requestAnimationFrame(tick);
 }
 $("[data-race-go]").addEventListener("click", race);
-$("[data-race] .win-body").addEventListener("click", race);
+$("[data-race] .ob-win-body").addEventListener("click", race);
 if (reduce || !("IntersectionObserver" in window)) finish();
 else {
   estBar.style.width = "0%"; paidBar.style.width = "0%";
@@ -535,20 +545,37 @@ $("[data-lend]").textContent = gbp(TAKE_RATE.financingFilePrice);
 
 /* ---------------------------------------------------------------- reserve */
 /* what you make follows the kind chosen in the instrument above */
-const NOTE_IDLE = "Free for creators, for good. Held once your email arrives; we check it’s yours when ratings open.";
+const NOTE_IDLE = "Free for creators, for good. We check the handle is yours when ratings open.";
 const form = $("[data-reserve]");
 const handleIn = $("[data-handle]");
+const emailIn = $("[data-email]");
+const note = $("[data-reserve-note]");
+const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+/* one line under the row says what happened; a field that needs fixing is marked, never an alert */
+const say = (text, bad = null) => {
+  note.textContent = text;
+  note.classList.toggle("is-err", !!bad);
+  for (const f of [handleIn, emailIn]) f.toggleAttribute("aria-invalid", f === bad);
+  if (bad) { bad.setAttribute("aria-invalid", "true"); bad.focus(); }
+};
 handleIn.addEventListener("input", () => {
   const h = cleanHandle(handleIn.value).toLowerCase();
-  $("[data-reserve-note]").textContent = h ? `orbe.vc/@${h}, held once your email arrives. We check it’s yours when ratings open.` : NOTE_IDLE;
+  say(h ? `orbe.vc/@${h}. We check it’s yours when ratings open.` : NOTE_IDLE);
 });
+emailIn.addEventListener("input", () => { if (emailIn.hasAttribute("aria-invalid") && EMAIL.test(emailIn.value.trim())) say(NOTE_IDLE); });
+let sending = false;
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (sending) return;
   const h = cleanHandle(handleIn.value).toLowerCase();
-  if (!h) { $("[data-reserve-note]").textContent = "Type the handle you’d like first."; handleIn.focus(); return; }
+  const email = emailIn.value.trim();
+  if (!h) return say("Type the handle you’d like first.", handleIn);
+  if (!EMAIL.test(email)) return say(email ? "That email doesn’t look right. Check it and try again." : "Add your email, so we can tell you when ratings open.", emailIn);
   const kind = KINDS.find((k) => k.key === current)?.word ?? "work";
-  const res = await reserve({ handle: h, kind });
-  $("[data-reserve-note]").textContent = res.ok ? `Your email app has the request for orbe.vc/@${h}. Held once it arrives.` : "That handle is taken. Try another.";
+  sending = true;
+  const res = await reserve({ handle: h, kind, email }).finally(() => { sending = false; });
+  if (!res.ok) return say(res.reason === "taken" ? "That handle is taken. Try another." : "Type the handle you’d like first.", handleIn);
+  say(res.via === "email" ? `Your email app has the request for orbe.vc/@${h}. Held once it arrives.` : `Reserved. We’ll email you at ${email} when ratings open.`);
 });
 
 /* ---------------------------------------------------------------- windows open, once
@@ -582,7 +609,7 @@ function openSell() {
   const s = sale(priceOf(Number(sellIn.value)));
   countUp($("[data-sell-net]"), s.net, gbp, 600);
 }
-const wins = $$(".wall .win");
+const wins = $$(".wall .ob-win");
 if (reduce || !("IntersectionObserver" in window)) { noteOpen = true; document.documentElement.classList.remove("motion"); }
 else {
   wins.forEach((w) => w.classList.add("shut"));
@@ -627,9 +654,9 @@ function put(w, x, y) {
 }
 /* the instrument's own Tidy, shown only once it has been moved */
 const heroTidy = document.createElement("button");
-heroTidy.type = "button"; heroTidy.className = "win-btn"; heroTidy.textContent = "Tidy"; heroTidy.hidden = true;
+heroTidy.type = "button"; heroTidy.className = "ob-win-btn"; heroTidy.textContent = "Tidy"; heroTidy.hidden = true;
 heroTidy.addEventListener("click", () => { settleBack([hero]); heroTidy.hidden = true; $("[data-grip]", hero).focus(); });
-$(".win-ctl", hero).appendChild(heroTidy);
+$(".ob-win-ctl", hero).appendChild(heroTidy);
 const front = (w) => { if (movable) w.style.zIndex = String(++zTop); };
 function settleBack(list) {
   for (const w of list) {
@@ -656,13 +683,13 @@ function setMovable(on) {
   }
 }
 const help = document.createElement("span");
-help.id = "move-help"; help.className = "sr";
+help.id = "move-help"; help.className = "ob-sr";
 help.textContent = "Arrow keys move this window, Shift for a longer step. Escape puts it back.";
 tidyRow.appendChild(help);
 
 let held = null;
 for (const w of moveWins) {
-  const bar = $(".win-bar", w), grip = $("[data-grip]", w);
+  const bar = $(".ob-win-bar", w), grip = $("[data-grip]", w);
   w.addEventListener("pointerdown", () => front(w));
   bar.addEventListener("pointerdown", (e) => {
     if (!movable || e.button !== 0 || e.target.closest("a, button, input, summary, label, .kinds")) return;
@@ -678,7 +705,7 @@ for (const w of moveWins) {
   });
   const drop = (e) => {
     if (!held || held.w !== w) return;
-    held = null; w.classList.remove("held"); headTheme();
+    held = null; w.classList.remove("held"); header.refresh();
     try { bar.releasePointerCapture(e.pointerId); } catch (err) {}
   };
   bar.addEventListener("pointerup", drop);
@@ -703,10 +730,6 @@ addEventListener("resize", () => {
   if (on !== movable) setMovable(on);
   else if (on) for (const w of moveWins) { const o = off.get(w); put(w, o.x, o.y); }
 });
-
-/* ---------------------------------------------------------------- the giant mark */
-mountGiant($("[data-giant]"), $("[data-giant-svg]"), $("[data-giant-cap]"),
-  KINDS.map((k) => ({ name: k.name, beats: beatsOf(rated(k.key, 1)) })), { reduce: reduce || !("IntersectionObserver" in window) });
 
 /* ---------------------------------------------------------------- who it's for: one live figure each, from the engine */
 {
@@ -742,82 +765,7 @@ for (const a of $$("[data-aud] a")) {
   });
 }
 
-/* ---------------------------------------------------------------- the pointer's trail, in the Sky hero
-  Where a mouse moves over the hero, a light confetti of the lattice follows
-  it: cells a little smaller than fal's 11.28px pitch, softly rounded, half
-  see-through, each lifted off the paper by a soft shadow. They fade and
-  drift up two pixels over 0.9s; a click scatters a small cluster. At most
-  40 at once, drawn on one canvas under the words, and nothing runs once
-  the last has gone. Off on touch and under reduced motion.
-*/
-{
-  const fine = (() => { try { return matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) { return false; } })();
-  const cv = $("[data-trail]");
-  if (fine && !reduce && cv) {
-    const heroEl = $(".hero"), ctx = cv.getContext("2d");
-    const CELL = 11.28, INSET = 1.6, LIFE = 900, MAX = 40, DRIFT = 2;
-    const TRAIL = {
-      explainer: ["#EED56A", "#FBFAF6", "#1F4BFF"], devlog: ["#FBFAF6", "#141311", "#EED56A"], podcast: ["#F2879E", "#FBFAF6", "#6F1726"],
-      letsplay: ["#1238D6", "#FBFAF6", "#EED56A"], recipe: ["#FBD9E0", "#FBFAF6", "#1F4BFF"], longexposure: ["#6F1726", "#FBD9E0", "#FBFAF6"],
-    };
-    let cells = [], raf = 0, dpr = 1, last = "";
-    const size = () => {
-      dpr = Math.min(2, devicePixelRatio || 1);
-      const w = heroEl.clientWidth, h = heroEl.clientHeight;
-      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-      cv.style.width = `${w}px`; cv.style.height = `${h}px`;
-    };
-    size();
-    if ("ResizeObserver" in window) new ResizeObserver(size).observe(heroEl);
-    const draw = (now) => {
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      cells = cells.filter((c) => now - c.t < LIFE);
-      ctx.shadowColor = "rgba(20, 19, 17, 0.16)";
-      ctx.shadowBlur = 4 * dpr; ctx.shadowOffsetY = 1 * dpr;
-      const s = (CELL - INSET * 2) * dpr, rad = 2 * dpr;
-      for (const c of cells) {
-        const t = Math.max(0, (now - c.t) / LIFE), e = ease(t);
-        ctx.globalAlpha = c.a * (1 - e);
-        ctx.fillStyle = c.c;
-        const x = (c.x * CELL + INSET) * dpr, y = (c.y * CELL + INSET - DRIFT * e) * dpr;
-        ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(x, y, s, s, rad); else ctx.rect(x, y, s, s);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      raf = cells.length ? requestAnimationFrame(draw) : 0;
-    };
-    const add = (x, y, now) => {
-      const pal = TRAIL[current] ?? TRAIL.explainer;
-      const i = (((x * 7 + y * 3) % pal.length) + pal.length) % pal.length;
-      cells.push({ x, y, t: now, c: pal[i], a: 0.35 + (((x * 13 + y * 29) % 11) / 10) * 0.25 });
-      if (cells.length > MAX) cells.splice(0, cells.length - MAX);
-      if (!raf) raf = requestAnimationFrame(draw);
-    };
-    const at = (e) => { const b = heroEl.getBoundingClientRect(); return [Math.floor((e.clientX - b.left) / CELL), Math.floor((e.clientY - b.top) / CELL)]; };
-    const over = (e) => e.pointerType === "mouse" && !e.target.closest(".stage");
-    heroEl.addEventListener("pointermove", (e) => {
-      if (!over(e) || e.buttons) return;
-      const [x, y] = at(e), k = `${x},${y}`;
-      if (k === last) return;
-      /* a fast move fills a few cells between, every other one, so the line stays light */
-      const now = performance.now(), [px, py] = last ? last.split(",").map(Number) : [x, y];
-      const n = Math.min(6, Math.max(Math.abs(x - px), Math.abs(y - py)));
-      for (let i = 2; i < n; i += 2) add(Math.round(px + ((x - px) * i) / n), Math.round(py + ((y - py) * i) / n), now - (n - i) * 8);
-      last = k;
-      add(x, y, now);
-    });
-    heroEl.addEventListener("pointerdown", (e) => {
-      if (!over(e) || e.target.closest("a, button, input, select, label")) return;
-      const [x, y] = at(e), now = performance.now();
-      for (const [dx, dy] of [[0, 0], [1, -1], [-1, 0], [1, 1], [-2, -1], [0, 2], [2, 0]]) add(x + dx, y + dy, now - Math.abs(dx + dy) * 40);
-    });
-    heroEl.addEventListener("pointerleave", () => { last = ""; });
-  }
-}
-
-/* ---------------------------------------------------------------- the close: two lattice creatures settle in from the block's edges, once */
-mountBlockArt($("[data-block]"), $("[data-block-art]"), { reduce });
+/* ---------------------------------------------------------------- the close: back to the instrument */
 for (const a of $$("[data-to-hero]")) {
   a.addEventListener("click", (e) => {
     e.preventDefault();
@@ -826,51 +774,5 @@ for (const a of $$("[data-to-hero]")) {
   });
 }
 
-/* ---------------------------------------------------------------- the header's colours
-  An IntersectionObserver whose root is cut down to a one pixel line through
-  the middle of the fixed header reports which declared fields ([data-head])
-  are under it. Each part of the header (the mark, the links, the button)
-  then takes the theme of the smallest field under its own centre, so a
-  dark window under the links turns only the links. Nothing runs between
-  crossings; a field changing its theme (the instrument's kind, the mark in
-  the footer) is caught by a MutationObserver.
-*/
-const bar = $("[data-bar]");
-const parts = $$("[data-part]", bar);
-/* a window's title row is Chalk whatever its body is */
-$$(".win-bar").forEach((b) => { b.dataset.head = "light"; });
-const fields = $$("[data-head]");
-const under = new Set();
-function headTheme() {
-  const B = bar.getBoundingClientRect(), y = B.top + B.height / 2;
-  const live = [...under].filter((el) => !el.classList.contains("shut")).map((el) => [el, el.getBoundingClientRect()]).filter(([, r]) => r.top <= y && r.bottom >= y);
-  for (const p of parts) {
-    const P = p.getBoundingClientRect(), x = P.left + P.width / 2;
-    let best = null, area = Infinity;
-    for (const [el, r] of live) {
-      if (r.left > x || r.right < x) continue;
-      const A = r.width * r.height;
-      /* the smallest field wins; at the same size, the one inside the other */
-      if (A < area || (A === area && best?.contains(el))) { best = el; area = A; }
-    }
-    const on = best?.dataset.head ?? "light";
-    if (p.dataset.on !== on) p.dataset.on = on;
-  }
-}
-let headIO = null;
-function watchHead() {
-  headIO?.disconnect();
-  under.clear();
-  const B = bar.getBoundingClientRect(), mid = Math.round(B.top + B.height / 2);
-  headIO = new IntersectionObserver((es) => {
-    for (const e of es) e.isIntersecting ? under.add(e.target) : under.delete(e.target);
-    headTheme();
-  }, { rootMargin: `${-mid}px 0px ${-(innerHeight - mid - 1)}px 0px`, threshold: 0 });
-  fields.forEach((f) => headIO.observe(f));
-}
-if ("IntersectionObserver" in window) {
-  watchHead();
-  let rs = 0;
-  addEventListener("resize", () => { clearTimeout(rs); rs = setTimeout(watchHead, 120); });
-  new MutationObserver(headTheme).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["data-head", "class"] });
-}
+/* ---------------------------------------------------------------- the header: every field is on the page now, so it looks again */
+header.rescan();

@@ -79,7 +79,7 @@ function itemPanel(item, price, typed, rate, label = "") {
   return `<div class="panel stack">
     <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 class="h3">${esc(item.name)}</h3><p class="small">${esc(item.description)}</p></div></div>
     ${s?.status === "suggested"
-      ? `<div><p class="small">${label ? "A made-up example. " : ""}Suggested price, ${per}</p><p class="big num" style="font-size:clamp(40px,8vw,64px)">${esc(money(s.low))} to ${esc(money(s.high))}</p>
+      ? `<div><p class="small">${label ? "A made-up example. " : ""}Suggested price, ${per}</p><p class="big num big-m">${esc(money(s.low))} to ${esc(money(s.high))}</p>
          <p class="small" style="margin-top:6px">${count(s.expected.units)} ${esc(s.expected.unit)} expected at ${s.expected.day} ${s.expected.day === 1 ? "day" : "days"}, at ${esc(money(s.cpm.low, { pence: true }))} to ${esc(money(s.cpm.high, { pence: true }))} per 1,000.${s.provisional ? " From a provisional rate card." : ""}${fxNote}</p></div>
          ${label}
          ${fold("How Orbe priced it", `${s.reasons.length} reason${s.reasons.length === 1 ? "" : "s"}, ${s.sources.length + 1} source${s.sources.length ? "s" : ""}`, `<ul class="reasons">${s.reasons.map((r) => `<li><span>${esc(nodash(r.replace(/ read at source\./, ", from the figures you typed.")))}</span></li>`).join("")}</ul>

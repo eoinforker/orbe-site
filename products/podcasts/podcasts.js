@@ -144,7 +144,7 @@ function renderPrefix(setInput = true) {
     : `These steps for ${state.host || "your host"} have not yet been checked against the host's live dashboard. Hosts move settings; if the menu has moved, search the settings for "prefix".`;
   const ep = [...(state.feed?.enclosures ?? [])].sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))[0];
   const original = ep?.url ?? "https://media.example.com/your-show/episode-1.mp3";
-  $("[data-example]").innerHTML = `${esc(original)}<br><span style="color:var(--ink)">${esc(prefixUrl(state.showId, original))}</span>`;
+  $("[data-example]").innerHTML = `${esc(original)}<br><span class="ink">${esc(prefixUrl(state.showId, original))}</span>`;
   $("[data-txt]").textContent = txtTag(txtCode(DEVICE_SECRET, "this-device", state.feedUrl || "https://example.invalid/feed.xml"));
   $("[data-owner]").textContent = state.feed?.ownerEmail ? ` (${maskEmail(state.feed.ownerEmail)})` : state.feed ? " (your feed has none, so this route is closed)" : "";
 }
@@ -287,7 +287,7 @@ form.addEventListener("submit", (e) => {
   const SEV = { info: "", low: "", medium: "warn", high: "bad" };
   $("[data-pl-out]").innerHTML = `<div class="panel stack">
       ${plSample ? `<div class="sample"><span><b>A made-up claim.</b> The figures in the form are invented, for trying the check. Type a real claim to replace them.</span></div>` : ""}
-      <p><span class="tag ${VERDICT[p.verdict][1]}" style="font-size:17px">${VERDICT[p.verdict][0]}</span></p>
+      <p><span class="tag tag-l ${VERDICT[p.verdict][1]}">${VERDICT[p.verdict][0]}</span></p>
       ${fold("Signals compared", `${p.signalsUsed.length || "none"}`, p.signalsUsed.length ? sourcesList(p.signalsUsed.map((u) => ({ ...(SIGNAL[u] ?? { kind: "typed", provenance: "Typed into this form." }), label: u }))) : `<p class="small">Add a claim and at least one signal to compare it with.</p>`)}
       <p class="small">Rules ${esc(p.rulesVersion)}, every threshold provisional.</p>
       ${p.estimate ? `<p class="note">Public estimate: ${count(p.estimate.monthlyLow)} to ${count(p.estimate.monthlyHigh)} downloads a month, from ${esc(p.estimate.basis)}. ${esc(PROVENANCE_METHODS.estimated)}.</p>` : ""}

@@ -11,7 +11,8 @@ Orbe is lettered the way names are cut into stone in the City of London: every s
 | `wordmark.svg` | The mark, text cut (25px tall and up). `fill="currentColor"`. As an `<img>` it renders black. |
 | `wordmark-small.svg` | The small cut, for marks 16 to 24px tall when you place an SVG by hand. |
 | `wordmark.js` | `mountWordmark(el, { animate = true })` inserts the inline SVG (accessible name "Orbe"), picks the cut from the height it renders at, and plays the reveal once. `wordmarkSVG({ cut })` returns the bare SVG with no motion (`cut: "text"` by default, or `"small"`). `WORDMARK` exports both cuts' paths and viewBoxes for code that draws without a DOM. |
-| `favicon.svg`, `favicon-32.png`, `favicon-16.png` | The O alone, recut heavier and set on the pixel grid, paper on an ink tile. |
+| `favicon.svg`, `favicon-16.png`, `favicon-32.png`, `favicon-48.png` | The favicon: the Portal (the mark, see `../orbe/mark.js`), small cut, Paper on a rounded Cobalt tile. From `docs/social/out/mark/`. |
+| `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `site.webmanifest` | The app icons: the Portal in Paper on a Cobalt square; the platforms round the corners. |
 | `apple-touch-icon.png` | 180px, full-bleed ink square (iOS rounds the corners). |
 | `icon-512.png` | 512px app icon, also at `stripe-app/icon.png` for the Stripe App. The O sits inside the central circle, so a round mask never cuts it. |
 | `wordmark-src/` | The drawing (`carved.mjs`), the writer of `wordmark.js` and the SVGs (`emit.mjs`), the icons (`icons.mjs`) and proof sheets (`shots/`). |
@@ -61,7 +62,7 @@ Keep clear space of **one third of the mark's height** on every side, which is r
 ## Minimum size
 
 - **Screen:** 16px tall, using the small cut. Below 16px use the favicon instead.
-- **Favicon:** 16px and up. It has its own heavier cut on the pixel grid and is never a scaled-down wordmark.
+- **Favicon:** the Portal, never a scaled-down wordmark.
 - **Print:** 5mm tall.
 
 ## Do
@@ -70,7 +71,7 @@ Keep clear space of **one third of the mark's height** on every side, which is r
 - Size it by height (`--wm-h`), keep its proportions, and give it its clear space.
 - Let `mountWordmark` choose the cut. When placing an SVG by hand, use `wordmark-small.svg` at 16 to 24px and `wordmark.svg` above.
 - Let the reveal play once, in the nav, on load. Use it still everywhere else.
-- Use the favicon O on its own where a square is needed: tabs, app icons, avatars.
+- Use the Portal on its own where a square is needed: tabs, app icons, avatars. Beside the word, use the lockup (`.ob-lockup` in `../orbe/orbe.css`).
 
 ## Don't
 

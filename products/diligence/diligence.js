@@ -39,6 +39,11 @@ const textDates = (doc) => doc.replace(/>([^<]+)</g, (m, t) => `>${dates(t)}<`);
 let html = "";
 let current = "clean";
 const frame = $("[data-frame]");
+/* the report frame says when it holds the keyboard: focus inside a frame never matches :focus on the frame itself */
+const inFrame = () => frame.classList.toggle("is-in", document.activeElement === frame);
+addEventListener("blur", () => setTimeout(inFrame));
+addEventListener("focus", inFrame);
+document.addEventListener("focusin", inFrame);
 function show(key) {
   current = key;
   const c = CASES[key];
@@ -53,7 +58,7 @@ function show(key) {
   const tone = rep.verdict.status === "verified" ? "good" : rep.verdict.status === "partly_verified" ? "bad" : "warn";
   const TONE = { good: ["good", "Good"], concern: ["warn", "Ask"], note: ["", "Note"] };
   $("[data-summary]").innerHTML = `
-    <p style="font-size:18px"><strong class="verdict-word ${tone}">${esc(rep.verdict.label)}.</strong> ${esc(dates(tidy(nodash(textToString(rep.verdict.summary)))))}</p>
+    <p class="dil-say"><strong class="verdict-word ${tone}">${esc(rep.verdict.label)}.</strong> ${esc(dates(tidy(nodash(textToString(rep.verdict.summary)))))}</p>
     <ul class="fits">${rep.keyPoints.slice(0, 6).map((k) => `<li><span class="tag ${(TONE[k.tone] ?? TONE.note)[0]}">${(TONE[k.tone] ?? TONE.note)[1]}</span><span>${esc(dates(tidy(nodash(textToString(k.text)))))}</span></li>`).join("")}</ul>
     <p class="small">The full report follows: scroll inside it, or open it as a full page. Each verified figure links to the figure index and on to the source it was read from.</p>`;
   frame.srcdoc = html.replace("</head>", `${SITE_TYPE}</head>`);

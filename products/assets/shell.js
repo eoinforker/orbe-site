@@ -1,9 +1,12 @@
 /*
-  Shared by every product page: the header and tabs, the Blue / Pink palette
-  (the founder's choice, as on the site), small DOM and formatting helpers,
-  file reading, and per-tab storage that never leaves this browser.
+  Shared by every product page, on the shared system (../../assets/orbe/):
+  the header, the footer and the pointer trail from orbe/chrome.js and
+  orbe/trail.js, the quiet products tab row under the header, the small
+  print, and small DOM and formatting helpers, file reading, and per-tab
+  storage that never leaves this browser.
 */
-import { mountWordmark } from "../../assets/r5/wordmark.js";
+import { mountHeader, mountFooter } from "../../assets/orbe/chrome.js";
+import { mountTrail } from "../../assets/orbe/trail.js";
 import { icon } from "../../assets/icons/icons.js";
 
 export { icon };
@@ -14,86 +17,79 @@ export const TOOLS = [
   { key: "podcasts", href: "podcasts/", label: "Podcasts" },
   { key: "sponsorships", href: "sponsorships/", label: "Sponsorships" },
   { key: "selling", href: "selling/", label: "Selling" },
-  { key: "diligence", href: "diligence/", label: "Diligence report" },
+  { key: "diligence", href: "diligence/", label: "Diligence" },
   { key: "roster", href: "roster/", label: "Roster" },
 ];
 
-/* The header's markup. Each page carries it in its HTML (so nothing moves at first paint);
-   `node` builds it only for a page that does not. */
-export function headerHTML(current, depth = 1) {
+/* The products tab row's markup. Each page carries it in its HTML (so nothing moves at first
+   paint); `shell` builds it only for a page that does not. */
+export function tabsHTML(current, depth = 1) {
   const up = "../".repeat(depth);
-  return `<a class="skip" href="#main">Skip to content</a>
-<header class="top">
-  <div class="wrap top-in">
-    <a class="wm" href="${up}../" aria-label="Orbe, home">Orbe</a>
-    <a class="crumb" href="${up}">Products</a>
-    <span class="top-gap"></span>
-    <div class="pal" role="group" aria-label="Brand colour">
-      <button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button>
-      <button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button>
-    </div>
-  </div>
-  <nav class="tabs" aria-label="Products">${TOOLS.map((t) => `<a href="${up}${t.href}"${t.key === current ? ' aria-current="page"' : ""}>${t.label}</a>`).join("")}</nav>
-</header>`;
+  return `<nav class="pr-tabs" aria-label="Orbe products">${TOOLS.map((t) => `<a href="${up}${t.href}"${t.key === current ? ' aria-current="page"' : ""}>${t.label}</a>`).join("")}</nav>`;
 }
 
-/* Pages call this first. `depth` is how many folders below /products/ the page sits. */
+/*
+  Pages call this first. `depth` is how many folders below /products/ the page sits.
+  The footer mounts before the header, so the header sees every field.
+*/
 export function shell(current, depth = 1) {
-  let header = document.querySelector("header.top");
-  if (!header) {
-    document.body.insertAdjacentHTML("afterbegin", headerHTML(current, depth));
-    header = document.querySelector("header.top");
+  const root = "../".repeat(depth + 1);
+  const main = document.querySelector("main");
+  let foot = document.querySelector("[data-ob-footer]");
+  if (!foot) { foot = document.createElement("footer"); foot.dataset.obFooter = ""; (main ?? document.body).after(foot); }
+  let head = document.querySelector("[data-ob-header]");
+  if (!head) { head = document.createElement("header"); head.dataset.obHeader = ""; document.body.prepend(head); }
+  if (!document.querySelector(".pr-tabs")) {
+    const band = document.querySelector(".pr-band .wrap") ?? main;
+    band?.insertAdjacentHTML("afterbegin", tabsHTML(current, depth));
   }
-  mountWordmark(header.querySelector(".wm"), { animate: false });
-  tabs(header.querySelector(".tabs"));
-  footer();
-  palette();
+  smallPrint(main);
+  mountFooter(foot, { root });
+  const header = mountHeader(head, { root, current: current === "hub" ? "products/" : `products/${current}/` });
+  mountTrail({ loud: ".pr-band" });
+  // The band's scene: its own object in the free space beside the words (bands.js).
+  import("./bands.js").then((m) => m.mountBand(current)).catch(() => {});
+  tabs(document.querySelector(".pr-tabs"));
+  fades(document.querySelector(".page-tabs"));
   // Static disclosures get the same caret as the ones the tools build.
   for (const sum of document.querySelectorAll("details.fold > summary")) if (!sum.querySelector(".o-icon")) sum.insertAdjacentHTML("afterbegin", icon("caret", { size: 16, className: "caret" }));
+  return header;
 }
 
-/* On a phone the tab row scrolls. The current tab is centred in the row (as
-   scrollIntoView({ inline: "center" }) would, without moving the page), and the row fades at
-   whichever edge has more tabs behind it. */
+/* A row that scrolls fades at whichever edge has more to show. */
+function fades(row) {
+  if (!row) return;
+  const edges = () => {
+    const more = row.scrollWidth - row.clientWidth;
+    row.classList.toggle("fade-l", more > 1 && row.scrollLeft > 1);
+    row.classList.toggle("fade-r", more > 1 && row.scrollLeft < more - 1);
+  };
+  row.addEventListener("scroll", edges, { passive: true });
+  addEventListener("resize", edges);
+  requestAnimationFrame(edges);
+}
+
+/* On a phone the tab row scrolls: the current tab is centred in the row without moving the page. */
 function tabs(row) {
   if (!row) return;
+  fades(row);
   const cur = row.querySelector('[aria-current="page"]');
-  const edges = () => {
-    row.classList.toggle("more-l", row.scrollLeft > 2);
-    row.classList.toggle("more-r", row.scrollLeft + row.clientWidth < row.scrollWidth - 2);
-  };
   if (cur && row.scrollWidth > row.clientWidth) {
     const r = row.getBoundingClientRect();
     const c = cur.getBoundingClientRect();
     row.scrollLeft += c.left + c.width / 2 - (r.left + row.clientWidth / 2);
   }
-  edges();
-  row.addEventListener("scroll", edges, { passive: true });
-  addEventListener("resize", edges, { passive: true });
 }
 
-/* The Blue / Pink switch: in the header and again in the footer, both kept in step. */
-function palette() {
-  const set = (c, save) => {
-    if (c !== "blue" && c !== "pink") return;
-    document.documentElement.dataset.c = c;
-    document.documentElement.dataset.scheme = c;
-    for (const b of document.querySelectorAll(".pal button")) b.setAttribute("aria-pressed", String(b.dataset.c === c));
-    if (save) store.local.set("orbe-palette", c);
-    document.dispatchEvent(new CustomEvent("palette", { detail: c }));
-  };
-  set(new URLSearchParams(location.search).get("c") || store.local.get("orbe-palette") || "blue", false);
-  for (const b of document.querySelectorAll(".pal button")) b.addEventListener("click", () => set(b.dataset.c, true));
-}
-
-function footer() {
-  const main = document.querySelector("main");
-  if (!main || main.querySelector(".foot")) return;
-  const f = document.createElement("footer");
-  f.className = "foot";
-  f.innerHTML = `<p>Everything on these pages runs in your browser. What you type or upload stays on this device: there is no server behind them, and nothing is sent anywhere. Every creator, show, brand and figure in an example is made up and labelled so.</p>
-  <p>Ratings, bands, sub-scores and benchmarks are independently calculated by Orbe, not provided by YouTube, Spotify, Apple or any other platform. Valuations and prices are indicative only: not advice, not a formal valuation and not an offer. Platform names are trademarks of their owners. <a href="mailto:hello@orbe.vc">hello@orbe.vc</a></p>
-  <div class="pal" role="group" aria-label="Brand colour"><span class="pal-k">Colour</span><button type="button" data-c="blue" aria-pressed="true"><span class="sw sw-blue"></span>Blue</button><button type="button" data-c="pink" aria-pressed="false"><span class="sw sw-pink"></span>Pink</button></div>`;
+/* The small print under every tool: what runs where, and what every figure is. */
+function smallPrint(main) {
+  if (!main || main.querySelector(".pr-print")) return;
+  const f = document.createElement("section");
+  f.className = "pr-print wrap";
+  f.dataset.head = "light";
+  f.setAttribute("aria-label", "The small print");
+  f.innerHTML = `<p class="ob-note">Everything on these pages runs in your browser. What you type or upload stays on this device: there is no server behind them, and nothing is sent anywhere. Every creator, show, brand and figure in an example is made up and labelled so.</p>
+  <p class="ob-note">Ratings, bands, sub-scores and benchmarks are independently calculated by Orbe, not provided by YouTube, Spotify, Apple or any other platform. Valuations and prices are indicative only: not advice, not a formal valuation and not an offer. Platform names are trademarks of their owners. <a href="mailto:hello@orbe.vc">hello@orbe.vc</a></p>`;
   main.append(f);
 }
 
@@ -208,7 +204,7 @@ export function ask(el, { title, body, call, allow = "Allow", deny = "Deny", onA
   el.innerHTML = `<div class="ask" role="group" aria-labelledby="${el.id || (el.id = `ask-${Math.random().toString(36).slice(2, 8)}`)}-t">
     <div class="ask-head"><h3 id="${el.id}-t">${esc(title)}</h3><span class="state waiting">Waiting on you</span></div>
     <div class="ask-body"><p>${esc(body)}</p>${call ? `<div class="ask-call">${esc(call)}</div>` : ""}</div>
-    <div class="ask-acts"><button class="btn btn-ghost btn-sm" type="button" data-deny>${esc(deny)}</button><button class="btn btn-sm" type="button" data-allow>${esc(allow)}</button></div>
+    <div class="ask-acts"><button class="ob-btn ob-btn--light ob-btn--s" type="button" data-deny>${esc(deny)}</button><button class="ob-btn ob-btn--s" type="button" data-allow><span class="ob-orb" aria-hidden="true"></span>${esc(allow)}</button></div>
   </div>`;
   const settle = (ok) => {
     const r = ok ? onAllow?.() : onDeny?.();

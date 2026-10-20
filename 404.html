@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en-GB" data-scheme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbe, page not found</title>
+<meta name="description" content="This page isn't here. The homepage and every tool are.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F3F0E8">
+<meta property="og:title" content="Orbe">
+<meta property="og:description" content="Your work, rated against creators your size. Free for creators, for good.">
+<meta property="og:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
+<script>
+  /*
+    GitHub Pages serves this file at whatever path was missed, so every link
+    here is relative to the site root, set as the base before anything loads:
+    the first folder on a github.io project site, the domain root anywhere
+    else. The stylesheets are written after the base, so nothing is ever
+    fetched from the missed path.
+  */
+  (function () {
+    var root = "/";
+    if (/\.github\.io$/.test(location.hostname)) { var seg = location.pathname.split("/")[1]; if (seg && !/\.html$/.test(seg)) root = "/" + seg + "/"; }
+    document.write('<base href="' + root + '">' +
+      '<link rel="icon" href="assets/r5/favicon.svg" type="image/svg+xml">' +
+      '<link rel="icon" href="assets/r5/favicon-32.png" sizes="32x32" type="image/png">' +
+      '<link rel="apple-touch-icon" href="assets/r5/apple-touch-icon.png">' +
+      '<link rel="manifest" href="assets/r5/site.webmanifest">' +
+      '<link rel="stylesheet" href="assets/fonts.css">' +
+      '<link rel="stylesheet" href="assets/brand/tokens.css">' +
+      '<link rel="stylesheet" href="assets/orbe/orbe.css">');
+  })();
+</script>
+<style>
+  .nf {
+    --ob-trail: var(--orbe-straw) var(--orbe-chalk) var(--orbe-cobalt);
+    min-height: min(100vh, 860px); display: flex; align-items: center;
+    padding: calc(var(--ob-head) + clamp(32px, 1rem + 2.4vw, 56px)) var(--ob-edge) var(--ob-sec);
+  }
+  .nf-in { max-width: 760px; }
+  .nf .ob-display { font-size: clamp(2.5rem, 0.6rem + 6vw, 6rem); }
+  .nf-soft { color: #3E6E7A; }
+  .nf .ob-lede { margin-top: 24px; }
+  .nf-ctas { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 32px; margin-top: 32px; }
+  .nf-tools { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 40px; padding-top: 16px; border-top: 1px solid rgba(20, 19, 17, 0.2); font-size: var(--ob-t14); }
+  .nf-tools a { text-underline-offset: 4px; border-radius: 2px; }
+  .nf-tools a:hover { text-decoration-thickness: 2px; }
+  .nf-k { color: var(--orbe-graphite); width: 100%; }
+  @media (pointer: coarse) { .nf-tools { row-gap: 0; } .nf-tools a { display: inline-flex; align-items: center; min-height: 44px; } }
+</style>
+</head>
+<body class="ob-page ob-grain">
+<a class="ob-skip" href="#main" data-skip>Skip to the message</a>
+
+<header data-ob-header></header>
+
+<main id="main" tabindex="-1">
+  <section class="nf ob-lit" data-head="light" aria-labelledby="nf-h">
+    <div class="nf-in ob-layer">
+      <p class="ob-k">404</p>
+      <h1 class="ob-display" id="nf-h">This page isn’t here. <span class="nf-soft">Your work still is.</span></h1>
+      <p class="ob-lede">The link may be old, or the page may have moved. Everything else is where you left it.</p>
+      <div class="nf-ctas">
+        <a class="ob-btn" href="./"><span class="ob-orb" aria-hidden="true"></span>Back to the homepage</a>
+        <a class="ob-btn-q" href="products/">Every tool<span class="ob-q" aria-hidden="true"></span></a>
+      </div>
+      <p class="nf-tools"><span class="nf-k">Or go straight to</span><a href="products/rate/">Rate my work</a><a href="products/podcasts/">Podcasts</a><a href="products/sponsorships/">Sponsorships</a><a href="products/selling/">Selling</a><a href="products/diligence/">Diligence</a></p>
+    </div>
+  </section>
+</main>
+
+<footer data-ob-footer></footer>
+
+<script type="module">
+  import { mountHeader, mountFooter } from "./assets/orbe/chrome.js";
+  import { mountTrail } from "./assets/orbe/trail.js";
+  mountFooter(document.querySelector("[data-ob-footer]"), { root: "./" });
+  mountHeader(document.querySelector("[data-ob-header]"), { root: "./" });
+  mountTrail({ loud: ".nf" });
+  /* with a base set, "#main" would leave the page; move focus instead */
+  document.querySelector("[data-skip]").addEventListener("click", (e) => { e.preventDefault(); document.getElementById("main").focus(); });
+</script>
+</body>
+</html>
