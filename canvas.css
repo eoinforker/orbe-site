@@ -36,7 +36,6 @@
 .hero-copy > * { width: fit-content; max-width: 100%; pointer-events: auto; }
 .stage { position: relative; z-index: 4; grid-column: 9 / span 4; grid-row: 1; margin-top: 64px; }
 .h-line { display: block; white-space: nowrap; }
-.h-line:nth-child(3), .h-line:nth-child(4) { padding-left: 1.1em; }
 .slot { display: inline-block; position: relative; vertical-align: bottom; height: 1.06em; margin-bottom: -0.16em; padding-bottom: 0.1em; overflow: hidden; color: var(--word); transition: width 450ms var(--ob-ease); }
 .slot-word { display: inline-block; white-space: pre; }
 .slot-word.out { position: absolute; left: 0; top: 0; }
@@ -184,7 +183,9 @@
 .beat-h { font: var(--ob-w-head) var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; align-self: end; text-wrap: balance; }
 .beat-n { display: inline-block; min-width: 1.4em; color: var(--orbe-graphite); font-feature-settings: "tnum" 1; }
 .b-1, .b-2 { grid-column: 1 / -1; }
-.b-2 { margin-top: 8px; }
+.b-1, .b-2 { margin-top: 8px; }
+.hero-price { margin: 12px 0 0; padding-top: 12px; border-top: 1px dashed var(--rule-strong); font-size: var(--ob-t14); line-height: 1.4; }
+.hero-price b { font-variant-numeric: tabular-nums; }
 .row { display: contents; }
 .c-note { grid-column: 1 / span 4; }
 .c-post { grid-column: 5 / span 8; }
@@ -475,7 +476,8 @@
   .win-hero .hero-body > .score { grid-column: 1; grid-row: 3; }
   .win-hero .hero-body > .against { grid-column: 1; grid-row: 4; align-self: start; }
   .win-hero .hero-body > .drag { grid-column: 1; grid-row: 5; margin-top: 16px; }
-  .win-hero .hero-body > .foot { grid-row: 6; display: block; margin-top: 12px; }
+  .win-hero .hero-body > .hero-price { grid-column: 1 / -1; grid-row: 6; }
+  .win-hero .hero-body > .foot { grid-row: 7; display: block; margin-top: 12px; }
   .win-hero .hero-body > .hundred { grid-column: 2; grid-row: 2 / span 4; grid-template-columns: auto; row-gap: 40px; width: 227px; margin-top: 20px; padding-bottom: 0; }
 }
 @media (max-width: 1023px) {
@@ -501,7 +503,6 @@
   .ph-off { display: none; }
   .hero { padding-top: calc(var(--ob-head) + 24px); padding-bottom: 32px; }
   .art-box { height: 168px; }
-  .h-line:nth-child(3), .h-line:nth-child(4) { padding-left: 0; }
   .hero-copy .ob-lede { margin-top: 16px; max-width: 52ch; }
   .hero-copy > .ctas { width: auto; }
   .ctas { gap: 12px; flex-wrap: nowrap; margin-top: 24px; }

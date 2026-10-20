@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orbe</title>
-<meta name="description" content="Orbe rates each upload, episode, post or photo against creators your size, across platforms and podcasts, with the maths published. A work report after every one, levels to climb, and fair prices from how your work measured. Free for creators, for good.">
+<meta name="description" content="Get paid what your work is worth. Orbe verifies how every upload, episode, post or photo did against creators your size, checked against what actually paid out, and prices your sponsorships from that record. Free for creators; brands pay the fee.">
 <meta name="theme-color" content="#F3F0E8">
 <link rel="icon" href="./assets/r5/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="./assets/r5/favicon-32.png" sizes="32x32" type="image/png">
@@ -14,15 +14,15 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Orbe">
 <meta property="og:url" content="https://eoinforker.github.io/orbe-site/">
-<meta property="og:title" content="Orbe: each upload, rated against creators your size">
-<meta property="og:description" content="Orbe rates each upload, episode, post or photo against creators your size, across platforms and podcasts, with the maths published. A work report after every one, levels to climb, and fair prices from how your work measured. Free for creators, for good.">
+<meta property="og:title" content="Orbe: get paid what your work is worth">
+<meta property="og:description" content="Get paid what your work is worth. Orbe verifies how every upload, episode, post or photo did against creators your size, checked against what actually paid out, and prices your sponsorships from that record. Free for creators; brands pay the fee.">
 <meta property="og:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Orbe lockup and the line Your work, rated against creators your size., beside pixel drawings of a bulb, a camera and two half-filled orbs on a sky field.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Orbe: each upload, rated against creators your size">
-<meta name="twitter:description" content="Orbe rates each upload, episode, post or photo against creators your size, across platforms and podcasts, with the maths published. A work report after every one, levels to climb, and fair prices from how your work measured. Free for creators, for good.">
+<meta name="twitter:title" content="Orbe: get paid what your work is worth">
+<meta name="twitter:description" content="Get paid what your work is worth. Orbe verifies how every upload, episode, post or photo did against creators your size, checked against what actually paid out, and prices your sponsorships from that record. Free for creators; brands pay the fee.">
 <meta name="twitter:image" content="https://eoinforker.github.io/orbe-site/assets/og-1200x630.png">
 <link rel="stylesheet" href="./assets/fonts.css">
 <link rel="stylesheet" href="./assets/brand/tokens.css">
@@ -40,15 +40,15 @@
     <div class="art-box" data-art-box><canvas class="art" data-art aria-hidden="true"></canvas></div>
     <div class="hero-copy">
       <h1 id="h1" class="ob-display enter">
-        <span class="h-line">Each <span class="slot" data-slot><span class="sr-inline" data-slot-sr>explainer</span><span class="slot-word" aria-hidden="true" data-slot-word></span></span></span>
-        <span class="h-line">rated against</span>
-        <span class="h-line">creators</span>
-        <span class="h-line">your size.</span>
+        <span class="h-line">Get paid</span>
+        <span class="h-line">what your</span>
+        <span class="h-line"><span class="slot" data-slot><span class="sr-inline" data-slot-sr>explainer</span><span class="slot-word" aria-hidden="true" data-slot-word></span></span></span>
+        <span class="h-line">is worth.</span>
       </h1>
-      <p class="ob-lede enter">Every upload, episode, post or photo, across platforms and podcasts, with the maths published. A report after each one, and a verified record that prices your deals. Free for creators, for good.</p>
+      <p class="ob-lede enter">Orbe verifies how every upload did against creators your size, checked against what actually paid out, and prices your sponsorships from that record. AI that reads only your own numbers tells you what to make next. Free for creators; brands pay the fee.</p>
       <p class="aud enter" data-aud><span class="aud-k">For</span> <a href="#main" data-to="hero">creators</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-managers" data-to="for-managers"><span class="ph-off">managers and </span>agencies</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-brands" data-to="for-brands">brands</a> <span class="aud-dot" aria-hidden="true">·</span> <a href="#for-buyers" data-to="for-buyers for-funds"><span class="ph-off">buyers and </span>funds</a></p>
       <div class="ctas enter">
-        <a class="ob-btn" href="./products/rate/"><span class="ob-orb" aria-hidden="true"></span>See where you stand</a>
+        <a class="ob-btn" href="./products/sponsorships/"><span class="ob-orb" aria-hidden="true"></span>Price your next deal</a>
         <a class="ob-btn-q" href="#tools">How it works<span class="ob-q ob-q--down" aria-hidden="true"></span></a>
       </div>
     </div>
@@ -92,7 +92,8 @@
             <input id="views" class="ob-range" type="range" min="-100" max="100" step="1" value="0" data-views>
           </div>
 
-          <p class="foot">A made-up creator, each upload rated live against creators this size. Independently calculated by Orbe.</p>
+          <p class="hero-price" data-hero-price hidden></p>
+          <p class="foot">A made-up creator, each upload rated live against creators this size. The rating is what prices the deal. Independently calculated by Orbe.</p>
         </div>
       </article>
     </div>
@@ -101,119 +102,13 @@
   <!-- Screen two: what Orbe does, in three beats of windows you can move -->
   <section class="tools" data-head="light" id="tools" aria-labelledby="tools-h">
     <div class="tools-head ob-layer">
-      <h2 id="tools-h" class="ob-h2"><span class="ob-h2-soft">Each upload, read properly.</span> Every figure live, every creator made up.</h2>
+      <h2 id="tools-h" class="ob-h2"><span class="ob-h2-soft">Your record, verified. Your deals, priced.</span> Every figure live, every creator made up.</h2>
       <p class="tidy-row" data-tidy-row hidden><span class="ob-cue" id="tidy-hint">→ Drag a window by its title</span><button class="ob-win-btn tidy" type="button" data-tidy>Tidy</button><span class="ob-sr" aria-live="polite" data-tidy-say></span></p>
     </div>
 
     <div class="wall ob-layer" data-wall>
-      <h3 class="beat-h b-1"><span class="beat-n">1</span>Every upload, reported. <span class="beat-k">Grow</span> <a class="ob-lnk--s beat-lnk" href="./products/you/">Levels in Your Orbe</a></h3>
-
-      <!-- The weekly note: the rating, as a letter -->
-      <article class="ob-win c-note" data-head="light" data-pair="note" aria-labelledby="note-t" data-note data-win>
-        <div class="ob-win-bar"><span class="ob-win-title" id="note-t" data-grip>weekly_note.txt</span><a class="ob-win-lnk" href="./products/you/">Your Orbe</a></div>
-        <div class="ob-win-body note-body" data-note-body>
-          <p class="ob-says n-line">Your weekly note, written from your numbers.</p>
-          <p class="n-date n-line" data-n="date">Sunday the eighteenth of October, 2026</p>
-          <h4 class="n-dear n-line">Dear <span data-n="name">Field Recordings</span>,</h4>
-          <p class="n-line" data-n="open">Your uploads, read properly this week.</p>
-          <div class="n-score n-line">
-            <p class="n-fig" data-n="signed">+1.23</p>
-            <p class="n-side"><span class="n-band" data-n="band">Good</span> <span class="n-zero">Zero is typical.</span></p>
-          </div>
-          <p class="n-line" data-n="beat">You beat 93 in 100 channels your size.</p>
-          <p class="n-line" data-n="detail"></p>
-          <p class="n-close n-line"><em>Nothing to fix. See you next week.</em> <span class="sig" data-sig></span></p>
-          <p class="n-foot n-line">To <span data-n="handle">@fieldrecordings</span>, made up. Calculated by Orbe.</p>
-        </div>
-      </article>
-
-      <!-- The guide, after a post: one work against your typical and your size, then three next steps -->
-      <article class="ob-win c-post" data-head="light" data-pair="note" aria-labelledby="post-t" data-win data-post>
-        <div class="ob-win-bar"><span class="ob-win-title" id="post-t" data-grip>work_report.txt</span><a class="ob-win-lnk" href="./products/you/">Your Orbe</a></div>
-        <div class="ob-win-body">
-          <p class="ob-says">Each <span data-post-one>upload</span>, against creators your size.</p>
-          <div class="game" role="group" aria-labelledby="game-q" data-game>
-            <div class="game-head">
-              <p class="ob-k" id="game-q">The report. Above or below your typical? <span class="game-n" data-game-n>1 of 5</span></p>
-              <p class="ob-cue" aria-hidden="true" data-game-cue>← Drag the tile →</p>
-              <button class="ob-win-btn game-next" type="button" data-game-next hidden>Next upload</button>
-            </div>
-            <div class="game-row">
-              <button class="game-side" type="button" data-guess="below">Below</button>
-              <div class="game-lane">
-                <div class="tile" data-tile>
-                  <span class="tile-mark" aria-hidden="true" data-tile-mark></span>
-                  <span class="tile-t"><b data-tile-name>Your upload from 3 days ago</b><span data-tile-sub>47,581 views so far</span></span>
-                </div>
-              </div>
-              <button class="game-side" type="button" data-guess="above">Above</button>
-            </div>
-          </div>
-          <div class="vs" aria-live="polite" data-post-out>
-            <div class="vs-row">
-              <p class="vs-k">Against your own typical</p>
-              <p class="vs-fig" data-post-own>?</p>
-              <p class="vs-line" data-post-own-line>Make your call above, and the engine shows its multiple.</p>
-            </div>
-            <div class="vs-row">
-              <p class="vs-k" data-post-peers-k>Against channels your size, at its age</p>
-              <p class="vs-fig" data-post-peers>94 in 100</p>
-              <p class="vs-line" data-post-peers-line>It reached 41% of subscribers. Typical at your size is 10%.</p>
-            </div>
-          </div>
-          <h4 class="steps-h">Three next steps</h4>
-          <ol class="steps" data-post-steps></ol>
-          <p class="ob-note ob-win-end post-end">Worked out here, by rule. A report after every post. <span class="ob-chip" data-i="source">With the API</span></p>
-        </div>
-      </article>
-
-      <h3 class="beat-h b-2"><span class="beat-n">2</span>Podcasts, measured. <span class="beat-k">Grow</span></h3>
-
-      <div class="row row-2">
-      <!-- Podcasts, with what you get back and the plausibility check -->
-      <article class="ob-win c-pod" data-head="light" data-pair="pod" aria-labelledby="pod-t" data-win>
-        <div class="ob-win-bar"><span class="ob-win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="ob-win-lnk" href="./products/podcasts/">Open</a></div>
-        <div class="ob-win-body">
-          <div class="pod-in">
-            <p class="ob-says">Know who’s listening, for free.</p>
-            <label class="ob-k" for="show">Podcasts. Your show</label>
-            <input id="show" class="ob-input" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
-            <p class="mono-out" data-show-out>m.orbe.vc/p/thelongtable/…/ep1.mp3</p>
-            <div class="claim">
-              <label class="ob-k" for="pl">Plausibility. A claim of <output data-pl-claim for="pl">120,000</output> a month</label>
-              <input id="pl" class="ob-range" type="range" min="0" max="1000" step="1" value="500" data-pl>
-              <p class="claim-v"><b data-pl-verdict aria-live="polite">Questions</b> <span data-pl-why>2.3× a public count of 52,000.</span></p>
-            </div>
-          </div>
-          <div class="pod-get">
-            <p class="ob-k">You get back <b data-pod-total>4,773</b> downloads in 28 days</p>
-            <div class="bars" role="img" aria-label="Downloads by day for the made-up sample" data-pod-bars></div>
-            <p class="ob-note" data-pod-apps>Apple Podcasts 1,961, Spotify 1,280, Overcast 369</p>
-            <p class="ob-note ob-win-end">Sample listening for a made-up show. Free, where Chartable used to be.</p>
-          </div>
-        </div>
-      </article>
-
-      <!-- The State of the Middle: where you sit -->
-      <article class="ob-win c-mid" data-head="dark" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
-        <div class="ob-win-bar"><span class="ob-win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="ob-win-lnk" href="./products/">Open</a></div>
-        <div class="ob-win-body">
-          <p class="ob-says">Know what typical looks like at your size.</p>
-          <div class="mid-pick">
-            <label class="ob-k" for="mid-kind">The State of the Middle, for a</label>
-            <select id="mid-kind" class="ob-input" data-mid-kind></select>
-          </div>
-          <div class="picks" role="group" aria-label="Size band" data-mid-bands></div>
-          <p class="mid" data-mid-fig>10%</p>
-          <p class="ob-note" data-mid-what aria-live="polite">Typical reach for channels with 250k to 1M subscribers.</p>
-          <p class="ob-note ob-win-end">The engine’s starting baselines, until the first season. <span class="ob-chip" data-i="source">With the API</span></p>
-        </div>
-      </article>
-
-      </div>
-
       <div class="beat-side beat-3">
-        <h3 class="beat-h"><span class="beat-n">3</span>Deals priced from your verified record. <span class="beat-k">Earn</span></h3>
+        <h3 class="beat-h"><span class="beat-n">1</span>Deals priced from your verified record. <span class="beat-k">Earn</span></h3>
         <p class="beat-p">Offers and slots priced from what your uploads actually delivered, checked against payouts, not follower counts. Brands and buyers pay the fees. <a class="ob-lnk--s" href="./pricing/">Every price</a></p>
       </div>
 
@@ -285,6 +180,112 @@
           </details>
         </div>
       </article>
+      </div>
+
+      <h3 class="beat-h b-1"><span class="beat-n">2</span>Every upload reported, and what to make next. <span class="beat-k">Grow</span> <a class="ob-lnk--s beat-lnk" href="./products/you/">Levels in Your Orbe</a></h3>
+
+      <!-- The weekly note: the rating, as a letter -->
+      <article class="ob-win c-note" data-head="light" data-pair="note" aria-labelledby="note-t" data-note data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="note-t" data-grip>weekly_note.txt</span><a class="ob-win-lnk" href="./products/you/">Your Orbe</a></div>
+        <div class="ob-win-body note-body" data-note-body>
+          <p class="ob-says n-line">Your weekly note, written from your numbers.</p>
+          <p class="n-date n-line" data-n="date">Sunday the eighteenth of October, 2026</p>
+          <h4 class="n-dear n-line">Dear <span data-n="name">Field Recordings</span>,</h4>
+          <p class="n-line" data-n="open">Your uploads, read properly this week.</p>
+          <div class="n-score n-line">
+            <p class="n-fig" data-n="signed">+1.23</p>
+            <p class="n-side"><span class="n-band" data-n="band">Good</span> <span class="n-zero">Zero is typical.</span></p>
+          </div>
+          <p class="n-line" data-n="beat">You beat 93 in 100 channels your size.</p>
+          <p class="n-line" data-n="detail"></p>
+          <p class="n-close n-line"><em>Nothing to fix. See you next week.</em> <span class="sig" data-sig></span></p>
+          <p class="n-foot n-line">To <span data-n="handle">@fieldrecordings</span>, made up. Calculated by Orbe.</p>
+        </div>
+      </article>
+
+      <!-- The guide, after a post: one work against your typical and your size, then three next steps -->
+      <article class="ob-win c-post" data-head="light" data-pair="note" aria-labelledby="post-t" data-win data-post>
+        <div class="ob-win-bar"><span class="ob-win-title" id="post-t" data-grip>work_report.txt</span><a class="ob-win-lnk" href="./products/you/">Your Orbe</a></div>
+        <div class="ob-win-body">
+          <p class="ob-says">Each <span data-post-one>upload</span>, against creators your size.</p>
+          <div class="game" role="group" aria-labelledby="game-q" data-game>
+            <div class="game-head">
+              <p class="ob-k" id="game-q">The report. Above or below your typical? <span class="game-n" data-game-n>1 of 5</span></p>
+              <p class="ob-cue" aria-hidden="true" data-game-cue>← Drag the tile →</p>
+              <button class="ob-win-btn game-next" type="button" data-game-next hidden>Next upload</button>
+            </div>
+            <div class="game-row">
+              <button class="game-side" type="button" data-guess="below">Below</button>
+              <div class="game-lane">
+                <div class="tile" data-tile>
+                  <span class="tile-mark" aria-hidden="true" data-tile-mark></span>
+                  <span class="tile-t"><b data-tile-name>Your upload from 3 days ago</b><span data-tile-sub>47,581 views so far</span></span>
+                </div>
+              </div>
+              <button class="game-side" type="button" data-guess="above">Above</button>
+            </div>
+          </div>
+          <div class="vs" aria-live="polite" data-post-out>
+            <div class="vs-row">
+              <p class="vs-k">Against your own typical</p>
+              <p class="vs-fig" data-post-own>?</p>
+              <p class="vs-line" data-post-own-line>Make your call above, and the engine shows its multiple.</p>
+            </div>
+            <div class="vs-row">
+              <p class="vs-k" data-post-peers-k>Against channels your size, at its age</p>
+              <p class="vs-fig" data-post-peers>94 in 100</p>
+              <p class="vs-line" data-post-peers-line>It reached 41% of subscribers. Typical at your size is 10%.</p>
+            </div>
+          </div>
+          <h4 class="steps-h">Three next steps</h4>
+          <ol class="steps" data-post-steps></ol>
+          <p class="ob-note ob-win-end post-end">Worked out here, by rule. With the API, AI writes them from your own numbers and must cite each one. <span class="ob-chip" data-i="source">With the API</span></p>
+        </div>
+      </article>
+
+      <h3 class="beat-h b-2"><span class="beat-n">3</span>Podcasts, measured. <span class="beat-k">Grow</span></h3>
+
+      <div class="row row-2">
+      <!-- Podcasts, with what you get back and the plausibility check -->
+      <article class="ob-win c-pod" data-head="light" data-pair="pod" aria-labelledby="pod-t" data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="pod-t" data-grip>podcast_prefix.txt</span><a class="ob-win-lnk" href="./products/podcasts/">Open</a></div>
+        <div class="ob-win-body">
+          <div class="pod-in">
+            <p class="ob-says">Know who’s listening, for free.</p>
+            <label class="ob-k" for="show">Podcasts. Your show</label>
+            <input id="show" class="ob-input" type="text" value="thelongtable" autocomplete="off" spellcheck="false" data-show>
+            <p class="mono-out" data-show-out>m.orbe.vc/p/thelongtable/…/ep1.mp3</p>
+            <div class="claim">
+              <label class="ob-k" for="pl">Plausibility. A claim of <output data-pl-claim for="pl">120,000</output> a month</label>
+              <input id="pl" class="ob-range" type="range" min="0" max="1000" step="1" value="500" data-pl>
+              <p class="claim-v"><b data-pl-verdict aria-live="polite">Questions</b> <span data-pl-why>2.3× a public count of 52,000.</span></p>
+            </div>
+          </div>
+          <div class="pod-get">
+            <p class="ob-k">You get back <b data-pod-total>4,773</b> downloads in 28 days</p>
+            <div class="bars" role="img" aria-label="Downloads by day for the made-up sample" data-pod-bars></div>
+            <p class="ob-note" data-pod-apps>Apple Podcasts 1,961, Spotify 1,280, Overcast 369</p>
+            <p class="ob-note ob-win-end">Sample listening for a made-up show. Free, where Chartable used to be.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- The State of the Middle: where you sit -->
+      <article class="ob-win c-mid" data-head="dark" id="benchmarks" data-pair="also" aria-labelledby="mid-t" data-win>
+        <div class="ob-win-bar"><span class="ob-win-title" id="mid-t" data-grip>where_you_sit.txt</span><a class="ob-win-lnk" href="./products/">Open</a></div>
+        <div class="ob-win-body">
+          <p class="ob-says">Know what typical looks like at your size.</p>
+          <div class="mid-pick">
+            <label class="ob-k" for="mid-kind">The State of the Middle, for a</label>
+            <select id="mid-kind" class="ob-input" data-mid-kind></select>
+          </div>
+          <div class="picks" role="group" aria-label="Size band" data-mid-bands></div>
+          <p class="mid" data-mid-fig>10%</p>
+          <p class="ob-note" data-mid-what aria-live="polite">Typical reach for channels with 250k to 1M subscribers.</p>
+          <p class="ob-note ob-win-end">The engine’s starting baselines, until the first season. <span class="ob-chip" data-i="source">With the API</span></p>
+        </div>
+      </article>
+
       </div>
 
       <!-- Protect: fingerprints for images, video and audio, and the rights record -->

@@ -175,6 +175,13 @@ function paint(r) {
   $("[data-reach]").textContent = r.reachValue;
   const out = $("[data-views-out]");
   out.textContent = count(r.typical);
+  /* the price that rating earns: an integrated read for video kinds, from the same engine as the Sponsorships window */
+  const hp = $("[data-hero-price]");
+  if (k.o.kind === "youtube") {
+    const int = quote(r.typical).find((x) => x.format === "integration")?.s;
+    hp.hidden = !(int && int.status === "suggested");
+    if (!hp.hidden) hp.innerHTML = `Fair price for an integrated read: <b>${gbp(int.low.amount)} to ${gbp(int.high.amount)}</b>`;
+  } else hp.hidden = true;
   views.setAttribute("aria-valuetext", `${count(r.typical)} ${k.unit}. Rating ${r.signed.replace("−", "minus ")}, ${r.band}. Beats ${b} in 100 ${r.peers} your size.`);
   drawHundred(r);
 }
