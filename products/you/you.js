@@ -85,7 +85,7 @@ function hero(c, animate) {
   $("[data-hello-soft]").textContent = soft;
   const lastWeek = c.trend.at(-2)?.rating;
   const delta = lastWeek == null ? null : c.rating - lastWeek;
-  const move = delta == null ? "" : Math.abs(delta) < 0.005 ? "level with last Sunday" : `${delta > 0 ? "up" : "down"} ${Math.abs(delta).toFixed(2)} on last Sunday`;
+  const move = delta == null ? "" : Math.abs(delta) < 0.005 ? "level with last week" : `${delta > 0 ? "up" : "down"} ${Math.abs(delta).toFixed(2)} on last week`;
   $("[data-lede]").textContent = `Your rating is ${c.signed}, ${move}. Your best ${c.w.work} of ${PERIOD_WORDS} did ${times(c.best.multiple)} your own typical.`;
   $("[data-made]").textContent = `${c.k.name} is a made-up ${c.spec.name}, rated live by the Orbe engine.`;
   $("[data-file]").textContent = `${c.k.handle.slice(1)}_rating.txt`;
@@ -97,7 +97,7 @@ function hero(c, animate) {
   const hiT = c.trend.reduce((a, t) => (t.rating !== null && t.rating > a.rating ? t : a), first);
   $("[data-trend-note]").textContent = `Eight weeks ago ${minus(signedN(first.rating))}. High ${minus(signedN(hiT.rating))} on ${dateOf(hiT.at)}.`;
   $("[data-trend]").innerHTML = trendSvg(c.trend);
-  $("[data-score-cap]").textContent = `${RATING_LABEL}. Each Sunday is the same ${c.w.works} rated as they stood that day.`;
+  $("[data-score-cap]").textContent = `${RATING_LABEL}. Each point is the same ${c.w.works} rated as they stood that week. Rate again whenever you like.`;
   $(".yo-score").setAttribute("aria-label", `${c.k.name}, made up: rating ${c.signed}, ${c.verdict}. Reach beats ${c.reachScore} in 100 ${c.peers} your size.`);
   countUp($("[data-rating]"), c.rating, animate);
 }
@@ -130,7 +130,7 @@ function trendSvg(trend) {
   const guides = [[-0.8, ""], [0, ""], [0.8, ""], [2, ""]].filter(([v]) => v >= lo && v <= hi);
   const mid = (lo + hi) / 2;
   if (!guides.length) guides.push([Math.round(mid * 10) / 10, ""]);
-  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Rating each Sunday: ${pts.map((p) => `${dateOf(p.at)} ${minus(signedN(p.rating))}`).join(", ")}." preserveAspectRatio="none">
+  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Rating each week: ${pts.map((p) => `${dateOf(p.at)} ${minus(signedN(p.rating))}`).join(", ")}." preserveAspectRatio="none">
     ${guides.map(([v, l]) => `<line class="yo-g${v === 0 ? " yo-g0" : ""}" x1="${pl}" x2="${w - pr}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/><text class="yo-ax" x="${pl - 6}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${v === 0 ? "0" : minus(signedN(v, v % 1 ? 1 : 0))}</text>`).join("")}
     <path class="yo-area" d="${area}"/>
     <path class="yo-line" d="${line}"/>
