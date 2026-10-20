@@ -384,8 +384,9 @@
 }
 @media (max-width: 860px) {
   .hero-copy { grid-column: 1 / -1; }
-  .stage { grid-column: 1 / -1; grid-row: 2; margin-top: 40px; width: 100%; }
-  .art-box { position: relative; grid-column: 1 / -1; grid-row: 3; height: 220px; margin: 24px calc(-1 * var(--ob-g)) -48px 0; }
+  .stage { grid-column: 1 / -1; grid-row: 3; margin-top: 0; width: 100%; }
+  /* the statement piece sits between the pitch and the instrument, standing on the window */
+  .art-box { position: relative; grid-column: 1 / -1; grid-row: 2; height: 200px; margin: 16px 0 -26px; }
 }
 @media (min-width: 861px) and (max-width: 1180px) {
   .win-hero .foot { display: none; }
@@ -435,7 +436,6 @@
   .win-hero .hero-body > .drag { grid-column: 1; grid-row: 5; margin-top: 16px; }
   .win-hero .hero-body > .foot { grid-row: 6; display: block; margin-top: 12px; }
   .win-hero .hero-body > .hundred { grid-column: 2; grid-row: 2 / span 4; grid-template-columns: auto; row-gap: 40px; width: 227px; margin-top: 20px; padding-bottom: 0; }
-  .art-box { display: none; }
 }
 @media (max-width: 1023px) {
   .for-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -459,7 +459,7 @@
   /* one line on a phone: agencies and funds, the longer names on wider screens */
   .ph-off { display: none; }
   .hero { padding-top: calc(var(--ob-head) + 24px); padding-bottom: 32px; }
-  .art-box { display: none; }
+  .art-box { height: 168px; }
   .h-line:nth-child(3), .h-line:nth-child(4) { padding-left: 0; }
   .hero-copy .ob-lede { margin-top: 16px; max-width: 52ch; }
   .hero-copy > .ctas { width: auto; }
