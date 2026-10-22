@@ -180,6 +180,12 @@ function settle() {
   main.querySelector("[data-title]")?.focus({ preventScroll: true });
 }
 
+/* On a demo server, a line at the very top on every screen: nothing here is real. */
+function demoBanner() {
+  if (!signInWays().demo || document.querySelector(".cn-demo")) return;
+  document.body.prepend(h("p", { class: "cn-demo", role: "note" }, h("b", null, "Demo"), " Everything here is made up: no real creator, brand, figure or payment."));
+}
+
 async function boot() {
   loading(main, "Loading your Orbe.");
   try {
@@ -188,6 +194,7 @@ async function boot() {
     main.replaceChildren(failure(e, boot));
     return;
   }
+  demoBanner();
   render();
 }
 

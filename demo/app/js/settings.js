@@ -157,6 +157,10 @@ const SECTIONS = {
     if (!(await keysOpen())) return el.append(needsProfile());
     await embed(el, () => import("./brand/keys.js"), ctx);
   },
+  async metrics(el) {
+    const m = await import("./metrics.js");
+    await m.render(el);
+  },
   async mcp(el, ctx) {
     await embed(el, () => import("./tools/developers.js"), ctx);
   },

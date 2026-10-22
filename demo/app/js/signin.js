@@ -7,7 +7,6 @@
 import { api } from "./api.js";
 import { BASE } from "./routes.js";
 import { segmented } from "./console-ui.js";
-import { paintedSky } from "./sky.js";
 import { icon } from "./icons.js";
 import { lockup, portal } from "./shell.js";
 import { field, form, h, input } from "./ui.js";
@@ -46,6 +45,11 @@ const NEXT = /^\/[A-Za-z0-9/_\-.~%?=&]*$/;
 
 export function render(main, ctx) {
   const ways = ctx.ways ?? { google: false, email: true, dev: false };
+  // A demo server signs in by its password page, as a made-up account; nothing here would work on it.
+  if (ways.demo) {
+    location.replace("/v1/auth/demo");
+    return;
+  }
   const here = location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) || "/" : "/";
   // An invitation link keeps its token through sign-in, so the person lands back on it.
   const next = here === "/signin" ? ctx.query.get("next") ?? "/" : here === "/invite" ? `${here}${location.search}` : here;
@@ -111,7 +115,7 @@ export function render(main, ctx) {
   main.append(
     h("div", { class: "cn-auth" },
       h("div", { class: "cn-auth-side" },
-        h("div", { class: "cn-auth-top" }, h("a", { href: "https://orbe.vc/", "aria-label": "Orbe, the site" }, lockup()), h("a", { href: "https://orbe.vc/products/" }, "All products")),
+        h("div", { class: "cn-auth-top" }, h("a", { href: "https://eoinforker.github.io/orbe-site/", "aria-label": "Orbe, the site" }, lockup()), h("a", { href: "https://eoinforker.github.io/orbe-site/products/" }, "All products")),
         h("div", { class: "cn-auth-card" },
           portal("cn-portal"),
           h("h1", { class: "cn-auth-h", tabindex: "-1", "data-title": "" }, token ? "Sign in to join" : "Welcome to Orbe"),
@@ -124,27 +128,33 @@ export function render(main, ctx) {
           dev,
           h("p", { class: "cn-auth-terms" },
             "By continuing you agree to Orbe's ",
-            h("a", { href: "https://orbe.vc/legal/terms.html", target: "_blank", rel: "noopener" }, "Terms"),
+            h("a", { href: "https://eoinforker.github.io/orbe-site/legal/terms.html", target: "_blank", rel: "noopener" }, "Terms"),
             " and ",
-            h("a", { href: "https://orbe.vc/legal/privacy.html", target: "_blank", rel: "noopener" }, "Privacy notice"),
+            h("a", { href: "https://eoinforker.github.io/orbe-site/legal/privacy.html", target: "_blank", rel: "noopener" }, "Privacy notice"),
             ". No password: Orbe never asks for your platform passwords.",
           ),
         ),
         h("p", { class: "cn-auth-help" }, "Free for creators. Brands pay only on verified delivery."),
       ),
-      h("aside", { class: "cn-auth-art", "aria-label": "An example rating, made up" },
-        h("div", { class: "cn-auth-window" },
-          h("div", { class: "cn-auth-wbar" }, h("span", null, "each_upload.txt"), h("span", null, "Made up")),
-          h("div", { class: "cn-auth-wbody" },
-            h("div", { class: "cn-auth-big" }, h("b", null, "+1.23"), h("span", null, "Good")),
-            h("p", null, "A made-up channel, against channels with 250k to 1M subscribers. Zero is typical."),
-            h("p", null, "A typical upload reaches 37% of subscribers. That beats 93 in 100 channels its size."),
-          ),
-        ),
-        h("p", { class: "cn-auth-caption" }, "Every upload, rated against creators your size. Independently calculated by Orbe."),
-      ),
+      printSide(),
     ),
   );
-  const art = main.querySelector(".cn-auth-art");
-  if (art) paintedSky(art, { seed: 11 });
+}
+
+/*
+  The art side: one still print per visit, as fal does, a different one each
+  time where it can (the last one is remembered in this browser). The 1x file
+  by default; the 2x only on high-density screens. Phones show no art.
+*/
+const PRINTS = ["garden", "drift", "night", "clouds"];
+function printSide() {
+  let last = null;
+  try { last = localStorage.getItem("orbe.print"); } catch (e) {}
+  const pool = PRINTS.filter((n) => n !== last);
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  try { localStorage.setItem("orbe.print", pick); } catch (e) {}
+  const src = (k) => `${BASE}/art/signin/${pick}-${k}.webp`;
+  return h("aside", { class: "cn-auth-art", "data-print": pick, "aria-hidden": "true" },
+    h("img", { class: "cn-auth-print", srcset: `${src("1x")} 1x, ${src("2x")} 2x`, src: src("1x"), alt: "", decoding: "async", loading: "lazy", fetchpriority: "low" }),
+  );
 }

@@ -147,6 +147,7 @@ export const SETTINGS = [
   { id: "keys", name: "API keys", line: "Keys for the data API, and what each has used.", side: "buyer", feature: "brand_data", icon: "key", group: "Developer", needs: "read.money" },
   { id: "mcp", name: "MCP and agents", line: "Use Orbe from Claude and other AI tools.", side: "both", icon: "plug", group: "Developer" },
   { id: "security", name: "Security", line: "Where you are signed in.", side: "both", icon: "shield", group: "Security" },
+  { id: "metrics", name: "Metrics", line: "What investors ask, counted from Orbe's own records. Staff only.", side: "both", icon: "chart", group: "Staff", staff: true },
 ];
 
 /** The resources menu: Orbe's public pages, grouped. Paths on the public site; a leading "/" is this server. */
@@ -182,7 +183,7 @@ export function tabsFor(user, screens) {
 
 /** Settings sections for this person. */
 export const settingsFor = (user, on) =>
-  SETTINGS.filter((s) => (s.side === "both" || s.side === user.type) && (!s.feature || on(s.feature)) && (!s.anyOf || s.anyOf.some((f) => on(f) && (user.type === "creator" || f === "referrals"))) && roleCan(user.team?.role, s.needs));
+  SETTINGS.filter((s) => (!s.staff || (user.roles ?? []).includes("admin")) && (s.side === "both" || s.side === user.type) && (!s.feature || on(s.feature)) && (!s.anyOf || s.anyOf.some((f) => on(f) && (user.type === "creator" || f === "referrals"))) && roleCan(user.team?.role, s.needs));
 
 /** A tool's tile: its pixel glyph on its pair's field, as an SVG built from data. */
 export function tile(glyphPath, k, h, size) {
