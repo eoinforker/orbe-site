@@ -44,7 +44,7 @@ export const PILLARS = [
     ["Your Orbe", "products/you/", "Your home: a report for every piece.", "also"],
     ["Rate my work", "products/rate/", "Against creators your size. Free.", "also"],
     ["Podcasts", "products/podcasts/", "Free measurement, for good.", "pod"],
-    ["Orbe Fix", "products/fix/", "New titles, kept only on lift.", "also"],
+    ["Orbe Fix", "products/fix/", "New titles, kept only on lift.", "fix"],
   ]],
   ["Earn", "Get paid fairly when money moves.", [
     ["Sponsorships", "products/sponsorships/", "Price a slot, match brand briefs.", "spon"],
@@ -65,6 +65,32 @@ export const PILLARS = [
 /* every entry in the menu, flat, in pillar order */
 export const PRODUCTS = PILLARS.flatMap(([, , items]) => items);
 export const ALL_PRODUCTS = ["All products", "products/", "Every tool, by pillar, running in your browser."];
+
+/*
+  Where the signed-in console lives (product/src/api/DEPLOY.md: APP_URL). A
+  page can point elsewhere with <meta name="orbe-app" content="https://...">,
+  for a staging server or a local one.
+*/
+export const APP_ORIGIN = "https://api.orbe.vc/app";
+export function appUrl(path = "signin") {
+  let base = APP_ORIGIN;
+  try {
+    const m = document.querySelector('meta[name="orbe-app"]')?.getAttribute("content");
+    if (m && /^https?:\/\//.test(m)) base = m.replace(/\/+$/, "");
+  } catch (e) {}
+  return `${base}/${path}`;
+}
+/*
+  Until the console is deployed, its links open the in-browser preview of
+  Your Orbe instead of a server that is not there yet. Set APP_LIVE once
+  APP_URL answers; a page's orbe-app meta tag also counts as live.
+*/
+export const APP_LIVE = false;
+function appLink(href, path) {
+  let meta = false;
+  try { meta = !!document.querySelector('meta[name="orbe-app"]'); } catch (e) {}
+  return APP_LIVE || meta ? appUrl(path) : href("products/you/");
+}
 
 /* the links beside the Products menu ("#..." is the homepage's own anchor) */
 export const NAV = [["How it works", "#tools"], ["For teams", "teams/"], ["Pricing", "pricing/"]];
@@ -147,7 +173,7 @@ function menuMarkup(dir, href, cur) {
   const [lt, lp, ld] = LEAD;
   const panel = `
           <div class="ob-cat">
-            <a class="ob-cat-lead" href="${esc(href(lp))}"${cur(lp)} style="--i:0">
+            <a class="ob-cat-lead" href="${esc(appLink(href))}" style="--i:0">
               <span class="ob-cat-mark">${portalMarkup({ cut: "small" })}</span>
               <span class="ob-cat-lt">${esc(lt)}</span>
               <span class="ob-cat-ld">${esc(ld)}</span>
@@ -164,7 +190,7 @@ function menuMarkup(dir, href, cur) {
           </div>
           ${allLink("ob-cat-all")}`;
   const sheet = `
-        <a class="ob-cat-lead" href="${esc(href(lp))}"${cur(lp)} style="--i:0"><span class="ob-cat-mark">${portalMarkup({ cut: "small" })}</span><span class="ob-cat-lt">${esc(lt)}</span><span class="ob-cat-ld">${esc(ld)}</span></a>${PILLARS.map(([h, , items], i) => `
+        <a class="ob-cat-lead" href="${esc(appLink(href))}" style="--i:0"><span class="ob-cat-mark">${portalMarkup({ cut: "small" })}</span><span class="ob-cat-lt">${esc(lt)}</span><span class="ob-cat-ld">${esc(ld)}</span></a>${PILLARS.map(([h, , items], i) => `
         <div class="ob-cat-g" role="group" aria-labelledby="ob-sh-g${i}" style="--i:${i + 1}">
           <p class="ob-cat-h" id="ob-sh-g${i}">${esc(h)}</p>
           <div class="ob-cat-gl">${items.filter(([, p]) => p !== lp).map(([t, p, , k]) => `<a href="${esc(href(p))}"${cur(p)}>${glyph(p, k)}<span>${esc(t)}</span></a>`).join("")}</div>
@@ -204,6 +230,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
         </div>
       </div>${NAV.map(([t, p]) => `<a data-part href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}
     </nav>
+    <a class="ob-bar-signin" data-part href="${esc(appLink(href))}">Sign in</a>
     <a class="ob-btn ob-btn--s" data-part href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
     <button class="ob-bar-menu" data-part type="button" aria-expanded="false" aria-controls="ob-sheet">Menu<i aria-hidden="true"></i></button>
     <div class="ob-sheet" id="ob-sheet" data-dir="${dir}" hidden>
@@ -211,6 +238,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
       </nav>
       <div class="ob-sheet-foot" style="--i:5">
         <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
+        <a class="ob-btn ob-btn--light" href="${esc(appLink(href))}"><span class="ob-orb" aria-hidden="true"></span>Sign in</a>
         <p class="ob-sheet-small">${[...NAV.filter(([, p]) => p !== "teams/"), ALL_PRODUCTS.slice(0, 2)].map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</p>
       </div>
     </div>`;

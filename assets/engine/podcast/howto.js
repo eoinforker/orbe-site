@@ -46,3 +46,24 @@ export function stepsFor(host, showId, feedUrl) {
     const first = h.supportsPrefix === "on_request" ? h.where : `In ${h.host}: ${h.where} If it has moved, search the settings for "prefix".`;
     return { host: h.host, prefix, steps: [first, ...common], confirmed: h.confirmed };
 }
+export function routeFor(host) {
+    const h = host ? HOST_HOWTO.find((x) => x.host.toLowerCase() === host.toLowerCase()) : undefined;
+    if (!h)
+        return { host: host ?? "your host", supportsPrefix: "unknown", route: "prefix", confirmed: false, why: "We could not tell your host from your feed, so the steps say how to find its prefix setting." };
+    if (h.supportsPrefix === "no") {
+        return {
+            host: h.host,
+            supportsPrefix: "no",
+            route: "export",
+            confirmed: h.confirmed,
+            why: `${h.host} has no prefix setting that we know of, so Orbe cannot count downloads itself. Upload the analytics export ${h.host} gives you instead.`,
+        };
+    }
+    return {
+        host: h.host,
+        supportsPrefix: h.supportsPrefix,
+        route: "prefix",
+        confirmed: h.confirmed,
+        why: h.supportsPrefix === "on_request" ? `${h.host} adds prefixes on request.` : `${h.host} lets you add a measurement prefix in its settings.`,
+    };
+}

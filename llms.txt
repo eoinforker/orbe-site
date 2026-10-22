@@ -1,12 +1,12 @@
 # Orbe
 
-> Orbe is creator tooling. It rates a creator's work against creators of the same kind and size (zero is typical for your size band), prices sponsorships from what the creator's work actually delivers, gives an indicative value for a creator business with the fees in full, and checks whether a podcast's download claims fit public signals. Creators use it free. Companies pay for rights tooling, and Orbe earns when money moves. Every rating, band and benchmark is labelled "Independently calculated by Orbe." and carries the version of the published maths.
+> Run your creator business on Orbe. Creators make the work in the tools they love; Orbe finds the sponsors, prices and proves every deal, and keeps the record brands, buyers and AI agents trust. It rates a creator's work against creators of the same kind and size (zero is typical for your size band), prices sponsorships from what the creator's work actually delivers, gives an indicative value for a creator business with the fees in full, and checks whether a podcast's download claims fit public signals. Creators use it free, with an optional plan for heavy use; brands, agencies and buyers pay, and Orbe earns when money moves. Every rating, band and benchmark is labelled "Independently calculated by Orbe." and carries the version of the published maths.
 
 Status, honestly: the tools on this site run in your browser on Orbe's own engine code, on made-up or typed figures. The HTTP API exists in the code but is not hosted yet. Anything that needs it (live connections to a creator's accounts, a hosted endpoint, API keys) is marked "With the API" on the pages. Example figures on the site are made up and labelled so.
 
 ## For agents
 
-- [For developers and agents](https://eoinforker.github.io/orbe-site/developers/): the seven tools, the MCP config and a live playground that runs the MCP server's own code in the browser.
+- [For developers and agents](https://eoinforker.github.io/orbe-site/developers/): the twelve tools, the MCP config and a live playground that runs the MCP server's own code in the browser.
 - [OpenAPI 3.1](https://eoinforker.github.io/orbe-site/developers/openapi.json): the same capabilities. Paths marked x-status: routed exist in the API's code and run locally; paths marked x-status: planned are not routed yet.
 
 The MCP server (stdio, JSON-RPC 2.0, protocol revision 2025-06-18) runs locally from the repository with `node product/src/mcp/server.ts`. It makes no network calls and keeps nothing. Tools:
@@ -18,6 +18,11 @@ The MCP server (stdio, JSON-RPC 2.0, protocol revision 2025-06-18) runs locally 
 - orbe_value_business: an indicative value range for a creator business on trailing profit, with Orbe's fees at each end. Not advice and not an offer.
 - orbe_podcast_plausibility: whether a podcast's claimed downloads fit Orbe's measurement, OP3, the public feed, YouTube, charts and ratings. It never accuses.
 - orbe_explain_rating: the rating in plain English.
+- orbe_quote_guaranteed_read: a quote for a sponsorship the brand pays in full only on verified delivery, with the guaranteed floor and the shortfall terms. A quote, never a booking.
+- orbe_check_delivery: delivered or short against a guarantee, the creator's options when short, and the split between creator, Orbe and the brand's refund.
+- orbe_diagnose_upload: whether a YouTube upload is below creators its size at its age, and whether the title, the thumbnail or both are the lever.
+- orbe_judge_fix: whether a new title or thumbnail lifted an upload against its own sealed pace, and the fee only if it did.
+- orbe_retention_cuts: from a video's audience retention curve, how many are still watching after the opening, the steepest drops, and up to three stretches worth tightening or cutting. Read only.
 
 Works today: the playground and the MCP server run locally. With the API: a hosted endpoint, keys, rate limits and data from connected accounts. For access, write to hello@orbe.vc.
 

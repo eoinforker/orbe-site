@@ -36,7 +36,7 @@ export function cardCacheKey(rating, account, options = {}) {
         rating.kind, rating.rating, rating.band, rating.sizeBand, rating.modelVersion, rating.computedAt,
         rating.parts.map((p) => `${p.key}:${p.score}:${p.value}`).join(","),
         account.handle, account.name, options.format ?? "square", options.theme ?? "paper",
-        options.provisional ? 1 : 0, options.note ?? "", options.host ?? "",
+        options.provisional ? 1 : 0, options.note ?? "", options.host ?? "", options.path ?? "",
         (options.works ?? []).map((w) => `${w.multiple}:${w.ageDays ?? ""}:${w.matured === false ? 0 : 1}`).join(","),
         options.personalBest ? `${options.personalBest.value}|${options.personalBest.previous ?? ""}|${options.personalBest.label}|${options.personalBest.best.value}|${options.personalBest.best.previous ?? ""}|${options.personalBest.best.at}` : "",
         options.moment ?? "", options.workTitle ?? "", options.image?.href ? `${options.image.href.length}:${hashOf(options.image.href)}` : "", options.image?.alt ?? "",

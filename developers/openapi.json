@@ -63,6 +63,10 @@
       "description": "Diagnose an upload for Orbe Fix"
     },
     {
+      "name": "orbe_retention_cuts",
+      "description": "Find where viewers leave an upload"
+    },
+    {
       "name": "orbe_judge_fix",
       "description": "Judge whether a fix lifted an upload"
     }
@@ -1510,6 +1514,96 @@
         }
       }
     },
+    "/v1/tools/retention-cuts": {
+      "post": {
+        "operationId": "retentionCuts",
+        "summary": "Find where viewers leave an upload",
+        "description": "Reads one video's audience retention from YouTube Analytics (audienceWatchRatio, and relativeRetentionPerformance where YouTube gives it, by elapsedVideoTimeRatio) and says how many are still watching after the opening, where the steepest drops are, and up to three stretches worth tightening or cutting. Typical is YouTube's comparison with videos of a similar length, not creators the same size. Read only: it changes nothing. In Orbe, GET /v1/me/retention/:workId reads the curve with the creator's own connection.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_retention_cuts"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_retention_cuts",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetentionCutsInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "durationSec": 600,
+                    "points": [
+                      {
+                        "at": 0,
+                        "watch": 1,
+                        "relative": 0.5
+                      },
+                      {
+                        "at": 0.05,
+                        "watch": 0.8,
+                        "relative": 0.5
+                      },
+                      {
+                        "at": 0.25,
+                        "watch": 0.7,
+                        "relative": 0.5
+                      },
+                      {
+                        "at": 0.4,
+                        "watch": 0.65,
+                        "relative": 0.5
+                      },
+                      {
+                        "at": 0.45,
+                        "watch": 0.5,
+                        "relative": 0.2
+                      },
+                      {
+                        "at": 0.7,
+                        "watch": 0.45,
+                        "relative": 0.5
+                      },
+                      {
+                        "at": 1,
+                        "watch": 0.38,
+                        "relative": 0.5
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/v1/tools/judge-fix": {
       "post": {
         "operationId": "judgeFix",
@@ -2694,6 +2788,56 @@
         },
         "title": "Diagnose an upload for Orbe Fix",
         "description": "Orbe Fix, step one: whether a YouTube upload is below creators the same size at the same age (the lower quartile of the rating's reach benchmark, scaled to the share of views expected by its age), and what to fix: with click-through from YouTube Analytics it tells a weak thumbnail and title from weak reach; without it, both. Judged from 1 to 60 days old. It changes nothing: generating options and swapping them need the creator's approval in Orbe."
+      },
+      "RetentionCutsInput": {
+        "type": "object",
+        "required": [
+          "durationSec",
+          "points"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "durationSec": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The upload's length in seconds."
+          },
+          "points": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 101,
+            "description": "The retention curve, one point per elapsedVideoTimeRatio.",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "watch"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "elapsedVideoTimeRatio: how far into the video, 0 to 1."
+                },
+                "watch": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "audienceWatchRatio at that point."
+                },
+                "relative": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "relativeRetentionPerformance at that point, where 0.5 is typical. Optional."
+                }
+              }
+            }
+          }
+        },
+        "title": "Find where viewers leave an upload",
+        "description": "Reads one video's audience retention from YouTube Analytics (audienceWatchRatio, and relativeRetentionPerformance where YouTube gives it, by elapsedVideoTimeRatio) and says how many are still watching after the opening, where the steepest drops are, and up to three stretches worth tightening or cutting. Typical is YouTube's comparison with videos of a similar length, not creators the same size. Read only: it changes nothing. In Orbe, GET /v1/me/retention/:workId reads the curve with the creator's own connection."
       },
       "JudgeFixInput": {
         "type": "object",

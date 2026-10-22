@@ -84,6 +84,45 @@ export async function generateThumbnails(g, r) {
     }
     return { options: [], attempts };
 }
+/**
+  Any JSON answer from the first text provider that gives one: the deals
+  assistant's drafts use the same router and keys as Fix. Null when no
+  provider is configured or every one failed; the caller then uses its rules.
+*/
+export async function generateJson(system, user, schema, r) {
+    const attempts = [];
+    for (const p of r.text ?? []) {
+        try {
+            if (p.name === "anthropic") {
+                const out = await callClaude({ system, user, schema }, { apiKey: p.apiKey, fetch: r.fetch, model: p.model, effort: "low", retries: 0 });
+                return { value: out.value, source: { provider: p.name, model: p.model }, attempts };
+            }
+            const json = (await postJson(r.fetch, OPENROUTER_URL, { authorization: `Bearer ${p.apiKey}` }, {
+                model: p.model,
+                messages: [
+                    { role: "system", content: system },
+                    { role: "user", content: user },
+                ],
+                response_format: { type: "json_object" },
+            }));
+            const content = json.choices?.[0]?.message?.content;
+            if (typeof content !== "string")
+                throw new Error("The answer has no message.");
+            let value;
+            try {
+                value = JSON.parse(content);
+            }
+            catch {
+                throw new Error("The message was not JSON.");
+            }
+            return { value, source: { provider: p.name, model: p.model }, attempts };
+        }
+        catch (e) {
+            attempts.push({ provider: p.name, model: p.model, error: e.message });
+        }
+    }
+    return { value: null, source: null, attempts };
+}
 /*
   The rules: plain edits of the creator's own words, so nothing new is
   claimed. Drop a trailing segment after a separator (series names and

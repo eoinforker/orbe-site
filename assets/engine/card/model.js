@@ -148,7 +148,7 @@ export function cardModel(rating, account, options = {}) {
         words,
         name,
         handle,
-        url: handle ? `${host}/${handle}` : host,
+        url: options.path ? `${host}/${options.path.replace(/^\/+/, "")}` : handle ? `${host}/${handle}` : host,
         rating: rating.rating,
         figure: figureOf(rating.rating),
         band: rating.band,

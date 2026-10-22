@@ -39,6 +39,7 @@ const BLURB = {
   orbe_check_delivery: "Delivered or short, the creator's options, and the exact split of the money.",
   orbe_diagnose_upload: "Orbe Fix: is a YouTube upload below creators its size at its age, and what to fix.",
   orbe_judge_fix: "Orbe Fix: did a new title or thumbnail lift the upload? Kept and charged only on lift.",
+  orbe_retention_cuts: "Where viewers leave a video, from its retention curve, and what to tighten.",
 };
 const titled = (t) => (/[.?]$/.test(t) ? t : `${t}.`);
 $("[data-tools]").innerHTML = list

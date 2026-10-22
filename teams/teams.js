@@ -9,9 +9,10 @@ import * as ratingFormat from "../assets/engine/rating/format.js";
 import * as sponsor from "../assets/engine/sponsor/browser.js";
 import * as market from "../assets/engine/market/browser.js";
 import * as podcast from "../assets/engine/podcast/browser.js";
+import * as fix from "../assets/engine/fix/browser.js";
 import { createTools } from "../developers/tools.js";
 
-const tools = createTools({ rating, ratingFormat, sponsor, market, podcast });
+const tools = createTools({ rating, ratingFormat, sponsor, market, podcast, fix });
 const $ = (s) => document.querySelector(s);
 const NOW = "2026-10-18T12:00:00Z";
 const USD_GBP = 0.79;

@@ -84,6 +84,8 @@ function chars(word) {
 }
 let settle = 0;
 function setWord(word, animate) {
+  // The headline no longer carries a changing word; the instrument still names its kind.
+  if (!slot || !slotSr) return;
   const old = $("[data-slot-word]", slot);
   slotSr.textContent = word;
   if (old && old.dataset.slotWord === word) return;

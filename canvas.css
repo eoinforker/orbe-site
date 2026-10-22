@@ -309,6 +309,9 @@
 .for-body { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; padding: 0; }
 .for-i { display: flex; flex-direction: column; padding: 12px 16px 16px; border-left: 1px solid var(--rule); transition: box-shadow 300ms var(--ob-ease); }
 .for-i:first-child { border-left: 0; }
+/* the assistants line: one full row under the four */
+.for-ai { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 3fr); gap: 16px; align-items: baseline; border-left: 0; border-top: 1px solid var(--orbe-ink); }
+.for-ai .for-t { margin: 0; }
 /* each audience has its field, as fal's columns do; words stay Ink (12.7, 7.7, 13.7 and 16.3 to 1) */
 .for-i { --ob-ink-soft: var(--orbe-ink); border-left-color: var(--orbe-ink); }
 #for-brands { background-color: var(--orbe-straw); }
@@ -450,6 +453,7 @@
   .for-fig { font-size: var(--ob-t18); }
   .for-cap { display: none; }
   .for-k::after { content: " · made up"; }
+  .for-ai .for-k::after { content: none; }
   #for-funds .for-k::after { content: none; }
   #for-funds .for-cap { display: block; }
   .goliath { padding-top: 40px; padding-bottom: 32px; }
@@ -484,6 +488,7 @@
   .for-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .for-i:nth-child(3) { border-left: 0; }
   .for-i:nth-child(n + 3) { border-top: 1px solid var(--orbe-ink); }
+  .for-ai { grid-template-columns: minmax(0, 1fr); gap: 4px; }
   /* a tablet: the letter narrower than the guide, then pairs, the sale across */
   .wall { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 16px; }
   .c-note { grid-column: 1 / span 5; }
@@ -550,6 +555,7 @@
   /* on a phone the caption folds into the label, so the figure stays labelled and the row stays short */
   .for-cap { display: none; }
   .for-k::after { content: " · made up"; }
+  .for-ai .for-k::after { content: none; }
   /* the benchmarks are the engine's baselines, not a made-up creator: their caption stays */
   #for-funds .for-k::after { content: none; }
   #for-funds .for-cap { display: block; }

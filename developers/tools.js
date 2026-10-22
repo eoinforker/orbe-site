@@ -665,6 +665,16 @@ export function createTools(engine        )          {
     return { ok: true, summary: `${r.text}${fee} ${ATTRIBUTION}`, structured: envelope({ ...r, expectedGain: expected, lift, liftMin: X.LIFT_MIN, minWindowDays: X.MIN_WINDOW_DAYS, baseline: { rule: baseline.rule, seal: baseline.seal }, computedAt: at }) };
   }
 
+                                                                                                           
+
+  function retentionTool(a               )              {
+    const r = X.readRetention(a.points, a.durationSec);
+    const mmss = (n        ) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
+    const cuts = r.cuts.length ? ` Worth tightening: ${r.cuts.map((c) => `${mmss(c.fromSec)} to ${mmss(c.toSec)}`).join(", ")}.` : " No stretch stands out to cut.";
+    const open = `${Math.round(r.opening.stillWatching * 100)} in every 100 viewers are still watching at ${mmss(r.opening.sec)}${r.opening.vsTypical ? `, ${r.opening.vsTypical === "typical" ? "typical" : `${r.opening.vsTypical} typical`} for videos this long` : ""}.`;
+    return { ok: true, summary: `${open}${cuts} It changes nothing: cutting is the creator's call. ${ATTRIBUTION}`, structured: envelope({ ...r }) };
+  }
+
   /* ---- business value */
 
                                                                                                                                           
@@ -1110,6 +1120,39 @@ export function createTools(engine        )          {
       annotations: READ_ONLY("Diagnose an upload"),
       example: { audience: 50000, title: "I rebuilt my studio for £500 | Studio Diaries", publishedAt: "2026-10-15T17:00:00Z", durationSec: 900, views: 900, ctr: 0.021, typicalCtr: 0.048, now: "2026-10-18T12:00:00Z" },
       run: diagnoseTool                             ,
+    },
+    {
+      name: "orbe_retention_cuts",
+      title: "Find where viewers leave an upload",
+      description:
+        "Reads one video's audience retention from YouTube Analytics (audienceWatchRatio, and relativeRetentionPerformance where YouTube gives it, by elapsedVideoTimeRatio) and says how many are still watching after the opening, where the steepest drops are, and up to three stretches worth tightening or cutting. Typical is YouTube's comparison with videos of a similar length, not creators the same size. Read only: it changes nothing. In Orbe, GET /v1/me/retention/:workId reads the curve with the creator's own connection.",
+      inputSchema: {
+        type: "object",
+        required: ["durationSec", "points"],
+        additionalProperties: false,
+        properties: {
+          durationSec: { type: "integer", minimum: 1, description: "The upload's length in seconds." },
+          points: {
+            type: "array",
+            minItems: 5,
+            maxItems: 101,
+            description: "The retention curve, one point per elapsedVideoTimeRatio.",
+            items: {
+              type: "object",
+              required: ["at", "watch"],
+              additionalProperties: false,
+              properties: {
+                at: { type: "number", minimum: 0, maximum: 1, description: "elapsedVideoTimeRatio: how far into the video, 0 to 1." },
+                watch: { type: "number", minimum: 0, description: "audienceWatchRatio at that point." },
+                relative: { type: "number", minimum: 0, maximum: 1, description: "relativeRetentionPerformance at that point, where 0.5 is typical. Optional." },
+              },
+            },
+          },
+        },
+      },
+      annotations: READ_ONLY("Find where viewers leave"),
+      example: { durationSec: 600, points: [{ at: 0, watch: 1, relative: 0.5 }, { at: 0.05, watch: 0.8, relative: 0.5 }, { at: 0.25, watch: 0.7, relative: 0.5 }, { at: 0.4, watch: 0.65, relative: 0.5 }, { at: 0.45, watch: 0.5, relative: 0.2 }, { at: 0.7, watch: 0.45, relative: 0.5 }, { at: 1, watch: 0.38, relative: 0.5 }] },
+      run: retentionTool                             ,
     },
     {
       name: "orbe_judge_fix",
