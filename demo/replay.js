@@ -222,6 +222,9 @@
     var sp = url.searchParams;
     var screen = sp.get("screen");
     var keys = Object.keys(rec).filter(function (k) { return k.indexOf("GET /v1/boot") === 0; });
+    // The recording starts signed out; a screen never recorded borrows a signed-in boot, never the sign-in page's.
+    var signedIn = function (k) { var b = rec[k][0].body; return b && b.session && b.session.user; };
+    if (keys.some(signedIn)) keys = keys.filter(signedIn);
     var exact = keyOf("GET", url);
     var pick = function (test) { for (var i = 0; i < keys.length; i++) if (test(new URL(keys[i].slice(4), location.origin).searchParams)) return keys[i]; return null; };
     var screenKey = rec[exact] ? exact : screen ? pick(function (q) { return q.get("screen") === screen; }) : null;
