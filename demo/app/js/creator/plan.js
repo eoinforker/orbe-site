@@ -1,6 +1,6 @@
 /*
   Plan: Creator Pro (its price always labelled provisional), predictions
-  sealed before an upload goes out and checked openly afterwards, and the
+  sealed before a work goes out and checked openly afterwards, and the
   rating's history.
 */
 import { api, on, seg } from "../api.js";
@@ -64,6 +64,7 @@ function predictionItem(p) {
       h("p", { class: "ap-says" }, `Prediction ${p.seq}`, " ", where ? chip(where[0], where[1]) : chip(o?.done ? "Checked" : "Waiting")),
       pr ? h("p", null, `Expected ${count(pr.range.p25)} to ${count(pr.range.p75)} ${pr.metric} by ${pr.horizonDays} days.`) : h("p", { class: "ap-note" }, "The figures are withheld under the retention rules; the seal still stands."),
       reading ? h("p", null, `At ${last}: ${count(reading.value)}.`) : null,
+      o?.workId ? h("p", null, h("a", { href: `/orbe-site/demo/app/works/${seg(o.workId)}` }, "Open the work")) : null,
       o?.note ? h("p", { class: "ap-note" }, o.note) : null,
       h("p", { class: "ap-note" }, `Sealed ${when(p.madeAt)}${p.releaseAt ? ` for release ${when(p.releaseAt)}` : ""}. Seal `, h("code", { class: "ap-code" }, p.seal.slice(0, 12))),
     ),
@@ -73,11 +74,11 @@ function predictionItem(p) {
 function linkForm(preds, uploads, reload) {
   const open = preds.filter((p) => !p.outcome?.workId);
   if (!open.length || !uploads.length) return null;
-  return h("details", { class: "ap-more" }, h("summary", null, "Link a planned prediction to the upload it became"),
+  return h("details", { class: "ap-more" }, h("summary", null, "Link a planned prediction to the work it became"),
     form(
       [
         field("Prediction", select(open.map((p) => [p.id, `Prediction ${p.seq}, sealed ${day(p.madeAt)}`]), { name: "id" })),
-        field("Upload", select(uploads.map((u) => [u.workId, `${u.title} (${day(u.publishedAt)})`]), { name: "workId" })),
+        field("Work", select(uploads.map((u) => [u.workId, `${u.title} (${day(u.publishedAt)})`]), { name: "workId" })),
       ],
       "Link them",
       async (d) => {
@@ -102,7 +103,7 @@ function predictionsBox(el) {
         h("p", { class: "ap-notice" }, list.notice),
         h("p", { class: "ap-note" }, list.plan.predictionsLeft === null ? "Unlimited this month." : `${list.plan.predictionsLeft} left this month.`),
         accounts.length
-          ? h("details", { class: "ap-more" }, h("summary", null, "Seal a prediction for your next upload"),
+          ? h("details", { class: "ap-more" }, h("summary", null, "Seal a prediction for your next work"),
               form(
                 [
                   field("Account", select(accounts.map((a) => [a.id, `${a.handle || a.title} (${a.kind})`]), { name: "accountId" })),
@@ -171,7 +172,7 @@ export async function render(main) {
   const plan = h("div", { class: "ap-stack" });
   const preds = h("div", { class: "ap-stack" });
   const hist = h("div", { class: "ap-stack" });
-  screenHead(main, "plan", { line: "Seal a forecast before an upload goes out; it is checked openly after. Your rating over time sits beside it.", tags: [["Sealed and chained"]] }).append(
+  screenHead(main, "plan", { line: "Seal a forecast before a work goes out; it is checked openly after. Your rating over time sits beside it.", tags: [["Sealed and chained"]] }).append(
     h("div", { class: "ap-stack" }, panel("Predictions", preds), on("rating") ? panel("Rating history", hist) : null),
   );
   predictionsBox(preds);

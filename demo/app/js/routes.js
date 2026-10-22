@@ -31,36 +31,47 @@ const TEAM = [
   { path: "invite", name: "Join a team", module: "./invite.js", hidden: true },
 ];
 
+/*
+  The creator's screens. The work is the centre: the Library lists works and
+  each opens its page (works/:id), where Fix, viewers, clips and words, deals
+  and the record of that work live as tabs. The top tabs are Home, Library,
+  Deals, Record and Explore (catalogue.js); everything else is reached from a
+  work, from Explore or from the account menu. moved: older paths that still
+  work, rewritten in the address bar to the one path each screen has now, so
+  a menu label, a page title and a URL always say the same thing.
+*/
 export const CREATOR = [
   { path: "", name: "Home", module: "./creator/home.js" },
-  { path: "explore", name: "Explore", module: "./explore.js" },
   { path: "library", name: "Library", module: "./creator/library.js" },
-  { path: "library/:id", name: "Work", module: "./creator/work.js", hidden: true, under: "library" },
-  // Drop in a video: reached from the Library, Explore and the composer, so no tab of its own.
+  { path: "works/:id", name: "Work", module: "./creator/work.js", moved: ["library/:id"], hidden: true, under: "library" },
+  { path: "deals", name: "Deals", module: "./creator/sponsorships.js", moved: ["sponsorships"], feature: "sponsorships", needs: "read.money" },
+  { path: "record", name: "Record", module: "./creator/record.js", feature: "record", needs: "read.money" },
+  // Selling and the diligence report are actions on the record.
+  { path: "selling", name: "Selling", module: "./creator/sell.js", moved: ["sell"], hidden: true, under: "record", needs: "read.money" },
+  { path: "report", name: "Diligence report", module: "./creator/report.js", hidden: true, under: "record", feature: "record", needs: "read.money" },
+  { path: "explore", name: "Explore", module: "./explore.js" },
+  // Every run of a tool, from the composer or a tool page, kept on the server.
+  { path: "runs", name: "Runs", module: "./creator/studio.js", moved: ["studio"], under: "explore" },
+  { path: "rate", name: "Rate a channel", module: "./tools/rate.js", under: "explore", feature: "rating" },
+  { path: "offer", name: "Fair offer check", module: "./tools/offer.js", under: "explore", feature: "sponsorships", needs: "read.money" },
+  { path: "protect", name: "Protect", module: "./tools/protect.js", under: "explore" },
+  { path: "developers", name: "For developers", module: "./tools/developers.js", under: "explore" },
+  // Drop in a video: reached from the Library, a work's Clips and words tab, Explore and the composer.
   { path: "media", name: "Drop in a video", module: "./creator/media.js", hidden: true, under: "library", feature: "media", needs: "content" },
   { path: "media/:id", name: "Video", module: "./creator/media.js", hidden: true, under: "library", feature: "media" },
-  { path: "studio", name: "Studio", module: "./creator/studio.js" },
-  { path: "rate", name: "Rate a channel", module: "./tools/rate.js", feature: "rating" },
-  { path: "offer", name: "Fair offer check", module: "./tools/offer.js", feature: "sponsorships", needs: "read.money" },
-  { path: "report", name: "Diligence report", module: "./creator/report.js", feature: "record", needs: "read.money" },
-  { path: "protect", name: "Protect", module: "./tools/protect.js" },
-  { path: "developers", name: "For developers", module: "./tools/developers.js" },
+  // Fix across every work; each work's own Fix tab is where most people meet it. Google returns to /fixes after the YouTube permission screen.
+  { path: "fix", name: "Fix", module: "./creator/fix.js", also: ["fixes"], under: "explore", feature: "fix" },
+  { path: "predictions", name: "Predictions", module: "./creator/plan.js", moved: ["plan"], under: "explore", needs: "read.money" },
   { path: "settings", name: "Settings", module: "./settings.js", also: ["settings/:section"] },
+  // Everything Orbe reads or posts to, from the account menu and wherever something needs connecting. A platform's sign-in returns here.
+  { path: "connections", name: "Connections", module: "./creator/connect.js", moved: ["connect"] },
+  // A podcast's set-up, part of Connections; a creator with nothing connected can start here and come back.
+  { path: "podcasts", name: "Podcasts", module: "./creator/start.js", moved: ["start"], under: "connections", feature: "podcasts" },
+  // The link a podcast's owner is emailed to prove the show.
+  { path: "podcasts/confirm", name: "Confirm your show", module: "./creator/confirm.js", hidden: true, feature: "podcasts" },
   ...TEAM,
   // The first sign-in: a few questions, then the console.
   { path: "welcome", name: "Welcome", module: "./welcome.js", hidden: true },
-  // The API sends people back to /connections after a platform's sign-in.
-  { path: "connect", name: "Connect", module: "./creator/connect.js", also: ["connections"] },
-  { path: "record", name: "Record", module: "./creator/record.js", feature: "record", needs: "read.money" },
-  { path: "sponsorships", name: "Sponsorships", module: "./creator/sponsorships.js", feature: "sponsorships", needs: "read.money" },
-  // Google sends the browser back to /fixes after the YouTube permission screen.
-  { path: "fix", name: "Fix", module: "./creator/fix.js", also: ["fixes"], feature: "fix" },
-  { path: "plan", name: "Plan", module: "./creator/plan.js", needs: "read.money" },
-  { path: "sell", name: "Sell", module: "./creator/sell.js", needs: "read.money" },
-  // Podcasts first: a creator with nothing connected starts here, and can leave and come back.
-  { path: "start", name: "Podcasts", module: "./creator/start.js", also: ["podcasts"], feature: "podcasts" },
-  // The link a podcast's owner is emailed to prove the show.
-  { path: "podcasts/confirm", name: "Confirm your show", module: "./creator/confirm.js", hidden: true, feature: "podcasts" },
 ];
 
 /* A buyer sign-in can be a brand, an agency, or both: brand screens ask for the brand profile first, the rest do not. */
@@ -103,11 +114,15 @@ export function screensFor(user, features) {
 export function match(table, rest) {
   const segs = rest === "" ? [] : rest.split("/");
   for (const route of table) {
-    for (const p of [route.path, ...(route.also ?? [])]) {
+    for (const p of [route.path, ...(route.also ?? []), ...(route.moved ?? [])]) {
       const parts = p === "" ? [] : p.split("/");
       if (parts.length !== segs.length) continue;
       const params = {};
-      if (parts.every((part, i) => (part.startsWith(":") ? ((params[part.slice(1)] = decodeURIComponent(segs[i])), segs[i] !== "") : part === segs[i]))) return { route, params };
+      if (parts.every((part, i) => (part.startsWith(":") ? ((params[part.slice(1)] = decodeURIComponent(segs[i])), segs[i] !== "") : part === segs[i]))) {
+        // A moved path answers with where the screen lives now, so the address bar can be put right.
+        const moved = (route.moved ?? []).includes(p) ? route.path.split("/").map((part) => (part.startsWith(":") ? encodeURIComponent(params[part.slice(1)]) : part)).join("/") : null;
+        return { route, params, moved };
+      }
     }
   }
   return null;

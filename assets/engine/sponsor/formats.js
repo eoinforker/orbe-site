@@ -142,3 +142,5 @@ export function sizeBandFor(kind, audience) {
     const band = SIZE_BANDS[kind].find((b) => audience >= b.min && (b.max === undefined || audience < b.max));
     return band ? band.key : SIZE_BANDS[kind][0].key;
 }
+/** "a" or "an" before a format's name in lower case, so a sentence reads "an integrated sponsorship". */
+export const withArticle = (name) => `${/^[aeiou]/i.test(name) ? "an" : "a"} ${name.toLowerCase()}`;

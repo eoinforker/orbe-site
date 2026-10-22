@@ -1,8 +1,19 @@
-/* Record: the verified record, the share link, and consents (grant and revoke, showing what revoking removes). */
+/*
+  Record: the proof page. The verdict and the headline figures, revenue month
+  by month with where each month was read, the rating's history for each
+  account, every sponsored delivery Orbe verified with how well it was
+  disclosed, what a buyer will ask about and what was and was not checked.
+  Share publishes the card and issues reports; Consents and Agencies decide
+  who may see it.
+
+  Three reads at most for the first view: the record, the ratings history and
+  the bookings (the frame's own read), all in the boot call's list.
+*/
 import { api, apiHref, on, seg } from "../api.js";
-import { CONSENTS } from "../terms.js";
-import { screenHead } from "../console-ui.js";
-import { action, actions, block, chip, day, empty, field, form, h, input, ok, panel, signed, tabs, title } from "../ui.js";
+import { CONSENTS, KINDS, unitOf } from "../terms.js";
+import { bars, emptyState, historyList, pill, screenHead, section, skeleton, sparkline, stat, statStrip } from "../console-ui.js";
+import { icon } from "../icons.js";
+import { action, block, check, count, day, field, form, h, input, ok, signed, tabs, toast } from "../ui.js";
 
 const GRANTABLE = ["connect", "rate_public", "verified_profile", "benchmarks", "listing"];
 
@@ -40,96 +51,237 @@ export function sentence(text, currency) {
   return out;
 }
 
-function recordTab(el) {
-  block(
-    el,
-    async () => {
-      const [rec, reps] = await Promise.all([api.get("/v1/me/record"), api.get("/v1/me/reports")]);
-      return { report: rec.report, reports: reps.reports };
-    },
-    ({ report: r, reports }) => [
-      h(
-        "section",
-        { class: "ap-win ob-win", "data-pair": "rec", "aria-labelledby": "verdict-h" },
-        h("div", { class: "ob-win-bar" }, h("h2", { class: "ob-win-title", id: "verdict-h" }, "Verified record")),
-        h(
-          "div",
-          { class: "ob-win-body" },
-          h("p", { class: "ap-verdict" }, r.verdict.label),
-          h("p", null, sentence(r.verdict.summary, r.currency)),
-          r.period ? h("p", { class: "ap-note" }, `${day(r.period.from)} to ${day(r.period.to)}, prepared ${day(r.generatedAt)}.`) : null,
-        ),
+const TONE_WORDS = { concern: "Concern", note: "Note", strength: "Strength", positive: "Strength" };
+
+/** What a buyer will ask about, one line each with its tone; shared with the diligence report. */
+export function keyPoints(r) {
+  if (!r.keyPoints?.length) return null;
+  return h("ul", { class: "rc-points" },
+    r.keyPoints.map((k) =>
+      h("li", { class: `rc-point rc-point--${k.tone}` },
+        h("span", { class: "rc-point-cue" }, k.tone === "concern" ? `${TONE_WORDS.concern}, ${k.severity}` : TONE_WORDS[k.tone] ?? k.tone),
+        h("p", { class: "rc-point-t" }, sentence(k.text, r.currency)),
       ),
-      r.headline?.length
-        ? panel("Headline figures", h("dl", { class: "ap-figs" }, r.headline.map((f) => h("div", { class: "ap-figs-row" }, h("dt", null, f.label.replace("@@", "@")), h("dd", null, figure(f, r.currency))))))
-        : null,
-      r.keyPoints?.length
-        ? panel(
-            "What a buyer will ask about",
-            h("ul", { class: "ap-points" }, r.keyPoints.map((k) => h("li", { class: `ap-point ap-point--${k.tone}` }, h("span", { class: "ap-cue" }, k.tone === "concern" ? `Concern, ${k.severity}` : k.tone), h("p", null, sentence(k.text, r.currency))))),
-          )
-        : null,
-      panel(
-        "The whole record",
-        h("p", null, "Every figure with the source it was read from and when."),
-        h("p", { class: "ap-links" }, h("a", { class: "ob-lnk ob-lnk--s", href: apiHref("/v1/me/record?format=html"), target: "_blank", rel: "noopener" }, "Open the full record"), " ", h("a", { class: "ob-lnk ob-lnk--s", href: apiHref("/v1/me/record?format=markdown"), target: "_blank", rel: "noopener" }, "As Markdown")),
-        r.disclaimer ? h("p", { class: "ap-note" }, typeof r.disclaimer === "string" ? r.disclaimer : sentence(r.disclaimer, r.currency)) : null,
-      ),
-      panel(
-        "Seller's reports",
-        reports.length ? h("ul", { class: "ap-list" }, reports.map((x) => h("li", { class: "ap-item" }, h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, x.forBuyer ? "For a buyer" : "Your own copy"), h("p", { class: "ap-note" }, `${x.status}, ${day(x.issuedAt ?? x.createdAt)}`))))) : empty("No report issued yet."),
-        h("p", { class: "ap-note" }, "A free Orbe Verified report of your record as it stands today, to keep or to show."),
-        actions(
-          action("Issue a report", async () => {
-            await api.post("/v1/me/reports", {});
-            recordTab(el);
-            return "Report issued.";
-          }),
-        ),
-      ),
-    ],
+    ),
   );
 }
 
+/** The record as a file: the full page to open or print, and Markdown. */
+export const exportLinks = () => [
+  h("a", { class: "cn-btn cn-btn--s", href: apiHref("/v1/me/record?format=html"), target: "_blank", rel: "noopener" }, icon("external"), "Open the full record"),
+  h("a", { class: "cn-btn cn-btn--s", href: apiHref("/v1/me/record?format=markdown"), target: "_blank", rel: "noopener" }, icon("doc"), "Markdown"),
+];
+
+const STATUS_PILL = { verified: "done", verified_with_exceptions: "needs", partial: "needs", unverified: "idle", insufficient: "idle" };
+const monthName = (m) => new Date(`${m.slice(0, 7)}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
+
+/* ---------------------------------------------------------------- the verdict and its figures */
+
+function hero(r, goShare) {
+  return h("section", { class: "rc-hero" },
+    h("div", { class: "rc-hero-main" },
+      h("div", { class: "rc-hero-top" }, pill(STATUS_PILL[r.verdict.status] ?? "idle", r.verdict.label), r.period ? h("span", { class: "cn-tag cn-tag--line" }, `${day(r.period.from)} to ${day(r.period.to)}`) : null),
+      h("p", { class: "rc-hero-t" }, sentence(r.verdict.summary, r.currency)),
+      h("p", { class: "cn-label" }, `Prepared ${day(r.generatedAt)}. Every figure carries the source it was read from and when.`),
+    ),
+    h("div", { class: "rc-hero-acts" }, h("button", { class: "cn-btn cn-btn--s cn-btn--primary", type: "button", onclick: goShare }, icon("link"), "Share"), exportLinks()),
+  );
+}
+
+function headline(r) {
+  const months = r.revenue?.ttm?.byMonth ?? [];
+  const series = months.map((m) => m.total?.value ?? null);
+  const figs = r.headline ?? [];
+  if (!figs.length) return null;
+  return statStrip(figs.slice(0, 4).map((f, i) =>
+    stat({
+      label: f.label.replace("@@", "@"),
+      value: figure(f, r.currency),
+      spark: i === 0 && f.unit === "money" ? sparkline(series, "Revenue by month") : null,
+      tone: f.unit === "change" && f.value < 0 ? "warn" : null,
+      line: i ? null : f.basis === "connected" ? "Read from connected sources" : f.basis === "uploaded" ? "From files you uploaded" : null,
+    }),
+  ));
+}
+
+/** Revenue by month, and under it each stream's months by how they were read. */
+function revenueSection(r) {
+  const months = r.revenue?.ttm?.byMonth ?? [];
+  const cov = r.coverage;
+  if (!months.length && !cov?.cells?.length) return null;
+  const cell = (stream, month) => cov.cells.find((c) => c.stream === stream && c.month === month);
+  const word = (c) => (!c || c.status === "missing" ? "Not read" : `${c.status === "connected" ? "Connected" : "Uploaded"}${c.corroborated ? ", corroborated" : ""}`);
+  return section(
+    { title: "Revenue by month", line: cov ? `${figure(cov.connectedShare ?? { value: 0, unit: "percent" })} read from connected sources, ${figure(cov.corroboratedShare ?? { value: 0, unit: "percent" })} agreed by a second source.` : null },
+    months.length
+      ? h("div", { class: "rc-rev" },
+          bars(months.map((m) => m.total?.value ?? 0), "Revenue by month"),
+          h("div", { class: "rc-rev-x" }, months.map((m) => h("span", { title: `${m.total?.label}: ${figure(m.total, r.currency)}` }, monthName(m.month)))),
+        )
+      : null,
+    cov?.cells?.length
+      ? h("div", { class: "rc-cov", role: "table", "aria-label": "How each month was read" },
+          cov.streams.map((s) =>
+            h("div", { class: "rc-cov-row", role: "row" },
+              h("span", { class: "rc-cov-s", role: "rowheader" }, s.charAt(0).toUpperCase() + s.slice(1)),
+              h("span", { class: "rc-cov-cells" }, cov.months.map((m) => {
+                const c = cell(s, m);
+                return h("span", { class: `rc-cov-c is-${c?.status ?? "missing"}${c?.corroborated ? " is-corr" : ""}`, role: "cell", title: `${monthName(m)}: ${word(c)}`, "aria-label": `${monthName(m)}: ${word(c)}` });
+              })),
+            ),
+          ),
+          h("p", { class: "rc-cov-key" }, h("span", { class: "rc-cov-c is-connected is-corr" }), "Connected, corroborated", h("span", { class: "rc-cov-c is-connected" }), "Connected", h("span", { class: "rc-cov-c is-uploaded" }), "Uploaded", h("span", { class: "rc-cov-c is-missing" }), "Not read"),
+        )
+      : null,
+  );
+}
+
+/* ---------------------------------------------------------------- the rating over time */
+
+function ratingsSection(hist) {
+  const accounts = (hist?.accounts ?? []).map((a) => ({ ...a, ratings: [...a.ratings].sort((x, y) => x.computedAt.localeCompare(y.computedAt)) }));
+  const rated = accounts.filter((a) => a.ratings.length);
+  return section(
+    { title: "Rating history", line: hist ? `${hist.label}. ${hist.historyDays ? `The last ${hist.historyDays} days on your plan.` : "Everything Orbe keeps."}` : null },
+    rated.length
+      ? h("ul", { class: "rc-ratings" }, rated.map((a) => {
+          const last = a.ratings[a.ratings.length - 1];
+          const first = a.ratings[0];
+          const moved = last.rating - first.rating;
+          return h("li", { class: "rc-rating" },
+            h("div", { class: "rc-rating-who" }, h("p", { class: "rc-rating-h" }, a.handle?.startsWith("@") ? a.handle : `@${a.handle}`), h("p", { class: "dl-sub" }, `${KINDS[a.kind] ?? a.kind}, ${count(a.ratings.length)} ${a.ratings.length === 1 ? "reading" : "readings"} since ${day(first.computedAt)}`)),
+            sparkline(a.ratings.map((x) => x.rating), `Rating of ${a.handle} over time`, { tone: moved < 0 ? "warn" : null }) ?? h("span"),
+            h("div", { class: "rc-rating-now" }, h("p", { class: "rc-rating-v" }, signed(last.rating)), h("p", { class: "dl-sub" }, `${last.band}${a.ratings.length > 1 ? `, ${moved >= 0 ? "up" : "down"} ${signed(Math.abs(moved)).replace(/^\+/, "")}` : ""}`)),
+          );
+        }))
+      : emptyState("star", "No rating kept yet.", [["Rate a channel", "/orbe-site/demo/app/rate"]], "A rating is kept while your public rating consent lasts, once an account has enough matured works."),
+  );
+}
+
+/* ---------------------------------------------------------------- deliveries Orbe verified */
+
+const DELIVERED = ["live", "short", "make_good", "verified", "paid", "disputed"];
+/** Sized through the style object: the content policy refuses style attributes. */
+const grow = (el, n) => ((el.style.flexGrow = String(n)), el);
+const DISC_WORDS = { pass: "Every rule met", needs_attestation: "Needs your word", fail: "A rule missing" };
+
+function deliveriesSection(bookings) {
+  const done = bookings.filter((b) => DELIVERED.includes(b.state) && b.works?.length);
+  const works = done.flatMap((b) => b.works.map((w) => ({ b, w })));
+  const tally = { pass: 0, needs_attestation: 0, fail: 0 };
+  for (const { w } of works) if (w.disclosure) tally[w.disclosure.status] = (tally[w.disclosure.status] ?? 0) + 1;
+  const checked = tally.pass + tally.needs_attestation + tally.fail;
+  const verified = done.filter((b) => ["verified", "paid"].includes(b.state));
+  return section(
+    { title: "Sponsored deliveries", line: "Bookings through Orbe, read at source after they went live, with how each was disclosed.", actions: h("a", { class: "cn-btn cn-btn--xs", href: "/orbe-site/demo/app/deals" }, "All deals") },
+    works.length
+      ? [
+          h("div", { class: "rc-disc" },
+            h("p", { class: "rc-disc-h" }, h("b", null, checked ? `${Math.round((tally.pass / checked) * 100)}%` : "None"), " fully disclosed", h("span", { class: "dl-sub" }, ` ${count(verified.length)} of ${count(done.length)} deliveries verified`)),
+            checked ? h("div", { class: "rc-disc-bar", role: "img", "aria-label": `${tally.pass} met every rule, ${tally.needs_attestation} need your word, ${tally.fail} missing a rule` },
+              ["pass", "needs_attestation", "fail"].map((k) => (tally[k] ? grow(h("span", { class: `rc-disc-seg rc-disc-seg--${k}` }), tally[k]) : null))) : null,
+            h("p", { class: "rc-disc-key" }, ["pass", "needs_attestation", "fail"].map((k) => h("span", { class: `rc-disc-k rc-disc-k--${k}` }, `${DISC_WORDS[k]} ${tally[k]}`))),
+          ),
+          h("div", { class: "dl-wrap" }, h("table", { class: "dl-table" },
+            h("thead", null, h("tr", null, ["Work", "Brand", "Delivered", "Disclosure", "State"].map((t, i) => h("th", { scope: "col", class: i === 2 ? "dl-num" : null }, t)))),
+            h("tbody", null, works.map(({ b, w }) => {
+              const m = b.measurements?.[b.measurements.length - 1];
+              return h("tr", null,
+                h("td", { class: "dl-brand" }, w.workId ? h("a", { class: "dl-brand-n", href: `/orbe-site/demo/app/works/${seg(w.workId)}` }, w.title) : h("span", { class: "dl-brand-n" }, w.title), h("span", { class: "dl-sub" }, `Published ${day(w.publishedAt)}`)),
+                h("td", { class: "dl-move" }, b.brandName),
+                h("td", { class: "dl-num" }, m ? `${count(m.units)} ${unitOf(b.format, b.kind)}` : h("span", { class: "dl-quiet" }, "Reading")),
+                h("td", { class: "dl-next" }, w.disclosure ? h("span", { class: `dl-disc dl-disc--${w.disclosure.status}` }, DISC_WORDS[w.disclosure.status] ?? w.disclosure.status) : h("span", { class: "dl-quiet" }, "Not checked")),
+                h("td", { class: "dl-stage" }, pill(["verified", "paid"].includes(b.state) ? "done" : b.state === "live" ? "running" : "needs", { live: "Measuring", verified: "Verified", paid: "Paid", short: "Short", make_good: "Make-good due", disputed: "Disputed" }[b.state])),
+              );
+            })),
+          )),
+        ]
+      : emptyState("earn", "No sponsored delivery yet.", [["Deals", "/orbe-site/demo/app/deals"]], "A booking through Orbe is read at source once it is live, and its delivery and disclosure land here."),
+  );
+}
+
+/* ---------------------------------------------------------------- what was checked */
+
+function checksSection(r) {
+  const c = r.checkSummary;
+  return section(
+    { title: "What Orbe checked", line: "Cross-checks between sources, and what was and was not checked." },
+    c ? statStrip([c.performed, c.matched, c.unmatched, c.contradicted].filter(Boolean).map((f) => stat({ label: f.label, value: figure(f, r.currency), tone: f.id === "checks.contradicted" && f.value ? "warn" : null }))) : null,
+    r.scope ? h("details", { class: "dl-fold" }, h("summary", null, `Checked ${r.scope.checked?.length ?? 0}, not checked ${r.scope.notChecked?.length ?? 0}`),
+      h("dl", { class: "cn-kv" }, [...(r.scope.checked ?? []), ...(r.scope.notChecked ?? [])].map((x) => h("div", null, h("dt", null, x.title), h("dd", null, x.text)))),
+    ) : null,
+    r.disclaimer ? h("p", { class: "cn-label" }, sentence(r.disclaimer, r.currency)) : null,
+  );
+}
+
+function recordTab(el, goShare) {
+  el.replaceChildren(skeleton(6));
+  return block(
+    el,
+    () => Promise.all([api.get("/v1/me/record"), api.get("/v1/me/history").catch(() => null), api.get("/v1/me/sponsorships/bookings").catch(() => ({ bookings: [] }))]),
+    ([{ report: r }, hist, { bookings }]) => h("div", { class: "rc" },
+      hero(r, goShare),
+      headline(r),
+      h("div", { class: "rc-cols" }, revenueSection(r), ratingsSection(hist)),
+      deliveriesSection(bookings ?? []),
+      r.keyPoints?.length ? section({ title: "What a buyer will ask about", line: "Answer these before a buyer relies on the figures." }, keyPoints(r)) : null,
+      checksSection(r),
+    ),
+  );
+}
+
+/* ---------------------------------------------------------------- sharing */
+
 function shareTab(el) {
+  el.replaceChildren(skeleton(4));
   block(
     el,
-    () => api.get("/v1/me"),
-    (me) => {
+    () => Promise.all([api.get("/v1/me"), api.get("/v1/me/reports")]),
+    ([me, { reports }]) => {
       const live = me.consents.some((c) => c.scope === "verified_profile" && !c.revokedAt);
       const published = !!me.creator.profilePublishedAt;
       const account = [...me.accounts].sort((a, b) => b.audience - a.audience)[0];
       const handle = account?.handle?.replace(/^@/, "");
       const link = handle ? `${location.origin}/@${encodeURIComponent(handle)}` : null;
-      const toggle = action(published ? "Unpublish my profile" : "Publish my profile", async () => {
-        await api.post("/v1/me/profile", { published: !published });
-        shareTab(el);
-        return published ? "Unpublished." : "Published.";
-      }, { primary: !published });
-      return panel(
-        "Share link",
-        h("p", null, published ? `Published on ${day(me.creator.profilePublishedAt)}.` : "Your profile is not published. Nothing about you is public until you publish it."),
-        !live ? h("p", { class: "ap-note" }, "Publishing needs the public profile consent, under Consents.") : null,
-        link && published
-          ? h(
-              "div",
-              { class: "ap-stack" },
-              h("p", null, h("code", { class: "ap-code ap-wrap" }, link)),
-              actions(
-                action("Copy the link", async () => {
-                  await navigator.clipboard.writeText(link);
-                  return "Copied.";
-                }),
-                h("a", { class: "ob-lnk ob-lnk--s", href: link, target: "_blank", rel: "noopener" }, "Open it"),
-              ),
-              h("p", { class: "ap-note" }, "The link shows your card while your profile is published and rated. A YouTube channel's rating is shown in public only once YouTube has accepted Orbe's use of derived figures, so until then a YouTube card answers not found."),
-            )
-          : null,
-        live || published ? actions(toggle) : null,
+      const toggle = live || published
+        ? action(published ? "Unpublish" : "Publish my card", async () => {
+            await api.post("/v1/me/profile", { published: !published });
+            shareTab(el);
+            return published ? "Unpublished." : "Published.";
+          }, { primary: !published, danger: published })
+        : null;
+      return h("div", { class: "rc" },
+        section(
+          { title: "Your public card", line: published ? `Published ${day(me.creator.profilePublishedAt)}.` : "Not published. Nothing about you is public until you publish it.", actions: published ? pill("live", "Public") : pill("idle", "Private") },
+          link && published
+            ? h("div", { class: "rc-link" },
+                h("code", { class: "rc-link-u" }, link),
+                h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: async () => { await navigator.clipboard.writeText(link); toast("Copied."); } }, icon("copy"), "Copy"),
+                h("a", { class: "cn-btn cn-btn--s", href: link, target: "_blank", rel: "noopener" }, icon("external"), "Open"),
+              )
+            : null,
+          !live ? h("p", { class: "cn-label" }, "Publishing needs the public profile consent, under Consents.") : null,
+          h("p", { class: "cn-label" }, "The card shows while your profile is published and rated. A YouTube channel's rating is public only once YouTube has accepted Orbe's use of derived figures; until then a YouTube card answers not found."),
+          toggle ? h("div", { class: "cn-dw-actions" }, toggle) : null,
+        ),
+        section(
+          { title: "The record as a file", line: "The whole record with every source, to open, print or keep as Markdown." },
+          h("div", { class: "cn-dw-actions" }, exportLinks()),
+        ),
+        section(
+          { title: "Reports", line: "A free Orbe Verified report of your record as it stands today, to keep or to show. A buyer sees one only with your consent.", actions: action("Issue a report", async () => {
+            await api.post("/v1/me/reports", {});
+            shareTab(el);
+            return "Report issued.";
+          }) },
+          historyList(reports.map((x) => ({ label: x.forBuyer ? "Issued for a buyer" : "Your own copy", summary: x.status, at: x.issuedAt ?? x.createdAt })), "No report issued yet."),
+        ),
       );
     },
   );
 }
+
+/* ---------------------------------------------------------------- consents */
 
 const EFFECT_WORDS = {
   oauthTokens: "connections",
@@ -141,7 +293,7 @@ const EFFECT_WORDS = {
   refreshes: "scheduled reads",
   reports: "reports withdrawn",
   profileUnpublished: "profile unpublished",
-  workRatings: "upload ratings",
+  workRatings: "work ratings",
   ratings: "ratings",
   personalBests: "personal bests",
   excluded: "benchmarks left",
@@ -155,59 +307,55 @@ const removedLine = (r) => {
   return parts.length ? `Revoked. Removed: ${parts.join(", ")}.` : "Revoked. Nothing else was held under it.";
 };
 
+const row = (title, tag, lines, acts) =>
+  h("li", { class: "rc-row" },
+    h("div", { class: "rc-row-main" }, h("p", { class: "rc-row-t" }, title, " ", tag), ...lines.filter(Boolean).map((l) => h("p", { class: "cn-label" }, l))),
+    acts ? h("div", { class: "cn-dw-actions" }, acts) : null,
+  );
+const tag = (text, tone) => h("span", { class: `cn-tag${tone ? ` cn-tag--${tone}` : ""}` }, text);
+
 function consentsTab(el) {
   const said = h("div", { "aria-live": "polite" });
   const draw = () =>
-    block(
-      el,
-      () => api.get("/v1/me/consents"),
-      ({ consents }) => {
-        const liveOf = (scope) => consents.find((c) => c.scope === scope && !c.revokedAt);
-        const shares = consents.filter((c) => c.scope === "share_with_buyer" && !c.revokedAt);
-        const revoke = (scope, buyerId) => async () => {
-          const r = await api.del(buyerId ? `/v1/me/consents/${seg(scope)}?buyerId=${seg(buyerId)}` : `/v1/me/consents/${seg(scope)}`);
-          said.replaceChildren(ok(removedLine(r.revoked)));
-          draw();
-          return removedLine(r.revoked);
-        };
-        return [
-          said,
-          h(
-            "ul",
-            { class: "ap-list" },
+    block(el, () => api.get("/v1/me/consents"), ({ consents }) => {
+      const liveOf = (scope) => consents.find((c) => c.scope === scope && !c.revokedAt);
+      const shares = consents.filter((c) => c.scope === "share_with_buyer" && !c.revokedAt);
+      const revoke = (scope, buyerId) => async () => {
+        const r = await api.del(buyerId ? `/v1/me/consents/${seg(scope)}?buyerId=${seg(buyerId)}` : `/v1/me/consents/${seg(scope)}`);
+        said.replaceChildren(ok(removedLine(r.revoked)));
+        draw();
+        return removedLine(r.revoked);
+      };
+      return [
+        said,
+        section(
+          { title: "Consents", line: "What Orbe may do with your data. Revoking one removes what it held, at once." },
+          h("ul", { class: "rc-rows" },
             GRANTABLE.map((scope) => {
               const c = CONSENTS[scope];
               const live = liveOf(scope);
-              return h(
-                "li",
-                { class: "ap-item ap-item--block" },
-                h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, c.name, " ", live ? chip(`Given ${day(live.grantedAt)}`, "good") : chip("Not given")), h("p", null, c.grants), live ? h("p", { class: "ap-note" }, `Revoking it: ${c.revoking}`) : null),
-                actions(
-                  live
-                    ? action("Revoke", revoke(scope), { danger: true, confirm: `Revoke "${c.name}"? ${c.revoking}` })
-                    : action("Give consent", async () => {
-                        await api.post("/v1/me/consents", { scope });
-                        draw();
-                        return "Consent given.";
-                      }),
-                ),
-              );
+              return row(c.name, live ? tag(`Given ${day(live.grantedAt)}`, "sky") : tag("Not given"), [c.grants, live ? `Revoking it: ${c.revoking}` : null],
+                live
+                  ? action("Revoke", revoke(scope), { danger: true, confirm: `Revoke "${c.name}"? ${c.revoking}` })
+                  : action("Give consent", async () => {
+                      await api.post("/v1/me/consents", { scope });
+                      draw();
+                      return "Consent given.";
+                    }));
             }),
             shares.map((s) =>
-              h(
-                "li",
-                { class: "ap-item ap-item--block" },
-                h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, CONSENTS.share_with_buyer.name, " ", chip(`Since ${day(s.grantedAt)}`, "good")), h("p", null, CONSENTS.share_with_buyer.grants), h("p", { class: "ap-note" }, `Revoking it: ${CONSENTS.share_with_buyer.revoking}`)),
-                actions(action("Revoke", revoke("share_with_buyer", s.buyerId), { danger: true, confirm: `Stop sharing with this buyer? ${CONSENTS.share_with_buyer.revoking}` })),
-              ),
+              row(CONSENTS.share_with_buyer.name, tag(`Since ${day(s.grantedAt)}`, "sky"), [CONSENTS.share_with_buyer.grants, `Revoking it: ${CONSENTS.share_with_buyer.revoking}`],
+                action("Revoke", revoke("share_with_buyer", s.buyerId), { danger: true, confirm: `Stop sharing with this buyer? ${CONSENTS.share_with_buyer.revoking}` })),
             ),
           ),
-          eraseBox(),
-        ];
-      },
-    );
+        ),
+        section({ title: "Erase your account", cls: "cn-card--danger" }, eraseBox()),
+      ];
+    });
   draw();
 }
+
+/* ---------------------------------------------------------------- agencies */
 
 const ROSTER_STATES = { invited: "Invited", active: "On their roster", declined: "Declined", left: "Left", removed: "Removed by them", withdrawn: "Invite withdrawn" };
 
@@ -217,35 +365,35 @@ function rostersTab(el) {
   const draw = () =>
     block(el, () => api.get("/v1/me/rosters"), ({ rosters }) => [
       said,
-      rosters.length
-        ? h("ul", { class: "ap-list" }, rosters.map((r) =>
-            h("li", { class: "ap-item ap-item--block" },
-              h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, r.org, " ", chip(ROSTER_STATES[r.state] ?? r.state, r.state === "active" ? "good" : r.state === "invited" ? undefined : "off")), h("p", { class: "ap-note" }, `Invited ${day(r.invitedAt)}${r.answeredAt ? `, answered ${day(r.answeredAt)}` : ""}.`)),
-              r.state === "invited"
-                ? h("div", { class: "ap-stack" },
-                    h("p", { class: "ap-notice" }, r.notice),
-                    form([check("I have read this and want to join.", { name: "seen", required: true })], "Join their roster", async () => {
-                      await api.post(`/v1/me/rosters/${seg(r.id)}/accept`, { noticeShown: true });
-                      draw();
-                      return "Joined.";
-                    }),
-                    actions(action("Decline", async () => {
-                      await api.post(`/v1/me/rosters/${seg(r.id)}/decline`, {});
-                      draw();
-                      return "Declined.";
-                    })),
-                  )
-                : r.state === "active"
-                  ? actions(action("Leave their roster", async () => {
-                      const out = await api.del(`/v1/me/rosters/${seg(r.id)}`);
-                      said.replaceChildren(ok(out.removed.join(" ")));
-                      draw();
-                      return out.removed[0];
-                    }, { danger: true, confirm: `Leave ${r.org}'s roster? They stop seeing your figures at once.` }))
-                  : null,
-            ),
-          ))
-        : empty("No agency has invited you. An agency or manager who works with you can invite you by email; nothing is shared until you say yes."),
+      section(
+        { title: "Agencies", line: "An agency or manager who works with you can invite you by email; nothing is shared until you say yes." },
+        rosters.length
+          ? h("ul", { class: "rc-rows" }, rosters.map((r) =>
+              row(r.org, tag(ROSTER_STATES[r.state] ?? r.state, r.state === "active" ? "sky" : r.state === "invited" ? "straw" : null), [`Invited ${day(r.invitedAt)}${r.answeredAt ? `, answered ${day(r.answeredAt)}` : ""}.`, r.state === "invited" ? r.notice : null],
+                r.state === "invited"
+                  ? [
+                      form([check("I have read this and want to join.", { name: "seen", required: true })], "Join their roster", async () => {
+                        await api.post(`/v1/me/rosters/${seg(r.id)}/accept`, { noticeShown: true });
+                        draw();
+                        return "Joined.";
+                      }),
+                      action("Decline", async () => {
+                        await api.post(`/v1/me/rosters/${seg(r.id)}/decline`, {});
+                        draw();
+                        return "Declined.";
+                      }),
+                    ]
+                  : r.state === "active"
+                    ? action("Leave their roster", async () => {
+                        const out = await api.del(`/v1/me/rosters/${seg(r.id)}`);
+                        said.replaceChildren(ok(out.removed.join(" ")));
+                        draw();
+                        return out.removed[0];
+                      }, { danger: true, confirm: `Leave ${r.org}'s roster? They stop seeing your figures at once.` })
+                    : null),
+            ))
+          : emptyState("people", "No agency has invited you."),
+      ),
     ]);
   draw();
 }
@@ -253,9 +401,9 @@ function rostersTab(el) {
 export function eraseBox() {
   return h(
     "details",
-    { class: "ap-more" },
+    { class: "dl-fold" },
     h("summary", null, "Erase your account"),
-    h("p", null, "Deletes your account and everything Orbe holds about you. It cannot be undone."),
+    h("p", { class: "cn-label" }, "Deletes your account and everything Orbe holds about you. It cannot be undone."),
     form([field('Type "delete my account" to confirm', input({ name: "confirm", required: true, autocomplete: "off", pattern: "delete my account" }))], "Erase everything", async (d) => {
       await api.del("/v1/me", { confirm: String(d.get("confirm")) });
       window.location.assign("/orbe-site/demo/app/");
@@ -265,10 +413,11 @@ export function eraseBox() {
 }
 
 export async function render(main, ctx) {
-  const body = screenHead(main, "record", { title: "Your record", line: "What Orbe has read at source, what it checked, and who may see it.", tags: [["Verified", "sky"], ["Yours to share"]] });
+  const body = screenHead(main, "record", { title: "Record", line: "What Orbe read at source, what it checked, and who may see it: proof to share with a brand or a buyer.", tags: [["Verified", "sky"], ["Yours to share"]] });
+  const goShare = () => document.getElementById("tab-record-share")?.click();
   body.append(
     tabs("record", [
-      { id: "record", label: "Record", render: recordTab },
+      { id: "record", label: "Record", render: (el) => recordTab(el, goShare) },
       { id: "share", label: "Share", render: shareTab },
       { id: "consents", label: "Consents", render: consentsTab },
       on("brand_data") ? { id: "agencies", label: "Agencies", render: rostersTab } : null,

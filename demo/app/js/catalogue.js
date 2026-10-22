@@ -7,7 +7,7 @@
   with no screen yet is shown as coming, linked to its page on the site.
 
   Tiles mirror the site's Products menu (site/assets/orbe/chrome.js): the same
-  five by five pixel glyphs and the same colour pairs, Orbe Fix with its own
+  five by five pixel glyphs and the same colour pairs, Fix with its own
   Claret and Peony. The web app test checks the glyphs still match the site.
 */
 import { on } from "./api.js";
@@ -44,27 +44,27 @@ const tool = (o) => ({ side: "creator", api: null, site: null, nav: true, local:
 export const TOOLS = [
   // Grow
   tool({ id: "rate", nav: false, path: "rate", name: "Rate a channel", line: "Any YouTube channel, against creators the same size.", group: "Grow", k: "also", glyph: "products/rate/", site: "products/rate/",
-    api: { method: "GET", path: "/v1/rate/youtube/{handle}", mcp: "orbe_rate", note: "Public uploads only. The rating carries its label wherever it is shown." } }),
-  tool({ id: "record", path: "record", name: "Your record", line: "Your verified results and who may see them.", group: "Earn", k: "rec", glyph: "products/you/", site: "products/you/",
+    api: { method: "GET", path: "/v1/rate/youtube/{handle}", mcp: "orbe_rate", note: "Public works only. The rating carries its label wherever it is shown." } }),
+  tool({ id: "record", path: "record", name: "Record", line: "Your verified results and who may see them.", group: "Earn", k: "rec", glyph: "products/you/", site: "products/you/",
     api: { method: "GET", path: "/v1/me/record", mcp: "orbe_explain_rating", note: "JSON by default; add ?format=html or ?format=markdown." } }),
-  tool({ id: "podcasts", path: "start", name: "Podcasts", line: "Free measurement and a page for your show.", group: "Grow", k: "pod", glyph: "products/podcasts/", site: "products/podcasts/",
+  tool({ id: "podcasts", nav: false, path: "podcasts", name: "Podcasts", line: "Free measurement and a page for your show.", group: "Grow", k: "pod", glyph: "products/podcasts/", site: "products/podcasts/",
     api: { method: "GET", path: "/v1/me/podcasts", mcp: "orbe_podcast_plausibility", note: "The MCP tool checks whether a download claim fits public signals." } }),
-  tool({ id: "fix", path: "fix", name: "Orbe Fix", line: "New titles and thumbnails, kept only on lift.", group: "Grow", k: "fix", glyph: "products/fix/", site: "products/fix/",
-    api: { method: "GET", path: "/v1/me/fixes", mcp: "orbe_diagnose_upload", note: "orbe_judge_fix says whether a change lifted an upload." } }),
-  tool({ id: "plan", path: "plan", name: "Predictions", line: "Seal a forecast before an upload; checked after.", group: "Grow", k: "note", glyph: "products/you/",
+  tool({ id: "fix", nav: false, path: "fix", name: "Fix", line: "New titles and thumbnails, kept only on lift.", group: "Grow", k: "fix", glyph: "products/fix/", site: "products/fix/",
+    api: { method: "GET", path: "/v1/me/fixes", mcp: "orbe_diagnose_upload", note: "orbe_judge_fix says whether a change lifted a work." } }),
+  tool({ id: "plan", nav: false, path: "predictions", name: "Predictions", line: "Seal a forecast before a work; checked after.", group: "Grow", k: "note", glyph: "products/you/",
     api: { method: "GET", path: "/v1/me/predictions", mcp: null, note: "Each seal is chained to the one before and added to a public log." } }),
   tool({ id: "media", nav: false, path: "media", feature: "media", name: "Drop in a video", line: "Clips, captions and words from one video, ready to send.", group: "Grow", k: "also", glyph: "products/podcasts/",
     api: { method: "POST", path: "/v1/me/media/items", mcp: null, note: "Then PUT the file in chunks to the upload address it returns, with Content-Range." } }),
   // Earn
-  tool({ id: "sponsorships", path: "sponsorships", name: "Sponsorships", line: "Price a slot, answer offers, deliver reads.", group: "Earn", k: "spon", glyph: "products/sponsorships/", site: "products/sponsorships/",
+  tool({ id: "sponsorships", path: "deals", name: "Deals", line: "Offers, bookings, reads and payouts, in one place.", group: "Earn", k: "spon", glyph: "products/sponsorships/", site: "products/sponsorships/",
     api: { method: "GET", path: "/v1/me/sponsorships/inventory", mcp: "orbe_price_sponsorship", note: "orbe_quote_guaranteed_read quotes a read paid only on verified delivery." } }),
-  tool({ id: "finder", nav: false, path: "sponsorships?tab=finder", screen: "sponsorships", feature: "sponsor_finder", name: "Sponsors like you", line: "Brands that sponsor channels like yours, from their public uploads.", group: "Earn", k: "spon", glyph: "products/sponsorships/",
+  tool({ id: "finder", nav: false, path: "deals?tab=finder", screen: "deals", feature: "sponsor_finder", name: "Sponsors like you", line: "Brands that sponsor channels like yours, from their public works.", group: "Earn", k: "spon", glyph: "products/sponsorships/",
     api: { method: "GET", path: "/v1/me/sponsor-finder", mcp: null, note: "Detected in public works; a price only where Orbe settled one or your own results support it." } }),
-  tool({ id: "assistant", nav: false, path: "sponsorships?tab=assistant", screen: "sponsorships", feature: "deals_agent", name: "Deals assistant", line: "Finds, drafts and counters inside your limits. Never accepts.", group: "Earn", k: "sell", glyph: "products/offer/",
+  tool({ id: "assistant", nav: false, path: "deals?tab=assistant", screen: "deals", feature: "deals_agent", name: "Deals assistant", line: "Finds, drafts and counters inside your limits. Never accepts.", group: "Earn", k: "sell", glyph: "products/offer/",
     api: { method: "GET", path: "/v1/me/deals", mcp: null, note: "Drafts are sent only on your tap, and say Orbe's assistant drafted them." } }),
   tool({ id: "offer", nav: false, path: "offer", name: "Fair offer check", line: "Is this offer fair for your size?", group: "Earn", k: "spon", glyph: "products/offer/", site: "products/offer/",
     api: { method: "GET", path: "/v1/me/sponsorships/inventory", mcp: "orbe_fair_offer", note: "The check sets an offer against the range your own results support." } }),
-  tool({ id: "sell", path: "sell", name: "Selling", line: "An indicative value; fees in full, never a cut.", group: "Earn", k: "sell", glyph: "products/selling/", site: "products/selling/",
+  tool({ id: "sell", nav: false, path: "selling", name: "Selling", line: "An indicative value; fees in full, never a cut.", group: "Earn", k: "sell", glyph: "products/selling/", site: "products/selling/",
     api: { method: "GET", path: "/v1/me/valuation?margin={margin}&faceDependence={faceDependence}", mcp: "orbe_value_business", note: "Margin and face dependence are 0 to 1." } }),
   tool({ id: "report", nav: false, path: "report", name: "Diligence report", line: "The report a buyer reads first.", group: "Earn", k: "rec", glyph: "products/diligence/", site: "products/diligence/",
     api: { method: "POST", path: "/v1/me/reports", mcp: null, note: "Issues a free Orbe Verified report of your record as it stands." } }),
@@ -72,9 +72,9 @@ export const TOOLS = [
   tool({ id: "protect", nav: false, local: true, path: "protect", name: "Protect", line: "Is this a copy of your work? Checked on your device.", group: "Protect", k: "rec", glyph: "products/protect/", site: "products/protect/" }),
   tool({ id: "rights", nav: false, path: null, name: "Rights", line: "Who may use what, until when.", group: "Protect", k: "note", glyph: "products/rights/", site: "products/rights/" }),
   // Connect
-  tool({ id: "connect", nav: false, path: "connect", name: "Connections", line: "YouTube, podcasts, Stripe and Patreon.", group: "Connect", k: "note", glyph: "products/roster/",
+  tool({ id: "connect", nav: false, path: "connections", name: "Connections", line: "Everything Orbe reads for you, and where it can post.", group: "Connections", k: "note", glyph: "products/roster/",
     api: { method: "GET", path: "/v1/me/connections", mcp: null, note: "Grants without their secrets." } }),
-  tool({ id: "developers", nav: false, path: "developers", name: "For developers", line: "Orbe for agents, over MCP.", group: "Connect", k: "pod", glyph: "developers/", site: "developers/",
+  tool({ id: "developers", nav: false, path: "developers", name: "For developers", line: "Orbe for agents, over MCP.", group: "Connections", k: "pod", glyph: "developers/", site: "developers/",
     api: { method: "MCP", path: "orbe-mcp", mcp: "orbe_rate", note: "Twelve tools, worked out on your machine." } }),
 
   // Brand side
@@ -88,12 +88,12 @@ export const TOOLS = [
     api: { method: "GET", path: "/v1/brand/bookings", mcp: "orbe_check_delivery", note: "Delivery is read at source, and short reads are made good." } }),
   tool({ side: "buyer", id: "profile", nav: false, path: "profile", name: "Brand profile", line: "Who you are and the terms you accept.", group: "Campaigns", k: "note", glyph: "teams/",
     api: { method: "GET", path: "/v1/brand/profile", mcp: null, note: "" } }),
-  tool({ side: "buyer", id: "discover", path: "discover", name: "Discover", line: "Creators by results at their size.", group: "Discover", k: "also", glyph: "products/rate/",
+  tool({ side: "buyer", id: "discover", path: "discover", name: "Discover", line: "Creators by results at their size.", group: "Creators", k: "also", glyph: "products/rate/",
     api: { method: "GET", path: "/v1/brand/discover?kinds={kinds}&bands={bands}", mcp: "orbe_benchmark", note: "Anonymised until a creator accepts an offer from you." } }),
-  tool({ side: "buyer", id: "roster", path: "roster", name: "Roster", line: "Every creator you look after.", group: "Discover", k: "note", glyph: "products/roster/", site: "products/roster/",
+  tool({ side: "buyer", id: "roster", path: "roster", name: "Roster", line: "Every creator you look after.", group: "Creators", k: "note", glyph: "products/roster/", site: "products/roster/",
     api: { method: "GET", path: "/v1/roster", mcp: null, note: "Built fresh each time it is opened." } }),
-  tool({ side: "buyer", id: "brand-rate", nav: false, path: "rate", name: "Rate a channel", line: "Any YouTube channel, against creators its size.", group: "Discover", k: "also", glyph: "products/rate/",
-    api: { method: "GET", path: "/v1/rate/youtube/{handle}", mcp: "orbe_rate", note: "Public uploads only." } }),
+  tool({ side: "buyer", id: "brand-rate", nav: false, path: "rate", name: "Rate a channel", line: "Any YouTube channel, against creators its size.", group: "Creators", k: "also", glyph: "products/rate/",
+    api: { method: "GET", path: "/v1/rate/youtube/{handle}", mcp: "orbe_rate", note: "Public works only." } }),
   tool({ side: "buyer", id: "keys", nav: false, path: "keys", name: "API keys", line: "Keys for the data API.", group: "Developers", k: "pod", glyph: "developers/",
     api: { method: "GET", path: "/v1/data/discover", mcp: null, note: "Send a key as a bearer token." } }),
   tool({ side: "buyer", id: "brand-developers", nav: false, path: "developers", name: "MCP and agents", line: "Orbe for agents, over MCP.", group: "Developers", k: "pod", glyph: "developers/",
@@ -101,13 +101,13 @@ export const TOOLS = [
 ];
 
 export const GROUP_LINES = {
-  Grow: "Each upload, rated against creators your size.",
+  Grow: "Each work, rated against creators your size.",
   Earn: "Get paid fairly when money moves.",
   Protect: "Your work, and who may use it.",
   Connect: "What Orbe reads for you, and how agents reach it.",
   Intelligence: "Your market, from public works, with the evidence.",
   Campaigns: "Guaranteed reads, paid only on verified delivery.",
-  Discover: "Creators found by their results, not their followers.",
+  Creators: "Creators found by their results, not their followers.",
   Developers: "The data API and MCP.",
 };
 
@@ -118,18 +118,16 @@ export const GROUP_LINES = {
 export const CREATOR_TABS = [
   { name: "Home", path: "", icon: "home" },
   { name: "Library", path: "library", icon: "library" },
-  { name: "Grow", icon: "chart", groups: ["Grow"] },
-  { name: "Earn", icon: "earn", groups: ["Earn"] },
+  { name: "Deals", path: "deals", icon: "earn" },
+  { name: "Record", path: "record", icon: "chart" },
   { name: "Explore", path: "explore", icon: "explore" },
 ];
 
 export const BRAND_TABS = [
   { name: "Home", path: "", icon: "home" },
   { name: "Intelligence", path: "intelligence", icon: "chart" },
-  { name: "Campaigns", path: "campaigns", icon: "megaphone" },
-  { name: "Bookings", path: "bookings", icon: "bolt" },
-  { name: "Discover", path: "discover", icon: "people" },
-  { name: "Roster", path: "roster", icon: "grid" },
+  { name: "Campaigns", icon: "megaphone", groups: ["Campaigns"] },
+  { name: "Creators", icon: "people", groups: ["Creators"] },
   { name: "Explore", path: "explore", icon: "explore" },
 ];
 
@@ -139,13 +137,13 @@ export const ADMIN_TABS = [{ name: "Desk", path: "desk", icon: "bolt" }];
 export const SETTINGS = [
   { id: "account", name: "Account", line: "Your name, email, the walkthrough, and deleting your account.", side: "both", icon: "user", group: "General" },
   { id: "brand", name: "Brand profile", line: "Who you are to creators, and the terms you accept.", side: "buyer", feature: "sponsorships", icon: "megaphone", group: "General" },
-  { id: "connections", name: "Connections", line: "Accounts Orbe reads for you.", side: "creator", icon: "link", group: "General" },
+  { id: "connections", name: "Connections", line: "Everything Orbe reads for you, and where it can post.", side: "creator", icon: "link", group: "General" },
   { id: "team", name: "Team", line: "The people on this account, what each may do, and what waits for the owner.", side: "both", icon: "people", group: "General" },
-  { id: "integrations", name: "Integrations", line: "Where Orbe posts for you, and the tools it works with.", side: "creator", feature: "integrations", icon: "plug", group: "General" },
   { id: "sharing", name: "Sharing", line: "Your public page, shared ratings, emails and your invitation link.", side: "both", icon: "link", group: "General", anyOf: ["creator_pages", "share_cards", "habit_email", "referrals"] },
   { id: "plan", name: "Plan and usage", line: "Free for creators; the optional plan for heavy use, and what you have used.", side: "creator", feature: "pro", icon: "card", group: "Billing", needs: "read.money" },
   { id: "keys", name: "API keys", line: "Keys for the data API, and what each has used.", side: "buyer", feature: "brand_data", icon: "key", group: "Developer", needs: "read.money" },
   { id: "mcp", name: "MCP and agents", line: "Use Orbe from Claude and other AI tools.", side: "both", icon: "plug", group: "Developer" },
+  { id: "app", name: "App and notifications", line: "Install Orbe, and choose what it tells you.", side: "both", icon: "bell", group: "General" },
   { id: "security", name: "Security", line: "Where you are signed in.", side: "both", icon: "shield", group: "Security" },
   { id: "metrics", name: "Metrics", line: "What investors ask, counted from Orbe's own records. Staff only.", side: "both", icon: "chart", group: "Staff", staff: true },
 ];

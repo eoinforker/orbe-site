@@ -13,10 +13,10 @@ const TOOL = TOOLS.find((t) => t.id === "rate");
 function resultView(r) {
   const res = r.result;
   const name = r.account?.title ?? r.account?.handle ?? "This channel";
-  if (!res || res.status !== "rated") return [h("p", { class: "cn-run-say" }, `${name} is not rated yet.`), h("p", null, res?.message ?? "Not enough public uploads to compare yet.")];
+  if (!res || res.status !== "rated") return [h("p", { class: "cn-run-say" }, `${name} is not rated yet.`), h("p", null, res?.message ?? "Not enough public works to compare yet.")];
   return [
     h("p", { class: "cn-run-who" }, `${name}${r.account?.handle ? `, ${r.account.handle}` : ""}`),
-    h("div", { class: "cn-figure" }, h("p", { class: "cn-figure-n", "aria-label": `Rating ${signed(res.rating)}` }, signed(res.rating)), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers, from ${plural(res.detail?.works ?? 0, "upload")}. Zero is typical.`))),
+    h("div", { class: "cn-figure" }, h("p", { class: "cn-figure-n", "aria-label": `Rating ${signed(res.rating)}` }, signed(res.rating)), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers, from ${plural(res.detail?.works ?? 0, "work")}. Zero is typical.`))),
     h("ul", { class: "cn-parts" }, res.parts.map((p) => {
       const bar = h("span", { class: "cn-part-bar" }, h("span"));
       bar.firstChild.style.setProperty("--p", String(p.score));
@@ -54,9 +54,9 @@ export async function render(main, ctx) {
     tool: tile(TOOL.glyph, TOOL.k, h, "l"),
     title: "Rate a channel",
     line: "Any YouTube channel, against creators the same size. Zero is typical; the maths is published.",
-    tags: [["Live", "sky"], ["Free"], ["Public uploads only", "line"]],
+    tags: [["Live", "sky"], ["Free"], ["Public works only", "line"]],
     api: TOOL.api,
-    inputs: form([field("Channel", handleInput, "Public uploads only; nothing is stored about the channel.")], "Run", async (d) => {
+    inputs: form([field("Channel", handleInput, "Public works only; nothing is stored about the channel.")], "Run", async (d) => {
       const handle = String(d.get("handle")).trim();
       history.replaceState(null, "", `/orbe-site/demo/app/rate?handle=${encodeURIComponent(handle)}`);
       await run(handle);

@@ -15,7 +15,7 @@
 import { RATING_LABEL } from "../rating/label.js";
 import { hasOptedIn } from "./consent.js";
 import { fundingFor } from "./fees.js";
-import { specFor, unitsFor } from "./formats.js";
+import { specFor, unitsFor, withArticle } from "./formats.js";
 import { shareIn } from "./inventory.js";
 import { windowFor } from "./stats.js";
 import { addDays, formatCount, formatMoney } from "./util.js";
@@ -72,7 +72,7 @@ function scoreItem(c, item, brief, brandCategory, terms, at) {
         return exclude("format", "This format is not one Orbe can verify.");
     if (!item.available || !item.listPrice)
         return exclude("format", `${item.name} is not open for bookings.`);
-    reasons.push({ criterion: "format", fit: "strong", sentence: `Offers a ${item.name.toLowerCase()} on ${item.handle}.` });
+    reasons.push({ criterion: "format", fit: "strong", sentence: `Offers ${withArticle(item.name)} on ${item.handle}.` });
     const category = brandCategory.trim().toLowerCase();
     if (c.settings.excludedCategories.some((x) => x.trim().toLowerCase() === category)) {
         return exclude("category", "Does not take sponsors in your category.");

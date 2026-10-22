@@ -21,6 +21,16 @@ export function reachPart(spec) {
   when there is neither a benchmark nor enough history to say anything.
 */
 export function predictRange(input) {
+    return predictFromPrepared(input, prepare(specFor(input.work.kind), input.history, toMs(input.now)));
+}
+/**
+  predictRange on a history already prepared for the same moment (rating/measure
+  prepare, newest first). For callers that predict many works against one
+  history, such as Orbe Fix's list of uploads: preparing once and leaving one
+  work out of the prepared list gives the same answer as preparing the list
+  without it.
+*/
+export function predictFromPrepared(input, prepared) {
     const spec = specFor(input.work.kind);
     const part = reachPart(spec);
     if (!part || part.measure.type !== "ratio")
@@ -31,8 +41,7 @@ export function predictRange(input) {
     const audience = Math.max(0, Math.round(input.audience));
     const band = sizeBandOf(spec, audience);
     const format = formatOf(spec, input.work.durationSec ?? 0);
-    const nowMs = toMs(input.now);
-    const pool = poolFor(spec, prepare(spec, input.history, nowMs), format);
+    const pool = poolFor(spec, prepared, format);
     const own = pool.map((p) => p.matured[metric]).filter((v) => typeof v === "number" && v >= 0);
     // The benchmark: prior median ratio times the denominator this work will face.
     const prior = priorFor(input.priors ?? PROVISIONAL_PRIORS, spec, format, band.key, part);

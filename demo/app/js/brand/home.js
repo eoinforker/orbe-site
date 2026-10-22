@@ -6,7 +6,7 @@
   from what is really done, what is waiting on the brand, and the latest
   campaigns.
 */
-import { api, on, seg } from "../api.js";
+import { api, bundle, on, seg } from "../api.js";
 import { alerts, checklist, cover, emptyState, section, skeleton, stat, statStrip } from "../console-ui.js";
 import { tile } from "../catalogue.js";
 import { icon } from "../icons.js";
@@ -60,6 +60,8 @@ export async function render(main, ctx) {
   // The brand's market is the home's centrepiece when intelligence is on. It loads on its own, so the rest never waits for it.
   const centre = on("brand_intel") ? h("div", { class: "bi-centre" }, skeleton(4)) : null;
   main.append(top, ...(centre ? [h("div", { class: "cn-home" }, centre)] : []), body);
+  // Home's first reads come in one request (with the boot on a first visit); each read below is then kept.
+  await bundle("home");
   const wants = await api.get("/v1/me/welcome").then((r) => r.welcome.answers.wants ?? [], () => []);
   top.append(...band(wants));
   if (centre) marketSnapshot().then((el) => centre.replaceChildren(el), () => centre.remove());

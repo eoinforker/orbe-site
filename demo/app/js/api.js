@@ -39,6 +39,46 @@ export class SentToOwner extends ApiError {
   }
 }
 
+/*
+  A read the console has just been given (by GET /v1/boot) is kept for a short
+  while, so the frame and the screen that both need it ask once between them.
+  Two identical reads in flight share one request. Any write forgets every
+  kept read, so what a screen shows after a change is read again.
+*/
+const KEEP_MS = 10_000;
+const kept = new Map();
+const inflight = new Map();
+
+const keep = (path, promise) => {
+  // A kept refusal is still a refusal: nothing is unhandled while it waits to be read.
+  promise.catch(() => {});
+  kept.set(path, { at: Date.now(), promise });
+};
+
+/** Forget every kept read: after a write, a sign-out or a team switch. */
+export function forget() {
+  kept.clear();
+}
+
+/** A part of a boot answer as the route's own answer: its body, or its refusal thrown as ApiError. */
+const asAnswer = (part) => (part.error ? Promise.reject(new ApiError(part.status, part.error.code, part.error.message, part.error.details)) : Promise.resolve(part.body));
+
+function prime(parts) {
+  for (const [path, part] of Object.entries(parts ?? {})) keep(path, asAnswer(part));
+}
+
+function read(path) {
+  const k = kept.get(path);
+  if (k && Date.now() - k.at < KEEP_MS) return k.promise;
+  if (k) kept.delete(path);
+  let p = inflight.get(path);
+  if (!p) {
+    p = send("GET", path).finally(() => inflight.delete(path));
+    inflight.set(path, p);
+  }
+  return p;
+}
+
 /** A route that another change is still building answers a plain 404 here until it lands. */
 export const notBuiltYet = (e) => e instanceof ApiError && e.status === 404 && e.code === "not_found";
 
@@ -54,6 +94,11 @@ async function send(method, path, body, retried, file) {
     throw new ApiError(0, "network", "Orbe could not be reached. Check your connection and try again.");
   }
   const type = res.headers.get("content-type") ?? "";
+  // Any write may change what a kept read says: forget them all, whatever the answer.
+  if (method !== "GET") {
+    forget();
+    bundled.clear();
+  }
   const data = res.status === 204 ? null : type.includes("application/json") ? await res.json().catch(() => null) : await res.text();
   // Asked of the owner rather than done: the screen treats it as not done, and the console says where it went.
   if (res.status === 202 && data?.waitingFor === "owner") {
@@ -68,13 +113,49 @@ async function send(method, path, body, retried, file) {
     await session();
     return send(method, path, body, true, file);
   }
-  if (e.status === 401) window.dispatchEvent(new CustomEvent("orbe:signed-out"));
+  if (e.status === 401) {
+    forget();
+    window.dispatchEvent(new CustomEvent("orbe:signed-out"));
+  }
   throw e;
 }
 
 /** Who is signed in, and a fresh CSRF token. */
 export async function session() {
-  const s = await send("GET", "/v1/auth/session", undefined, true);
+  return apply(await send("GET", "/v1/auth/session", undefined, true));
+}
+
+/** The screens that have a set of first reads on the server (GET /v1/boot?screen=), as the boot lists them. */
+const BUNDLED = new Set();
+const bundled = new Map();
+
+/**
+  The console's first call: who is signed in, and every read the frame needs,
+  plus the first screen's own when it has a set. One request instead of many.
+*/
+export async function boot(screen) {
+  const b = await send("GET", screen ? `/v1/boot?screen=${encodeURIComponent(screen)}` : "/v1/boot", undefined, true);
+  forget();
+  bundled.clear();
+  BUNDLED.clear();
+  for (const s of b?.screens ?? []) BUNDLED.add(s);
+  prime(b?.parts);
+  if (BUNDLED.has(screen)) bundled.set(screen, Date.now());
+  return apply(b?.session);
+}
+
+/** A screen's first reads in one request (GET /v1/boot?screen=&frame=0), unless the boot has just brought them. */
+export async function bundle(screen) {
+  if (!BUNDLED.has(screen)) return;
+  const at = bundled.get(screen);
+  if (at && Date.now() - at < KEEP_MS) return;
+  const b = await read(`/v1/boot?screen=${encodeURIComponent(screen)}&frame=0`).catch(() => null);
+  if (!b) return;
+  prime(b.parts);
+  bundled.set(screen, Date.now());
+}
+
+function apply(s) {
   csrf = s?.csrfToken ?? null;
   features.clear();
   for (const f of s?.features ?? []) features.add(f);
@@ -95,7 +176,12 @@ export const can = (action) => roleCan(team?.role, action);
 export const asks = (action) => team?.role === "manager" && ["money", "consent", "rights"].includes(action);
 
 export const api = {
-  get: (path) => send("GET", path),
+  get: (path) => read(path),
+  /** A read that skips anything kept, for a refresh the person asked for. */
+  fresh: (path) => {
+    kept.delete(path);
+    return read(path);
+  },
   post: (path, body = {}) => send("POST", path, body),
   put: (path, body = {}) => send("PUT", path, body),
   patch: (path, body = {}) => send("PATCH", path, body),

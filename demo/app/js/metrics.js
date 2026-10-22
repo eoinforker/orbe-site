@@ -63,7 +63,7 @@ function view(m) {
   const headline = statStrip([
     stat({ label: "New accounts", value: count(newPeople), line: `${count(s.window.creator)} creators, ${count(s.window.brand)} brands. ${count(s.total.creator)} creators in all.` }),
     stat({ label: "First rating", value: pc(m.activation.allTime.share), line: m.activation.allTime.medianHours === null ? "No creator rated yet." : `Median ${hours(m.activation.allTime.medianHours)} from sign-up.` }),
-    stat({ label: "Came back after an upload", value: pc(m.habit.share), line: m.habit.uploads ? `${count(m.habit.cameBack)} of ${count(m.habit.uploads)} uploads, within 7 days.` : m.habit.trackingSince ? "No rated upload has finished its 7 days yet." : "Counting starts at the first sign-in.", tone: "hi" }),
+    stat({ label: "Came back after a new work", value: pc(m.habit.share), line: m.habit.uploads ? `${count(m.habit.cameBack)} of ${count(m.habit.uploads)} works, within 7 days.` : m.habit.trackingSince ? "No rated work has finished its 7 days yet." : "Counting starts at the first sign-in.", tone: "hi" }),
     stat({ label: "Orbe's fees", value: minor(d.revenueMinor), line: `${minor(d.revenueWindowMinor)} in this window. Settled through Orbe: ${minor(d.settledMinor)}.` }),
   ]);
 
@@ -76,16 +76,16 @@ function view(m) {
       : emptyState("people", "No sign-ups in this window.", [], "They appear here by day, with where each came from."),
   );
 
-  const habit = section({ title: "The habit test", line: "Do creators come back within 7 days of a new upload being rated? This is the number that says whether Orbe is a habit." },
+  const habit = section({ title: "The habit test", line: "Do creators come back within 7 days of a new work being rated? This is the number that says whether Orbe is a habit." },
     m.habit.uploads
       ? h("dl", { class: "mt-rows" },
-          row("Uploads with a closed 7-day window", count(m.habit.uploads)),
+          row("Works with a closed 7-day window", count(m.habit.uploads)),
           row("Their creator came back", count(m.habit.cameBack), pc(m.habit.share)),
           row("Creators counted", count(m.habit.creators)),
           row("Still inside their 7 days", count(m.habit.pending)),
           row("Counted since", m.habit.trackingSince ?? "None yet"),
         )
-      : emptyState("chart", m.habit.trackingSince ? "No rated upload has finished its 7 days in this window." : "Nothing to count yet.", [], "Counting starts from the first day anyone signs in, and each upload waits 7 days after its rating."),
+      : emptyState("chart", m.habit.trackingSince ? "No rated work has finished its 7 days in this window." : "Nothing to count yet.", [], "Counting starts from the first day anyone signs in, and each work waits 7 days after its rating."),
   );
 
   const active = section({ title: "Active", line: "People who used the console, from the days they signed in." },

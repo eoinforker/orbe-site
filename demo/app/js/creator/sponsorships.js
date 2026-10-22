@@ -1,78 +1,242 @@
 /*
-  Sponsorships: opt in, prices and settings, inventory, offers (accept,
-  counter, decline), bookings (draft, live, remedy), guaranteed reads with
-  their floor, and who you share figures with.
+  Deals: every sponsorship in one place. The money at the top (waiting on
+  you, open offers, booked, verified, paid out), then the pipeline: offers
+  and bookings as one list with a stage, a price and whose move it is,
+  filtered and searched; each opens a drawer with its terms, its timeline
+  (the booking's own audit trail), the work it lives on with the disclosure
+  check and delivery readings, and the moves that are yours to make. Prices,
+  inventory, Sponsors like you and the assistant sit beside it as tabs.
+
+  Three reads at most: the status, the offers and the bookings, all named in
+  the boot call's list for this screen so it starts in one request.
 */
-import { api, on, seg } from "../api.js";
-import { BOOKING_STATES, disclosure, guaranteeLine, measured, OFFER_STATES, priceLines, TONE, windowLine } from "../deal.js";
+import { api, can, on, seg } from "../api.js";
+import { BOOKING_STATES, guaranteeLine, OFFER_STATES, priceLines, windowLine } from "../deal.js";
 import { FORMATS, formatName, KINDS, unitOf } from "../terms.js";
-import { action, actions, block, bps, check, chip, count, day, empty, field, form, h, input, money, ok, panel, pounds, rows, select, tabs, textarea, title, when } from "../ui.js";
-import { screenHead } from "../console-ui.js";
+import { drawer, emptyState, pill, screenHead, section, segmented, skeleton, stat, statStrip } from "../console-ui.js";
+import { connectButton, findSource, openConnect } from "../connect-inline.js";
+import { icon } from "../icons.js";
+import { action, block, bps, check, count, day, field, form, h, input, money, pounds, select, tabs, textarea, toast, when } from "../ui.js";
 import { assistantTab, finderTab } from "./deals.js";
 
-/* ---------- offers ---------- */
+/* ---------------------------------------------------------------- the model: offers and bookings as one list of deals */
 
-function offerItem(o, notice, reload) {
-  const open = o.state === "sent";
-  return h(
-    "li",
-    { class: "ap-item ap-item--block" },
-    h("div", { class: "ap-item-main" },
-      h("p", { class: "ap-says" }, `${o.brandName}: ${formatName(o.format, o.kind)}`, " ", chip(o.state === "sent" ? "Waiting for you" : (OFFER_STATES[o.state] ?? o.state), TONE[o.state])),
-      h("p", null, o.product),
-      o.message ? h("blockquote", { class: "ap-quote" }, o.message) : null,
-      rows([...priceLines(o), ["Publish between", windowLine(o.publishWindow)], open ? ["Answer by", when(o.expiresAt)] : null]),
-      h("p", { class: "ap-guarantee" }, guaranteeLine(o)),
-      o.counters?.length ? h("p", { class: "ap-note" }, `Your counters: ${o.counters.map((c) => `${money(c.price)} on ${day(c.at)}`).join("; ")}.`) : null,
-      o.state === "countered" ? h("p", { class: "ap-note" }, "Waiting for the brand to answer your counter.") : null,
-    ),
-    open
-      ? h(
-          "div",
-          { class: "ap-stack" },
-          h("details", { class: "ap-more" }, h("summary", null, "Accept"),
-            h("p", { class: "ap-notice" }, notice),
-            form([check("I have read this and want to accept.", { name: "seen", required: true })], "Accept the offer", async () => {
-              await api.post(`/v1/me/sponsorships/offers/${seg(o.id)}/accept`, { noticeShown: true });
-              reload();
-              return "Accepted. The booking is under Bookings.";
-            }),
-          ),
-          h("details", { class: "ap-more" }, h("summary", null, "Counter"),
-            form([field("Your price for the whole offer (£)", input({ name: "price", type: "number", min: "0.01", step: "0.01", required: true, inputmode: "decimal" }), "Before Orbe's fee, which the brand pays on top."), field("A note (optional)", textarea({ name: "note", maxlength: 1000 }))], "Send the counter", async (d) => {
-              const note = String(d.get("note") ?? "").trim();
-              await api.post(`/v1/me/sponsorships/offers/${seg(o.id)}/counter`, { price: Number(d.get("price")), ...(note ? { note } : {}) });
-              reload();
-              return "Counter sent.";
-            }),
-          ),
-          h("details", { class: "ap-more" }, h("summary", null, "Decline"),
-            form([field("Why (optional, kept for you only)", textarea({ name: "reason", maxlength: 1000 }))], "Decline the offer", async (d) => {
-              const reason = String(d.get("reason") ?? "").trim();
-              await api.post(`/v1/me/sponsorships/offers/${seg(o.id)}/decline`, reason ? { reason } : {});
-              reload();
-              return "Declined.";
-            }, { primary: false }),
-          ),
-        )
-      : null,
+const OPEN_BOOKING = ["awaiting_funds", "in_production", "draft_review", "changes_requested", "ready", "live", "short", "make_good", "disputed"];
+const DONE_BOOKING = ["verified", "paid"];
+/** Whose move it is, by state: you, the brand, Orbe, or nobody (a closed deal). */
+const MOVE = {
+  sent: "you", countered: "brand", awaiting_funds: "brand", in_production: "you", draft_review: "brand", changes_requested: "you",
+  ready: "you", live: "orbe", short: "you", make_good: "you", disputed: "orbe", verified: "orbe",
+};
+const MOVE_WORDS = { you: "You", brand: "The brand", orbe: "Orbe is measuring" };
+const PILL = {
+  sent: "needs", countered: "running", accepted: "done", declined: "off", withdrawn: "off", expired: "off",
+  awaiting_funds: "idle", in_production: "needs", draft_review: "running", changes_requested: "needs", ready: "needs", live: "running",
+  short: "needs", make_good: "needs", verified: "done", paid: "done", disputed: "needs", cancelled: "off",
+};
+const STAGE = { ...OFFER_STATES, sent: "Offer waiting for you", countered: "Countered, with the brand", ...BOOKING_STATES };
+
+const sum = (list, f = (x) => x.price) => list.reduce((n, x) => n + (f(x)?.amount ?? 0), 0);
+const gbp = (pence, currency = "GBP") => money({ amount: pence, currency });
+const lastAt = (x) => (x.audit?.length ? x.audit[x.audit.length - 1].at : null) ?? x.respondedAt ?? x.sentAt ?? x.acceptedAt;
+
+/** Every deal once: an offer until it is accepted, then its booking. */
+export function dealsOf(offers, bookings) {
+  const booked = new Set(bookings.map((b) => b.offerId));
+  const fromOffers = offers.filter((o) => !booked.has(o.id) && o.state !== "accepted").map((o) => ({
+    kind: "offer", id: o.id, x: o, brand: o.brandName, format: o.format, k: o.kind, state: o.state,
+    group: ["sent", "countered"].includes(o.state) ? "offers" : "closed",
+    price: o.counters?.length && o.state === "countered" ? o.counters[o.counters.length - 1].price : o.price,
+    next: o.state === "sent" ? ["Answer by", o.expiresAt] : o.state === "countered" ? ["Brand answers by", o.expiresAt] : null,
+    at: lastAt(o),
+  }));
+  const fromBookings = bookings.map((b) => ({
+    kind: "booking", id: b.id, x: b, brand: b.brandName, format: b.format, k: b.kind, state: b.state,
+    group: DONE_BOOKING.includes(b.state) ? "done" : OPEN_BOOKING.includes(b.state) ? "progress" : "closed",
+    price: b.price,
+    next: b.state === "awaiting_funds" ? ["Funds by", b.funding?.payBy] : ["in_production", "ready", "make_good"].includes(b.state) ? ["Publish by", b.publishWindow?.end] : b.state === "draft_review" ? ["Review by", b.draft?.reviewBy] : null,
+    at: lastAt(b),
+  }));
+  return [...fromOffers, ...fromBookings].sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
+}
+
+const yours = (d) => MOVE[d.state] === "you";
+
+/* ---------------------------------------------------------------- the money at the top */
+
+function moneyStrip(deals) {
+  const open = deals.filter((d) => d.group === "offers");
+  const progress = deals.filter((d) => d.group === "progress");
+  const verified = deals.filter((d) => d.state === "verified");
+  const paid = deals.filter((d) => d.state === "paid");
+  const waiting = deals.filter(yours);
+  return statStrip([
+    stat({ label: "Waiting on you", value: count(waiting.length), line: waiting.length ? waiting.slice(0, 2).map((d) => d.brand).join(", ") : "Nothing needs you now.", tone: waiting.length ? "warn" : null }),
+    stat({ label: "Open offers", value: gbp(sum(open)), line: `${count(open.length)} ${open.length === 1 ? "offer" : "offers"}, before Orbe's fee` }),
+    stat({ label: "Booked", value: gbp(sum(progress)), line: `${count(progress.length)} in progress, money held where funded` }),
+    stat({ label: "Verified", value: gbp(sum(verified)), line: verified.length ? "Delivered and checked, payout next" : "None waiting on payout" }),
+    stat({ label: "Paid out", value: gbp(sum(paid)), line: `${count(paid.length)} settled through the payments partner` }),
+  ]);
+}
+
+/* ---------------------------------------------------------------- the pipeline */
+
+const FILTERS = [
+  ["all", "All"],
+  ["you", "Waiting on you"],
+  ["offers", "Offers"],
+  ["progress", "In progress"],
+  ["done", "Done"],
+  ["closed", "Closed"],
+];
+const passes = (d, f) => (f === "all" ? d.group !== "closed" : f === "you" ? yours(d) : d.group === f);
+
+function dealRow(d, open) {
+  const move = MOVE[d.state];
+  return h("tr", { class: `dl-row${yours(d) ? " is-yours" : ""}`, tabindex: "0", "data-id": d.id, onclick: () => open(d), onkeydown: (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), open(d)) },
+    h("td", { class: "dl-brand" }, h("span", { class: "dl-brand-n" }, d.brand), h("span", { class: "dl-sub" }, `${formatName(d.format, d.k)} on ${KINDS[d.k] ?? d.k}`)),
+    h("td", { class: "dl-stage" }, pill(PILL[d.state] ?? "idle", STAGE[d.state] ?? d.state)),
+    h("td", { class: "dl-num" }, money(d.price)),
+    h("td", { class: "dl-move" }, move ? MOVE_WORDS[move] : h("span", { class: "dl-quiet" }, "Nobody")),
+    h("td", { class: "dl-next" }, d.next?.[1] ? [h("span", { class: "dl-sub" }, d.next[0]), " ", day(d.next[1])] : h("span", { class: "dl-quiet" }, "None")),
+    h("td", { class: "dl-at" }, d.at ? day(d.at) : ""),
   );
 }
 
-function offersTab(el) {
-  const reload = () =>
-    block(
-      el,
-      () => api.get("/v1/me/sponsorships/offers"),
-      ({ offers, notice }) => {
-        const sorted = [...offers].sort((a, b) => (a.state === "sent" ? -1 : 0) - (b.state === "sent" ? -1 : 0) || b.sentAt.localeCompare(a.sentAt));
-        return sorted.length ? h("ul", { class: "ap-list" }, sorted.map((o) => offerItem(o, notice, reload))) : empty("No offers yet. Brands in the network see what you offer under Prices.");
-      },
-    );
-  reload();
+function pipeline(deals, ctx) {
+  let filter = deals.some(yours) ? "you" : "all";
+  let q = "";
+  const counts = Object.fromEntries(FILTERS.map(([f]) => [f, deals.filter((d) => passes(d, f)).length]));
+  const tbody = h("tbody");
+  const empty = h("div");
+  const table = h("table", { class: "dl-table" },
+    h("thead", null, h("tr", null, ["Brand", "Stage", "Price", "Whose move", "Next date", "Updated"].map((t, i) => h("th", { scope: "col", class: i === 2 ? "dl-num" : null }, t)))),
+    tbody,
+  );
+  const draw = () => {
+    const shown = deals.filter((d) => passes(d, filter) && (!q || d.brand.toLowerCase().includes(q)));
+    tbody.replaceChildren(...shown.map((d) => dealRow(d, (x) => openDeal(x, ctx))));
+    table.hidden = !shown.length;
+    empty.hidden = !!shown.length;
+    empty.replaceChildren(shown.length ? "" : emptyState("earn", q ? `No deal with "${q}".` : filter === "you" ? "Nothing waits on you." : "Nothing here.", [], filter === "all" ? "Offers from brands, and the bookings they become, appear here." : null));
+  };
+  draw();
+  const search = h("input", { class: "cn-field-input dl-search", type: "search", placeholder: "Find a brand", "aria-label": "Find a brand", oninput: (e) => ((q = e.target.value.trim().toLowerCase()), draw()) });
+  return section(
+    { title: "Pipeline", line: "Every offer and the booking it becomes. Open one for its terms, timeline and evidence.", actions: search },
+    segmented("Show", FILTERS.map(([f, label]) => [f, `${label} ${counts[f]}`]), filter, (v) => ((filter = v), draw()), { cls: "cn-seg--scroll" }),
+    h("div", { class: "dl-wrap" }, table),
+    empty,
+  );
 }
 
-/* ---------- bookings ---------- */
+/* ---------------------------------------------------------------- one deal, whole */
+
+const AUDIT = {
+  "offer.sent": "Offer sent by the brand", "offer.revised": "Offer revised", "offer.countered": "You countered", "offer.accepted": "You accepted", "offer.declined": "You declined",
+  "offer.expired": "Offer lapsed unanswered", "offer.withdrawn": "Withdrawn by the brand", "offer.closed_opt_out": "Closed when you opted out",
+  "booking.opened": "Booking opened", "funding.requested": "Funds asked of the brand", "funding.held": "Money held by the payments partner", "funding.held_again": "Money held again",
+  "funding.frozen": "Money frozen", "funding.unfrozen": "Money released from the freeze", "funding.amount_mismatch": "Funded amount did not match", "funding.refund_instructed": "Refund instructed",
+  "draft.submitted": "Draft sent for review", "draft.changes_requested": "Brand asked for changes", "draft.approved": "Draft approved", "draft.auto_approved": "Draft approved when review time ran out",
+  "work.live": "Published and linked", "work.make_good_live": "Make-good published", "work.removed": "Work removed", "content.approved": "Brand approved the content",
+  "delivery.measured": "Delivery read", "delivery.short": "Delivery short of the guarantee", "delivery.verified": "Delivery verified", "remedy.make_good": "Make-good chosen",
+  "dispute.opened": "Dispute opened", "dispute.resolved": "Dispute resolved", "payout.instructed": "Payout instructed", "payout.confirmed": "Paid out",
+  "booking.cancelled": "Booking cancelled", "booking.cancelled_by_brand": "Cancelled by the brand", "booking.lapsed_unfunded": "Lapsed: not funded in time", "booking.lapsed_unpublished": "Lapsed: not published in time",
+};
+const WHO = { buyer: "Brand", creator: "You", system: "Orbe", escrow_partner: "Payments partner", admin: "Orbe staff", orbe: "Orbe" };
+
+function timeline(audit) {
+  if (!audit?.length) return h("p", { class: "cn-label" }, "No events yet.");
+  return h("ol", { class: "dl-tl" },
+    [...audit].reverse().map((e) =>
+      h("li", { class: "dl-tl-i" },
+        h("span", { class: "dl-tl-dot", "aria-hidden": "true" }),
+        h("p", { class: "dl-tl-t" }, AUDIT[e.action] ?? e.action.replace(/[._]/g, " ").replace(/^./, (c) => c.toUpperCase())),
+        h("p", { class: "dl-tl-d" }, `${WHO[e.actor?.role] ?? "Orbe"}, ${when(e.at)}`),
+      ),
+    ),
+  );
+}
+
+const kv = (pairs) => h("dl", { class: "cn-kv" }, pairs.filter(Boolean).flatMap(([k, v]) => [h("dt", null, k), h("dd", null, v)]));
+const dwSec = (title, ...body) => h("section", { class: "cn-dw-sec" }, h("div", { class: "cn-dw-sec-h" }, h("h3", null, title)), ...body);
+
+/** A linked work: its title (to its page in the Library), the disclosure check rule by rule where something needs attention. */
+function workBlock(w) {
+  const d = w.disclosure;
+  const open = d ? d.results.filter((r) => r.status !== "met" && r.status !== "attested") : [];
+  return h("div", { class: "dl-work" },
+    h("p", { class: "dl-work-t" }, w.workId ? h("a", { href: `/orbe-site/demo/app/works/${seg(w.workId)}` }, w.title) : w.title, w.role === "make_good" ? h("span", { class: "cn-tag cn-tag--straw" }, "Make-good") : null),
+    h("p", { class: "dl-sub" }, `Published ${day(w.publishedAt)}`, w.url ? [" · ", h("a", { href: w.url, target: "_blank", rel: "noopener" }, "Open it", icon("external"))] : null),
+    d ? h("p", { class: `dl-disc dl-disc--${d.status}` }, d.status === "pass" ? "Disclosure checked: every required rule is met." : d.status === "fail" ? "Disclosure: a required rule is missing or weak." : "Disclosure: nothing failed, but some rules need your word.") : null,
+    open.length ? h("ul", { class: "cn-points" }, open.map((r) => h("li", null, `${r.rule} ${r.evidence}`))) : null,
+  );
+}
+
+function readings(b) {
+  if (!b.measurements?.length) return h("p", { class: "cn-label" }, b.state === "live" ? "Orbe reads delivery at each window from the day it went live." : "No readings yet.");
+  const unit = unitOf(b.format, b.kind);
+  return h("table", { class: "dl-mini" },
+    h("thead", null, h("tr", null, h("th", { scope: "col" }, "Window"), h("th", { scope: "col", class: "dl-num" }, unit.charAt(0).toUpperCase() + unit.slice(1)), h("th", { scope: "col" }, "Read"))),
+    h("tbody", null, b.measurements.map((m) => h("tr", null, h("td", null, `${m.day} ${m.day === 1 ? "day" : "days"}`), h("td", { class: "dl-num" }, count(m.units)), h("td", null, `${day(m.recordedAt)}, ${m.how.replaceAll("_", " ")}`)))),
+  );
+}
+
+const SOURCE_OF = { youtube: "youtube", podcast: "podcast", substack: "substack" };
+
+/**
+  Where the booking's delivery is read from: a quiet line when its account is
+  connected, and a way to connect it here when it is not. Read when the drawer
+  opens, so the screen's own first view stays at three reads.
+*/
+function deliverySource(x, ctx) {
+  const id = SOURCE_OF[x.kind];
+  const box = h("div", { class: "dl-src" });
+  if (!id || !["in_production", "draft_review", "changes_requested", "ready", "live", "short", "make_good"].includes(x.state)) return null;
+  api.get("/v1/me/sources").then(({ groups }) => {
+    const src = findSource(groups, id);
+    if (!src) return;
+    box.replaceChildren(src.state === "connected"
+      ? h("p", { class: "cn-label" }, `Delivery is read from your connected ${src.name} for the exact window.`)
+      : h("div", { class: "dl-src-row" },
+          h("p", { class: "dl-notice" }, `${src.name} is not connected, so delivery is read from public counts, which can be provisional. Connected, Orbe reads your own analytics for the exact window.`),
+          connectButton(id, `Connect ${src.name}`, ctx, { done: () => ctx.reload() }),
+        ));
+  }).catch(() => {});
+  return box;
+}
+
+function openDeal(d, ctx) {
+  drawer(`${d.brand}: ${formatName(d.format, d.k)}`, (close) => {
+    const x = d.x;
+    const done = () => (close(), ctx.reload());
+    const head = h("div", { class: "dl-dw-head" },
+      pill(PILL[d.state] ?? "idle", STAGE[d.state] ?? d.state),
+      MOVE[d.state] ? h("span", { class: "cn-tag" }, `Next move: ${MOVE_WORDS[MOVE[d.state]]}`) : null,
+    );
+    const terms = kv([
+      ...priceLines(x),
+      ["Publish between", windowLine(x.publishWindow)],
+      d.kind === "offer" && x.state === "sent" ? ["Answer by", when(x.expiresAt)] : null,
+      d.kind === "booking" ? ["Money", x.funding?.holdStatus === "held" ? `${money(x.funding.total)} held since ${day(x.funding.fundedAt)}` : x.funding?.fundedAt ? `Funded ${day(x.funding.fundedAt)}` : "Not funded yet"] : null,
+      x.reviewDraft ? ["Draft review", "The brand sees a draft first"] : null,
+      x.outcome ? ["Outcome", `${x.outcome.reason} You receive ${bps(x.outcome.creatorShareBps)} of the price.`] : null,
+    ]);
+    return [
+      head,
+      d.kind === "offer" && x.product ? h("p", { class: "dl-product" }, x.product) : null,
+      x.message ? h("blockquote", { class: "dl-quote" }, x.message) : null,
+      x.counters?.length ? h("p", { class: "cn-label" }, `Your counters: ${x.counters.map((c) => `${money(c.price)} on ${day(c.at)}`).join("; ")}.`) : null,
+      x.declineReason ? h("p", { class: "cn-label" }, `Your reason, kept for you: ${x.declineReason}`) : null,
+      can("business") ? moves(d, done) : null,
+      dwSec("Terms", terms, h("p", { class: "dl-guarantee" }, guaranteeLine(x))),
+      d.kind === "booking" ? dwSec("The work", x.works?.length ? x.works.map(workBlock) : h("p", { class: "cn-label" }, "Not published yet. Link it here once it is live."), readings(x), deliverySource(x, ctx)) : null,
+      dwSec("Timeline", timeline(x.audit)),
+    ];
+  }, { wide: true });
+}
+
+/* ---------------------------------------------------------------- the moves that are yours */
 
 /** A YouTube link's video id, or the link itself, as the work's platform id. */
 function platformId(url) {
@@ -85,313 +249,333 @@ function platformId(url) {
   }
 }
 
-function liveForm(b, reload, makeGood) {
+/** The Library's works on the booking's account, to pick the one that went live, so the deal links to its work page. */
+function libraryPick(b) {
+  const sel = h("select", { name: "libraryWork", class: "cn-field-input dl-pick" }, h("option", { value: "" }, "Not in the Library yet"));
+  api.get("/v1/me/works?limit=60&offset=0&sort=newest").then(({ works }) => {
+    const mine = works.filter((w) => !b.accountId || w.account?.id === b.accountId);
+    sel.append(...mine.map((w) => h("option", { value: w.id, "data-title": w.title, "data-at": w.publishedAt }, `${w.title}, ${day(w.publishedAt)}`)));
+  }).catch(() => {});
+  sel.addEventListener("change", () => {
+    const o = sel.selectedOptions[0];
+    const f = sel.form;
+    if (!o?.value || !f) return;
+    if (!f.title.value) f.title.value = o.dataset.title;
+    if (!f.publishedAt.value) f.publishedAt.value = new Date(o.dataset.at).toISOString().slice(0, 16);
+  });
+  return field("The work in your Library", sel, "So the deal opens its work page. The work's page shows its figures beside the deal.");
+}
+
+function liveForm(b, done, makeGood) {
   return form(
     [
+      libraryPick(b),
       field("Link to the published work", input({ name: "url", type: "url", required: true, maxlength: 2000, inputmode: "url" })),
       field("Title", input({ name: "title", required: true, maxlength: 500 })),
       field("Published", input({ name: "publishedAt", type: "datetime-local", required: true }), "In your own time zone."),
       field("Description or show notes", textarea({ name: "description", maxlength: 20000 }), "Orbe checks the disclosure in it against UK and US rules and the platform's."),
-      h("fieldset", { class: "ap-fieldset" }, h("legend", null, "What you did"), check("The platform's paid promotion label is on", { name: "platformFlag" }), check("I said it was sponsored out loud", { name: "spoken" }), check("It is marked on screen", { name: "onScreen" })),
+      h("fieldset", { class: "dl-fs" }, h("legend", null, "What you did"), check("The platform's paid promotion label is on", { name: "platformFlag" }), check("I said it was sponsored out loud", { name: "spoken" }), check("It is marked on screen", { name: "onScreen" })),
     ],
     makeGood ? "Link the make-good" : "Link the live work",
-    async (d) => {
-      const url = String(d.get("url")).trim();
+    async (fd) => {
+      const url = String(fd.get("url")).trim();
       const pid = platformId(url);
-      const description = String(d.get("description") ?? "");
+      const description = String(fd.get("description") ?? "");
       await api.post(`/v1/me/sponsorships/bookings/${seg(b.id)}/live`, {
-        workId: `wk_live_${pid}`.replace(/[^A-Za-z0-9_]/g, "_").slice(0, 64),
+        workId: String(fd.get("libraryWork") || "") || `wk_live_${pid}`.replace(/[^A-Za-z0-9_]/g, "_").slice(0, 64),
         platformWorkId: pid,
         url,
-        title: String(d.get("title")).trim(),
-        publishedAt: new Date(String(d.get("publishedAt"))).toISOString(),
+        title: String(fd.get("title")).trim(),
+        publishedAt: new Date(String(fd.get("publishedAt"))).toISOString(),
         ...(description.trim() ? { description } : {}),
-        platformFlag: d.get("platformFlag") === "on",
-        attestations: { spoken: d.get("spoken") === "on", onScreen: d.get("onScreen") === "on", platformFlag: d.get("platformFlag") === "on" },
+        platformFlag: fd.get("platformFlag") === "on",
+        attestations: { spoken: fd.get("spoken") === "on", onScreen: fd.get("onScreen") === "on", platformFlag: fd.get("platformFlag") === "on" },
         ...(makeGood ? { makeGood: true } : {}),
       });
-      reload();
-      return "Linked. Orbe reads delivery at each window from here.";
+      toast("Linked. Orbe reads delivery at each window from here.");
+      done();
     },
   );
 }
 
-function bookingMoves(b, reload) {
+const fold = (label, ...body) => h("details", { class: "dl-fold" }, h("summary", null, label), ...body);
+
+function moves(d, done) {
+  const x = d.x;
+  const box = (...kids) => h("div", { class: "dl-moves" }, ...kids);
+  if (d.kind === "offer") {
+    if (x.state !== "sent") return null;
+    return box(
+      fold("Accept",
+        h("p", { class: "dl-notice" }, d.notice ?? ""),
+        form([check("I have read this and want to accept.", { name: "seen", required: true })], "Accept the offer", async () => {
+          await api.post(`/v1/me/sponsorships/offers/${seg(x.id)}/accept`, { noticeShown: true });
+          toast("Accepted. The booking is in your pipeline.");
+          done();
+        }),
+      ),
+      fold("Counter",
+        form([field("Your price for the whole offer (£)", input({ name: "price", type: "number", min: "0.01", step: "0.01", required: true, inputmode: "decimal" }), "Before Orbe's fee, which the brand pays on top."), field("A note (optional)", textarea({ name: "note", maxlength: 1000 }))], "Send the counter", async (fd) => {
+          const note = String(fd.get("note") ?? "").trim();
+          await api.post(`/v1/me/sponsorships/offers/${seg(x.id)}/counter`, { price: Number(fd.get("price")), ...(note ? { note } : {}) });
+          toast("Counter sent.");
+          done();
+        }),
+      ),
+      fold("Decline",
+        form([field("Why (optional, kept for you only)", textarea({ name: "reason", maxlength: 1000 }))], "Decline the offer", async (fd) => {
+          const reason = String(fd.get("reason") ?? "").trim();
+          await api.post(`/v1/me/sponsorships/offers/${seg(x.id)}/decline`, reason ? { reason } : {});
+          toast("Declined.");
+          done();
+        }, { primary: false }),
+      ),
+    );
+  }
   const draft = () =>
-    h("details", { class: "ap-more" }, h("summary", null, b.state === "changes_requested" ? "Send a new draft" : "Send a draft for review"),
-      form([field("A note for the brand", textarea({ name: "note", maxlength: 2000 }), "Where to find the draft, and anything they should know.")], "Send the draft", async (d) => {
-        const note = String(d.get("note") ?? "").trim();
-        await api.post(`/v1/me/sponsorships/bookings/${seg(b.id)}/draft`, note ? { note } : {});
-        reload();
-        return "Draft sent.";
+    fold(x.state === "changes_requested" ? "Send a new draft" : "Send a draft for review",
+      form([field("A note for the brand", textarea({ name: "note", maxlength: 2000 }), "Where to find the draft, and anything they should know.")], "Send the draft", async (fd) => {
+        const note = String(fd.get("note") ?? "").trim();
+        await api.post(`/v1/me/sponsorships/bookings/${seg(x.id)}/draft`, note ? { note } : {});
+        toast("Draft sent.");
+        done();
       }),
     );
-  const live = (mg) => h("details", { class: "ap-more" }, h("summary", null, mg ? "Link the make-good" : "Link the published work"), liveForm(b, reload, mg));
-  switch (b.state) {
+  const live = (mg) => fold(mg ? "Link the make-good" : "Link the published work", liveForm(x, done, mg));
+  switch (x.state) {
     case "awaiting_funds":
-      return h("p", { class: "ap-note" }, `Waiting for ${b.brandName} to fund it, by ${when(b.funding.payBy)}. Do not start until it is funded.`);
+      return box(h("p", { class: "dl-notice" }, `Waiting for ${x.brandName} to fund it, by ${when(x.funding.payBy)}. Do not start until it is funded.`));
     case "in_production":
-      return b.reviewDraft ? draft() : live(false);
+      return box(x.reviewDraft ? draft() : live(false));
     case "changes_requested":
-      return draft();
+      return box(draft());
     case "draft_review":
-      return h("p", { class: "ap-note" }, `With ${b.brandName}${b.draft.reviewBy ? ` until ${when(b.draft.reviewBy)}; after that it is approved for them` : ""}.`);
+      return box(h("p", { class: "dl-notice" }, `With ${x.brandName}${x.draft?.reviewBy ? ` until ${when(x.draft.reviewBy)}; after that it is approved for them` : ""}.`));
     case "ready":
-      return live(false);
+      return box(live(false));
     case "short":
-      return h(
-        "div",
-        { class: "ap-stack" },
-        h("p", null, `Delivery fell short of the guarantee. Choose: publish a make-good within ${b.shortfall.makeGoodDays} days, or be paid in proportion, never under ${bps(b.shortfall.floorBps)} of the price.`),
-        actions(
+      return box(
+        h("p", { class: "dl-notice" }, `Delivery fell short of the guarantee. Choose: publish a make-good within ${x.shortfall.makeGoodDays} days, or be paid in proportion, never under ${bps(x.shortfall.floorBps)} of the price.`),
+        h("div", { class: "cn-dw-actions" },
           action("Make it good", async () => {
-            await api.post(`/v1/me/sponsorships/bookings/${seg(b.id)}/remedy`, { choice: "make_good" });
-            reload();
+            await api.post(`/v1/me/sponsorships/bookings/${seg(x.id)}/remedy`, { choice: "make_good" });
+            done();
             return "Make-good chosen.";
           }, { primary: true }),
           action("Take pro rata", async () => {
-            await api.post(`/v1/me/sponsorships/bookings/${seg(b.id)}/remedy`, { choice: "pro_rata" });
-            reload();
+            await api.post(`/v1/me/sponsorships/bookings/${seg(x.id)}/remedy`, { choice: "pro_rata" });
+            done();
             return "Pro rata chosen.";
           }, { confirm: "Take the pro rata payment? This settles the booking." }),
         ),
       );
     case "make_good":
-      return live(true);
+      return box(live(true));
     default:
       return null;
   }
 }
 
-function bookingItem(b, reload) {
-  return h(
-    "li",
-    { class: "ap-item ap-item--block" },
-    h("div", { class: "ap-item-main" },
-      h("p", { class: "ap-says" }, `${b.brandName}: ${formatName(b.format, b.kind)}`, " ", chip(BOOKING_STATES[b.state] ?? b.state, TONE[b.state])),
-      rows([
-        ["Your price", money(b.price)],
-        ["Publish between", windowLine(b.publishWindow)],
-        ["Money", b.funding.holdStatus === "held" ? `${money(b.funding.total)} held by the payments partner since ${day(b.funding.fundedAt)}` : b.funding.fundedAt ? `Funded ${day(b.funding.fundedAt)}` : "Not funded yet"],
-        b.settlement ? ["Settled", "Paid through the payments partner"] : null,
-        b.outcome ? ["Outcome", `${b.outcome.reason} You receive ${bps(b.outcome.creatorShareBps)} of the price.`] : null,
-      ]),
-      h("p", { class: "ap-guarantee" }, guaranteeLine(b)),
-      b.works.map((w) => h("div", { class: "ap-work" }, h("p", null, w.url ? h("a", { href: w.url, target: "_blank", rel: "noopener" }, w.title) : w.title, w.role === "make_good" ? " (make-good)" : ""), disclosure(w))),
-      measured(b),
-    ),
-    bookingMoves(b, reload),
+/* ---------------------------------------------------------------- who sees your private figures */
+
+function sharesSection(status, deals, reload) {
+  if (!status.shares.length) return null;
+  const nameOf = (id) => deals.find((d) => d.x.brandId === id)?.brand ?? "A brand";
+  return section(
+    { title: "Who sees your private figures", line: "Accepting an offer lets that brand see the delivery figures Orbe reads for the sponsored work. Stopping removes them from its report." },
+    h("ul", { class: "cn-list" }, status.shares.map((s) =>
+      h("li", { class: "cn-item cn-item--row" },
+        h("div", { class: "cn-item-main" }, h("p", { class: "cn-item-t" }, nameOf(s.brandId)), h("p", { class: "cn-item-d" }, `Since ${day(s.grantedAt)}`)),
+        can("consent") ? action("Stop sharing", async () => {
+          await api.del(`/v1/me/sponsorships/shares/${seg(s.brandId)}`);
+          reload();
+          return "Stopped. Your private figures are out of their report.";
+        }, { danger: true, confirm: "Stop sharing your figures with this brand? They are removed from its campaign report." }) : null,
+      ),
+    )),
   );
 }
 
-function bookingsTab(el, status) {
-  const reload = () =>
-    block(
-      el,
-      () => api.get("/v1/me/sponsorships/bookings"),
-      ({ bookings }) => [
-        bookings.length ? h("ul", { class: "ap-list" }, bookings.map((b) => bookingItem(b, reload))) : empty("No bookings yet. Accepting an offer makes one."),
-        status.shares.length
-          ? panel(
-              "Who sees your private figures",
-              h("p", null, "Accepting an offer lets that brand see the delivery figures Orbe reads from your connected accounts for the sponsored work. Stopping removes those figures from their campaign report."),
-              h("ul", { class: "ap-list" }, status.shares.map((s) =>
-                h("li", { class: "ap-item" },
-                  h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, bookings.find((b) => b.brandId === s.brandId)?.brandName ?? "A brand"), h("p", { class: "ap-note" }, `Since ${day(s.grantedAt)}`)),
-                  actions(action("Stop sharing", async () => {
-                    await api.del(`/v1/me/sponsorships/shares/${seg(s.brandId)}`);
-                    status.shares = status.shares.filter((x) => x.brandId !== s.brandId);
-                    reload();
-                    return "Stopped. Your private figures are out of their report.";
-                  }, { danger: true, confirm: "Stop sharing your figures with this brand? They are removed from its campaign report." })),
-                ),
-              )),
-            )
-          : null,
-      ],
-    );
-  reload();
-}
-
-/* ---------- prices and settings ---------- */
+/* ---------------------------------------------------------------- prices and settings */
 
 function pricesTab(el, status, refresh) {
-  block(
-    el,
-    () => api.get("/v1/me"),
-    (me) => {
-      const s = status.settings;
-      const offering = (accountId, format) => s.offerings.find((o) => o.accountId === accountId && o.format === format);
-      const rowsFor = me.accounts.flatMap((a) =>
-        FORMATS.filter((f) => f.kind === a.kind).map((f) => {
-          const o = offering(a.id, f.format);
-          const key = `${a.id}|${f.format}`;
-          return h(
-            "fieldset",
-            { class: "ap-fieldset ap-offer" },
-            h("legend", null, `${f.name} on ${a.handle || KINDS[a.kind]}`),
-            field("Price (£)", input({ name: `price:${key}`, type: "number", min: "0.01", step: "0.01", value: o?.price ? String(pounds(o.price)) : "", inputmode: "decimal" }), f.format === "stream_segment" ? "Per hour, before Orbe's fee." : "Per placement, before Orbe's fee."),
-            field("Status", select([["off", "Not offered"], ["on", "Taking bookings"], ["paused", "Offered, paused"]], { name: `state:${key}`, value: o ? (o.available ? "on" : "paused") : "off" })),
-          );
-        }),
-      );
-      const blackouts = s.blackouts.map((b, i) => check(`${day(b.start)} to ${day(b.end)}`, { name: `keep:${i}`, checked: true }));
-      return form(
-        [
-          rowsFor.length ? rowsFor : empty("Connect an account first: you sell placements on accounts Orbe has read."),
+  const here = { reload: refresh };
+  el.replaceChildren(skeleton(4));
+  block(el, () => api.get("/v1/me"), (me) => {
+    const s = status.settings;
+    const offering = (accountId, format) => s.offerings.find((o) => o.accountId === accountId && o.format === format);
+    const rowsFor = me.accounts.flatMap((a) =>
+      FORMATS.filter((f) => f.kind === a.kind).map((f) => {
+        const o = offering(a.id, f.format);
+        const key = `${a.id}|${f.format}`;
+        return h("tr", null,
+          h("th", { scope: "row" }, h("span", { class: "dl-brand-n" }, f.name), h("span", { class: "dl-sub" }, a.handle || KINDS[a.kind])),
+          h("td", null, input({ name: `price:${key}`, type: "number", min: "0.01", step: "0.01", value: o?.price ? String(pounds(o.price)) : "", inputmode: "decimal", "aria-label": `Price for ${f.name} on ${a.handle || KINDS[a.kind]}, in pounds`, class: "cn-field-input dl-price" })),
+          h("td", null, select([["off", "Not offered"], ["on", "Taking bookings"], ["paused", "Offered, paused"]], { name: `state:${key}`, value: o ? (o.available ? "on" : "paused") : "off", "aria-label": `Status for ${f.name}` })),
+        );
+      }),
+    );
+    const blackouts = s.blackouts.map((b, i) => check(`${day(b.start)} to ${day(b.end)}`, { name: `keep:${i}`, checked: true }));
+    const save = form(
+      [
+        rowsFor.length
+          ? h("div", { class: "dl-wrap" }, h("table", { class: "dl-table dl-table--form" }, h("thead", null, h("tr", null, h("th", { scope: "col" }, "Placement"), h("th", { scope: "col" }, "Price (£, before Orbe's fee)"), h("th", { scope: "col" }, "Status"))), h("tbody", null, rowsFor)))
+          : emptyState("link", "Connect an account first: you sell placements on accounts Orbe has read.", [["Connect YouTube", () => openConnect("youtube", here), true], on("podcasts") ? ["Add a podcast feed", () => openConnect("podcast", here)] : null, ["Add your Substack", () => openConnect("substack", here)]].filter(Boolean)),
+        h("div", { class: "cn-grid2" },
           field("Categories you will not work with", input({ name: "excluded", value: s.excludedCategories.join(", "), maxlength: 600 }), "Separated by commas, for example gambling, alcohol."),
           field("Days of notice you need", input({ name: "notice", type: "number", min: "0", max: "365", step: "1", value: String(s.minNoticeDays), required: true })),
           field("Your subject (optional)", input({ name: "vertical", value: s.vertical ?? "", maxlength: 40 }), "For matching, for example finance or cooking."),
-          h("fieldset", { class: "ap-fieldset" }, h("legend", null, "Dates you are not available"), blackouts.length ? blackouts : h("p", { class: "ap-note" }, "None."),
-            h("div", { class: "ap-pair" }, field("From", input({ name: "bFrom", type: "date" })), field("To", input({ name: "bTo", type: "date" })))),
-        ],
-        "Save prices and settings",
-        async (d) => {
-          const offerings = [];
-          for (const a of me.accounts)
-            for (const f of FORMATS.filter((x) => x.kind === a.kind)) {
-              const key = `${a.id}|${f.format}`;
-              const state = d.get(`state:${key}`);
-              if (state === "off") continue;
-              const price = String(d.get(`price:${key}`) ?? "").trim();
-              offerings.push({ accountId: a.id, format: f.format, ...(price ? { price: Number(price) } : {}), available: state === "on" });
-            }
-          const kept = s.blackouts.filter((_, i) => d.get(`keep:${i}`) === "on");
-          const from = String(d.get("bFrom") ?? "");
-          const to = String(d.get("bTo") ?? "");
-          if (from && to) kept.push({ start: from, end: to });
-          const vertical = String(d.get("vertical") ?? "").trim();
-          await api.put("/v1/me/sponsorships/settings", {
-            offerings,
-            excludedCategories: String(d.get("excluded") ?? "").split(",").map((x) => x.trim()).filter(Boolean),
-            minNoticeDays: Number(d.get("notice")),
-            blackouts: kept,
-            ...(vertical ? { vertical } : {}),
-          });
-          refresh();
-          return "Saved.";
-        },
-      );
-    },
-  );
+        ),
+        h("fieldset", { class: "dl-fs" }, h("legend", null, "Dates you are not available"), blackouts.length ? blackouts : h("p", { class: "cn-label" }, "None."),
+          h("div", { class: "cn-grid2" }, field("From", input({ name: "bFrom", type: "date" })), field("To", input({ name: "bTo", type: "date" })))),
+      ],
+      "Save prices and settings",
+      async (fd) => {
+        const offerings = [];
+        for (const a of me.accounts)
+          for (const f of FORMATS.filter((x) => x.kind === a.kind)) {
+            const key = `${a.id}|${f.format}`;
+            const state = fd.get(`state:${key}`);
+            if (state === "off") continue;
+            const price = String(fd.get(`price:${key}`) ?? "").trim();
+            offerings.push({ accountId: a.id, format: f.format, ...(price ? { price: Number(price) } : {}), available: state === "on" });
+          }
+        const kept = s.blackouts.filter((_, i) => fd.get(`keep:${i}`) === "on");
+        const from = String(fd.get("bFrom") ?? "");
+        const to = String(fd.get("bTo") ?? "");
+        if (from && to) kept.push({ start: from, end: to });
+        const vertical = String(fd.get("vertical") ?? "").trim();
+        await api.put("/v1/me/sponsorships/settings", {
+          offerings,
+          excludedCategories: String(fd.get("excluded") ?? "").split(",").map((x) => x.trim()).filter(Boolean),
+          minNoticeDays: Number(fd.get("notice")),
+          blackouts: kept,
+          ...(vertical ? { vertical } : {}),
+        });
+        refresh();
+        return "Saved.";
+      },
+    );
+    return section({ title: "Prices and settings", line: "What brands in the network can book, at your price. Orbe's fee is paid by the brand on top." }, can("business") ? save : h("p", { class: "cn-label" }, "Your role on this team can see prices but not change them."));
+  });
 }
 
-/* ---------- inventory ---------- */
+/* ---------------------------------------------------------------- inventory */
 
 function windowText(w, unit) {
   if (w.median === null) return w.note ?? "Not enough readings yet.";
-  return `Typically ${count(w.median)} ${unit} (middle half ${count(w.p25)} to ${count(w.p75)}), from ${count(w.n)} works.`;
+  return `${count(w.median)} ${unit} typical, middle half ${count(w.p25)} to ${count(w.p75)}, from ${count(w.n)} works`;
 }
 
 function inventoryTab(el) {
-  block(
-    el,
-    () => api.get("/v1/me/sponsorships/inventory"),
-    ({ inventory: inv }) => [
-      inv.items.length
-        ? inv.items.map((it) => {
-            const unit = it.stats.unit ?? unitOf(it.format, it.kind);
-            const sug = it.suggestion;
-            return panel(
-              `${it.name} on ${it.handle}`,
-              h("p", null, it.description),
-              rows([
-                ["Your price", it.listPrice ? money(it.listPrice) : "Not set"],
-                ["Status", it.available ? "Taking bookings" : "Paused"],
-                ...it.stats.windows.map((w) => [`At ${w.day} ${w.day === 1 ? "day" : "days"}`, windowText(w, unit)]),
-                it.stats.consistency !== null ? ["Steadiness", `${Math.round(it.stats.consistency * 100)} in 100`] : null,
-              ]),
-              sug?.status === "suggested"
-                ? h("div", { class: "ap-stack" }, h("p", { class: "ap-says" }, `Orbe suggests ${money(sug.low)} to ${money(sug.high)}${sug.per === "hour" ? " an hour" : ""}${sug.provisional ? ", provisionally" : ""}.`), h("ul", { class: "ap-plain" }, sug.reasons.map((r) => h("li", null, r))))
-                : sug
-                  ? h("p", { class: "ap-note" }, sug.reason)
-                  : null,
-            );
-          })
-        : empty("Nothing offered yet. Set prices under Prices."),
-      inv.geography.map((g) => (g.status === "shown" ? panel("Audience by country", h("p", { class: "ap-note" }, g.measure), rows(g.shares.slice(0, 8).map((s) => [s.country, `${Math.round(s.share * 100)}%`]))) : h("p", { class: "ap-note" }, g.reason))),
-      inv.ratings.map((r) => h("p", { class: "ap-label" }, r.notice)),
-      inv.notes.map((n) => h("p", { class: "ap-note" }, n)),
-    ],
+  el.replaceChildren(skeleton(4));
+  block(el, () => api.get("/v1/me/sponsorships/inventory"), ({ inventory: inv }) => [
+    inv.items.length
+      ? h("div", { class: "dl-inv" }, inv.items.map((it) => {
+          const unit = it.stats.unit ?? unitOf(it.format, it.kind);
+          const sug = it.suggestion;
+          return section(
+            { title: `${it.name} on ${it.handle}`, line: it.description, actions: it.available ? pill("live", "Taking bookings") : pill("idle", "Paused") },
+            statStrip([
+              stat({ label: "Your price", value: it.listPrice ? money(it.listPrice) : "Not set" }),
+              sug?.status === "suggested" ? stat({ label: sug.provisional ? "Orbe suggests, provisionally" : "Orbe suggests", value: `${money(sug.low)} to ${money(sug.high)}`, line: sug.per === "hour" ? "An hour" : null }) : null,
+              it.stats.consistency !== null ? stat({ label: "Steadiness", value: `${Math.round(it.stats.consistency * 100)} in 100` }) : null,
+            ]),
+            kv(it.stats.windows.map((w) => [`At ${w.day} ${w.day === 1 ? "day" : "days"}`, windowText(w, unit)])),
+            sug?.status === "suggested" ? h("ul", { class: "cn-points" }, sug.reasons.map((r) => h("li", null, r))) : sug ? h("p", { class: "cn-label" }, sug.reason) : null,
+          );
+        }))
+      : emptyState("earn", "Nothing offered yet.", [], "Set a price under Prices and it appears here with what your results support."),
+    inv.geography.map((g) =>
+      g.status === "shown"
+        ? section({ title: "Audience by country", line: g.measure }, kv(g.shares.slice(0, 8).map((s) => [s.country, `${Math.round(s.share * 100)}%`])))
+        : h("p", { class: "cn-label" }, g.reason),
+    ),
+    [...inv.ratings.map((r) => r.notice), ...inv.notes].map((n) => h("p", { class: "cn-label" }, n)),
+  ]);
+}
+
+/* ---------------------------------------------------------------- opting in and discovery */
+
+function optInSection(reload) {
+  return section(
+    { title: "Take sponsorships through Orbe", line: "Brands in Orbe's network see what you offer, your prices and your public figures. Your private figures go to one brand only, and only when you accept its offer." },
+    h("p", null, "Money waits with a payments partner and is released when delivery is verified. Orbe's fee is paid by the brand, on top of your price. Orbe stays free for creators."),
+    can("consent")
+      ? form([check("I want brands in the network to see my offerings.", { name: "accept", required: true })], "Opt in", async () => {
+          await api.post("/v1/me/sponsorships/opt-in", { accept: true });
+          reload();
+          return "You are in.";
+        })
+      : h("p", { class: "cn-label" }, "The team's owner decides whether to take sponsorships through Orbe."),
   );
 }
 
-/* ---------- discovery: its own yes, on top of opting in ---------- */
-
-function discoverableBox(status, reload) {
-  const said = h("div", { "aria-live": "polite" });
-  if (status.discoverable)
-    return h("div", { class: "ap-stack" },
-      h("div", { class: "ap-bar" },
-        h("p", null, chip("Discoverable", "good"), " Brands can find you, anonymised, by your results against creators your size."),
-        actions(action("Stop being discoverable", async () => {
+function statusBar(status, reload) {
+  const discover = on("brand_data")
+    ? status.discoverable
+      ? [h("span", { class: "cn-tag cn-tag--sky" }, "Discoverable"), can("consent") ? action("Stop being discoverable", async () => {
           const r = await api.del("/v1/me/sponsorships/discoverable");
-          said.replaceChildren(ok(r.removed.join(" ")));
           reload();
           return r.removed[0];
-        }, { danger: true, confirm: "Leave every brand search now?" })),
-      ),
-      said,
-    );
-  return h("details", { class: "ap-more" }, h("summary", null, "Let brands find you"),
-    h("p", { class: "ap-notice" }, status.discoverableNotice),
-    form([check("I have read this and want brands to be able to find me.", { name: "seen", required: true })], "Make me discoverable", async () => {
-      await api.post("/v1/me/sponsorships/discoverable", { noticeShown: true });
-      reload();
-      return "You are discoverable.";
-    }),
+        }, { danger: true, confirm: "Leave every brand search now?" }) : null]
+      : can("consent")
+        ? fold("Let brands find you",
+            h("p", { class: "dl-notice" }, status.discoverableNotice),
+            form([check("I have read this and want brands to be able to find me.", { name: "seen", required: true })], "Make me discoverable", async () => {
+              await api.post("/v1/me/sponsorships/discoverable", { noticeShown: true });
+              reload();
+              return "You are discoverable.";
+            }),
+          )
+        : null
+    : null;
+  return h("div", { class: "dl-status" },
+    pill("live", "Opted in"),
+    h("p", { class: "dl-status-t" }, `Orbe's fee is ${bps(status.takeRate.networkBps)}, paid by the ${status.takeRate.payer} on top of your price.`),
+    h("div", { class: "dl-status-acts" },
+      discover,
+      can("consent") ? action("Opt out", async () => {
+        await api.del("/v1/me/sponsorships/opt-in");
+        reload();
+        return "Opted out.";
+      }, { danger: true, confirm: "Opt out? Open offers close; bookings you have agreed stay." }) : null,
+    ),
   );
 }
 
-/* ---------- the screen ---------- */
-
-function optInPanel(reload) {
-  return panel(
-    "Take sponsorships through Orbe",
-    h("p", null, "Brands in Orbe's network see what you offer, your prices and your public figures. Your private figures go to one brand only, and only when you accept its offer."),
-    h("p", null, "Money waits with a payments partner and is released when delivery is verified. Orbe's fee is paid by the brand, on top of your price. Orbe stays free for creators."),
-    form([check("I want brands in the network to see my offerings.", { name: "accept", required: true })], "Opt in", async () => {
-      await api.post("/v1/me/sponsorships/opt-in", { accept: true });
-      reload();
-      return "You are in.";
-    }),
-  );
-}
+/* ---------------------------------------------------------------- the screen */
 
 export async function render(main, ctx) {
-  const body = h("div", { class: "ap-stack" });
-  screenHead(main, "sponsorships", { line: "Offers priced from your verified record, paid in full only when delivery is verified.", tags: [["Live", "sky"], ["Paid on verified delivery"]] }).append(body);
-  const reload = () =>
-    block(
+  const body = h("div", { class: "dl" });
+  screenHead(main, "sponsorships", { title: "Deals", line: "Every deal in one place: offers priced from your verified record, bookings paid in full only when delivery is verified.", tags: [["Live", "sky"], ["Paid on verified delivery"]] }).append(body);
+  const reload = () => {
+    body.replaceChildren(skeleton(6));
+    return block(
       body,
-      () => api.get("/v1/me/sponsorships"),
-      (status) => {
-        // Sponsors like you and the assistant work for deals anywhere, so they show whether or not you take offers through Orbe.
-        const goAssistant = () => document.getElementById("tab-sponsorships-assistant")?.click();
+      () => Promise.all([api.get("/v1/me/sponsorships"), api.get("/v1/me/sponsorships/offers"), api.get("/v1/me/sponsorships/bookings")]),
+      ([status, { offers, notice }, { bookings }]) => {
+        const deals = dealsOf(offers, bookings).map((d) => (d.kind === "offer" ? { ...d, notice } : d));
+        const here = { reload };
+        const goAssistant = () => document.getElementById("tab-deals-assistant")?.click();
         const extra = [
           on("sponsor_finder") ? { id: "finder", label: "Sponsors like you", render: (el) => finderTab(el, on("deals_agent") ? goAssistant : null) } : null,
           on("deals_agent") ? { id: "assistant", label: "Assistant", render: assistantTab } : null,
         ].filter(Boolean);
-        if (!status.optedIn) return [optInPanel(reload), extra.length ? tabs("sponsorships", extra, ctx.query.get("tab")) : null];
+        // The assistant and Sponsors like you work for deals anywhere, so they show whether or not you take offers through Orbe.
+        if (!status.optedIn && !deals.length) return [optInSection(reload), extra.length ? tabs("deals", extra, ctx.query.get("tab")) : null];
         return [
-          h("div", { class: "ap-bar" },
-            h("p", null, chip("Opted in", "good"), ` Orbe's fee is ${bps(status.takeRate.networkBps)}, paid by the ${status.takeRate.payer} on top of your price.`),
-            actions(action("Opt out", async () => {
-              await api.del("/v1/me/sponsorships/opt-in");
-              reload();
-              return "Opted out.";
-            }, { danger: true, confirm: "Opt out? Open offers close; bookings you have agreed stay." })),
-          ),
-          on("brand_data") ? discoverableBox(status, reload) : null,
-          tabs("sponsorships", [
-            { id: "offers", label: "Offers", render: offersTab },
-            { id: "bookings", label: "Bookings", render: (el) => bookingsTab(el, status) },
-            { id: "prices", label: "Prices", render: (el) => pricesTab(el, status, reload) },
-            { id: "inventory", label: "Inventory", render: inventoryTab },
+          status.optedIn ? statusBar(status, reload) : optInSection(reload),
+          moneyStrip(deals),
+          tabs("deals", [
+            { id: "pipeline", label: "Pipeline", render: (el) => el.append(pipeline(deals, here), sharesSection(status, deals, reload) ?? "") },
+            status.optedIn ? { id: "prices", label: "Prices", render: (el) => pricesTab(el, status, reload) } : null,
+            status.optedIn ? { id: "inventory", label: "Inventory", render: inventoryTab } : null,
             ...extra,
-          ], ctx.query.get("tab")),
+          ].filter(Boolean), ctx.query.get("tab")),
         ];
       },
     );
+  };
   await reload();
 }

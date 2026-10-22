@@ -345,8 +345,10 @@ export function ago(isoText, now = Date.now()) {
   if (s < 3600) return `${Math.round(s / 60)}m`;
   if (s < 86400) return `${Math.round(s / 3600)}h`;
   if (s < 86400 * 7) return `${Math.round(s / 86400)}d`;
-  return new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  dayMonth ??= new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+  return dayMonth.format(new Date(t));
 }
+let dayMonth = null;
 
 /**
   The head every working screen shares with the tool pages: its tile, its
@@ -357,7 +359,8 @@ export function ago(isoText, now = Date.now()) {
 */
 export function toolShell(main, { tool, title, line, tags = [], tile: tileNode, back }) {
   const work = h("div", { class: "cn-ts-work" });
-  const slug = (tool?.name ?? title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  // The path shown above the title is the screen's own URL, so it always matches the address bar.
+  const slug = tool?.path ? tool.path.split("?")[0] : (tool?.name ?? title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   // The same thing as an API call and an MCP tool: one quiet button, opening a drawer, so a screen keeps one row of tabs.
   const apiBtn = tool?.api ? h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => drawer(`${tool.name}: API`, () => apiTab(tool.api), { wide: true }) }, icon("code"), "API") : null;
   main.append(

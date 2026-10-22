@@ -6,15 +6,14 @@
 */
 import { api, apiHref } from "../api.js";
 import { TOOLS, tile } from "../catalogue.js";
-import { historyList, toolPage } from "../console-ui.js";
-import { icon } from "../icons.js";
-import { action, actions, block, h } from "../ui.js";
-import { sentence } from "./record.js";
+import { historyList, pill, stat, statStrip, toolPage } from "../console-ui.js";
+import { action, actions, block, day, h } from "../ui.js";
+import { exportLinks, figure, keyPoints, sentence } from "./record.js";
 
 const TOOL = TOOLS.find((t) => t.id === "report");
 
 export async function render(main, ctx, opts = {}) {
-  const out = h("div", { class: "cn-result-body" });
+  const out = h("div", { class: "cn-result-body rc-report" });
   const hist = h("div");
   let page = null;
   const load = () =>
@@ -22,13 +21,11 @@ export async function render(main, ctx, opts = {}) {
       block(out, () => api.get("/v1/me/record"), ({ report: r }) => {
         page.status("done", "Ready", r.verdict);
         return [
-          h("p", { class: "cn-verdict" }, r.verdict.label),
-          h("p", null, sentence(r.verdict.summary, r.currency)),
-          r.keyPoints?.length ? h("ul", { class: "ap-points" }, r.keyPoints.map((k) => h("li", { class: `ap-point ap-point--${k.tone}` }, h("span", { class: "ap-cue" }, k.tone === "concern" ? `Concern, ${k.severity}` : k.tone), h("p", null, sentence(k.text, r.currency))))) : null,
-          h("div", { class: "cn-dw-actions" },
-            h("a", { class: "cn-btn cn-btn--s", href: apiHref("/v1/me/record?format=html"), target: "_blank", rel: "noopener" }, icon("external"), "Open the full record"),
-            h("a", { class: "cn-btn cn-btn--s", href: apiHref("/v1/me/record?format=markdown"), target: "_blank", rel: "noopener" }, icon("doc"), "As Markdown"),
-          ),
+          h("div", { class: "rc-hero-top" }, pill(r.verdict.status === "verified" ? "done" : "needs", r.verdict.label), r.period ? h("span", { class: "cn-tag cn-tag--line" }, `${day(r.period.from)} to ${day(r.period.to)}`) : null),
+          h("p", { class: "rc-hero-t" }, sentence(r.verdict.summary, r.currency)),
+          r.headline?.length ? statStrip(r.headline.slice(0, 4).map((f) => stat({ label: f.label.replace("@@", "@"), value: figure(f, r.currency) }))) : null,
+          keyPoints(r),
+          h("div", { class: "cn-dw-actions" }, exportLinks()),
         ];
       }),
       block(hist, () => api.get("/v1/me/reports"), ({ reports }) =>

@@ -10,7 +10,9 @@
   sharpness and a quarter of the pixels), onto a canvas a little larger than
   the box. The drift is a CSS transform on that canvas, so nothing repaints
   while it moves; under reduced motion it holds still. It repaints only when
-  the box's width changes enough to matter.
+  the box's width changes enough to matter. A field once painted is kept, in
+  memory and in the browser (a few KB as webp), so a home opened again draws
+  a picture instead of painting the field afresh.
 */
 
 /* A seeded random source, so a field looks the same every visit. */
@@ -101,6 +103,18 @@ export function paint(x, w, h, seed = 7) {
   x.fillRect(0, 0, w, h);
 }
 
+/* Fields already painted, by seed and size: in memory for this visit, in the browser for the next. */
+const fields = new Map();
+function stored(key) {
+  try {
+    const url = localStorage.getItem(key);
+    if (url) fields.set(key, url);
+    return url;
+  } catch {
+    return null;
+  }
+}
+
 /**
   paintedSky(host, opts) lays the field into host (positioned, with
   overflow hidden) and returns { node, destroy }. opts.seed picks the field;
@@ -123,8 +137,34 @@ export function paintedSky(host, opts = {}) {
     canvas.width = Math.round(w * k);
     canvas.height = Math.round(ht * k);
     const x = canvas.getContext("2d");
+    const seed = opts.seed ?? 7;
+    const field = `${seed}.${canvas.width}x${canvas.height}`;
+    const key = `orbe.sky.${field}`;
+    const kept = fields.get(key) ?? stored(key);
+    if (kept) {
+      const img = new Image();
+      img.onload = () => { if (canvas.width === img.width && canvas.height === img.height) x.drawImage(img, 0, 0); };
+      img.src = kept;
+      return;
+    }
+    if (w < 2) return;
     x.setTransform(k, 0, 0, k, 0, 0);
-    paint(x, w, ht, opts.seed ?? 7);
+    paint(x, w, ht, seed);
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    // Kept for next time once the browser is idle: encoding is not on the way to the first paint.
+    const keep = () => {
+      try {
+        const url = canvas.toDataURL("image/webp", 0.85);
+        if (!url.startsWith("data:image/webp")) return;
+        fields.set(key, url);
+        // One size kept per field, so the browser holds a few KB however often the window changes.
+        for (const k of Object.keys(localStorage)) if (k.startsWith(`orbe.sky.${seed}.`) && k !== key) localStorage.removeItem(k);
+        localStorage.setItem(`orbe.sky.${field}`, url);
+      } catch {
+        // Not kept: the next visit paints it again.
+      }
+    };
+    (window.requestIdleCallback ?? ((f) => setTimeout(f, 200)))(keep);
   }
   draw();
   const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => draw()) : null;

@@ -18,8 +18,8 @@ export const MCP_TOOLS = [
   ["orbe_explain_rating", "A rating as a plain-English paragraph.", "products/diligence/", "rec"],
   ["orbe_quote_guaranteed_read", "A quote for a read paid only on verified delivery.", "products/sponsorships/", "spon"],
   ["orbe_check_delivery", "Delivered or short against a guarantee.", "products/diligence/", "rec"],
-  ["orbe_diagnose_upload", "Whether an upload is behind creators its size.", "products/fix/", "fix"],
-  ["orbe_judge_fix", "Whether a new title or thumbnail lifted an upload.", "products/fix/", "fix"],
+  ["orbe_diagnose_upload", "Whether a work is behind creators its size.", "products/fix/", "fix"],
+  ["orbe_judge_fix", "Whether a new title or thumbnail lifted a work.", "products/fix/", "fix"],
 ];
 
 /** A block of text to copy. Kept for the screens that import it by this name. */

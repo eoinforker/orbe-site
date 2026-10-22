@@ -11,12 +11,12 @@
 import { api, seg } from "./api.js";
 import { emptyState, pill, section, segmented, skeleton } from "./console-ui.js";
 import { icon } from "./icons.js";
-import { action, block, confirmBox, day, failure, h, plural, toast, when } from "./ui.js";
+import { action, block, confirmBox, count, day, failure, h, plural, toast, when } from "./ui.js";
 
 const ROLE_LINE = {
   owner: "Everything, including payouts, deleting the account and handing the team over.",
   manager: "Offers, campaigns and deliveries. Money, sharing and rights wait for the owner.",
-  editor: "The Library, notes, documents, Orbe Fix and ratings. No deals or money.",
+  editor: "The Library, notes, documents, Fix and ratings. No deals or money.",
   viewer: "Reads the record and reports. Changes nothing.",
 };
 const KIND = { creator: "Creator team", brand: "Brand team", agency: "Agency" };
@@ -343,7 +343,7 @@ function rolesCard() {
   const yes = (t) => h("td", null, t === true ? h("span", { class: "cn-yes" }, icon("check"), h("span", { class: "ob-sr" }, "Yes")) : t === "ask" ? h("span", { class: "cn-ask" }, "Asks the owner") : h("span", { class: "cn-no", "aria-label": "No" }, "No"));
   const rows = [
     ["See the record and reports", true, true, true, true],
-    ["Library, notes, Orbe Fix", true, true, true, false],
+    ["Library, notes, Fix", true, true, true, false],
     ["See deals and money", true, true, false, false],
     ["Answer offers, run campaigns", true, true, false, false],
     ["Commit money, share data, grant rights", true, "ask", false, false],
@@ -448,10 +448,19 @@ const VERBS = {
   "link.ended": "ended an agency link",
   "team.updated": "changed the team's details",
 };
-const KINDS = [["all", "Everything"], ["people", "People"], ["approvals", "Approvals"], ["work", "Work"]];
-const kindOf = (a) => (/^(member|invitation|owner|link)\./.test(a.action) ? "people" : a.action.startsWith("approval.") ? "approvals" : /^(rule|team)\./.test(a.action) ? "people" : "work");
+const KINDS = [["all", "Everything"], ["people", "People"], ["approvals", "Approvals"], ["work", "Work"], ["exports", "Exports"]];
+const kindOf = (a) => (a.action === "export.made" ? "exports" : /^(member|invitation|owner|link)\./.test(a.action) ? "people" : a.action.startsWith("approval.") ? "approvals" : /^(rule|team)\./.test(a.action) ? "people" : "work");
 
 function describe(a) {
+  if (a.action === "export.made") {
+    let d = {};
+    try {
+      d = JSON.parse(a.detail ?? "{}");
+    } catch {
+      // An older entry: the id alone.
+    }
+    return `exported ${d.what ?? "a file"}, ${count(d.rows ?? 0)} ${d.rows === 1 ? "row" : "rows"} (${a.target})`;
+  }
   if (VERBS[a.action]) return `${VERBS[a.action]}${a.detail ? `: ${a.detail}` : ""}`;
   const [method, path = ""] = a.action.split(" ");
   const verb = method === "DELETE" ? "removed" : method === "POST" ? "did" : "changed";

@@ -26,7 +26,7 @@ export async function render(main) {
     out.replaceChildren(
       items.length
         ? emptyState("scales", "Choose the slot, type what the brand offered, and press Run.")
-        : emptyState("scales", "Orbe needs a priced slot with enough results to suggest a range.", [["Set your prices", "/orbe-site/demo/app/sponsorships?tab=prices", true], ["Open Studio", "/orbe-site/demo/app/studio?tool=price"]], "Each slot says what it is waiting for in Studio's Price a slot."),
+        : emptyState("scales", "Orbe needs a priced slot with enough results to suggest a range.", [["Set your prices", "/orbe-site/demo/app/deals?tab=prices", true], ["Open Runs", "/orbe-site/demo/app/runs?tool=price"]], "Each slot says what it is waiting for in Studio's Price a slot."),
     );
     const page = toolPage({
       tool: tile(TOOL.glyph, TOOL.k, h, "l"),

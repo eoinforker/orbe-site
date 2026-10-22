@@ -12,7 +12,7 @@ import { failure, h } from "./ui.js";
 
 const ROLE_LINE = {
   manager: "You can answer offers, run campaigns and deliveries. Money, sharing and rights wait for the owner.",
-  editor: "You can work on the Library, notes, documents, Orbe Fix and ratings. Deals and money stay with the owner.",
+  editor: "You can work on the Library, notes, documents, Fix and ratings. Deals and money stay with the owner.",
   viewer: "You can read the record and reports. You change nothing.",
 };
 const KIND = { creator: "creator team", brand: "brand team", agency: "agency" };

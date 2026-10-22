@@ -16,6 +16,12 @@
   var APP = BASE + "/app";
   var PREFIX = "orbe-demo:";
   var LIVE = "This is a demo: that needs the live console. Everything else here works.";
+  var EXPORT = "This is a demo: exports are built by the live console from your own data, so there is no file to download here.";
+  /* Exports (CSV, transcripts, drafts, a work's record) are never replayed: each real file carries its own export id. */
+  function isExport(url) {
+    var f = url.searchParams.get("format");
+    return /\/exports?(\/|$)/.test(url.pathname) || (f && f !== "json");
+  }
 
   /* A deep link opened directly arrives through the site's 404 page as ?__p=. */
   try {
@@ -138,6 +144,7 @@
 
   function answer(method, url, body) {
     var path = url.pathname;
+    if (method === "GET" && isExport(url)) return reply(503, { error: { code: "demo", message: EXPORT } });
     // Signing in and out.
     if (path === "/v1/auth/dev" || path === "/v1/auth/magic-link") {
       return getPeople().then(function () {
@@ -170,6 +177,7 @@
     }
     return getData(persona).then(function (rec) {
       var s = st();
+      if (method === "GET" && path === "/v1/boot") return bootAnswer(rec, url);
       var handled = handle(rec, method, url, body);
       if (handled) { keep(); return handled; }
       if (method === "GET") {
@@ -209,6 +217,122 @@
   function now() { return new Date().toISOString(); }
   function id(prefix) { var s = st(); s.seq += 1; return prefix + "_demo" + Date.now().toString(36) + s.seq; }
 
+  /* GET /v1/boot: the recorded boot for this screen tells which parts it carries; each part is answered as its own request would be now. */
+  function bootFor(rec, url) {
+    var sp = url.searchParams;
+    var screen = sp.get("screen");
+    var keys = Object.keys(rec).filter(function (k) { return k.indexOf("GET /v1/boot") === 0; });
+    var exact = keyOf("GET", url);
+    var pick = function (test) { for (var i = 0; i < keys.length; i++) if (test(new URL(keys[i].slice(4), location.origin).searchParams)) return keys[i]; return null; };
+    var screenKey = rec[exact] ? exact : screen ? pick(function (q) { return q.get("screen") === screen; }) : null;
+    var frameKey = pick(function (q) { return !q.get("screen"); }) || pick(function (q) { return q.get("frame") !== "0"; });
+    var targets = [];
+    var add = function (k) { var b = k && rec[k] && rec[k][0].body; if (b && b.parts) Object.keys(b.parts).forEach(function (t) { if (targets.indexOf(t) < 0) targets.push(t); }); return b; };
+    var base = add(screenKey);
+    if (sp.get("frame") !== "0") add(frameKey);
+    base = base || (frameKey && rec[frameKey][0].body) || { session: null, parts: {}, screens: [] };
+    return { base: base, targets: targets, recorded: function (t) {
+      var all = [screenKey, frameKey].filter(Boolean);
+      for (var i = 0; i < all.length; i++) { var b = rec[all[i]][0].body; if (b && b.parts && b.parts[t]) return b.parts[t]; }
+      return null;
+    } };
+  }
+  function bootAnswer(rec, url) {
+    var b = bootFor(rec, url);
+    var s = st();
+    var parts = {};
+    var jobs = b.targets.map(function (t) {
+      var u = new URL(t, location.origin);
+      var res = handle(rec, "GET", u, undefined);
+      var key = keyOf("GET", u);
+      if (!res && s.overlay[key]) { parts[t] = { status: 200, body: clone(s.overlay[key]) }; return null; }
+      if (!res) { var r = b.recorded(t); if (r) parts[t] = clone(r); return null; }
+      return Promise.resolve(res).then(function (x) { return x.status === 204 ? null : x.json(); }).then(function (body) {
+        parts[t] = body && body.error ? { status: 400, error: body.error } : { status: 200, body: body };
+      }).catch(function () { var r = b.recorded(t); if (r) parts[t] = clone(r); });
+    });
+    return Promise.all(jobs).then(function () {
+      keep();
+      var sess = rec["GET /v1/auth/session"] && pick(rec["GET /v1/auth/session"], "GET", new URL("/v1/auth/session", location.origin));
+      return reply(200, { session: (sess && sess.body) || b.base.session, parts: parts, screens: b.base.screens || [] });
+    });
+  }
+
+  /* The Library table (GET /v1/me/works?table=1): sorted, filtered and paged here, from the fullest table the recording holds. */
+  var BAND_OF = function (w) { return w.band || null; };
+  function tableAnswer(rec, url) {
+    var keys = Object.keys(rec).filter(function (k) { return k.indexOf("GET /v1/me/works?") === 0 && k.indexOf("table=1") > 0; });
+    if (!keys.length) return null;
+    keys.sort(function (a, b) { return ((current(rec, b).works || []).length) - ((current(rec, a).works || []).length); });
+    var full = current(rec, keys[0]);
+    if (!full || !full.works) return null;
+    var sp = url.searchParams;
+    var list = full.works.slice();
+    var f = function (k) { return sp.get(k); };
+    if (f("favourites") === "1") list = list.filter(function (w) { return w.favourite; });
+    if (f("kind")) list = list.filter(function (w) { return w.kind === f("kind"); });
+    if (f("collection")) list = list.filter(function (w) { return (w.collections || []).indexOf(f("collection")) >= 0; });
+    if (f("account")) list = list.filter(function (w) { return w.account && w.account.id === f("account"); });
+    if (f("band")) list = list.filter(function (w) { return BAND_OF(w) === f("band"); });
+    if (f("sponsor") === "1") list = list.filter(function (w) { return !!w.sponsor; });
+    if (f("fix")) list = list.filter(function (w) { return f("fix") === "none" ? !w.fix : w.fix && w.fix.state === f("fix"); });
+    if (f("from")) list = list.filter(function (w) { return String(w.publishedAt) >= f("from"); });
+    if (f("to")) list = list.filter(function (w) { return String(w.publishedAt).slice(0, 10) <= f("to"); });
+    if (f("q")) { var term = f("q").toLowerCase(); list = list.filter(function (w) { return String(w.title).toLowerCase().indexOf(term) >= 0; }); }
+    var sort = f("sort") || "published";
+    var dir = f("dir") === "asc" ? 1 : -1;
+    var val = function (w) {
+      switch (sort) {
+        case "published": return w.publishedAt ? Date.parse(w.publishedAt) : null;
+        case "title": return String(w.title || "").toLowerCase();
+        case "kind": return w.kind;
+        case "account": return w.account ? String(w.account.handle).toLowerCase() : null;
+        case "reach": return w.reach ? w.reach.value : null;
+        case "rating": return w.rating ? w.rating.rating : null;
+        case "typical": return w.rating ? w.rating.multiple : null;
+        case "fix": return w.fix ? w.fix.state : null;
+        case "sponsor": return w.sponsor ? String(w.sponsor.brand).toLowerCase() : null;
+        case "deals": return w.deals || null;
+        case "clips": return w.clips || null;
+        case "starred": return w.favourite ? 1 : 0;
+        default: return null;
+      }
+    };
+    list.sort(function (a, b) {
+      var x = val(a), y = val(b);
+      if (x === null && y === null) return String(a.id) < String(b.id) ? -1 : 1;
+      if (x === null) return 1;
+      if (y === null) return -1;
+      if (x === y) return String(a.id) < String(b.id) ? -1 : 1;
+      return (x < y ? -1 : 1) * dir;
+    });
+    var off = 0;
+    var c = f("cursor");
+    if (c && c.indexOf("demo:") === 0) off = Number(c.slice(5)) || 0;
+    var lim = Number(f("limit") || 200);
+    var out = clone(full);
+    out.works = list.slice(off, off + lim);
+    out.total = list.length;
+    out.limit = lim;
+    out.sort = sort;
+    out.dir = dir > 0 ? "asc" : "desc";
+    out.cursor = off + lim < list.length ? "demo:" + (off + lim) : null;
+    var rated = list.filter(function (w) { return w.rating && typeof w.rating.rating === "number"; });
+    out.totals = Object.assign({}, full.totals || {}, {
+      works: list.length,
+      rated: rated.length,
+      averageRating: rated.length ? Math.round(rated.reduce(function (n, w) { return n + w.rating.rating; }, 0) / rated.length * 1000) / 1000 : null,
+      starred: list.filter(function (w) { return w.favourite; }).length,
+      sponsorReads: list.filter(function (w) { return !!w.sponsor; }).length,
+      clips: list.reduce(function (n, w) { return n + (w.clips || 0); }, 0),
+      deals: full.totals && full.totals.deals === null ? null : list.reduce(function (n, w) { return n + (w.deals || 0); }, 0),
+    });
+    if (out.counts) out.counts.favourites = full.works.filter(function (w) { return w.favourite; }).length;
+    var cols = current(rec, "GET /v1/me/collections");
+    if (cols && cols.collections) out.collections = cols.collections;
+    return reply(200, out);
+  }
+
   function handle(rec, method, url, body) {
     var path = url.pathname;
     var m;
@@ -229,6 +353,25 @@
       return reply(200, cur);
     }
     // The Library's list: every view, search and sort, from the full recording, with your stars and collections.
+    if (path === "/v1/me/works" && method === "GET" && url.searchParams.get("table") === "1") return tableAnswer(rec, url);
+    // Many works at once: star, unstar, add to or take from a collection.
+    if (path === "/v1/me/works/bulk" && method === "POST") {
+      var ids = (body && body.ids) || [];
+      var act = body && body.action;
+      ids.forEach(function (wid) {
+        if (act === "star" || act === "unstar") patchAll(rec, function (o) { return o.id === wid && "favourite" in o; }, function (o) { o.favourite = act === "star"; });
+        if ((act === "add" || act === "remove") && body.collection) patchAll(rec, function (o) { return o.id === wid && Array.isArray(o.collections); }, function (o) {
+          o.collections = o.collections.filter(function (x) { return x !== body.collection; });
+          if (act === "add") o.collections.push(body.collection);
+        });
+      });
+      if ((act === "add" || act === "remove") && body.collection) {
+        var cb = current(rec, "GET /v1/me/collections") || { collections: [] };
+        cb.collections.forEach(function (c) { if (c.id === body.collection) c.count = Math.max(0, (c.count || 0) + (act === "add" ? ids.length : -ids.length)); });
+        setGet("GET /v1/me/collections", cb);
+      }
+      return reply(200, { action: act, changed: ids.length });
+    }
     if (path === "/v1/me/works" && method === "GET") {
       var fullKey = Object.keys(rec).filter(function (k) { return k.indexOf("GET /v1/me/works?") === 0 && rec[k][0].body && rec[k][0].body.counts; })[0] || Object.keys(rec).filter(function (k) { return k.indexOf("GET /v1/me/works?") === 0; })[0];
       if (!fullKey) return null;
@@ -369,8 +512,10 @@
       patchAll(rec, function (o) { return o.id === m[1] && "role" in o; }, function (o) { if (body && body.role) o.role = body.role; if (body && "channels" in body) o.channels = body.channels; mem = o; });
       return reply(200, { member: mem || { id: m[1], role: body && body.role } });
     }
+    // Notifications need the installed app and the live server.
+    if (path.indexOf("/v1/me/push") === 0 && method !== "GET") return live(503);
     // Connecting a real platform, uploading, paying and sending need the live server.
-    if (/\/connections\/[^/]+\/start$|\/upload$|\/checkout$|\/fund$|\/send$|\/publish$|\/documents\/file$/.test(path) && method !== "GET") return live(503);
+    if (/\/connections\/[^/]+\/start$|\/sources\/[^/]+\/(connect|refresh|read)$|\/upload$|\/checkout$|\/fund$|\/send$|\/publish$|\/documents\/file$/.test(path) && method !== "GET") return live(503);
     return null;
   }
 
@@ -396,7 +541,7 @@
     href: function (path) {
       var url = new URL(path, location.origin);
       var rec = data[persona];
-      if (rec) {
+      if (rec && !isExport(url)) {
         var r = recorded(rec, "GET", url);
         if (r && r.entry.blob) return BASE + "/data/files/" + r.entry.blob;
       }
@@ -421,7 +566,7 @@
       setTimeout(function () { location.assign(APP + "/"); }, 500);
       return;
     }
-    if (href.indexOf("/v1/") === 0) { e.preventDefault(); toast(LIVE); }
+    if (href.indexOf("/v1/") === 0) { e.preventDefault(); toast(isExport(new URL(href, location.origin)) ? EXPORT : LIVE); }
   }, true);
 
   /* A calm note in the corner. */

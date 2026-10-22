@@ -1,5 +1,5 @@
 /*
-  Orbe Fix: each YouTube upload young enough to fix, judged against creators
+  Fix: each YouTube upload young enough to fix, judged against creators
   the same size; options generated and checked for one upload, with those held
   back and why; a fix proposed, approved with a tap (thumbnails always), and
   undone with one. YouTube's permission to change a title or thumbnail is asked
@@ -9,7 +9,7 @@ import { api, seg } from "../api.js";
 import { action, actions, block, check, chip, count, day, empty, failure, form, h, money, ok, panel, pct, plural, title } from "../ui.js";
 import { screenHead } from "../console-ui.js";
 
-const FIX_STATES = { proposed: "Waiting for your tap", approved: "Approved, going live", applied: "Live, being measured", kept: "Kept: it lifted the upload", reverted: "Put back", cancelled: "Cancelled" };
+const FIX_STATES = { proposed: "Waiting for your tap", approved: "Approved, going live", applied: "Live, being measured", kept: "Kept: it lifted the work", reverted: "Put back", cancelled: "Cancelled" };
 const FIX_TONE = { kept: "good", applied: "good", reverted: "off", cancelled: "off" };
 const TARGET = { title: "the title", thumbnail: "the thumbnail", both: "the title and the thumbnail" };
 const STATUS = { underperforming: "Behind creators its size", on_track: "On track", too_young: "Too young to judge", too_old: "Too old to fix", not_eligible: "Not one Fix can help" };
@@ -41,7 +41,7 @@ function settingsBox(ch, reload) {
     { class: "ap-stack" },
     !s.connected ? h("p", { class: "ap-note" }, "Connect YouTube Analytics for this channel first, under ", h("a", { href: "/orbe-site/demo/app/settings/connections" }, "Connect"), ".") : null,
     form(
-      [check("Orbe Fix on for this channel", { name: "enabled", checked: s.enabled }), check("Change titles on their own when Orbe finds a better one. A new thumbnail always waits for your tap.", { name: "autoTitles", checked: s.autoTitles })],
+      [check("Fix on for this channel", { name: "enabled", checked: s.enabled }), check("Change titles on their own when Orbe finds a better one. A new thumbnail always waits for your tap.", { name: "autoTitles", checked: s.autoTitles })],
       "Save",
       async (d) => {
         const enabled = d.get("enabled") === "on";
@@ -144,7 +144,7 @@ function fixItem(f, reload) {
       f.before.title !== f.after.title ? h("p", null, h("span", { class: "ap-cue" }, "Was "), f.before.title, h("br"), h("span", { class: "ap-cue" }, "Now "), f.after.title) : null,
       f.before.thumbnailUrl !== f.after.thumbnailUrl ? h("p", { class: "ap-note" }, "A new thumbnail.") : null,
       f.result?.text ? h("p", null, f.result.text) : null,
-      f.fee ? h("p", { class: "ap-note" }, `Fee ${money(f.fee)}, because it lifted the upload.`) : null,
+      f.fee ? h("p", { class: "ap-note" }, `Fee ${money(f.fee)}, because it lifted the work.`) : null,
       h("p", { class: "ap-note" }, `Started ${day(f.createdAt)}.`),
     ),
     moves.length ? actions(moves) : null,
@@ -158,7 +158,7 @@ function uploadItem(u, ch, reload) {
     "li",
     { class: "ap-item ap-item--block" },
     h("div", { class: "ap-item-main" },
-      h("p", { class: "ap-says" }, u.title, " ", chip(STATUS[d?.status] ?? "Not judged", behind ? "warn" : d?.status === "on_track" ? "good" : "off")),
+      h("p", { class: "ap-says" }, h("a", { href: `/orbe-site/demo/app/works/${seg(u.workId)}?tab=fix` }, u.title), " ", chip(STATUS[d?.status] ?? "Not judged", behind ? "warn" : d?.status === "on_track" ? "good" : "off")),
       h("p", { class: "ap-note" }, `Published ${day(u.publishedAt)}, ${count(u.views)} views.`),
       d?.expected ? h("p", null, `Creators your size typically have ${count(d.expected.median)} by now (middle half ${count(d.expected.p25)} to ${count(d.expected.p75)}).`) : null,
       behind ? h("p", null, d.why) : null,
@@ -171,24 +171,26 @@ function uploadItem(u, ch, reload) {
 
 export async function render(main, ctx) {
   const body = h("div", { class: "ap-stack" });
-  screenHead(main, "fix", { line: "Uploads that fall behind creators your size, what to change, and new options to try. A change stays, and is charged, only if it lifts the upload; one tap puts the old one back.", tags: [["Live", "sky"], ["Paid only on lift"], ["YouTube"]] }).append(body);
+  screenHead(main, "fix", { line: "Works that fall behind creators your size, what to change, and new options to try. A change stays, and is charged, only if it lifts the work; one tap puts the old one back.", tags: [["Live", "sky"], ["Paid only on lift"], ["YouTube"]] }).append(body);
   const reload = () =>
     block(body, () => api.get("/v1/me/fixes"), (r) => [
       returned(ctx.query),
       h("p", { class: "ap-note" }, `Judged ${plural(r.judgedAfterDays, "day")} or more after the change: kept with at least ${pct(r.liftNeeded)} more views than its own pace, for ${money(r.fee)} a kept fix (provisional). Otherwise it goes back, free.`),
       r.channels.length
         ? r.channels.map((ch) => {
-            const behind = ch.uploads.filter((u) => u.diagnosis?.status === "underperforming" || u.fixes.length);
+            // Opened from a work's page (?work=): that upload alone, whatever its state.
+            const only = ctx.query.get("work");
+            const behind = ch.uploads.filter((u) => (only ? u.workId === only : u.diagnosis?.status === "underperforming" || u.fixes.length));
             const rest = ch.uploads.length - behind.length;
             return panel(
               `${ch.handle || ch.title} on YouTube`,
               settingsBox(ch, reload),
               behind.length ? h("ul", { class: "ap-list" }, behind.map((u) => uploadItem(u, ch, reload))) : empty("Nothing is falling behind creators your size right now."),
-              rest ? h("p", { class: "ap-note" }, `${plural(rest, "other upload")} on track, too young or too old to judge.`) : null,
-              ch.settings.enabled ? null : h("p", { class: "ap-note" }, "Turn Orbe Fix on to generate options."),
+              rest ? h("p", { class: "ap-note" }, `${plural(rest, "other work")} on track, too young or too old to judge.`) : null,
+              ch.settings.enabled ? null : h("p", { class: "ap-note" }, "Turn Fix on to generate options."),
             );
           })
-        : empty("Orbe Fix works on YouTube channels. Connect YouTube Analytics to claim yours.", h("p", null, h("a", { class: "ob-lnk ob-lnk--s", href: "/orbe-site/demo/app/settings/connections" }, "Connect"))),
+        : empty("Fix works on YouTube channels. Connect YouTube Analytics to claim yours.", h("p", null, h("a", { class: "ob-lnk ob-lnk--s", href: "/orbe-site/demo/app/settings/connections" }, "Connect"))),
     ]);
   await reload();
 }

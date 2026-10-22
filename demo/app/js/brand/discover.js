@@ -50,7 +50,7 @@ function uploadsLine(uploads) {
   const judged = uploads.filter((u) => u.atSize);
   if (!judged.length) return null;
   const n = (r) => judged.filter((u) => u.atSize.result === r).length;
-  return h("p", { class: "ap-note" }, `Recent uploads against creators the same size: ${n("above")} above the middle half, ${n("within")} inside, ${n("below")} below.`);
+  return h("p", { class: "ap-note" }, `Recent works against creators the same size: ${n("above")} above the middle half, ${n("within")} inside, ${n("below")} below.`);
 }
 
 function accountBlock(a, campaigns) {
@@ -60,7 +60,7 @@ function accountBlock(a, campaigns) {
     "div",
     { class: "ap-stack ap-account" },
     h("p", { class: "ap-says" }, `${KINDS[a.kind] ?? a.kind}${a.handle ? `, ${a.handle}` : ""}`, " ", chip(`Size ${a.sizeBand}`)),
-    a.rating ? h("p", null, `Orbe Rating ${signed(a.rating.rating)}, ${a.rating.band}${a.rating.beats !== null ? `; reach beats ${a.rating.beats} in 100 creators its size` : ""}.`) : null,
+    a.rating ? h("p", null, `Rating ${signed(a.rating.rating)}, ${a.rating.band}${a.rating.beats !== null ? `; reach beats ${a.rating.beats} in 100 creators its size` : ""}.`) : null,
     a.offerings.length
       ? h("ul", { class: "ap-plain" }, a.offerings.map((o) => {
           const w = [...o.delivery].sort((x, y) => x.day - y.day).at(-1);
@@ -75,7 +75,7 @@ function accountBlock(a, campaigns) {
 
 /** One creator's recent uploads against creators the same size, read fresh by ref. */
 function uploadsDetail(ref) {
-  const d = h("details", { class: "ap-more" }, h("summary", null, "Recent uploads"));
+  const d = h("details", { class: "ap-more" }, h("summary", null, "Recent works"));
   const box = h("div", { class: "ap-stack" });
   d.append(box);
   d.addEventListener("toggle", () => {
@@ -84,8 +84,8 @@ function uploadsDetail(ref) {
     block(box, () => api.get(`/v1/brand/discover/${seg(ref)}`), ({ creator }) =>
       creator.accounts.map((a) =>
         a.uploads.length
-          ? h("ul", { class: "ap-plain" }, a.uploads.slice(0, 8).map((u) => h("li", null, `${u.title ?? "An upload"}, ${u.published}: ${u.atSize ? `${u.atSize.result === "within" ? "inside" : u.atSize.result} the middle half (${count(u.atSize.p25)} to ${count(u.atSize.p75)} ${u.atSize.metric} at ${u.atSize.day} days)` : "not compared yet"}`)))
-          : h("p", { class: "ap-note" }, "No uploads to compare yet."),
+          ? h("ul", { class: "ap-plain" }, a.uploads.slice(0, 8).map((u) => h("li", null, `${u.title ?? "A work"}, ${u.published}: ${u.atSize ? `${u.atSize.result === "within" ? "inside" : u.atSize.result} the middle half (${count(u.atSize.p25)} to ${count(u.atSize.p75)} ${u.atSize.metric} at ${u.atSize.day} days)` : "not compared yet"}`)))
+          : h("p", { class: "ap-note" }, "No works to compare yet."),
       ),
     );
   });

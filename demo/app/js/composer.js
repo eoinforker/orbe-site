@@ -1,6 +1,6 @@
 /*
   The composer: one box to ask Orbe to run a tool, as on Home and docked at
-  the foot of Studio. Chips choose the tool, the account and the window;
+  the foot of Runs. Chips choose the tool, the account and the window;
   Run (or Ctrl Enter, Cmd Enter on a Mac) hands a job to onRun. With the
   tool on "Ask Orbe", the words choose: an @handle rates a channel, an
   amount checks an offer, "sponsor" finds brands, a title rates a work.
@@ -10,7 +10,7 @@ import { tile } from "./catalogue.js";
 import { icon } from "./icons.js";
 import { h } from "./ui.js";
 
-/** The tools Studio runs, in the order the tool chip lists them. */
+/** The tools Runs runs, in the order the tool chip lists them. */
 export const STUDIO_TOOLS = [
   { id: "auto", name: "Ask Orbe", line: "Orbe picks the tool from your words", glyph: "products/you/", k: "rec" },
   { id: "rate-work", name: "Rate a work", line: "A work of yours, against creators the same size", glyph: "products/rate/", k: "also", feature: "rating", hint: "A title, or leave empty for your best in the window" },
@@ -103,7 +103,8 @@ export function composer({ accounts = [], onRun, initial = {}, placeholder }) {
       run,
     ),
   );
-  queueMicrotask(grow);
+  // An empty box is one line already; only a text given at the start needs measuring, once it is on the page.
+  if (text.value) requestAnimationFrame(grow);
   return {
     node,
     focus: () => text.focus(),

@@ -1,6 +1,6 @@
 import { DAY_MS } from "../core/util.js";
-import { Z_QUARTILE, predictRange } from "../loop/predict.js";
-import { formatOf, maturedShare, toMs } from "../rating/measure.js";
+import { Z_QUARTILE, predictFromPrepared, predictRange } from "../loop/predict.js";
+import { formatOf, maturedShare, prepare, toMs } from "../rating/measure.js";
 import { specFor } from "../rating/rate.js";
 /** Orbe Fix changes titles and thumbnails, which only YouTube has the permissions for. */
 export const FIX_KIND = "youtube";
@@ -42,7 +42,9 @@ export function diagnose(input) {
     const sigma = bench.inputs.benchmarkSigma;
     const expected = { p25: round(Math.exp(centre - Z_QUARTILE * sigma)), median: round(Math.exp(centre)), p75: round(Math.exp(centre + Z_QUARTILE * sigma)) };
     const z = (Math.log(Math.max(views, 1)) - centre) / sigma;
-    const own = input.history?.length ? predictRange({ work: { id: work.id, kind: FIX_KIND, durationSec: work.durationSec }, creatorId: "", accountId: "", audience: input.audience, history: input.history.filter((w) => w.id !== work.id), now: nowMs, priors: input.priors }) : null;
+    const own = input.history?.length
+        ? predictFromPrepared({ work: { id: work.id, kind: FIX_KIND, durationSec: work.durationSec }, creatorId: "", accountId: "", audience: input.audience, now: nowMs, priors: input.priors }, preparedHistory(input.history, nowMs).filter((p) => p.work.id !== work.id))
+        : null;
     const ownMedian = own && !("status" in own) ? own.inputs.ownMedian : null;
     const ownMultiple = ownMedian ? views / (ownMedian * share) : null;
     const found = { ...base, sizeBand: bench.sizeBand, expected, z, ownMultiple };
@@ -56,6 +58,21 @@ export function diagnose(input) {
         target,
         why: `Below creators the same size: ${views.toLocaleString("en-GB")} views at ${ageDays.toFixed(1)} days, where the lower quartile is ${expected.p25.toLocaleString("en-GB")}. ${reason}`,
     };
+}
+/*
+  The creator's history, prepared once per list and moment. A list of uploads
+  is diagnosed against the same history, so preparing it again for each one
+  repeated the same work hundreds of times; leaving one work out of the
+  prepared list is the same as preparing the list without it.
+*/
+const PREPARED = new WeakMap();
+function preparedHistory(history, nowMs) {
+    const hit = PREPARED.get(history);
+    if (hit && hit.nowMs === nowMs)
+        return hit.prepared;
+    const prepared = prepare(specFor(FIX_KIND), history, nowMs);
+    PREPARED.set(history, { nowMs, prepared });
+    return prepared;
 }
 function targetFor(ctr) {
     if (!ctr || !(ctr.typical > 0))

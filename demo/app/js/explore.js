@@ -69,7 +69,7 @@ export async function render(main, ctx) {
   main.append(
     h("header", { class: "cn-pagehead" },
       h("div", null, h("p", { class: "cn-eyebrow" }, `${tools.length} tools`), h("h1", { class: "cn-h1", tabindex: "-1", "data-title": "" }, "Explore"), h("p", { class: "cn-sub" }, ctx.user.type === "creator" ? "Every tool for growing, earning from and protecting your work, each against creators the same size." : "Every tool for booking guaranteed reads and finding creators by their results.")),
-      on("rating") && ctx.user.type === "creator" ? h("a", { class: "cn-btn cn-btn--primary", href: "/orbe-site/demo/app/studio" }, icon("studio"), "Run a tool") : null,
+      on("rating") && ctx.user.type === "creator" ? h("a", { class: "cn-btn cn-btn--primary", href: "/orbe-site/demo/app/runs" }, icon("studio"), "Run a tool") : null,
     ),
     h("div", { class: "cn-explore-bar" }, h("label", { class: "cn-field" }, icon("search"), search), filters),
     grid,

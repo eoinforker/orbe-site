@@ -110,27 +110,22 @@ const SECTIONS = {
       ]);
     }
   },
+  async app(el) {
+    const m = await import("./app-settings.js");
+    await m.renderAppSettings(el, deviceName);
+  },
   async team(el, ctx) {
     const m = await import("./team.js");
     await m.renderTeam(el, ctx);
-  },
-  async integrations(el, ctx) {
-    const m = await import("./integrations.js");
-    await m.renderIntegrations(el, ctx);
   },
   async sharing(el, ctx) {
     const m = await import("./sharing.js");
     await m.renderSharing(el, ctx);
   },
   async connections(el, ctx) {
-    if (!can("owner")) {
-      // Connections are the owner's: others see what is read, and nothing to press.
-      el.append(readOnly("Only the owner connects or removes accounts. You can see what Orbe reads for this team."));
-      await embed(el, () => import("./creator/connect.js"), ctx);
-      el.querySelector(".cn-embed")?.classList.add("cn-readonly");
-      return;
-    }
-    await embed(el, () => import("./creator/connect.js"), ctx);
+    // The Connections page itself, which says what a non-owner may do.
+    const m = await import("./creator/connect.js");
+    await m.connections(el, ctx);
   },
   async plan(el) {
     const m = await import("./creator/plan.js");
@@ -186,6 +181,8 @@ const SECTIONS = {
 };
 
 export async function render(main, ctx) {
+  // Integrations joined Connections; older links and the tools' sign-in still land here.
+  if (ctx.params.section === "integrations") return ctx.go(`/orbe-site/demo/app/settings/connections${location.search}`, { replace: true });
   const sections = settingsFor(ctx.user, on);
   const id = sections.some((s) => s.id === ctx.params.section) ? ctx.params.section : sections[0].id;
   const here = sections.find((s) => s.id === id);

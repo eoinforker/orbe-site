@@ -1,286 +1,235 @@
 /*
-  Connect: accounts through each platform's own sign-in (YouTube Analytics,
-  AdSense, Patreon, Stripe), a Stripe restricted key, a Substack export, and
-  podcasts (register the feed, prove it is yours, check the prefix).
+  Connections: every source in one place and one vocabulary.
+
+  Grouped as the creator thinks of them: where the work lives, where the
+  money comes from (only for roles that may read money), where Orbe can
+  post, files and tools, AI and developers. Each tile says one thing about
+  the person (connected as which account, read from public data, needs
+  attention with the fix, or not connected) and, separately, whether Orbe
+  can connect it here at all. Both come from GET /v1/me/sources; nothing on
+  this page works a status out for itself.
+
+  After a platform's sign-in the browser lands here (?connected=1 or
+  ?error=). If the person started from another screen, they go straight
+  back there (connect-inline.js keeps the place). Otherwise the first read
+  shows as a live line until the first rating lands.
+
+  Settings, Connections and the old Integrations section both draw this page.
 */
-import { api, on, seg } from "../api.js";
-import { SOURCES } from "../terms.js";
-import { action, actions, block, chip, count, day, empty, failure, field, form, h, input, ok, panel, title, when } from "../ui.js";
+import { api, can } from "../api.js";
+import { drawer, emptyState, section, skeleton } from "../console-ui.js";
 import { screenHead } from "../console-ui.js";
+import { icon } from "../icons.js";
+import { confirmBox, count, day, failure, h, ok, plural, signed, toast, when } from "../ui.js";
+import { connectBody, mark, readLine, statePill, takeBack } from "../connect-inline.js";
 
 const RETURNED = {
   denied: "You said no on the platform's screen, so nothing was connected.",
   start_from_orbe: "Start the connection from Orbe, so it is tied to your account. Press Connect below.",
   invalid_request: "The platform sent back an incomplete answer. Try connecting again.",
+  invalid_state: "That sign-in link had expired or was started elsewhere. Start again from here.",
 };
+const NAMES = { youtube_analytics: "YouTube", adsense: "AdSense", patreon: "Patreon", stripe: "Stripe", tiktok: "TikTok", instagram: "Instagram" };
 
-/* TikTok and Instagram: read only, each behind its own feature. */
-const SOCIAL = {
-  tiktok: { start: "/v1/me/social/tiktok/start", gone: "/v1/me/social/tiktok", name: "TikTok", what: "Your profile and your recent public videos, read only. Captions are checked for sponsorships; the rating does not cover TikTok yet." },
-  instagram: { start: "/v1/me/social/instagram/start", gone: "/v1/me/social/instagram", name: "Instagram", what: "A professional (business or creator) account: profile, posts and their likes and comments, read only." },
-};
-
-function socialPanel() {
-  const list = h("div");
-  const live = [on("tiktok") ? "tiktok" : null, on("instagram") ? "instagram" : null].filter(Boolean);
-  const reload = () =>
-    block(list, () => api.get("/v1/me/social"), ({ connections }) =>
-      h("ul", { class: "ap-list" },
-        live.map((p) => {
-          const c = connections.find((x) => x.platform === p);
-          return h("li", { class: "ap-item" },
-            h("div", { class: "ap-item-main" },
-              h("p", { class: "ap-says" }, SOCIAL[p].name, " ", c ? chip("Connected", "good") : null),
-              h("p", { class: "ap-note" }, c ? `@${c.handle}${c.followers !== null ? `, ${count(c.followers)} followers` : ""}; ${count(c.posts)} posts kept, read ${when(c.readAt ?? c.connectedAt)}.` : SOCIAL[p].what),
-            ),
-            actions(
-              c
-                ? action("Disconnect", async () => {
-                    const r = await api.del(SOCIAL[p].gone);
-                    await reload();
-                    return `Disconnected. ${count(r.removed.posts)} posts removed.`;
-                  }, { danger: true, confirm: `Disconnect ${SOCIAL[p].name}? Every post Orbe read from it is deleted.` })
-                : action(`Connect ${SOCIAL[p].name}`, async () => {
-                    const r = await api.post(SOCIAL[p].start, {});
-                    window.location.assign(r.authorizeUrl);
-                  }),
-            ),
-          );
-        }),
-      ),
-    );
-  reload();
-  return panel("Short-form", h("p", null, "Signed in on the platform's own page. Orbe reads only, never posts, and deletes anything not read again within 30 days."), list);
-}
-
-function returnedNotice(q) {
-  const source = SOURCES[q.get("source") ?? ""]?.name ?? SOCIAL[q.get("source") ?? ""]?.name ?? "The account";
-  if (q.get("connected") === "1") return ok(`${source} is connected. Orbe has read it and your record now includes it.`);
+/** What came back from a platform's sign-in, as one line; null when nothing did. */
+function returned(q) {
+  const source = NAMES[q.get("source") ?? ""] ?? (q.get("connected") && q.get("connected") !== "1" ? q.get("connected").split(",").join(", ") : "The account");
+  if (q.get("connected")) return { ok: true, text: `${source} is connected.` };
   const code = q.get("error");
-  if (code) return failure({ message: RETURNED[code] ?? `${source} was not connected (${code.replaceAll("_", " ")}). Try again, or write to Orbe if it keeps happening.` });
+  if (code) return { ok: false, text: RETURNED[code] ?? `${source} was not connected (${code.replaceAll("_", " ")}). Try again, or write to Orbe if it keeps happening.` };
   return null;
 }
 
-const summaryLine = (s) =>
-  [s.claimed ? "Account claimed." : null, s.works ? `${count(s.works)} works read.` : null, s.revenueLines ? `${count(s.revenueLines)} money lines read.` : null, ...(s.warnings ?? [])].filter(Boolean).join(" ") || "Read.";
+/* ---------------------------------------------------------------- the first read */
 
-function connectedList(el) {
-  return block(
-    el,
-    () => api.get("/v1/me/connections"),
-    ({ connections }) =>
-      connections.length
-        ? h(
-            "ul",
-            { class: "ap-list" },
-            connections.map((c) =>
-              h(
-                "li",
-                { class: "ap-item" },
-                h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, SOURCES[c.source]?.name ?? c.source), h("p", { class: "ap-note" }, `${c.sourceAccountId ?? "Account"}, connected ${day(c.createdAt)}`)),
-                actions(
-                  action(
-                    "Stop reading",
-                    async () => {
-                      const r = await api.del(`/v1/me/connections/${seg(c.id)}`);
-                      el.before(ok(r.note));
-                      await connectedList(el);
-                      return "Disconnected.";
-                    },
-                    { confirm: `Stop reading ${SOURCES[c.source]?.name ?? c.source}?`, danger: true },
-                  ),
-                ),
-              ),
-            ),
-          )
-        : empty("Nothing connected yet."),
-  );
+/** A live line from just after connecting until the first rating lands, then the rating and where to look. */
+function firstRead(el, { started }) {
+  const line = h("p", { class: "cn-conn-progress-t", role: "status", "aria-live": "polite" }, "Reading what you connected.");
+  const bar = h("span", { class: "cn-conn-progress-bar" });
+  const extra = h("div", { class: "cn-conn-progress-more" });
+  el.replaceChildren(h("div", { class: "cn-conn-progress" }, h("span", { class: "cn-conn-progress-track", "aria-hidden": "true" }, bar), line, extra));
+  const t0 = started ?? Date.now();
+  let timer = 0;
+  const tick = async () => {
+    let p;
+    try {
+      p = await api.get("/v1/me/connections/progress");
+    } catch (e) {
+      line.textContent = e.message;
+      return;
+    }
+    const secs = Math.round((Date.now() - t0) / 1000);
+    const reading = p.accounts.filter((a) => a.stage === "reading" || a.stage === "rating");
+    const works = p.accounts.reduce((t, a) => t + a.works, 0);
+    const oldest = p.accounts.map((a) => a.backfill?.from).filter(Boolean).sort()[0];
+    if (!p.accounts.length) {
+      line.textContent = "Nothing read yet. Connect a source below to start.";
+      bar.style.inlineSize = "0%";
+      return;
+    }
+    if (p.done) {
+      bar.style.inlineSize = "100%";
+      const rated = p.accounts.filter((a) => a.rating);
+      line.textContent = rated.length
+        ? `Rated ${rated.map((a) => `${a.account} at ${signed(a.rating.rating)}`).join(", ")} against creators your size. ${plural(works, "work")} read${oldest ? `, back to ${day(oldest)}` : ""}.`
+        : `${plural(works, "work")} read. ${p.accounts.find((a) => a.reason)?.reason ?? "Not enough to rate yet."}`;
+      extra.replaceChildren(h("a", { class: "cn-btn cn-btn--s", href: "/orbe-site/demo/app/library" }, icon("library"), "See your works"), rated.length ? h("a", { class: "cn-btn cn-btn--s cn-btn--ghost", href: "/orbe-site/demo/app/" }, "Home") : null);
+      return;
+    }
+    bar.style.inlineSize = `${Math.min(95, 15 + (works / Math.max(works, 200)) * 70)}%`;
+    line.textContent = reading.some((a) => a.stage === "rating")
+      ? `${plural(works, "work")} read${oldest ? `, back to ${day(oldest)}` : ""}. Rating them against creators your size.`
+      : `Reading your works${works ? `: ${plural(works, "work")} so far` : ""}.`;
+    if (secs < 120) timer = setTimeout(tick, secs < 10 ? 1000 : 2500);
+    else line.textContent += " This is taking longer than usual; it carries on without this page open.";
+  };
+  tick();
+  return () => clearTimeout(timer);
 }
 
-function oauthPanel(highlight) {
-  return panel(
-    "Connect through the platform",
-    h("p", null, "You sign in on the platform's own page and choose what to share. Orbe reads only; it never posts, moves money or keeps a password."),
-    h(
-      "ul",
-      { class: "ap-list" },
-      Object.entries(SOURCES).map(([source, s]) =>
-        h(
-          "li",
-          { class: `ap-item${highlight === source ? " ap-item--here" : ""}` },
-          h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, s.name), h("p", { class: "ap-note" }, s.what)),
-          actions(
-            action(`Connect ${s.name}`, async () => {
-              const r = await api.post(`/v1/me/connections/${seg(source)}/start`, {});
-              window.location.assign(r.authorizeUrl);
-            }),
-          ),
-        ),
-      ),
+/* ---------------------------------------------------------------- one tile */
+
+function facts(s) {
+  const bits = [];
+  if (s.account) bits.push(h("span", null, h("b", null, s.state === "public" ? "Account " : "Connected as "), s.account));
+  const read = readLine(s);
+  if (read) bits.push(h("span", null, read));
+  if (s.lastReadAt) bits.push(h("span", null, `Last read ${when(s.lastReadAt)}`));
+  if (s.nextReadAt) bits.push(h("span", null, `Next read ${day(s.nextReadAt)}`));
+  return bits.length ? h("p", { class: "cn-conn-facts" }, bits) : null;
+}
+
+function tile(s, { owner, redraw, openSheet }) {
+  const buttons = [];
+  if (owner) {
+    const ready = s.availability === "ready" || s.state !== "not_connected";
+    if (s.id === "tool:webhooks" && s.availability === "ready") buttons.push(h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => import("../integrations.js").then((m) => m.webhooksDrawer(owner)) }, icon("bolt"), "Webhooks"));
+    else if (s.id === "tool:exports" && s.availability === "ready") buttons.push(h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => import("../integrations.js").then((m) => m.exportsDrawer()) }, icon("doc"), "Export"));
+    else if (s.id === "tool:notion" && s.state === "connected") buttons.push(h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => import("../integrations.js").then((m) => m.notionDrawer()) }, "Send to Notion"));
+    else if (s.state === "attention" && s.availability === "ready") buttons.push(h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => openSheet(s) }, icon("plug"), `Reconnect ${s.name}`));
+    else if (s.state === "public" && s.availability === "ready") buttons.push(h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => openSheet(s) }, icon("plug"), "Connect to verify"));
+    else if (s.state === "not_connected" && ready && s.connect.kind !== "none") buttons.push(h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => openSheet(s) }, icon("plug"), "Connect"));
+    else if (s.state === "connected" && s.connect.kind === "substack") buttons.push(h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: () => openSheet(s) }, "Upload a newer export"));
+    if (s.refresh && s.state !== "not_connected") buttons.push(h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: (e) => readAgain(s, e.currentTarget, redraw) }, "Read again"));
+    if (s.connect.kind === "page" && s.id.startsWith("podcast:")) buttons.push(h("a", { class: "cn-btn cn-btn--s cn-btn--ghost", href: s.connect.href }, "Manage the show"));
+    if (s.disconnect) buttons.push(h("button", { class: "cn-btn cn-btn--s cn-btn--ghost cn-conn-off", type: "button", onclick: () => disconnect(s, redraw) }, "Disconnect"));
+  }
+  return h("li", { class: `cn-conn-tile cn-conn-tile--${s.state}`, "data-source": s.id },
+    mark(s),
+    h("div", { class: "cn-conn-main" },
+      h("p", { class: "cn-conn-name" }, s.name, statePill(s)),
+      h("p", { class: "cn-conn-line" }, s.line),
+      facts(s),
+      s.attention ? h("p", { class: "cn-conn-attention" }, icon("status"), h("span", null, h("b", null, s.attention.message), " ", s.attention.fix)) : null,
+      s.state !== "connected" && s.availability !== "ready" && s.unavailableLine ? h("p", { class: "cn-conn-unavailable" }, s.unavailableLine) : null,
     ),
-    h(
-      "details",
-      { class: "ap-more" },
-      h("summary", null, "Or give Stripe a restricted key"),
-      h("p", { class: "ap-note" }, "In Stripe: Developers, API keys, create a restricted key with read access only. Orbe refuses a secret key."),
-      form(
-        [field("Restricted key", input({ name: "key", required: true, pattern: "rk_(live|test)_[A-Za-z0-9]+", autocomplete: "off", spellcheck: "false" }), "Starts rk_live_ or rk_test_."), field("Stripe account id (optional)", input({ name: "stripeAccountId", pattern: "acct_[A-Za-z0-9]+", autocomplete: "off" }))],
-        "Connect with the key",
-        async (d, f) => {
-          const body = { key: String(d.get("key")).trim() };
-          const acct = String(d.get("stripeAccountId") ?? "").trim();
-          if (acct) body.stripeAccountId = acct;
-          const r = await api.post("/v1/me/connections/stripe/key", body);
-          f.reset();
-          return `Stripe connected (${r.connected.sourceAccountId}). ${summaryLine(r.summary)}`;
-        },
-      ),
-    ),
+    buttons.length ? h("div", { class: "cn-conn-actions" }, buttons) : null,
   );
 }
 
-function substackPanel() {
-  return panel(
-    "Substack export",
-    h("p", null, "Download the subscriber export from your Substack dashboard (Settings, Exports) and upload it here. Only the owner can download it, so it claims the publication. Up to 5 MB."),
-    form(
-      [field("Publication", input({ name: "publication", required: true, maxlength: 200, placeholder: "yourname.substack.com" })), field("Export file (CSV)", input({ name: "file", type: "file", accept: ".csv,text/csv", required: true }))],
-      "Upload",
-      async (d, f) => {
-        const file = d.get("file");
-        if (!(file instanceof File) || !file.size) throw new Error("Choose the CSV file first.");
-        if (file.size > 5 * 1024 * 1024) throw new Error("That file is over 5 MB.");
-        const r = await api.post("/v1/me/uploads/substack_export", { content: await file.text(), filename: file.name, publication: String(d.get("publication")).trim() });
-        f.reset();
-        return summaryLine(r.summary);
-      },
-    ),
+async function readAgain(s, btn, redraw) {
+  btn.disabled = true;
+  btn.textContent = "Reading";
+  try {
+    const r = await api.post(s.refresh.path, {});
+    toast(r.note ?? `${s.name} read again.`);
+    redraw();
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "Read again";
+    toast(e.message);
+  }
+}
+
+async function disconnect(s, redraw) {
+  if (!(await confirmBox(s.disconnect.removes, { title: `Disconnect ${s.name}${s.account ? ` (${s.account})` : ""}?`, yes: "Disconnect", danger: true }))) return;
+  try {
+    const r = await api.del(s.disconnect.path);
+    toast(r?.note ?? `${s.name} disconnected.`);
+    redraw();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+/* ---------------------------------------------------------------- the page */
+
+function summaryLine(sum) {
+  const bits = [];
+  bits.push(sum.connected ? plural(sum.connected, "source") + " connected" : "Nothing connected yet");
+  if (sum.publicOnly) bits.push(`${count(sum.publicOnly)} read from public data`);
+  if (sum.works) bits.push(`${plural(sum.works, "work")} read`);
+  if (sum.attention) bits.push(`${plural(sum.attention, "needs", "need")} attention`);
+  return bits.join(" · ");
+}
+
+/**
+  A group of sources. Where Orbe posts and the tools hold many Orbe can't
+  connect here yet: those fold under one line, so what you can use comes first.
+*/
+function group(g, draw) {
+  const later = g.id === "post" || g.id === "tools" ? g.sources.filter((s) => s.state === "not_connected" && s.availability !== "ready") : [];
+  const now = g.sources.filter((s) => !later.includes(s));
+  return section({ title: g.name, line: g.line, cls: `cn-conn-group cn-conn-group--${g.id}` },
+    now.length ? h("ul", { class: "cn-conn-list" }, now.map(draw)) : null,
+    later.length
+      ? h("details", { class: "cn-conn-later" },
+          h("summary", null, `Not here yet: ${later.map((s) => s.name).join(", ")}`),
+          h("ul", { class: "cn-conn-list" }, later.map(draw)))
+      : null,
   );
 }
 
-const PREFIX_WORDS = { live: "Live on your newest episodes", partial: "On some episodes", absent: "Not in the feed yet", wrong_show: "Another show's prefix", no_episodes: "No episodes to check" };
+const ALIAS = { youtube_analytics: "youtube" };
 
-function showDetail(show, reload) {
-  const box = h("div", { class: "ap-stack" });
-  block(
-    box,
-    () => api.get(`/v1/me/podcasts/${seg(show.showId)}`),
-    ({ show: s, setup }) => {
-      const status = h("div", { "aria-live": "polite" });
-      const verify = (method, label) =>
-        action(label, async () => {
-          if (method === "owner_email") {
-            const r = await api.post(`/v1/me/podcasts/${seg(s.showId)}/verify`, { method });
-            status.replaceChildren(ok(`A link is on its way to ${r.sentTo}. Open it signed in here; it lasts until ${when(r.expiresAt)}.`));
-            return "Sent.";
-          }
-          await api.post(`/v1/me/podcasts/${seg(s.showId)}/verify`, { method });
-          reload();
-          return "Proven.";
-        });
-      return [
-        s.verified
-          ? ok(`Proven yours by ${s.verified.method.replaceAll("_", " ")} on ${day(s.verified.at)}.`)
-          : h(
-              "div",
-              { class: "ap-stack" },
-              h("p", { class: "ap-says" }, "Prove it is yours, one of three ways."),
-              h("ol", { class: "ap-steps" },
-                h("li", null, "Add this tag to your feed, in your host's custom tags or podcast:txt field, then press the button.", h("code", { class: "ap-code" }, setup.txt.tag), actions(verify("podcast_txt", "Check for the tag"))),
-                h("li", null, "Or put Orbe's prefix on your episodes (below), then press the button.", actions(verify("prefix", "Check for the prefix"))),
-                h("li", null, setup.ownerEmail ? `Or have a link sent to the owner email in your feed (${setup.ownerEmail}).` : "Your feed shows no owner email, so this route is closed.", setup.ownerEmail ? actions(verify("owner_email", "Email the owner")) : null),
-              ),
-              status,
-            ),
-        h("p", { class: "ap-says" }, "Measure downloads with Orbe's prefix"),
-        h("ol", { class: "ap-steps" }, setup.steps.steps.map((t) => h("li", null, t))),
-        h("p", null, "Your prefix: ", h("code", { class: "ap-code" }, setup.prefix)),
-        prefixBox(s),
-        h("p", { class: "ap-note" }, "Smart link once proven: ", h("code", { class: "ap-code" }, setup.smartLink)),
-        actions(
-          action(
-            "Remove this show",
-            async () => {
-              await api.del(`/v1/me/podcasts/${seg(s.showId)}`);
-              reload();
-              return "Removed.";
-            },
-            { danger: true, confirm: `Remove ${s.title} from Orbe?` },
-          ),
-        ),
-      ];
-    },
-  );
-  return box;
-}
-
-function prefixBox(s) {
-  const out = h("div", { "aria-live": "polite" }, s.prefix ? h("p", { class: "ap-note" }, `Last check ${day(s.prefix.checkedAt)}: ${PREFIX_WORDS[s.prefix.status] ?? s.prefix.status}. ${s.prefix.message}`) : null);
-  return h(
-    "div",
-    null,
-    actions(
-      action("Check my feed", async () => {
-        const r = await api.get(`/v1/me/podcasts/${seg(s.showId)}/prefix`);
-        out.replaceChildren(
-          h("p", null, chip(PREFIX_WORDS[r.prefix.status] ?? r.prefix.status, r.prefix.status === "live" ? "good" : "warn"), " ", r.prefix.message),
-          r.prefix.otherPrefixes?.length ? h("p", { class: "ap-note" }, `Also in your chain: ${r.prefix.otherPrefixes.join(", ")}. Prefixes chain, so they can stay.`) : null,
-        );
-        return r.prefix.message;
-      }),
-    ),
-    out,
-  );
-}
-
-function podcastsPanel() {
-  const list = h("div");
-  const reload = () =>
-    block(
-      list,
-      () => api.get("/v1/me/podcasts"),
-      ({ shows }) =>
-        shows.length
-          ? h(
-              "ul",
-              { class: "ap-list" },
-              shows.map((s) => {
-                const d = h("details", { class: "ap-more" }, h("summary", null, s.verified ? "Prefix and smart link" : "Prove it is yours"));
-                d.addEventListener("toggle", () => d.open && d.childElementCount === 1 && d.append(showDetail(s, reload)), { once: false });
-                return h(
-                  "li",
-                  { class: "ap-item ap-item--block" },
-                  h("div", { class: "ap-item-main" }, h("p", { class: "ap-says" }, s.title, " ", s.verified ? chip("Proven", "good") : chip("Not proven yet")), h("p", { class: "ap-note ap-wrap" }, s.feedUrl)),
-                  d,
-                );
-              }),
-            )
-          : empty("No shows yet. Register your feed below."),
-    );
-  reload();
-  return panel(
-    "Podcasts",
-    list,
-    form([field("Feed address", input({ name: "feedUrl", type: "url", required: true, maxlength: 2000, placeholder: "https://", inputmode: "url" }), "The public RSS feed your host gives you.")], "Register the feed", async (d, f) => {
-      const r = await api.post("/v1/me/podcasts", { feedUrl: String(d.get("feedUrl")).trim() });
-      f.reset();
-      reload();
-      return `${r.show.title} is registered. Open it to prove it is yours.`;
-    }),
-  );
+/** Draws every source into `el`. Exported for Settings, which hosts the same page. */
+export async function connections(el, ctx) {
+  const owner = can("owner");
+  const q = ctx.query ?? new URLSearchParams(location.search);
+  const came = returned(q);
+  if (came) {
+    const back = takeBack();
+    if (back && !back.startsWith(location.pathname)) {
+      toast(came.text);
+      return ctx.go(back, { replace: true });
+    }
+  }
+  const notice = h("div");
+  const progress = h("div");
+  const body = h("div", { class: "cn-conn" }, skeleton(6));
+  el.append(h("div", { class: "ap-stack" }, notice, progress, body));
+  if (came) notice.replaceChildren(came.ok ? ok(came.text) : failure({ message: came.text }));
+  let stop = () => {};
+  const draw = async () => {
+    let data;
+    try {
+      data = await api.get("/v1/me/sources");
+    } catch (e) {
+      return body.replaceChildren(emptyState("plug", e.message));
+    }
+    const openSheet = (s) => drawer(`Connect ${s.name}`, (close) => connectBody(s, { back: location.pathname, close, done: () => draw() }));
+    body.replaceChildren(...[
+      h("p", { class: "cn-conn-summary" }, summaryLine(data.summary)),
+      owner ? null : h("p", { class: "cn-readonly-note" }, icon("shield"), h("span", null, "Only the team's owner connects or removes sources. You can see what Orbe reads for this team.")),
+      owner && !data.canConnect ? h("p", { class: "cn-conn-consent" }, icon("shield"), h("span", null, "Connecting starts with your consent to read what you connect. Orbe asks for it as you connect your first source.")) : null,
+      ...data.groups.map((g) => group(g, (s) => tile(s, { owner, redraw: draw, openSheet }))),
+    ].filter(Boolean));
+    // ?connect=youtube from any link, or Home's older ?source=youtube_analytics: open that sheet.
+    const asked = q.get("connect") ?? (came ? null : q.get("source"));
+    const here = asked ? (ALIAS[asked] ?? asked) : null;
+    if (here && owner) {
+      const s = data.groups.flatMap((g) => g.sources).find((x) => x.id === here || x.id.startsWith(`${here}:`));
+      if (s) openSheet(s);
+    }
+    const reading = data.summary.works === 0 && data.summary.connected + data.summary.publicOnly > 0;
+    if (((came?.ok && q.get("source")) || reading) && !progress.childElementCount) stop = firstRead(progress, {});
+  };
+  await draw();
+  return () => stop();
 }
 
 export async function render(main, ctx) {
-  const connected = h("div");
-  screenHead(main, "connect", { line: "Every figure on your record is read at source, with your consent, and you can stop any of it here." }).append(
-    h("div", { class: "ap-stack" },
-      returnedNotice(ctx.query),
-      panel("Connected", connected),
-      oauthPanel(ctx.query.get("connect") ?? ctx.query.get("source")),
-      substackPanel(),
-      on("podcasts") ? podcastsPanel() : null,
-      on("tiktok") || on("instagram") ? socialPanel() : null,
-    ),
-  );
-  await connectedList(connected);
+  const head = screenHead(main, "connect", { line: "Everything Orbe reads for you and everything it can post to, with what each one holds. You can stop any of it here." });
+  await connections(head, ctx);
 }
+

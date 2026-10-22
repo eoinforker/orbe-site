@@ -49,7 +49,8 @@ export const words = (s) => {
   const t = String(s ?? "").replaceAll("_", " ");
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
-export const plural = (n, one, many = `${one}s`) => `${n.toLocaleString("en-GB")} ${n === 1 ? one : many}`;
+let numberFormat = null;
+export const plural = (n, one, many = `${one}s`) => `${(numberFormat ??= new Intl.NumberFormat("en-GB")).format(n)} ${n === 1 ? one : many}`;
 
 /* ---------- layout ---------- */
 

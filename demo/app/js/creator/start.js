@@ -294,11 +294,11 @@ function nextStep(state, go, ctx) {
         ),
       );
   const sponsor = panel(
-    "Sponsorships",
+    "Deals",
     state.sponsorships.optedIn
-      ? h("p", null, "You take sponsorships through Orbe. Set your price for a host-read spot under Sponsorships.")
+      ? h("p", null, "You take sponsorships through Orbe. Set your price for a host-read spot under Deals.")
       : h("p", null, "Opt in and brands can book host-read spots with a guaranteed number of downloads, checked against your own figures. You set the price and say yes to each offer."),
-    h("p", null, h("a", { class: "ob-lnk", href: "/orbe-site/demo/app/sponsorships" }, state.sponsorships.optedIn ? "Open Sponsorships" : "Opt in to sponsorships")),
+    h("p", null, h("a", { class: "ob-lnk", href: "/orbe-site/demo/app/deals" }, state.sponsorships.optedIn ? "Open Deals" : "Opt in to sponsorships")),
   );
   return h(
     "div",

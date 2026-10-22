@@ -264,7 +264,7 @@ async function one(main, id, ctx) {
         toast(e.message);
       }
     });
-    return h("label", { class: "cn-md-link" }, h("span", { class: "cn-item-d" }, "Its record"), sel);
+    return h("div", { class: "cn-md-link" }, h("label", null, h("span", { class: "cn-item-d" }, "Its record"), sel), d.item.workId ? h("a", { class: "cn-btn cn-btn--xs", href: `/orbe-site/demo/app/works/${seg(d.item.workId)}?tab=clips` }, "Open the work") : null);
   }
 
   const watch = (f) => (st.redraw.add(f), f);

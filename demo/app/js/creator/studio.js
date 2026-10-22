@@ -1,5 +1,5 @@
 /*
-  Studio: ask Orbe to run a tool and keep what it found. The composer docks
+  Runs: ask Orbe to run a tool and keep what it found. The composer docks
   at the foot; each run lands in the feed above as a card with its answer
   and, when shown, its metadata (the tool, the account, the window, how long
   it took). Every run is the server's (POST /v1/runs), from the same
@@ -37,7 +37,7 @@ export async function runJob(job) {
 function workAnswer({ top, others }) {
   const r = top.rating;
   return [
-    h("a", { class: "cn-run-work", href: `/orbe-site/demo/app/library?work=${encodeURIComponent(top.id)}` },
+    h("a", { class: "cn-run-work", href: `/orbe-site/demo/app/works/${encodeURIComponent(top.id)}` },
       h("span", { class: "cn-work-art" }, cover(top.id, top.kind, r ? (r.rating + 1.5) / 3 : 0.3)),
       h("span", { class: "cn-run-work-main" },
         h("span", { class: "cn-run-work-t" }, top.title),
@@ -47,14 +47,14 @@ function workAnswer({ top, others }) {
           : h("span", { class: "cn-run-work-d" }, "Not rated yet: too new to compare."),
       ),
     ),
-    others.length ? h("ul", { class: "cn-run-list" }, others.map((w) => h("li", null, h("a", { href: `/orbe-site/demo/app/library?work=${encodeURIComponent(w.id)}` }, w.title), h("span", { class: `cn-score${w.rating?.rating > 0 ? " cn-score--up" : ""}` }, w.rating ? signed(w.rating.rating) : "New")))) : null,
+    others.length ? h("ul", { class: "cn-run-list" }, others.map((w) => h("li", null, h("a", { href: `/orbe-site/demo/app/works/${encodeURIComponent(w.id)}` }, w.title), h("span", { class: `cn-score${w.rating?.rating > 0 ? " cn-score--up" : ""}` }, w.rating ? signed(w.rating.rating) : "New")))) : null,
     r ? h("p", { class: "cn-label" }, r.notice) : null,
   ];
 }
 
 function channelAnswer({ account, result: res }) {
   const name = account?.title ?? account?.handle ?? "This channel";
-  if (!res || res.status !== "rated") return [h("p", { class: "cn-run-say" }, `${name} is not rated yet.`), h("p", null, res?.message ?? "Not enough public uploads to compare yet.")];
+  if (!res || res.status !== "rated") return [h("p", { class: "cn-run-say" }, `${name} is not rated yet.`), h("p", null, res?.message ?? "Not enough public works to compare yet.")];
   return [
     h("p", { class: "cn-run-who" }, name),
     h("div", { class: "cn-figure" }, h("p", { class: "cn-figure-n" }, signed(res.rating)), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers`))),
@@ -192,7 +192,8 @@ export async function render(main, ctx) {
         ? [...entries].reverse().map(runCard)
         : [h("div", { class: "cn-studio-empty" },
             h("span", { class: "cn-empty-ico" }, icon("studio")),
-            h("h1", { tabindex: "-1", "data-title": "" }, "What should Orbe run?"),
+            h("h1", { tabindex: "-1", "data-title": "" }, "Runs"),
+            h("p", { class: "cn-studio-q" }, "What should Orbe run?"),
             h("p", null, "Rate a work, check an offer, price a slot or find a sponsor. Every answer comes from your own results, against creators the same size."),
             suggestions(),
           )]),
@@ -203,8 +204,14 @@ export async function render(main, ctx) {
   async function go(job) {
     // Shown at once as running; replaced by the server's kept run when it answers.
     const pending = named({ id: `pending-${Date.now()}`, at: new Date().toISOString(), job });
+    const had = entries.length;
     entries = [pending, ...entries].slice(0, 30);
-    draw();
+    // Add the one card rather than redrawing the feed, so the tap paints at once.
+    if (had) {
+      if (had >= 30) feed.firstElementChild?.remove();
+      feed.append(runCard(pending));
+      applyFilter();
+    } else draw();
     box.busy(true);
     try {
       const kept = named(await runJob(job));
@@ -235,7 +242,7 @@ export async function render(main, ctx) {
   if (ctx.query.get("run") === "1") {
     const job = { tool: ctx.query.get("tool") ?? "auto", text: ctx.query.get("q") ?? "", account: ctx.query.get("account") ?? "all", window: ctx.query.get("window") ?? "30" };
     if (job.tool === "auto") job.tool = detect(job.text);
-    history.replaceState(null, "", "/orbe-site/demo/app/studio");
+    history.replaceState(null, "", "/orbe-site/demo/app/runs");
     box.setTool("auto");
     await go(job);
   } else box.focus();

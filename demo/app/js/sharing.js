@@ -1,7 +1,7 @@
 /*
   Settings, Sharing: everything a creator chooses to show the world, in one
   place. Your public page (and what is on it), the verified badge, links to
-  a rating you shared, the email after each upload, and your invitation
+  a rating you shared, the email after each new work, and your invitation
   link. Each part appears only when its feature is on here, and nothing is
   public until the creator says so.
 */
@@ -73,7 +73,7 @@ async function shares(el) {
 async function emails(el) {
   await block(el, () => api.get("/v1/me/email-preferences"), ({ preferences }) =>
     section({ title: "Emails", line: "Sign-in links and anything about money always come. The rest is your choice." },
-      toggle("A week after each upload", preferences.habit, async (v) => (await api.put("/v1/me/email-preferences", { habit: v }), v ? "You will hear from Orbe after each upload." : "No more emails after each upload."), "How it did against creators your size, and one next step."),
+      toggle("A week after each new work", preferences.habit, async (v) => (await api.put("/v1/me/email-preferences", { habit: v }), v ? "You will hear from Orbe after each new work." : "No more emails after each new work."), "How it did against creators your size, and one next step."),
     ),
   );
 }

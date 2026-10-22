@@ -144,8 +144,12 @@ export function render(main, ctx) {
 /*
   The art side: one still print per visit, as fal does, a different one each
   time where it can (the last one is remembered in this browser). The 1x file
-  by default; the 2x only on high-density screens. Phones show no art.
+  by default; the 2x only on high-density screens. Phones show no art, and
+  download none: the print is a source for wide screens only, and the image's
+  own source is an empty pixel. On wide screens it is the largest thing on
+  the page, so it is fetched early and decoded off the main thread.
 */
+const EMPTY = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const PRINTS = ["garden", "drift", "night", "clouds"];
 function printSide() {
   let last = null;
@@ -155,6 +159,9 @@ function printSide() {
   try { localStorage.setItem("orbe.print", pick); } catch (e) {}
   const src = (k) => `${BASE}/art/signin/${pick}-${k}.webp`;
   return h("aside", { class: "cn-auth-art", "data-print": pick, "aria-hidden": "true" },
-    h("img", { class: "cn-auth-print", srcset: `${src("1x")} 1x, ${src("2x")} 2x`, src: src("1x"), alt: "", decoding: "async", loading: "lazy", fetchpriority: "low" }),
+    h("picture", null,
+      h("source", { media: "(min-width: 900px)", srcset: `${src("1x")} 1x, ${src("2x")} 2x` }),
+      h("img", { class: "cn-auth-print", src: EMPTY, alt: "", width: 1000, height: 1250, decoding: "async", fetchpriority: "high" }),
+    ),
   );
 }

@@ -38,8 +38,8 @@ export const CONSENTS = {
   },
   rate_public: {
     name: "Keep your rating on file",
-    grants: "Orbe keeps your rating and each upload's rating, so your record and card can show them.",
-    revoking: "Deletes your stored ratings, your uploads' ratings and your personal bests.",
+    grants: "Orbe keeps your rating and each work's rating, so your record and card can show them.",
+    revoking: "Deletes your stored ratings, your works' ratings and your personal bests.",
   },
   verified_profile: {
     name: "A public profile",

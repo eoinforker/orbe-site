@@ -4,11 +4,12 @@
   module with render(main, ctx); ctx carries the user, the path's
   parameters, the query and go() to move elsewhere.
 */
-import { api, features, session, signInWays } from "./api.js";
+import { api, boot as bootCall, bundle, can, features, signInWays } from "./api.js";
 import { failure, h, loading, toast } from "./ui.js";
 import { forgetNotifications } from "./notify.js";
 import { ADMIN, BASE, BRAND, CREATOR, match, screensFor } from "./routes.js";
 import { drawFrame, markHere } from "./shell.js";
+import { signedOut } from "./install.js";
 
 const main = document.getElementById("main");
 let framed = null;
@@ -48,6 +49,27 @@ window.addEventListener("orbe:sent-to-owner", () => {
   window.dispatchEvent(new Event("orbe:notes-changed"));
   toast("Sent to the owner to approve. Nothing has happened yet.", { href: `${BASE}/settings/team?tab=approvals`, label: "See the request" });
 });
+// The installed app opened from its kept first call, and the server's answer differed: read it in, and draw
+// the screen again if the person has not started on it yet.
+// Once a visit: a second read of the boot is itself checked behind, and must not start a loop.
+let bootAt = 0;
+let reread = false;
+window.addEventListener("orbe:boot-changed", async () => {
+  if (!user || reread) return;
+  reread = true;
+  try {
+    user = await bootCall(rest() || "home");
+  } catch {
+    return;
+  }
+  const busy = main.contains(document.activeElement) && document.activeElement !== main;
+  if (!user || (Date.now() - bootAt < 10_000 && !busy)) render();
+});
+// A notification tapped while Orbe is open.
+window.addEventListener("orbe:open", (e) => {
+  const u = new URL(e.detail, location.href);
+  if (u.origin === location.origin && (u.pathname === BASE || u.pathname.startsWith(`${BASE}/`))) go(u.pathname + u.search);
+});
 window.addEventListener("orbe:signed-out", () => {
   if (!user) return;
   user = null;
@@ -84,6 +106,8 @@ async function render() {
   const ctx = { user, params: {}, query, go, refresh: () => render(), brandSaved: () => (brandReady = true) };
   if (!user) {
     framed = null;
+    // Whoever signs in next must not open on the last person's kept first call.
+    signedOut();
     await drawFrame(null, [], { go, signOut });
     document.title = "Sign in: Orbe";
     document.body.dataset.screen = "signin";
@@ -127,10 +151,12 @@ async function render() {
     const own = user.type === "creator" ? CREATOR : BRAND;
     const off = match([...own, ...((user.roles ?? []).includes("admin") ? ADMIN : [])], rest());
     const other = off ? null : match(user.type === "creator" ? BRAND : CREATOR, rest());
+    // A screen the person's role on this team does not include says so, rather than that it is switched off.
+    const role = off?.route.needs && !can(off.route.needs) ? user.team?.role ?? null : null;
     document.title = "Not here: Orbe";
     main.replaceChildren(
-      h("h1", { class: "ap-h1", tabindex: "-1", "data-title": "" }, off ? "Not available yet" : other ? "This is for the other side of Orbe" : "Nothing here"),
-      h("p", { class: "ap-lede" }, off ? "This part of Orbe is switched off for now." : other ? `You are signed in as a ${user.type === "creator" ? "creator" : "brand"}. Sign out and back in with the other kind of account to open it.` : "That page is not part of the app."),
+      h("h1", { class: "ap-h1", tabindex: "-1", "data-title": "" }, role ? "Not part of your role" : off ? "Not available yet" : other ? "This is for the other side of Orbe" : "Nothing here"),
+      h("p", { class: "ap-lede" }, role ? `As ${/^[aeiou]/.test(role) ? "an" : "a"} ${role} on ${user.team?.name ?? "this team"}, you do not see this. The owner can change your role in Settings, Team.` : off ? "This part of Orbe is switched off for now." : other ? `You are signed in as a ${user.type === "creator" ? "creator" : "brand"}. Sign out and back in with the other kind of account to open it.` : "That page is not part of the app."),
       table.length ? h("p", null, h("a", { class: "ob-lnk", href: `${BASE}/` }, "Go to the start")) : null,
     );
     settle();
@@ -145,12 +171,16 @@ async function render() {
       return;
     }
   }
-  markHere(found.route, found.params);
-  document.body.dataset.screen = found.route.path || "home";
+  // An older path for a screen that has moved: the same screen, with the address bar saying where it lives now.
+  if (found.moved !== null && found.moved !== undefined) history.replaceState(history.state, "", `${BASE}/${found.moved}${location.search}${location.hash}`);
   document.title = `${found.route.name}: Orbe`;
+  markHere(found.route, found.params);
+  // An invitation is a full page like the walkthrough, so it takes that layout before it draws.
+  document.body.dataset.screen = found.route.path === "invite" ? "welcome" : found.route.path || "home";
   loading(main);
   try {
-    const m = await import(found.route.module);
+    // The screen's code and its first reads (one request, or none if the boot brought them) at the same time.
+    const [m] = await Promise.all([import(found.route.module), bundle(rest() || "home")]);
     if (n !== seq) return;
     main.removeAttribute("aria-busy");
     main.replaceChildren();
@@ -186,15 +216,35 @@ function demoBanner() {
   document.body.prepend(h("p", { class: "cn-demo", role: "note" }, h("b", null, "Demo"), " Everything here is made up: no real creator, brand, figure or payment."));
 }
 
+/* The side this browser last opened (a convenience only), so the screen's code can come while the boot is asked. */
+const SIDE = "orbe.side";
+function fetchScreenEarly() {
+  try {
+    const side = localStorage.getItem(SIDE);
+    const found = side ? match(side === "buyer" ? BRAND : CREATOR, rest()) : null;
+    if (found) import(found.route.module).catch(() => {});
+  } catch {
+    // Nothing remembered: the screen's code comes after the boot, as before.
+  }
+}
+
 async function boot() {
   loading(main, "Loading your Orbe.");
+  fetchScreenEarly();
   try {
-    user = await session();
+    // One call: who is signed in, the frame's reads, and the first screen's own reads.
+    user = await bootCall(rest() || "home");
   } catch (e) {
     main.replaceChildren(failure(e, boot));
     return;
   }
+  try {
+    if (user) localStorage.setItem(SIDE, user.type);
+  } catch {
+    // Not remembered: next time the code comes after the boot.
+  }
   demoBanner();
+  bootAt = Date.now();
   render();
 }
 

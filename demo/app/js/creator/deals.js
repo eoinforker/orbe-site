@@ -2,7 +2,7 @@
   Two tabs inside Sponsorships, each behind its own feature:
 
   - Sponsors like you (sponsor_finder): brands that sponsor channels like
-    yours, from their public uploads, with the evidence, how clearly they
+    yours, from their public works, with the evidence, how clearly they
     were labelled, and a price only where Orbe can stand behind one.
   - Assistant (deals_agent): the limits you hand Orbe's assistant, the
     pipeline it keeps (found, drafted, waiting on you, countered, agreed),
@@ -11,14 +11,16 @@
 */
 import { api, can, on, seg } from "../api.js";
 import { emptyState, pill, section, segmented, skeleton } from "../console-ui.js";
+import { openConnect } from "../connect-inline.js";
 import { formatName } from "../terms.js";
-import { action, actions, block, check, chip, confirmBox, count, day, field, form, h, input, money, textarea, toast, when } from "../ui.js";
+import { action, block, check, confirmBox, count, day, field, form, h, input, money, textarea, toast, when } from "../ui.js";
 
 const STAGE_WORDS = { found: "Found", drafted: "Drafted", waiting: "Waiting on you", countered: "Countered", agreed: "Agreed", closed: "Closed" };
 const STAGE_TONE = { found: "idle", drafted: "idle", waiting: "needs", countered: "running", agreed: "done", closed: "off" };
 /* The formats the assistant prices, by the sponsor module's names. */
 const PRICED = [["integration", "youtube"], ["dedicated", "youtube"], ["newsletter_slot", "substack"], ["podcast_read", "podcast"]];
 const fmt = (f) => formatName(f).toLowerCase();
+const row = (...btns) => h("div", { class: "cn-dw-actions" }, btns);
 
 /* ---------------------------------------------------------------- sponsors like you */
 
@@ -31,7 +33,7 @@ function disclosureLine(d) {
 }
 
 function brandRow(b, acc, goAssistant) {
-  const more = h("details", { class: "ap-more" }, h("summary", null, `Where it was seen (${b.evidence.length})`),
+  const more = h("details", { class: "dl-fold" }, h("summary", null, `Where it was seen (${b.evidence.length})`),
     h("ul", { class: "cn-evidence" },
       b.evidence.map((e) =>
         h("li", null,
@@ -53,29 +55,29 @@ function brandRow(b, acc, goAssistant) {
       : null;
   return h("li", { class: "cn-brand" },
     h("div", { class: "cn-brand-main" },
-      h("p", { class: "cn-brand-name" }, b.name, " ", b.confirmed ? null : chip("Detected name")),
+      h("p", { class: "cn-brand-name" }, b.name, " ", b.confirmed ? null : h("span", { class: "cn-tag" }, "Detected name")),
       h("p", { class: "cn-brand-line" }, `Seen with ${count(b.peers)} channels like yours, ${count(b.deals)} reads, most recently ${day(b.lastSeen)}. Usually: ${b.typicalFormat.toLowerCase()}.`),
       disclosureLine(b.disclosure) ? h("p", { class: "cn-brand-line cn-brand-line--quiet" }, disclosureLine(b.disclosure)) : null,
       b.settled ? h("p", { class: "cn-brand-line" }, `Orbe settled ${count(b.settled.count)} bookings with them at ${money(b.settled.low)} to ${money(b.settled.high)}.`) : null,
       more,
     ),
-    draft ? actions(draft) : null,
+    draft ? row(draft) : null,
   );
 }
 
 export function finderTab(el, goAssistant) {
   el.replaceChildren(skeleton(4));
   return block(el, () => api.get("/v1/me/sponsor-finder"), ({ accounts }) => {
-    if (!accounts.length) return emptyState("search", "Connect a channel or add your show first.", [["Connections", "/orbe-site/demo/app/connect", true]], "Orbe finds channels like yours from your own account.");
+    if (!accounts.length) return emptyState("search", "Connect a channel or add your show first.", [["Connect YouTube", () => openConnect("youtube", { reload: () => finderTab(el, goAssistant) }), true], ["All connections", "/orbe-site/demo/app/connections"]], "Orbe finds channels like yours from your own account.");
     return accounts.map((acc) =>
       section(
         { title: `@${acc.handle.replace(/^@+/, "")}`, line: `${count(acc.peers.length)} channels like yours, matched on ${acc.basis === "topic" ? "the words in your titles and your size" : "your size alone"}.` },
         acc.yourRange.length ? h("p", { class: "cn-range" }, "Your own results support ", acc.yourRange.map((r, i) => [i ? "; " : "", h("b", null, `${money(r.low)} to ${money(r.high)}`), ` for ${fmt(r.format)}`]), ".") : null,
         acc.brands.length
           ? h("ul", { class: "cn-brands" }, acc.brands.map((b) => brandRow(b, acc, goAssistant)))
-          : emptyState("search", acc.peers.length ? "No brands seen with channels like yours yet." : "No channels like yours found yet.", [], acc.peers.length ? "Orbe reads their public uploads in the background, each at most once a week. Look again in a day or two." : "As more creators your size join Orbe, this fills in."),
+          : emptyState("search", acc.peers.length ? "No brands seen with channels like yours yet." : "No channels like yours found yet.", [], acc.peers.length ? "Orbe reads their public works in the background, each at most once a week. Look again in a day or two." : "As more creators your size join Orbe, this fills in."),
         acc.withheld.youtube ? h("p", { class: "cn-label" }, `${count(acc.withheld.youtube)} YouTube reads withheld. ${acc.withheld.reason}`) : null,
-        h("details", { class: "ap-more" }, h("summary", null, "How this is worked out"),
+        h("details", { class: "dl-fold" }, h("summary", null, "How this is worked out"),
           h("ul", { class: "cn-points" }, [...acc.notes, acc.notice].map((n) => h("li", null, n))),
         ),
         h("p", { class: "cn-label" }, acc.label),
@@ -132,7 +134,7 @@ function messageView(t, m, reload) {
   const status = m.status === "draft" ? pill("needs", "Not sent") : m.status === "sent" ? pill("done", `Sent ${when(m.sentAt)}`) : m.status === "sent_by_you" ? pill("done", "Sent by you") : m.status === "discarded" ? pill("idle", "Discarded") : null;
   const draftActions =
     m.status === "draft" && can("business")
-      ? actions(
+      ? row(
           t.brandEmail
             ? action("Send", async () => {
                 // The same checks the send enforces, read first so the answer is never a surprise.
@@ -167,7 +169,7 @@ function messageView(t, m, reload) {
     h("header", { class: "cn-msg-head" }, h("p", { class: "cn-msg-who" }, who), status, h("p", { class: "cn-msg-at" }, when(m.createdAt))),
     subjectLine ? h("p", { class: "cn-msg-subject" }, subjectLine.replace(/^Subject: /, "")) : null,
     h("p", { class: "cn-msg-body" }, rest.join("\n\n")),
-    m.facts.length ? h("details", { class: "ap-more" }, h("summary", null, `Every figure, and where it came from (${m.facts.length})`), h("ul", { class: "cn-points" }, m.facts.map((f) => h("li", null, f.text)))) : null,
+    m.facts.length ? h("details", { class: "dl-fold" }, h("summary", null, `Every figure, and where it came from (${m.facts.length})`), h("ul", { class: "cn-points" }, m.facts.map((f) => h("li", null, f.text)))) : null,
     m.guidance.length ? h("ul", { class: "cn-points cn-points--guide" }, m.guidance.map((g) => h("li", null, g))) : null,
     draftActions,
   );
@@ -194,7 +196,7 @@ function threadView(t, reload) {
             }, { primary: false })
           : null,
         can("business")
-          ? actions(
+          ? row(
               t.origin === "finder" && !t.messages.some((m) => m.status === "draft") ? action("Draft outreach", async () => {
                 await api.post(`/v1/me/deals/threads/${seg(t.id)}/outreach`, {});
                 reload();
@@ -226,7 +228,7 @@ function sendingSection(x, reload) {
   return section(
     { title: "Sending", line: x.verified ? `From ${x.fromAddress}, your own domain.` : "From Orbe's address, with replies going to you. Your own domain sends once its records check out.", actions: status },
     x.paused
-      ? h("div", { class: "cn-banner" }, h("p", null, `Paused: ${x.paused}`), can("owner") ? actions(action("Resume", async () => {
+      ? h("div", { class: "cn-banner" }, h("p", null, `Paused: ${x.paused}`), can("owner") ? row(action("Resume", async () => {
           await api.post("/v1/me/deals/sender/resume", {});
           reload();
           return "Resumed.";
@@ -259,7 +261,7 @@ export function assistantTab(el) {
       draw();
       return [
         section(
-          { title: "Pipeline", line: a.enabled ? "Judged as offers arrive. It counters only where you allow it, and never accepts." : "The assistant is off.", actions: a.enabled ? pill("done", "On") : pill("idle", "Off") },
+          { title: "Conversations", line: a.enabled ? "Judged as offers arrive. It counters only where you allow it, and never accepts." : "The assistant is off.", actions: a.enabled ? pill("done", "On") : pill("idle", "Off") },
           segmented("Show", [["open", `Open ${threads.filter((t) => !["agreed", "closed"].includes(t.stage)).length}`], ["waiting", `Waiting on you ${counts.waiting}`], ["countered", `Countered ${counts.countered}`], ["agreed", `Agreed ${counts.agreed}`]], filter, (v) => {
             filter = v;
             reload();

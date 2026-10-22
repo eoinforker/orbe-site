@@ -15,6 +15,7 @@
   away; finishing or skipping lands on a home that is already filled in.
 */
 import { api, on, seg } from "./api.js";
+import { beginSignIn, openConnect } from "./connect-inline.js";
 import { tile } from "./catalogue.js";
 import { pill, pixelGrid } from "./console-ui.js";
 import { paintedSky } from "./sky.js";
@@ -95,8 +96,7 @@ function connectStep(w, next, ctx) {
         e.target.disabled = true;
         try {
           await put({ step: "rating" });
-          const r = await api.post("/v1/me/connections/youtube_analytics/start", {});
-          window.location.assign(r.authorizeUrl);
+          await beginSignIn("/v1/me/connections/youtube_analytics/start", "/orbe-site/demo/app/welcome");
         } catch (err) {
           e.target.disabled = false;
           status.textContent = err.message;
@@ -127,7 +127,8 @@ function connectStep(w, next, ctx) {
   }
   if (makes.has("newsletter")) {
     ways.push(h("div", { class: "cn-wl-way" },
-      h("div", null, h("p", { class: "cn-wl-way-t" }, "Your newsletter"), h("p", { class: "cn-wl-way-d" }, "Upload your Substack export from Connections once you are in.")),
+      h("div", null, h("p", { class: "cn-wl-way-t" }, "Your newsletter"), h("p", { class: "cn-wl-way-d" }, "Your Substack export, guided in six steps. Orbe remembers the publication.")),
+      button("Add your Substack", () => openConnect("substack", ctx, { back: "/orbe-site/demo/app/welcome" }), false),
     ));
   }
   for (const p of ["tiktok", "instagram"]) {
@@ -139,8 +140,7 @@ function connectStep(w, next, ctx) {
         e.target.disabled = true;
         try {
           await put({ step: "rating" });
-          const r = await api.post(p === "tiktok" ? "/v1/me/social/tiktok/start" : "/v1/me/social/instagram/start", {});
-          window.location.assign(r.authorizeUrl);
+          await beginSignIn(p === "tiktok" ? "/v1/me/social/tiktok/start" : "/v1/me/social/instagram/start", "/orbe-site/demo/app/welcome");
         } catch (err) {
           e.target.disabled = false;
           status.textContent = err.message;
@@ -154,7 +154,7 @@ function connectStep(w, next, ctx) {
       e.preventDefault();
       await next({ step: "rating", answers: { handle: handle.value.trim() } });
     } },
-      h("div", null, h("p", { class: "cn-wl-way-t" }, "Or see a rating now"), h("p", { class: "cn-wl-way-d" }, "Any YouTube channel, from its public uploads. No permission needed.")),
+      h("div", null, h("p", { class: "cn-wl-way-t" }, "Or see a rating now"), h("p", { class: "cn-wl-way-d" }, "Any YouTube channel, from its public works. No permission needed.")),
       h("div", { class: "cn-wl-inline" }, handle, button("Rate", null, false, "submit")),
     ));
   }

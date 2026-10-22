@@ -75,8 +75,8 @@ function member(m) {
       const n = (r) => judged.filter((u) => u.atSize.result === r).length;
       return h("div", { class: "ap-stack ap-account" },
         h("p", null, `${KINDS[a.kind] ?? a.kind}, ${a.handle}`, " ", chip(`Size ${a.sizeBand}`)),
-        a.rating ? h("p", null, `Orbe Rating ${signed(a.rating.rating)}, ${a.rating.band}${a.rating.beats !== null ? `; reach beats ${a.rating.beats} in 100 creators its size` : ""}.`) : h("p", { class: "ap-note" }, "Not rated yet."),
-        judged.length ? h("p", { class: "ap-note" }, `Recent uploads against creators the same size: ${n("above")} above the middle half, ${n("within")} inside, ${n("below")} below.`) : null,
+        a.rating ? h("p", null, `Rating ${signed(a.rating.rating)}, ${a.rating.band}${a.rating.beats !== null ? `; reach beats ${a.rating.beats} in 100 creators its size` : ""}.`) : h("p", { class: "ap-note" }, "Not rated yet."),
+        judged.length ? h("p", { class: "ap-note" }, `Recent works against creators the same size: ${n("above")} above the middle half, ${n("within")} inside, ${n("below")} below.`) : null,
         a.notes.map((x) => h("p", { class: "ap-note" }, x)),
         a.rating ? h("p", { class: "ap-label" }, a.rating.notice) : null,
       );
