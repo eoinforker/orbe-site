@@ -86,10 +86,17 @@ export function appUrl(path = "signin") {
   APP_URL answers; a page's orbe-app meta tag also counts as live.
 */
 export const APP_LIVE = false;
+/*
+  The clickable demo console (demo/, built by scripts/build-demo.mjs): until
+  the console is live, Sign in and Open your Orbe open the demo, and the
+  homepage offers it. Set DEMO_CONSOLE to false to take every entry away.
+*/
+export const DEMO_CONSOLE = true;
+const demoOn = () => DEMO_CONSOLE && !APP_LIVE;
 function appLink(href, path) {
   let meta = false;
   try { meta = !!document.querySelector('meta[name="orbe-app"]'); } catch (e) {}
-  return APP_LIVE || meta ? appUrl(path) : href("products/you/");
+  return APP_LIVE || meta ? appUrl(path) : demoOn() ? href("demo/") : href("products/you/");
 }
 
 /* the links beside the Products menu ("#..." is the homepage's own anchor) */
@@ -217,6 +224,8 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
   bar.dataset.obBar = "";
   const cur = (p) => (p === current ? " aria-current=\"page\"" : "");
   /* the Products button is underlined on a product page; For teams and Pricing underline their own links */
+  // A page's own demo entries ([data-demo-entry]) go when the demo is switched off.
+  if (!demoOn()) document.querySelectorAll("[data-demo-entry]").forEach((el) => el.remove());
   const inMenu = current && current.startsWith("products/") && [...PRODUCTS.map(([, p]) => p), ALL_PRODUCTS[1]].includes(current);
   const dir = menuDirection();
   document.documentElement.dataset.menu = dir;
@@ -230,7 +239,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
         </div>
       </div>${NAV.map(([t, p]) => `<a data-part href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}
     </nav>
-    <a class="ob-bar-signin" data-part href="${esc(appLink(href))}">Sign in</a>
+    <a class="ob-bar-signin" data-part href="${esc(appLink(href))}">${demoOn() ? "Try the demo" : "Sign in"}</a>
     <a class="ob-btn ob-btn--s" data-part href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
     <button class="ob-bar-menu" data-part type="button" aria-expanded="false" aria-controls="ob-sheet">Menu<i aria-hidden="true"></i></button>
     <div class="ob-sheet" id="ob-sheet" data-dir="${dir}" hidden>
@@ -238,7 +247,7 @@ export function mountHeader(target, { root = "./", home, current = "", reserve =
       </nav>
       <div class="ob-sheet-foot" style="--i:5">
         <a class="ob-btn" href="${esc(href("#reserve"))}"><span class="ob-orb" aria-hidden="true"></span>${esc(reserve)}</a>
-        <a class="ob-btn ob-btn--light" href="${esc(appLink(href))}"><span class="ob-orb" aria-hidden="true"></span>Sign in</a>
+        <a class="ob-btn ob-btn--light" href="${esc(appLink(href))}"><span class="ob-orb" aria-hidden="true"></span>${demoOn() ? "Try the demo console" : "Sign in"}</a>
         <p class="ob-sheet-small">${[...NAV.filter(([, p]) => p !== "teams/"), ALL_PRODUCTS.slice(0, 2)].map(([t, p]) => `<a href="${esc(href(p))}"${cur(p)}>${esc(t)}</a>`).join("")}</p>
       </div>
     </div>`;

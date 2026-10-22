@@ -1,0 +1,105 @@
+/*
+  Public show pages (/shows, /shows/:slug), served by the API as plain HTML
+  on the site's system: tokens.css and orbe.css (byte copies of the site's,
+  see site/sources.json) give the palette, type, buttons, chips and the
+  window. This file adds only the page's frame and the show's parts. Paper
+  and ink, Cobalt for action and focus. No script.
+*/
+@font-face { font-family: "Schibsted Grotesk"; src: url("site/fonts/SchibstedGrotesk-Latin-VF.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Commit Mono"; src: url("site/fonts/CommitMono-Latin-VF.woff2") format("woff2"); font-weight: 400 600; font-style: normal; font-display: swap; }
+
+:root {
+  --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Commit Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sh-gutter: 16px;
+  --sh-max: 760px;
+}
+@media (min-width: 721px) { :root { --sh-gutter: 32px; } }
+
+html { background: var(--orbe-paper); }
+.sh-page { min-height: 100vh; color: var(--orbe-ink); }
+.sh-page :where(img) { max-width: 100%; height: auto; }
+.sh-page :where(a:focus-visible) { outline: 2px solid var(--orbe-cobalt); outline-offset: 3px; border-radius: 4px; }
+
+/* the frame */
+.sh-top { display: flex; align-items: center; gap: 16px; height: 64px; padding: 0 var(--sh-gutter); border-bottom: 1px solid var(--rule); }
+.sh-mark { display: inline-flex; align-items: center; height: 44px; }
+.sh-mark img { display: block; width: 62px; height: 22px; }
+.sh-nav { margin-left: auto; display: flex; gap: 4px 16px; flex-wrap: wrap; font-size: var(--ob-t14); font-weight: 500; }
+.sh-nav a { color: inherit; display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+.sh-nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sh-main { max-width: var(--sh-max); margin: 0 auto; padding: 32px var(--sh-gutter) 64px; display: flex; flex-direction: column; gap: 24px; }
+.sh-main:focus { outline: none; }
+.sh-foot { max-width: var(--sh-max); margin: 0 auto; padding: 24px var(--sh-gutter) 48px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 8px; font-size: var(--ob-t14); color: var(--orbe-graphite); }
+
+/* type */
+.sh-h1 { font: 700 clamp(2rem, 1.5rem + 2vw, 3rem)/1.05 var(--font-display); letter-spacing: -0.035em; text-wrap: balance; overflow-wrap: anywhere; }
+.sh-h2 { font: 700 var(--ob-t24)/1.2 var(--font-display); letter-spacing: -0.02em; margin-bottom: 8px; }
+.sh-h2 a { color: inherit; text-decoration: none; }
+.sh-h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.sh-h3 { font: 600 var(--ob-t18)/1.3 var(--font-display); letter-spacing: -0.01em; }
+.sh-lede { font-size: var(--ob-t18); line-height: 1.5; color: var(--orbe-graphite); max-width: 60ch; text-wrap: pretty; }
+.sh-says { font: 600 var(--ob-t16)/1.4 var(--font-text); }
+.sh-note { font-size: var(--ob-t14); line-height: 1.45; color: var(--orbe-graphite); }
+.sh-label { font-size: var(--ob-t12); font-weight: 600; line-height: 1.45; }
+
+/* the show's head */
+.sh-show { display: flex; flex-direction: column; gap: 32px; min-width: 0; }
+.sh-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px; }
+.sh-art { width: 160px; height: 160px; flex: none; border-radius: 12px; object-fit: cover; background: var(--orbe-linen); box-shadow: inset 0 0 0 1px var(--rule); }
+.sh-art--none { display: inline-block; background: var(--orbe-cobalt); }
+.sh-head-words { min-width: 0; flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; }
+.sh-verified { display: inline-flex; align-items: center; gap: 8px; font-size: var(--ob-t14); font-weight: 600; }
+.sh-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--orbe-cobalt); }
+
+/* the rating */
+.sh-win { min-width: 0; }
+.sh-win .ob-win-body { display: flex; flex-direction: column; gap: 12px; }
+.sh-rating { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.sh-rating > div { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.sh-figure { font: 700 clamp(3rem, 2.4rem + 2vw, 4rem)/0.95 var(--font-display); letter-spacing: -0.045em; font-feature-settings: "lnum" 1; }
+.sh-parts { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.sh-part { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: var(--ob-t14); }
+.sh-part-name { font-weight: 600; }
+.sh-part-score { color: var(--orbe-graphite); }
+
+/* facts, episodes */
+.sh-section { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sh-dl { display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--rule); font-size: var(--ob-t14); }
+.sh-dl dt { padding-top: 8px; color: var(--orbe-graphite); }
+.sh-dl dd { margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--rule); font-weight: 500; overflow-wrap: anywhere; }
+@media (min-width: 560px) {
+  .sh-dl { grid-template-columns: 9rem minmax(0, 1fr); }
+  .sh-dl dt { padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .sh-dl dd { padding: 8px 0; }
+}
+.sh-eps { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.sh-ep { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.sh-ep-title { font-weight: 600; overflow-wrap: anywhere; }
+.sh-ep-figure { font: 700 var(--ob-t18)/1.2 var(--font-display); text-align: right; }
+.sh-ep-date, .sh-ep-note { font-size: var(--ob-t12); color: var(--orbe-graphite); }
+.sh-ep-note { text-align: right; }
+.sh-card { display: block; width: 100%; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--rule); background: var(--orbe-chalk); }
+.sh-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+
+/* the two calls to action */
+.sh-ctas { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .sh-ctas { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
+.sh-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 20px; border: 1px solid var(--rule-strong); border-radius: 12px; background: var(--orbe-chalk); }
+.sh-cta p { font-size: var(--ob-t14); line-height: 1.5; color: var(--orbe-graphite); }
+.sh-cta .ob-btn { margin-top: auto; }
+
+/* the index */
+.sh-filters { display: flex; flex-direction: column; gap: 8px; }
+.sh-filters ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sh-filter { color: inherit; display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--rule-strong); font-size: var(--ob-t14); font-weight: 500; text-decoration: none; background: var(--orbe-chalk); }
+.sh-filter:hover { background: var(--orbe-linen); }
+.sh-filter[aria-current="page"] { background: var(--orbe-ink); color: var(--orbe-chalk); box-shadow: none; }
+.sh-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.sh-item { border-bottom: 1px solid var(--rule); }
+.sh-item-link { color: inherit; display: flex; align-items: center; gap: 12px; padding: 10px 0; text-decoration: none; }
+.sh-item-link:hover .sh-item-title { text-decoration: underline; text-underline-offset: 3px; }
+.sh-thumb { width: 56px; height: 56px; flex: none; border-radius: 8px; object-fit: cover; background: var(--orbe-linen); }
+.sh-item-words { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sh-item-title { font-weight: 600; overflow-wrap: anywhere; }
+.sh-item-figure { flex: none; text-align: right; font: 700 var(--ob-t18)/1.2 var(--font-display); }

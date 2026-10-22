@@ -1,0 +1,195 @@
+/*
+  Orbe brand tokens. One file every page can adopt:
+
+    <link rel="stylesheet" href="/assets/fonts.css">
+    <link rel="stylesheet" href="/assets/brand/tokens.css">
+    <html data-scheme="blue">          blue is the default and the recommendation
+    <section data-surface="field">     paint a block as the brand field, ink, deep or paper
+
+  Raw colours are --orbe-*. Pages use the semantic names below them, so a
+  scheme or a surface can change what they point at. The system and its
+  rules: docs/BRAND.md.
+*/
+
+:root {
+  /* ---------------------------------------------------------------- raw palette */
+  /* Primary */
+  --orbe-sky: #94E6FF;       /* the field: a clear, saturated sky (was #9EE9FB) */
+  --orbe-cobalt: #1F4BFF;    /* action, the ball, the deep panel */
+  --orbe-cobalt-deep: #0E2AAE; /* deep Cobalt: words on Sky 7.7:1, Straw on it 7.3:1, Chalk on it 10.3:1 */
+  --orbe-ink: #141311;       /* type */
+  --orbe-paper: #F3F0E8;     /* the page, the card */
+  --orbe-ember: #FF5A1F;     /* the spark: decoration and moments, never body text on light */
+  /* The alternative scheme, and a minor accent in the blue one */
+  --orbe-peony: #F2879E;
+  --orbe-claret: #6F1726;
+  --orbe-claret-deep: #3C0712; /* words on a Peony field: 6.95:1 */
+  /* Papers */
+  --orbe-chalk: #FBFAF6;
+  --orbe-linen: #E7E2D7;
+  --orbe-mist: #D6F6FD;
+  --orbe-blush: #FBD9E0;
+  /* Inks */
+  --orbe-soot: #2A2824;
+  --orbe-graphite: #38342E;   /* secondary words: 10.8:1 on Paper, 8.6 on Sky, 8.2 on Straw (was #45413A, 8.9 on Paper) */
+  --orbe-stone: #A29E95;
+  /* Painterly, for the idyll illustrations only */
+  --orbe-meadow: #8E9A4A;
+  --orbe-ochre: #C9A84C;
+  --orbe-straw: #F5D34A;      /* fuller yellow (was #EED56A): Ink on it 12.6:1 */
+  --orbe-grove: #262B12;
+  --orbe-water: #4D9AD0;
+  --orbe-dawn: #F2A58E;
+  /* Functional */
+  --orbe-positive: #0A6B3A;
+  --orbe-positive-tint: #DDF1E4;
+  --orbe-negative: #B8291A;
+  --orbe-negative-tint: #FBDAD3;
+  --orbe-warning: #8A5800;
+  --orbe-warning-fill: #FFC23D;
+  --orbe-warning-tint: #FFE7AD;
+
+  /* ---------------------------------------------------------------- semantic colour (blue scheme) */
+  --field: var(--orbe-sky);
+  --on-field: var(--orbe-ink);
+  --on-field-soft: #1F3C43;          /* 8.41:1 on sky */
+  --field-tint: var(--orbe-mist);
+
+  --surface: var(--orbe-paper);
+  --surface-raised: var(--orbe-chalk);
+  --surface-sunk: var(--orbe-linen);
+  --text: var(--orbe-ink);
+  --text-soft: var(--orbe-graphite);
+  --text-inverse: var(--orbe-paper);
+  --rule: rgba(20, 19, 17, 0.16);
+  --rule-strong: var(--orbe-ink);
+
+  --action: var(--orbe-cobalt);      /* the one action on a page */
+  --on-action: var(--orbe-chalk);
+  --action-press: #1238D6;
+  --link: var(--orbe-cobalt);
+  --accent: var(--orbe-cobalt);      /* the ball on the card and the figure it names */
+  --spark: var(--orbe-ember);        /* bars, creatures, the crayon loop: never a meaning on its own */
+  --minor: var(--orbe-peony);        /* the dawn in the paintings, a sticker, never a field in this scheme */
+
+  --deep: var(--action-press);      /* the one deep panel: Chalk on it 7.85:1 */
+  --on-deep: var(--orbe-chalk);
+  --night: var(--orbe-ink);
+  --on-night: var(--orbe-paper);
+  --night-accent: var(--orbe-sky);
+
+  --focus: var(--orbe-cobalt);
+  --focus-on-action: var(--orbe-ink);
+
+  --positive: var(--orbe-positive);
+  --positive-tint: var(--orbe-positive-tint);
+  --negative: var(--orbe-negative);
+  --negative-tint: var(--orbe-negative-tint);
+  --warning: var(--orbe-warning);
+  --warning-fill: var(--orbe-warning-fill);
+  --warning-tint: var(--orbe-warning-tint);
+  --info: var(--orbe-cobalt);
+
+  --card-theme: blue;                /* renderCard theme for this scheme; read it with getComputedStyle */
+  --landscape: sky;                  /* brand.js landscape palette for this scheme */
+
+  /* ---------------------------------------------------------------- type */
+  --font-display: var(--sans, "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif);
+  --font-text: var(--sans, "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif);
+  --font-serif: var(--serif, "Newsreader", Georgia, serif);
+  --font-mono: var(--mono, "Commit Mono", ui-monospace, Menlo, monospace);
+
+  /* Web scale: fluid between 390 and 1440 */
+  --t-display-1: clamp(4rem, 1.6rem + 10.4vw, 12.5rem);   /* 64 to 200, hero only */
+  --t-display-2: clamp(3rem, 1.4rem + 6.6vw, 7.5rem);     /* 48 to 120 */
+  --t-display-3: clamp(2.25rem, 1.4rem + 3.4vw, 4.5rem);  /* 36 to 72 */
+  --t-serif-1: clamp(2.125rem, 1.4rem + 2.9vw, 4rem);     /* 34 to 64, Newsreader */
+  --t-title: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);    /* 22 to 28 */
+  --t-lede: clamp(1.25rem, 1.12rem + 0.5vw, 1.5rem);      /* 20 to 24, Newsreader */
+  --t-body: clamp(1rem, 0.96rem + 0.15vw, 1.0625rem);     /* 16 to 17 */
+  --t-small: 0.875rem;                                    /* 14 */
+  --t-label: 0.75rem;                                     /* 12, Commit Mono capitals */
+  --t-figure: clamp(4rem, 2rem + 8vw, 9rem);              /* 64 to 144 */
+
+  --lh-display: 0.86;
+  --lh-tight: 1.0;
+  --lh-title: 1.15;
+  --lh-text: 1.5;
+  --track-display: -0.055em;
+  --track-head: -0.035em;
+  --track-title: -0.02em;
+  --track-label: 0.06em;
+  --w-display: 800;
+  --w-title: 700;
+
+  /* Product scale: fixed, 14 base */
+  --p-12: 0.75rem; --p-13: 0.8125rem; --p-14: 0.875rem; --p-16: 1rem; --p-20: 1.25rem; --p-24: 1.5rem; --p-32: 2rem; --p-48: 3rem;
+
+  /* Figures */
+  --figures-display: "lnum" 1, "pnum" 1;   /* ratings, hero figures */
+  --figures-table: "lnum" 1, "tnum" 1;     /* money, tables, anything in a column */
+
+  /* ---------------------------------------------------------------- shape */
+  --line: 1.5px;
+  --r-window: 0px;          /* square for numbers */
+  --r-folder: 18px;         /* round for people */
+  --r-tab: 12px;
+  --r-input: 14px;
+  --r-pill: 999px;
+  --shadow-hard: 6px 6px 0 var(--orbe-ink);
+  --shadow-hard-s: 3px 3px 0 var(--orbe-ink);
+  --shadow-lift: 0 3px 0 var(--orbe-ink);
+  --bracket: 18px;          /* corner bracket arm */
+
+  /* Spacing: a 4px base */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 144px;
+  --gutter: clamp(16px, 4vw, 56px);
+
+  /* ---------------------------------------------------------------- motion */
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);       /* UI, panels, figures counting */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);      /* state changes */
+  --ease-play: cubic-bezier(0.34, 1.56, 0.64, 1);     /* creatures, pills, dealt cards; never money */
+  --ease-chisel: cubic-bezier(0.65, 0, 0.35, 1);      /* the wordmark reveal */
+  --dur-press: 120ms;
+  --dur-ui: 220ms;
+  --dur-panel: 420ms;
+  --dur-paint: 700ms;
+  --dur-signature: 1100ms;
+  --pixel-frame: 110ms;     /* creatures step at about nine frames a second: steps(1) */
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------- the pink scheme (the alternative) */
+[data-scheme="pink"] {
+  --field: var(--orbe-peony);
+  --on-field: var(--orbe-ink);
+  --on-field-soft: #3A1219;          /* 6.82:1 on peony */
+  --field-tint: var(--orbe-blush);
+  --action: var(--orbe-ink);
+  --on-action: var(--orbe-peony);
+  --action-press: var(--orbe-soot);
+  --link: var(--orbe-claret);
+  --accent: var(--orbe-claret);
+  --spark: var(--orbe-ember);
+  --minor: var(--orbe-sky);
+  --deep: var(--orbe-claret);
+  --on-deep: var(--orbe-paper);
+  --night-accent: var(--orbe-peony);
+  --focus: var(--orbe-ink);
+  --focus-on-action: var(--orbe-claret);
+  --info: var(--orbe-claret);
+  --card-theme: pink;
+  --landscape: dawn;
+}
+
+/* ---------------------------------------------------------------- surfaces: repoint text and rules for a block */
+[data-surface="field"] { background: var(--field); color: var(--on-field); --text: var(--on-field); --text-soft: var(--on-field-soft); --rule: rgba(20, 19, 17, 0.22); }
+[data-surface="paper"] { background: var(--surface); color: var(--text); }
+[data-surface="night"] { background: var(--night); color: var(--on-night); --text: var(--on-night); --text-soft: #C2BEB5; --rule: rgba(243, 240, 232, 0.2); --rule-strong: var(--orbe-paper); --focus: var(--night-accent); --link: var(--night-accent); --action: var(--night-accent); --on-action: var(--orbe-ink); }
+[data-surface="deep"] { background: var(--deep); color: var(--on-deep); --text: var(--on-deep); --text-soft: color-mix(in srgb, var(--on-deep) 94%, var(--deep)); --rule: rgba(251, 250, 246, 0.3); --rule-strong: var(--on-deep); --focus: var(--orbe-chalk); --link: var(--on-deep); --action: var(--orbe-chalk); --on-action: var(--deep); }
+
+/* ---------------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-press: 0ms; --dur-ui: 0ms; --dur-panel: 0ms; --dur-paint: 0ms; --dur-signature: 0ms; --ease-play: var(--ease-standard); }
+}

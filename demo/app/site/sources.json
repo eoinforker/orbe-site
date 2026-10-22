@@ -1,0 +1,22 @@
+{
+  "note": "Copied byte for byte from the site by product/scripts/sync-app-assets.mjs; the web app test fails if a copy drifts. Edit the site's file, then run the script.",
+  "files": {
+    "tokens.css": "site/assets/brand/tokens.css",
+    "orbe.css": "site/assets/orbe/orbe.css",
+    "wordmark.svg": "site/assets/r5/wordmark-small.svg",
+    "favicon.svg": "site/assets/r5/favicon.svg",
+    "fonts/SchibstedGrotesk-Latin-VF.woff2": "site/assets/fonts/SchibstedGrotesk-Latin-VF.woff2",
+    "fonts/SchibstedGrotesk-OFL.txt": "site/assets/fonts/SchibstedGrotesk-OFL.txt",
+    "fonts/CommitMono-Latin-VF.woff2": "site/assets/fonts/CommitMono-Latin-VF.woff2",
+    "fonts/CommitMono-OFL.txt": "site/assets/fonts/CommitMono-OFL.txt",
+    "mark.js": "site/assets/orbe/mark.js",
+    "engine/protect/audio.js": "site/assets/engine/protect/audio.js",
+    "engine/protect/audiosynth.js": "site/assets/engine/protect/audiosynth.js",
+    "engine/protect/compare.js": "site/assets/engine/protect/compare.js",
+    "engine/protect/image.js": "site/assets/engine/protect/image.js",
+    "engine/protect/index.js": "site/assets/engine/protect/index.js",
+    "engine/protect/registry.js": "site/assets/engine/protect/registry.js",
+    "engine/protect/synth.js": "site/assets/engine/protect/synth.js",
+    "engine/protect/video.js": "site/assets/engine/protect/video.js"
+  }
+}

@@ -21,6 +21,9 @@
     fetched from the missed path.
   */
   (function () {
+    // A deep link into the demo console goes back to its one page, which restores the path (demo/replay.js).
+    var at = location.pathname.indexOf("/demo/app/");
+    if (at >= 0) { location.replace(location.pathname.slice(0, at) + "/demo/app/?__p=" + encodeURIComponent(location.pathname + location.search + location.hash)); return; }
     var root = "/";
     if (/\.github\.io$/.test(location.hostname)) { var seg = location.pathname.split("/")[1]; if (seg && !/\.html$/.test(seg)) root = "/" + seg + "/"; }
     document.write('<base href="' + root + '">' +
