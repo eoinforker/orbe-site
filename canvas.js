@@ -795,9 +795,6 @@ addEventListener("resize", () => {
 {
   const q = quote(155000).find((x) => x.format === "integration")?.s;
   if (q && q.status === "suggested") $("[data-for-brand]").textContent = `${gbp(q.low.amount)} to ${gbp(q.high.amount)}`;
-  const rs = KINDS.map((k) => rated(k.key, 1).rating).sort((a, b) => a - b);
-  $("[data-for-roster]").textContent = `${minus(signed(rs[0]))} to ${minus(signed(rs.at(-1)))}`;
-  $("[data-for-roster-cap]").textContent = "Six made-up clients, rated by size";
   $("[data-for-gap]").textContent = gbpExact(d.estimate - d.paid);
   const m = middle(benchKinds()[0].key), row = m.rows.find((r) => r.key === m.at);
   $("[data-for-mid]").textContent = row.value;
@@ -831,6 +828,24 @@ for (const a of $$("[data-to-hero]")) {
     e.preventDefault();
     hero.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
     $("[data-kind][aria-pressed=\"true\"]", hero).focus({ preventScroll: true });
+  });
+}
+
+/*
+  See Hand it off: the demo console shares this origin, so the button signs
+  the visitor in as Ada (demo/replay.js keeps the persona under
+  "orbe-demo:persona") and opens her Deals, where the card is. Without
+  script, or if storage is blocked, the link opens the demo's own landing.
+  chrome.js removes the button when DEMO_CONSOLE is off or the app is live.
+*/
+for (const a of $$("[data-see-handoff]")) {
+  a.addEventListener("click", (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    try {
+      localStorage.setItem("orbe-demo:persona", JSON.stringify("ada"));
+      e.preventDefault();
+      location.assign(new URL("demo/app/deals", new URL("./", location.href)).href);
+    } catch (err) {}
   });
 }
 

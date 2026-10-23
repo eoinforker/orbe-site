@@ -1,12 +1,12 @@
 # Orbe
 
-> Run your creator business on Orbe. Orbe helps creator businesses run content, go-to-market and the business faster and better, beside the tools they already use (Canva, CapCut and Descript for the work; Slack and Discord, coming) rather than replacing them. It is for every kind of creator business: YouTube, TikTok, Snapchat and X creators, podcasts, newsletters, and creator-led product companies selling hardware, software or physical goods. It rates a creator's work against creators of the same kind and size (zero is typical for your size band), prices sponsorships from what the creator's work actually delivers, gives an indicative value for a creator business with the fees in full, and checks whether a podcast's download claims fit public signals. Creators use the core free, with an optional plan for heavy use; brands, agencies, buyers and lenders pay, and Orbe earns when money moves. Every rating, band and benchmark is labelled "Independently calculated by Orbe." and carries the version of the published maths.
+> Orbe shows a creator what their audience is worth, then sells it. The rating is free and built from the creator's own accounts: their work against creators of the same kind and size (zero is typical for your size band), with sponsorship prices from what the work actually delivered. When sponsorship offers come, Hand it off answers them within the creator's rules: the creator, or their manager, sets rules once (floors for each kind of slot, brands and categories never taken, reads a month, dates away), and Orbe accepts, counters or declines each offer within a minute, with the reason. Anything binding waits for the creator's one tap. Delivery is checked against the creator's own figures; once a payments provider is chosen, the brand's money is held until then. Every deal is recorded. Managers run it across a roster. Built for agents: a brand's agent can ask and get an answer. Around it sit more free tools: podcast measurement, an indicative value for a creator business with the fees in full, and a rights record. Free for creators; brands pay a fee when the work is delivered. US first. Every rating, band and benchmark is labelled "Independently calculated by Orbe." and carries the version of the published maths.
 
-Status, honestly: the tools on this site run in your browser on Orbe's own engine code, on made-up or typed figures. The HTTP API exists in the code but is not hosted yet. Anything that needs it (live connections to a creator's accounts, a hosted endpoint, API keys) is marked "With the API" on the pages. Example figures on the site are made up and labelled so.
+Status, honestly: Hand it off is built and runs in a demo on sample data; it is not live with creators yet. The tools on this site run in your browser on Orbe's own engine code, on made-up or typed figures. The HTTP API exists in the code but is not hosted yet. Anything that needs it (live connections to a creator's accounts, a hosted endpoint, API keys) is marked "With the API" on the pages. Example figures on the site are made up and labelled so.
 
 ## For agents
 
-- [For developers and agents](https://eoinforker.github.io/orbe-site/developers/): the twelve tools, the MCP config and a live playground that runs the MCP server's own code in the browser.
+- [For developers and agents](https://eoinforker.github.io/orbe-site/developers/): the tools, the MCP config and a live playground that runs the MCP server's own code in the browser.
 - [OpenAPI 3.1](https://eoinforker.github.io/orbe-site/developers/openapi.json): the same capabilities. Paths marked x-status: routed exist in the API's code and run locally; paths marked x-status: planned are not routed yet.
 
 The MCP server (stdio, JSON-RPC 2.0, protocol revision 2025-06-18) runs locally from the repository with `node product/src/mcp/server.ts`. It makes no network calls and keeps nothing. Tools:
@@ -22,13 +22,14 @@ The MCP server (stdio, JSON-RPC 2.0, protocol revision 2025-06-18) runs locally 
 - orbe_check_delivery: delivered or short against a guarantee, the creator's options when short, and the split between creator, Orbe and the brand's refund.
 - orbe_diagnose_upload: whether a YouTube upload is below creators its size at its age, and whether the title, the thumbnail or both are the lever.
 - orbe_judge_fix: whether a new title or thumbnail lifted an upload against its own sealed pace, and the fee only if it did.
+- orbe_handoff_decide: what Hand it off would do with one sponsorship offer under a creator's rules (accept, counter, decline or ask the creator), with the deciding rule and a one-line reason. Read only: nothing is sent, booked or stored.
 - orbe_retention_cuts: from a video's audience retention curve, how many are still watching after the opening, the steepest drops, and up to three stretches worth tightening or cutting. Read only.
 
 Works today: the playground and the MCP server run locally. With the API: a hosted endpoint, keys, rate limits and data from connected accounts. For access, write to hello@orbe.vc.
 
 ## Pages
 
-- [Home](https://eoinforker.github.io/orbe-site/): what Orbe is, and reserving a handle.
+- [Home](https://eoinforker.github.io/orbe-site/): Hand it off in four steps, the free tools, and reserving a handle.
 - [All products](https://eoinforker.github.io/orbe-site/products/): every tool, running in the browser.
 - [Rate my work](https://eoinforker.github.io/orbe-site/products/rate/): the rating against creators your size.
 - [Your Orbe](https://eoinforker.github.io/orbe-site/products/you/): your highlights, against your size.
