@@ -113,7 +113,12 @@
   function current(rec, key) {
     var s = st();
     if (s.overlay[key]) return s.overlay[key];
-    return rec[key] ? clone(rec[key][0].body) : null;
+    if (rec[key]) return clone(rec[key][0].body);
+    if (key.indexOf("GET /v1/") === 0 && key.indexOf("GET /v1/boot") !== 0) {
+      var part = fromBoot(rec, new URL(key.slice(4), location.origin));
+      if (part && part.body) return part.body;
+    }
+    return null;
   }
   function setGet(key, body) { st().overlay[key] = body; }
 
@@ -184,9 +189,16 @@
         var key = keyOf(method, url);
         if (s.overlay[key]) return reply(200, s.overlay[key]);
         var r = recorded(rec, method, url);
-        if (!r) { misses.push(keyOf(method, url)); return live(503, true); }
+        if (!r) {
+          // A read the recording only has inside a screen's boot answer.
+          var part = fromBoot(rec, url);
+          if (part) return reply(part.status || 200, part.body !== undefined ? part.body : { error: part.error });
+          misses.push(keyOf(method, url));
+          return live(503, true);
+        }
         if (s.overlay[r.key]) return reply(200, s.overlay[r.key]);
         if (r.entry.blob) return realFetch(BASE + "/data/files/" + r.entry.blob);
+        if (path === "/v1/auth/session") return reply(r.entry.status, quietWays(clone(r.entry.body)));
         return reply(r.entry.status, r.entry.body, { "content-type": r.entry.type || "application/json" });
       }
       // A write the recording has: answer as the API did, and let the screen read it back.
@@ -216,6 +228,24 @@
 
   function now() { return new Date().toISOString(); }
   function id(prefix) { var s = st(); s.seq += 1; return prefix + "_demo" + Date.now().toString(36) + s.seq; }
+
+  /* The recording server is a demo server, so its sessions say so; here the console signs in as on any server, and this page carries its own marker. */
+  function quietWays(sess) {
+    if (sess && sess.signIn) sess.signIn.demo = false;
+    return sess;
+  }
+
+  function fromBoot(rec, url) {
+    var want = keyOf("GET", url).slice(4);
+    var keys = Object.keys(rec).filter(function (k) { return k.indexOf("GET /v1/boot") === 0; });
+    for (var i = 0; i < keys.length; i++) {
+      var parts = rec[keys[i]][0].body && rec[keys[i]][0].body.parts;
+      if (!parts) continue;
+      var found = Object.keys(parts).filter(function (t) { return keyOf("GET", new URL(t, location.origin)).slice(4) === want; })[0];
+      if (found && parts[found] && parts[found].status < 400) return clone(parts[found]);
+    }
+    return null;
+  }
 
   /* GET /v1/boot: the recorded boot for this screen tells which parts it carries; each part is answered as its own request would be now. */
   function bootFor(rec, url) {
@@ -257,7 +287,7 @@
     return Promise.all(jobs).then(function () {
       keep();
       var sess = rec["GET /v1/auth/session"] && pick(rec["GET /v1/auth/session"], "GET", new URL("/v1/auth/session", location.origin));
-      return reply(200, { session: (sess && sess.body) || b.base.session, parts: parts, screens: b.base.screens || [] });
+      return reply(200, { session: quietWays(clone((sess && sess.body) || b.base.session)), parts: parts, screens: b.base.screens || [] });
     });
   }
 
@@ -336,9 +366,356 @@
     return reply(200, out);
   }
 
+  /* ------------------------------------------------------------ Hand it off */
+
+  /*
+    Hand it off (GET /v1/me/deals/handoff and its writes) is kept here as a
+    small model of the server's: the recorded state to start, then approve,
+    Do it now, stop, Not this one, the rules, the outbound switch and the
+    made-up offer change it in this browser. Approving the recorded accept,
+    the made-up offer and its counter use the real API's own answers,
+    recorded in that order (build-demo.mjs, handoffWalk), with what each
+    changed in the deals it touched (rec.AFTER); a second made-up offer is
+    the first again under new ids.
+  */
+  var HK = "GET /v1/me/deals/handoff";
+  var ACTIVE = ["waiting", "scheduled"];
+  var FORMAT_WORDS = { integration: "an integration", dedicated: "a dedicated video", newsletter_slot: "a newsletter slot", podcast_read: "a podcast read", stream_segment: "a stream segment" };
+  var FORMAT_PLURAL = { integration: "integrations", dedicated: "dedicated videos", newsletter_slot: "newsletter slots", podcast_read: "podcast reads", stream_segment: "stream segments" };
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  function gbp(p) { return "£" + (p / 100).toLocaleString("en-GB", { minimumFractionDigits: p % 100 ? 2 : 0, maximumFractionDigits: 2 }); }
+  function dayText(s) { var d = new Date(Date.parse(s.length === 10 ? s + "T00:00:00Z" : s)); return d.getUTCDate() + " " + MONTHS[d.getUTCMonth()]; }
+  function listText(xs) { return xs.length <= 1 ? (xs[0] || "") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1]; }
+  /* The rules card's lines, as the server words them (deals/limits.ts summariseRules). */
+  function summarise(l) {
+    var lines = [];
+    var floors = Object.keys(l.minimums || {}).map(function (f) { return gbp(l.minimums[f]) + " " + (FORMAT_WORDS[f] || f); });
+    lines.push(floors.length ? "Floors: " + floors.join(", ") + "." : "No floors yet: Orbe asks you about every price.");
+    if ((l.formats || []).length) lines.push("Only " + listText(l.formats.map(function (f) { return FORMAT_PLURAL[f] || f; })) + ".");
+    var never = (l.avoidCategories || []).concat(l.avoidBrands || []);
+    if (never.length) lines.push("Never: " + never.join(", ") + ".");
+    var when = [];
+    if (l.maxReadsPerMonth !== null && l.maxReadsPerMonth !== undefined) when.push("Up to " + l.maxReadsPerMonth + " " + (l.maxReadsPerMonth === 1 ? "read" : "reads") + " a month.");
+    if ((l.blockedDates || []).length) when.push("Away " + listText(l.blockedDates.map(function (b) { return b.start === b.end ? dayText(b.start) : dayText(b.start) + " to " + dayText(b.end); })) + ".");
+    var lead = Number(l.leadDays || 0);
+    when.push(lead + " " + (lead === 1 ? "day's" : "days'") + " notice.");
+    lines.push(when.join(" "));
+    var acts = [l.autoCounter ? "Counters for you." : "Asks before countering."];
+    acts.push(l.accept && l.accept.mode === "auto" ? "Accepts for you at or above " + gbp(l.accept.above) + "." : "Always asks before accepting.");
+    if (l.autoDecline === false) acts.push("Asks before declining.");
+    lines.push(acts.join(" "));
+    return lines;
+  }
+
+  /* Timestamps a recorded write made, moved to now; older ones stay as recorded. */
+  var STAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+  function shiftNew(x, since, off) {
+    if (!off) return x;
+    (function walk(o) {
+      if (!o || typeof o !== "object") return;
+      Object.keys(o).forEach(function (k) {
+        var v = o[k];
+        if (typeof v === "string" && STAMP.test(v) && Date.parse(v) >= since) o[k] = new Date(Date.parse(v) + off).toISOString();
+        else if (v && typeof v === "object") walk(v);
+      });
+    })(x);
+    return x;
+  }
+  /* The nth made-up offer is the first under new ids: every id the first one made gets a suffix. */
+  function renamer(rec, n) {
+    var first = rec["POST /v1/me/deals/handoff/demo-offer"] && rec["POST /v1/me/deals/handoff/demo-offer"][0].body;
+    if (!first || n < 2) return function (s) { return s; };
+    var ids = [];
+    var o = first.offer || {};
+    [o.id, o.campaignId].concat((first.actions || []).map(function (a) { return a.id; })).forEach(function (x) { if (x && ids.indexOf(x) < 0) ids.push(x); });
+    return function (s) { ids.forEach(function (x) { s = s.split(x).join(x + "_" + n); }); return s; };
+  }
+  function fixed(x, since, off, rename) { return shiftNew(JSON.parse(rename(JSON.stringify(x))), since, off); }
+
+  /* What a recorded write changed: whole answers (a deal's timeline) and lists patched item by item (offers, bookings, approvals). */
+  function applyAfter(rec, writeKey, rename) {
+    var a = rec.AFTER && rec.AFTER[writeKey];
+    if (!a) return;
+    var at = Date.parse(a.at);
+    var since = at - 60000;
+    var off = Date.now() - at;
+    Object.keys(a.gets || {}).forEach(function (k0) {
+      var g = a.gets[k0];
+      var k = rename(k0);
+      if (g.patch) {
+        var cur = current(rec, k) || {};
+        Object.keys(g.patch).forEach(function (field) {
+          var list = Array.isArray(cur[field]) ? cur[field] : [];
+          fixed(g.patch[field], since, off, rename).forEach(function (item) {
+            var i = list.findIndex(function (x) { return x && x.id === item.id; });
+            if (i >= 0) list[i] = item; else list.unshift(item);
+          });
+          var gone = ((g.removed || {})[field] || []).map(rename);
+          cur[field] = list.filter(function (x) { return !x || gone.indexOf(x.id) < 0; });
+        });
+        setGet(k, cur);
+      } else setGet(k, fixed(g.body, since, off, rename));
+    });
+  }
+
+  function hoModel(rec) {
+    var s = st();
+    if (!s.ho) {
+      var b = current(rec, HK);
+      if (!b || !Array.isArray(b.queue)) return null;
+      // Always the demo's own: the made-up offer button and the Sample data tag.
+      b.demo = true;
+      s.ho = { state: b, alias: {}, demos: 0 };
+    }
+    return s.ho;
+  }
+  function hoAll(ho) { return ho.state.queue.concat(ho.state.recent); }
+  function hoFind(ho, aid) { return hoAll(ho).filter(function (a) { return a.id === aid; })[0] || null; }
+  /* Settles an action: out of the queue, at the head of the week. */
+  function hoSettle(ho, action) {
+    var x = ho.state;
+    x.queue = x.queue.filter(function (a) { return a.id !== action.id; });
+    x.recent = x.recent.filter(function (a) { return a.id !== action.id; });
+    if (ACTIVE.indexOf(action.state) >= 0) x.queue.unshift(action); else x.recent.unshift(action);
+  }
+  function hoView(rec, ho) {
+    var x = ho.state;
+    // A countdown that has run out is done, as the assistant's pass would have done it.
+    x.queue.filter(function (a) { return a.state === "scheduled" && a.runAt && Date.parse(a.runAt) <= Date.now(); }).forEach(function (a) { hoApprove(rec, ho, a.id); });
+    x.recent.sort(function (p, q) { return String(q.doneAt || q.createdAt).localeCompare(String(p.doneAt || p.createdAt)); });
+    x.counts = {
+      waiting: x.queue.filter(function (a) { return a.state === "waiting"; }).length,
+      scheduled: x.queue.filter(function (a) { return a.state === "scheduled"; }).length,
+      doneThisWeek: x.recent.filter(function (a) { return a.state === "done"; }).length,
+    };
+    setGet(HK, x);
+    return clone(x);
+  }
+  /* The owner's inbox drops an approval once its action is settled. */
+  function hoApprovalGone(rec, action, to) {
+    if (!action || !action.approvalId) return;
+    Object.keys(rec).concat(Object.keys(st().overlay)).forEach(function (k) {
+      if (k.indexOf("GET /v1/team/approvals") !== 0) return;
+      var b = current(rec, k);
+      if (!b || !b.approvals) return;
+      b.approvals = b.approvals.filter(function (p) { return !(p.id === action.approvalId && k.indexOf("state=pending") >= 0); }).map(function (p) {
+        return p.id === action.approvalId ? Object.assign({}, p, { state: to, decidedAt: now(), decidedBy: { name: "You" } }) : p;
+      });
+      setGet(k, b);
+    });
+  }
+  var DONE_TITLE = { accept: "Accepted", counter: "Countered", decline: "Declined" };
+  /* Approve or Do it now: the recorded answer for this action where there is one, otherwise the action done. */
+  function hoApprove(rec, ho, aid) {
+    var cur = hoFind(ho, aid);
+    if (!cur || ACTIVE.indexOf(cur.state) < 0) return null;
+    var al = ho.alias[aid];
+    var orig = al ? al.orig : aid;
+    var rename = renamer(rec, al ? al.n : 1);
+    var wk = "POST /v1/me/deals/handoff/actions/" + orig + "/approve";
+    var w = rec[wk] && rec[wk][0];
+    var out;
+    if (w && w.body && w.body.action) {
+      var at = rec.AFTER && rec.AFTER[wk] ? Date.parse(rec.AFTER[wk].at) : Date.now();
+      out = fixed(w.body, at - 60000, Date.now() - at, rename);
+      applyAfter(rec, wk, rename);
+    } else {
+      var done = Object.assign({}, cur, { state: "done", doneAt: now(), runAt: null, can: { approve: false, stop: false, dismiss: false, edit: false } });
+      if (DONE_TITLE[cur.kind] && cur.brandName) done.title = DONE_TITLE[cur.kind] + " " + cur.brandName + (cur.amount ? " at " + gbp(cur.amount.amount) : "");
+      out = { action: done, booking: null };
+    }
+    hoSettle(ho, out.action);
+    hoApprovalGone(rec, cur, "approved");
+    return out;
+  }
+  function hoRetire(rec, ho, aid, to) {
+    var cur = hoFind(ho, aid);
+    if (!cur) return null;
+    var a = Object.assign({}, cur, { state: to, doneAt: now(), can: { approve: false, stop: false, dismiss: false, edit: false } });
+    hoSettle(ho, a);
+    hoApprovalGone(rec, cur, "cancelled");
+    return a;
+  }
+  /* A manager's money and consent changes go to the owner, as the real API sends them. */
+  function askOwner(summary) {
+    return reply(202, { approval: { id: id("ap"), action: "money", summary: summary, state: "pending", requestedAt: now(), requestedBy: { name: "You" } } });
+  }
+  var isManager = function () { return persona === "mo"; };
+
+  function handoff(rec, method, url, body) {
+    var path = url.pathname;
+    if (path.indexOf("/v1/me/deals/handoff") !== 0) return null;
+    var ho = hoModel(rec);
+    if (!ho) return null;
+    var x = ho.state;
+    var m;
+    if (path === "/v1/me/deals/handoff" && method === "GET") return reply(200, hoView(rec, ho));
+    if (path === "/v1/me/deals/handoff" && method === "PUT") {
+      if (isManager()) return askOwner("Mo Seed (made up) asks to change the Hand it off rules");
+      body = body || {};
+      if (typeof body.enabled === "boolean") x.enabled = body.enabled;
+      if (body.rules && typeof body.rules === "object") {
+        var r = clone(body.rules);
+        delete r.outbound;
+        if (r.accept && r.accept.mode === "auto" && !(r.accept.above > 0)) return reply(400, { error: { code: "invalid", message: "Some rules need attention.", details: [{ path: "rules.accept.above", message: "is needed to accept for you" }] } });
+        x.rules = Object.assign({}, x.rules, r);
+        x.version = (x.version || 1) + 1;
+      }
+      x.summary = summarise(x.rules || {});
+      return reply(200, hoView(rec, ho));
+    }
+    if (path === "/v1/me/deals/handoff/outbound" && method === "PUT") {
+      if (isManager()) return askOwner("Mo Seed (made up) asks to change proposing Ada's slots to brands");
+      x.outbound = Object.assign({}, x.outbound, { on: !!(body && body.on), perWeek: Number((body && body.perWeek) || (x.outbound && x.outbound.perWeek) || 3) });
+      return reply(200, hoView(rec, ho));
+    }
+    if (path === "/v1/me/deals/handoff/run" && method === "POST") return reply(200, { actions: [] });
+    if (path === "/v1/me/deals/handoff/actions" && method === "GET") {
+      hoView(rec, ho);
+      var want = url.searchParams.get("state");
+      return reply(200, { actions: clone(hoAll(ho).filter(function (a) { return !want || a.state === want; })) });
+    }
+    if (path === "/v1/me/deals/handoff/demo-offer" && method === "POST") {
+      if (!x.enabled) return reply(409, { error: { code: "handoff_off", message: "Switch Hand it off on first." } });
+      var wk = "POST /v1/me/deals/handoff/demo-offer";
+      var w = rec[wk] && rec[wk][0];
+      if (!w || !w.body) return live(503);
+      ho.demos += 1;
+      var n = ho.demos;
+      var rename = renamer(rec, n);
+      var at = rec.AFTER && rec.AFTER[wk] ? Date.parse(rec.AFTER[wk].at) : Date.now();
+      var out = fixed(w.body, at - 60000, Date.now() - at, rename);
+      (out.actions || []).forEach(function (a, i) {
+        ho.alias[a.id] = { orig: w.body.actions[i].id, n: n };
+        hoSettle(ho, a);
+      });
+      applyAfter(rec, wk, rename);
+      hoView(rec, ho);
+      return reply(201, out);
+    }
+    if ((m = path.match(/^\/v1\/me\/deals\/handoff\/actions\/([^/]+)\/(approve|stop|dismiss)$/)) && method === "POST") {
+      var aid = decodeURIComponent(m[1]);
+      var cur = hoFind(ho, aid);
+      if (!cur) return reply(404, { error: { code: "not_found", message: "That one is no longer here." } });
+      if (ACTIVE.indexOf(cur.state) < 0) return reply(409, { error: { code: "settled", message: "That one is already settled. What Orbe did is under Done this week." } });
+      if (m[2] === "approve") {
+        if (isManager()) return askOwner("Orbe's assistant asks to " + String(cur.title || "act").replace(/^./, function (c) { return c.toLowerCase(); }));
+        var res = hoApprove(rec, ho, aid);
+        hoView(rec, ho);
+        return reply(200, res);
+      }
+      var a2 = hoRetire(rec, ho, aid, m[2] === "stop" ? "stopped" : "dismissed");
+      hoView(rec, ho);
+      return reply(200, { action: a2 });
+    }
+    return null;
+  }
+
+  /*
+    An agency's roster (GET /v1/roster/handoff and each creator's): approving,
+    stopping and leaving an action, alone or picked together, and the rules
+    within the creator's grant, in this browser only. What a grant keeps for
+    the creator is refused as the API refuses it.
+  */
+  var RK = "GET /v1/roster/handoff";
+  function rosterSettle(rec, cid, aid, to) {
+    var ck = "GET /v1/roster/handoff/creators/" + cid;
+    var one = current(rec, ck);
+    var all = current(rec, RK);
+    var found = null;
+    if (one && one.handoff) {
+      var hq = one.handoff;
+      found = (hq.queue || []).filter(function (a) { return a.id === aid; })[0] || null;
+      if (found) {
+        var settled = Object.assign({}, found, { state: to, doneAt: now(), runAt: null, can: { approve: false, stop: false, dismiss: false, edit: false } });
+        if (to === "done" && DONE_TITLE[found.kind] && found.brandName) settled.title = DONE_TITLE[found.kind] + " " + found.brandName + (found.amount ? " at " + gbp(found.amount.amount) : "");
+        hq.queue = hq.queue.filter(function (a) { return a.id !== aid; });
+        hq.recent = [settled].concat(hq.recent || []);
+        hq.counts = { waiting: hq.queue.filter(function (a) { return a.state === "waiting"; }).length, scheduled: hq.queue.filter(function (a) { return a.state === "scheduled"; }).length, doneThisWeek: hq.recent.filter(function (a) { return a.state === "done"; }).length };
+        setGet(ck, one);
+        found = settled;
+      }
+    }
+    if (all && all.queue) {
+      var was = all.queue.filter(function (a) { return a.id === aid; })[0];
+      if (was && !found) found = Object.assign({}, was, { state: to, doneAt: now() });
+      all.queue = all.queue.filter(function (a) { return a.id !== aid; });
+      (all.creators || []).forEach(function (row) {
+        if (!row.creator || row.creator.id !== cid || !row.counts) return;
+        var mine = all.queue.filter(function (a) { return a.creator && a.creator.id === cid; });
+        row.counts = { waiting: mine.filter(function (a) { return a.state === "waiting"; }).length, scheduled: mine.filter(function (a) { return a.state === "scheduled"; }).length, doneThisWeek: (row.counts.doneThisWeek || 0) + (to === "done" ? 1 : 0) };
+        var next = mine.filter(function (a) { return a.state === "waiting"; })[0] || mine.filter(function (a) { return a.state === "scheduled"; })[0] || null;
+        row.next = next ? { id: next.id, title: next.title, state: next.state, runAt: next.runAt, creatorAct: next.waitsFor !== null && next.waitsFor !== undefined } : null;
+        row.lastAt = now();
+      });
+      if (all.summary) {
+        var shared = (all.creators || []).filter(function (r) { return r.shares; });
+        all.summary.waiting = all.queue.filter(function (a) { return a.state === "waiting"; }).length;
+        all.summary.scheduled = all.queue.filter(function (a) { return a.state === "scheduled"; }).length;
+        all.summary.doneThisWeek = shared.reduce(function (n, r) { return n + ((r.counts && r.counts.doneThisWeek) || 0); }, 0);
+      }
+      setGet(RK, all);
+    }
+    return found;
+  }
+  function rosterAction(rec, cid, aid) {
+    var one = current(rec, "GET /v1/roster/handoff/creators/" + cid);
+    var q = (one && one.handoff && one.handoff.queue) || [];
+    var all = current(rec, RK);
+    return q.filter(function (a) { return a.id === aid; })[0] || ((all && all.queue) || []).filter(function (a) { return a.id === aid; })[0] || null;
+  }
+  function roster(rec, method, url, body) {
+    var path = url.pathname;
+    if (path.indexOf("/v1/roster/handoff") !== 0 || method === "GET") return null;
+    var m;
+    var refuse = function (a) { return reply(403, { error: { code: "forbidden", message: (a && a.waitsFor) || "That is for the creator to decide." } }); };
+    if (path === "/v1/roster/handoff/approve" && method === "POST") {
+      var results = ((body && body.items) || []).map(function (it) {
+        var a = rosterAction(rec, it.creatorId, it.actionId);
+        if (!a) return { creatorId: it.creatorId, actionId: it.actionId, ok: false, error: { message: "That one is no longer waiting." } };
+        if (!a.can || !a.can.approve) return { creatorId: it.creatorId, actionId: it.actionId, ok: false, error: { message: a.waitsFor || "That is for the creator to decide." } };
+        rosterSettle(rec, it.creatorId, it.actionId, "done");
+        return { creatorId: it.creatorId, actionId: it.actionId, ok: true };
+      });
+      return reply(200, { results: results, done: results.filter(function (r) { return r.ok; }).length });
+    }
+    if ((m = path.match(/^\/v1\/roster\/handoff\/creators\/([^/]+)\/actions\/([^/]+)\/(approve|stop|dismiss)$/)) && method === "POST") {
+      var cid = decodeURIComponent(m[1]);
+      var aid = decodeURIComponent(m[2]);
+      var a = rosterAction(rec, cid, aid);
+      if (!a) return reply(404, { error: { code: "not_found", message: "That one is no longer waiting." } });
+      if (m[3] === "approve" && (!a.can || !a.can.approve)) return refuse(a);
+      var out = rosterSettle(rec, cid, aid, m[3] === "approve" ? "done" : m[3] === "stop" ? "stopped" : "dismissed");
+      return reply(200, m[3] === "approve" ? { action: out, booking: null } : { action: out });
+    }
+    if ((m = path.match(/^\/v1\/roster\/handoff\/creators\/([^/]+)\/run$/)) && method === "POST") return reply(200, { actions: [] });
+    if ((m = path.match(/^\/v1\/roster\/handoff\/creators\/([^/]+)$/)) && method === "PUT") {
+      var ck = "GET /v1/roster/handoff/creators/" + decodeURIComponent(m[1]);
+      var one = current(rec, ck);
+      if (!one || !one.handoff) return live(503);
+      var name = (one.creator && one.creator.name) || "The creator";
+      if (!one.can || !one.can.rules) return reply(202, { approval: { id: id("ap"), state: "pending" }, waitingFor: "creator", message: "Sent to " + name + " to decide. Nothing has changed yet." });
+      var hq = one.handoff;
+      if (body && typeof body.enabled === "boolean") hq.enabled = body.enabled;
+      if (body && body.rules && typeof body.rules === "object") { var r = clone(body.rules); delete r.outbound; hq.rules = Object.assign({}, hq.rules, r); }
+      hq.summary = summarise(hq.rules || {});
+      setGet(ck, one);
+      var all = current(rec, RK);
+      if (all && all.creators && body && typeof body.enabled === "boolean") {
+        all.creators.forEach(function (row) { if (row.creator && row.creator.id === decodeURIComponent(m[1])) row.enabled = body.enabled; });
+        if (all.summary) all.summary.on = all.creators.filter(function (row) { return row.shares && row.enabled; }).length;
+        setGet(RK, all);
+      }
+      return reply(200, clone(hq));
+    }
+    return null;
+  }
+
   function handle(rec, method, url, body) {
     var path = url.pathname;
     var m;
+    var ho = handoff(rec, method, url, body) || roster(rec, method, url, body);
+    if (ho) return ho;
     // The walkthrough and the tour.
     if (path === "/v1/me/welcome") {
       var key = "GET /v1/me/welcome";
@@ -487,6 +864,19 @@
     // The owner's approvals.
     if ((m = path.match(/^\/v1\/team\/approvals\/([^/]+)\/(approve|decline|cancel)$/)) && method === "POST") {
       var decided = null;
+      // An approval Orbe's assistant asked for is its action, approved or left as Hand it off would.
+      var asked = null;
+      Object.keys(rec).concat(Object.keys(st().overlay)).forEach(function (k) {
+        if (asked || k.indexOf("GET /v1/team/approvals") !== 0) return;
+        var b0 = current(rec, k);
+        (b0 && b0.approvals || []).forEach(function (a) { if (a.id === m[1]) asked = a; });
+      });
+      var hoAct = asked && /\/handoff\/actions\/([^/]+)\/approve$/.exec(asked.path || "");
+      var model = hoAct && hoModel(rec);
+      if (model && hoFind(model, hoAct[1])) {
+        if (m[2] === "approve") hoApprove(rec, model, hoAct[1]); else hoRetire(rec, model, hoAct[1], "dismissed");
+        hoView(rec, model);
+      }
       var stateTo = m[2] === "approve" ? "approved" : m[2] === "decline" ? "declined" : "cancelled";
       Object.keys(rec).forEach(function (k) {
         if (k.indexOf("GET /v1/team/approvals") !== 0) return;

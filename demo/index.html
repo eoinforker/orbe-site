@@ -84,7 +84,7 @@
     var app = BASE + "/app/";
     function set(k, v) { try { if (v === null) localStorage.removeItem("orbe-demo:" + k); else localStorage.setItem("orbe-demo:" + k, JSON.stringify(v)); } catch (e) {} }
     function reset() { try { Object.keys(localStorage).filter(function (k) { return k.indexOf("orbe-demo:") === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} }
-    var roles = { ada: ["Creator, owner", "AS", ""], new: ["New creator", "NC", "new"], mo: ["Manager", "MS", ""], ed: ["Editor", "ES", ""], oats: ["Brand", "HO", "brand"] };
+    var roles = { ada: ["Creator, owner", "AS", ""], new: ["New creator", "NC", "new"], mo: ["Manager", "MS", ""], ed: ["Editor", "ES", ""], oats: ["Brand", "HO", "brand"], talent: ["Agency", "ST", "brand"] };
     fetch(BASE + "/data/people.json").then(function (r) { return r.json(); }).then(function (people) {
       var grid = document.getElementById("people");
       people.forEach(function (p) {

@@ -12,10 +12,11 @@ import { emptyState, drawer, section, segmented, skeleton, stat, statStrip } fro
 import { screenHead } from "../console-ui.js";
 import { icon } from "../icons.js";
 import { block, count, day, field, form, h, input, money, pct, plural, toast } from "../ui.js";
+import { SIZE_WORDS } from "../terms.js";
 
-const ROLE = { you: ["You", "sky"], competitor: ["Competitor", "straw"], category: ["Your category", "line"] };
+const ROLE = { you: ["You", "sky"], competitor: ["Competitor", "line"], category: ["Your category", "line"] };
 const FORM = { youtube: "YouTube", podcast: "Podcasts", newsletter: "Newsletters", twitch: "Twitch", tiktok: "TikTok", instagram: "Instagram" };
-const BAND = { seed: "Smallest", rise: "Rising", low: "Lower middle", mid: "Middle", high: "Large", top: "Top", unknown: "Not public" };
+const BAND = SIZE_WORDS;
 const WINDOWS = [["30", "30 days"], ["90", "90 days"], ["180", "6 months"], ["365", "A year"]];
 
 const tag = (role) => h("span", { class: `cn-tag cn-tag--${ROLE[role][1]}` }, ROLE[role][0]);

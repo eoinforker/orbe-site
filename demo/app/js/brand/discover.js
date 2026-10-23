@@ -5,9 +5,10 @@
   offer from this brand; an offer can be sent to a ref.
 */
 import { api, seg } from "../api.js";
-import { FORMATS, formatName, KINDS } from "../terms.js";
-import { block, check, chip, count, empty, field, form, h, input, money, panel, plural, select, signed, textarea, title, words } from "../ui.js";
-import { screenHead } from "../console-ui.js";
+import { FORMATS, formatName, KINDS, sizeWords } from "../terms.js";
+import { actions, block, count, field, form, h, input, money, plural, select, textarea } from "../ui.js";
+import { drawer, emptyState, rating, screenHead, section } from "../console-ui.js";
+import { button, narrow, picks, status, table, twoLine } from "../cards.js";
 
 const BANDS = ["seed", "rise", "low", "mid", "high", "top"];
 const FORMAT_KEYS = [...new Set(FORMATS.map((f) => f.format))];
@@ -15,10 +16,10 @@ const CHECK = { below: "under Orbe's suggestion", within: "inside Orbe's suggest
 
 function offerForm(account, campaigns) {
   const open = campaigns.filter((c) => c.state === "open");
-  if (!open.length) return h("p", { class: "ap-note" }, "Open a campaign to send an offer.");
+  if (!open.length) return h("p", { class: "cn-label" }, "Open a campaign to send an offer.");
   const offerings = account.offerings.filter((o) => o.available);
-  if (!offerings.length) return h("p", { class: "ap-note" }, "Nothing on offer right now.");
-  return form(
+  if (!offerings.length) return h("p", { class: "cn-label" }, "Nothing on offer right now.");
+  return narrow(form(
     [
       field("Campaign", select(open.map((c) => [c.id, c.brief.title]), { name: "campaign" })),
       field("Format", select(offerings.map((o) => [o.format, o.name]), { name: "format" })),
@@ -43,67 +44,62 @@ function offerForm(account, campaigns) {
       });
       return "Offer sent. The creator stays anonymous to you unless they accept.";
     },
-  );
-}
-
-function uploadsLine(uploads) {
-  const judged = uploads.filter((u) => u.atSize);
-  if (!judged.length) return null;
-  const n = (r) => judged.filter((u) => u.atSize.result === r).length;
-  return h("p", { class: "ap-note" }, `Recent works against creators the same size: ${n("above")} above the middle half, ${n("within")} inside, ${n("below")} below.`);
-}
-
-function accountBlock(a, campaigns) {
-  const d = h("details", { class: "ap-more" }, h("summary", null, "Send an offer"));
-  d.addEventListener("toggle", () => d.open && d.childElementCount === 1 && d.append(offerForm(a, campaigns)));
-  return h(
-    "div",
-    { class: "ap-stack ap-account" },
-    h("p", { class: "ap-says" }, `${KINDS[a.kind] ?? a.kind}${a.handle ? `, ${a.handle}` : ""}`, " ", chip(`Size ${a.sizeBand}`)),
-    a.rating ? h("p", null, `Rating ${signed(a.rating.rating)}, ${a.rating.band}${a.rating.beats !== null ? `; reach beats ${a.rating.beats} in 100 creators its size` : ""}.`) : null,
-    a.offerings.length
-      ? h("ul", { class: "ap-plain" }, a.offerings.map((o) => {
-          const w = [...o.delivery].sort((x, y) => x.day - y.day).at(-1);
-          return h("li", null, `${o.name}: ${o.rateCard.listPrice ? money(o.rateCard.listPrice) : "price on request"}${o.rateCard.check ? `, ${CHECK[o.rateCard.check]}` : ""}${w?.median ? `; typically ${count(w.median)} at ${w.day} days` : ""}${o.available ? "" : " (paused)"}`);
-        }))
-      : null,
-    uploadsLine(a.uploads),
-    a.rating ? h("p", { class: "ap-label" }, a.rating.notice) : null,
-    d,
-  );
+  ));
 }
 
 /** One creator's recent uploads against creators the same size, read fresh by ref. */
-function uploadsDetail(ref) {
-  const d = h("details", { class: "ap-more" }, h("summary", null, "Recent works"));
-  const box = h("div", { class: "ap-stack" });
-  d.append(box);
-  d.addEventListener("toggle", () => {
-    if (!d.open || box.dataset.loaded) return;
-    box.dataset.loaded = "1";
-    block(box, () => api.get(`/v1/brand/discover/${seg(ref)}`), ({ creator }) =>
+function recentWorks(ref, label) {
+  drawer(`Recent works: ${label}`, async () => {
+    const box = h("div", { class: "ap-stack" });
+    await block(box, () => api.get(`/v1/brand/discover/${seg(ref)}`), ({ creator }) =>
       creator.accounts.map((a) =>
-        a.uploads.length
-          ? h("ul", { class: "ap-plain" }, a.uploads.slice(0, 8).map((u) => h("li", null, `${u.title ?? "A work"}, ${u.published}: ${u.atSize ? `${u.atSize.result === "within" ? "inside" : u.atSize.result} the middle half (${count(u.atSize.p25)} to ${count(u.atSize.p75)} ${u.atSize.metric} at ${u.atSize.day} days)` : "not compared yet"}`)))
-          : h("p", { class: "ap-note" }, "No works to compare yet."),
+        section({ title: `${KINDS[a.kind] ?? a.kind}${a.handle ? `, ${a.handle}` : ""}` },
+          a.uploads.length
+            ? table([["Work"], ["Against creators its size"]], a.uploads.slice(0, 8).map((u) => [
+                twoLine(u.title ?? "A work", u.published),
+                u.atSize ? twoLine(`${u.atSize.result === "within" ? "Inside" : u.atSize.result === "above" ? "Above" : "Below"} the middle half`, `${count(u.atSize.p25)} to ${count(u.atSize.p75)} ${u.atSize.metric} at ${u.atSize.day} days`) : h("span", { class: "dl-quiet" }, "Not compared yet"),
+              ]), { caption: "Recent works" })
+            : h("p", { class: "cn-label" }, "No works to compare yet."),
+        ),
       ),
     );
-  });
-  return d;
+    return box;
+  }, { wide: true });
 }
 
-function resultItem(r, campaigns) {
-  return h(
-    "li",
-    { class: "ap-item ap-item--block" },
-    h("div", { class: "ap-item-main" },
-      h("p", { class: "ap-says" }, r.shared && r.creator ? r.creator.displayName : "An anonymous creator", " ", r.shared ? chip("Shared with you", "good") : chip("Anonymised")),
-      r.vertical ? h("p", { class: "ap-note" }, `Subject: ${r.vertical}`) : null,
-    ),
-    r.accounts.map((a) => accountBlock(a, campaigns)),
-    r.notes.length ? h("p", { class: "ap-note" }, r.notes.join(" ")) : null,
-    uploadsDetail(r.ref),
+/** The lowest list price on offer, and how it sits against Orbe's suggestion. */
+function priceCell(a) {
+  const priced = a.offerings.filter((o) => o.rateCard.listPrice);
+  if (!priced.length) return h("span", { class: "dl-quiet" }, a.offerings.length ? "On request" : "Nothing on offer");
+  const o = priced.reduce((x, y) => (y.rateCard.listPrice.amount < x.rateCard.listPrice.amount ? y : x));
+  const w = [...o.delivery].sort((x, y) => x.day - y.day).at(-1);
+  return twoLine(money(o.rateCard.listPrice), [o.name, w?.median ? `typically ${count(w.median)} at ${w.day} days` : null, o.available ? null : "paused"].filter(Boolean).join(", "));
+}
+
+function resultRows(r, campaigns) {
+  const name = r.shared && r.creator ? r.creator.displayName : "An anonymous creator";
+  const accounts = r.accounts.length ? r.accounts : [null];
+  const who = h("td", { rowspan: String(accounts.length), class: "cn-td-top" },
+    twoLine(name, [r.vertical ? `Subject: ${r.vertical}` : null, ...r.notes].filter(Boolean).join(". ") || null),
+    h("div", { class: "cn-td-tags" }, r.shared ? status("Shared with you", "good") : status("Anonymised"), button("Recent works", async () => void recentWorks(r.ref, name), { quiet: true })),
   );
+  return accounts.map((a, i) => {
+    const lead = i === 0 ? [who] : [];
+    if (!a) return { cells: [...lead, h("span", { class: "dl-quiet" }, "No account"), null, null, null, null, null] };
+    const offer = button("Send an offer", async () => void drawer(`Send an offer: ${KINDS[a.kind] ?? a.kind}${a.handle ? `, ${a.handle}` : ""}`, () => offerForm(a, campaigns)), { quiet: true });
+    return {
+      skip: i === 0 ? 0 : 1,
+      cells: [
+        ...lead,
+        twoLine(a.handle ?? "Not shared", KINDS[a.kind] ?? a.kind),
+        sizeWords(a.sizeBand, a.kind),
+        a.rating ? [rating(a.rating.rating), h("span", { class: "dl-sub" }, a.rating.band)] : h("span", { class: "dl-quiet" }, "Not rated"),
+        a.rating?.beats !== null && a.rating?.beats !== undefined ? `Beats ${a.rating.beats} in 100` : h("span", { class: "dl-quiet" }, "Not yet"),
+        priceCell(a),
+        a.offerings.some((o) => o.available) ? actions(offer) : null,
+      ],
+    };
+  });
 }
 
 function queryOf(d) {
@@ -127,35 +123,35 @@ export async function render(main) {
       const [r, c] = await Promise.all([api.get("/v1/brand/discover" + query), api.get("/v1/brand/campaigns")]);
       campaigns = c.campaigns;
       return r;
-    }, (r) => [
-      h("p", { class: "ap-says" }, `${plural(r.total, "creator")} found${r.total > r.results.length ? `, the first ${r.results.length} shown` : ""}.`),
-      r.results.length ? h("ul", { class: "ap-list" }, r.results.map((x) => resultItem(x, campaigns))) : empty("No creator matches. Fewer filters find more."),
-      (r.notes ?? []).map((n) => h("p", { class: "ap-note" }, n)),
-      h("p", { class: "ap-label" }, `${r.label}.`),
-    ]);
-  screenHead(main, "discover", { line: "Creators who chose to be found, by their results against creators their size. Anonymised until a creator accepts an offer from you.", tags: [["Opt-in creators only", "sky"]] }).append(
-    h("div", { class: "ap-stack" },
-      panel(
-        "Search",
-        form(
-          [
-            h("fieldset", { class: "ap-fieldset" }, h("legend", null, "Where"), h("div", { class: "ap-inline" }, Object.entries(KINDS).filter(([k]) => k !== "photography").map(([k, n]) => check(n, { name: "kinds", value: k })))),
-            h("fieldset", { class: "ap-fieldset" }, h("legend", null, "Size, smallest to largest"), h("div", { class: "ap-inline" }, BANDS.map((b) => check(words(b), { name: "bands", value: b })))),
-            h("fieldset", { class: "ap-fieldset" }, h("legend", null, "Format"), h("div", { class: "ap-inline" }, FORMAT_KEYS.map((f) => check(f === "dedicated" ? "Dedicated video or send" : formatName(f), { name: "formats", value: f })))),
-            field("Topic words", input({ name: "q", maxlength: 200, placeholder: "budgeting, cooking" })),
-            field("Reach beats at least this many in 100 creators their size", input({ name: "beatsAtLeast", type: "number", min: "0", max: "100", step: "1" })),
-            h("div", { class: "ap-pair" }, field("Price from (£)", input({ name: "priceMin", type: "number", min: "0", step: "1" })), field("Price to (£)", input({ name: "priceMax", type: "number", min: "0", step: "1" }))),
-          ],
-          "Search",
-          async (d) => {
-            await load(queryOf(d));
-          },
-          { primary: false },
-        ),
+    }, (r) => {
+      const notices = [...new Set(r.results.flatMap((x) => x.accounts.map((a) => a.rating?.notice).filter(Boolean)))];
+      return section(
+        { title: "Creators", line: `${plural(r.total, "creator")} found${r.total > r.results.length ? `, the first ${r.results.length} shown` : ""}.` },
+        r.results.length
+          ? table([["Creator"], ["Account"], ["Size"], ["Rating", "num"], ["Reach at its size"], ["From"], [""]], r.results.flatMap((x) => resultRows(x, campaigns)), { cls: "cn-roster-table", caption: "Creators found" })
+          : emptyState("search", "No creator matches.", [], "Fewer filters find more."),
+        (r.notes ?? []).map((n) => h("p", { class: "cn-label" }, n)),
+        notices.length ? notices.map((t) => h("p", { class: "cn-label" }, t)) : h("p", { class: "cn-label" }, `${r.label}.`),
+      );
+    });
+  const search = narrow(form(
+    [
+      picks("Where", "kinds", Object.entries(KINDS).filter(([k]) => k !== "photography")),
+      picks("Size, smallest to largest", "bands", BANDS.map((b) => [b, sizeWords(b)])),
+      picks("Format", "formats", FORMAT_KEYS.map((f) => [f, f === "dedicated" ? "Dedicated video or send" : formatName(f)])),
+      field("Topic words", input({ name: "q", maxlength: 200, placeholder: "budgeting, cooking" })),
+      h("details", { class: "ap-more" }, h("summary", null, "Reach and price"),
+        field("Reach beats at least this many in 100 creators their size", input({ name: "beatsAtLeast", type: "number", min: "0", max: "100", step: "1", inputmode: "numeric" })),
+        h("div", { class: "ap-pair" }, field("Price from (£)", input({ name: "priceMin", type: "number", min: "0", step: "1", inputmode: "numeric" })), field("Price to (£)", input({ name: "priceMax", type: "number", min: "0", step: "1", inputmode: "numeric" }))),
       ),
-      panel("Creators", list),
-    ),
+    ],
+    "Search",
+    async (d) => {
+      await load(queryOf(d));
+    },
+  ));
+  screenHead(main, "discover", { line: "Creators who chose to be found, by their results against creators their size. Anonymised until a creator accepts an offer from you.", tags: [["Opt-in creators only", "sky"]] }).append(
+    h("div", { class: "ap-stack" }, section({ title: "Find creators", line: "Choose none in a group to include them all." }, search), list),
   );
   await load("");
 }
-

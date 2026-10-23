@@ -191,7 +191,7 @@ function concentration(r) {
     let html = `<dl class="kv"><dt>Largest payer</dt><dd>${c.top ? `${esc(c.top.name)}, ${n(c.top.share)}` : "none named"}</dd><dt>Three largest payers</dt><dd>${n(c.top3Share)}</dd><dt>Herfindahl index of payers (0 to 10,000)</dt><dd>${n(c.hhi)}</dd><dt>From many small payers (ads, subscribers, buyers)</dt><dd>${n(c.dispersedShare)}</dd></dl>`;
     if (c.counterparties.length)
         html += table(["Payer", "Last twelve months", "Share"], c.counterparties.map((x) => [esc(x.name), n(x.total), n(x.share)]), [1, 2]);
-    html += `<h3>Platforms</h3><p class="small">Who pays, and whose audience the money depends on.${p.dependent ? " The business depends on one platform." : ""}</p>`;
+    html += `<h3>Platforms</h3><p class="small">Who pays, and whose audience the money depends on.${p.dependent ? " Most of the money depends on one platform's audience." : ""}</p>`;
     html += table(["Audience the money rests on", "Last twelve months", "Share"], p.byAudience.map((x) => [esc(x.name), n(x.total), n(x.share)]), [1, 2]);
     html += table(["Paid through", "Last twelve months", "Share"], p.byPayer.map((x) => [esc(x.name), n(x.total), n(x.share)]), [1, 2]);
     return html;

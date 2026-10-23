@@ -27,6 +27,7 @@ import { RATING_LABEL } from "../assets/engine/rating/label.js";
                                                           
                                                             
                                                     
+                                                        
 
                       
                               
@@ -35,6 +36,7 @@ import { RATING_LABEL } from "../assets/engine/rating/label.js";
                               
                                 
                         
+                            
   
 
 /** The JSON Schema subset the tools use, checked by validate() below. */
@@ -232,6 +234,8 @@ const shortfallSchema         = {
   },
 };
 
+const MONEY_IN         = { type: "object", required: ["amount", "currency"], additionalProperties: false, properties: { amount: { type: "integer", minimum: 0, maximum: 100_000_000, description: "Minor units: pence, cents." }, currency: { type: "string", enum: ["GBP", "USD", "EUR"], description: "The currency." } } };
+
 const usdRateSchema         = {
   type: "number",
   exclusiveMinimum: 0,
@@ -242,7 +246,7 @@ const usdRateSchema         = {
 /* ---------------------------------------------------------------- the tools */
 
 export function createTools(engine        )          {
-  const { rating: R, ratingFormat: F, sponsor: S, market: M, podcast: P, fix: X } = engine;
+  const { rating: R, ratingFormat: F, sponsor: S, market: M, podcast: P, fix: X, deals: D } = engine;
 
   const versions                         = {
     model: R.MODEL_VERSION,
@@ -566,7 +570,7 @@ export function createTools(engine        )          {
     return {
       ok: true,
       summary: g
-        ? `A guaranteed ${spec.name.toLowerCase()} at ${money(price)}, guaranteed at ${g}. The brand pays ${money(funding.total)} into a payments partner and pays in full only on verified delivery. The creator must approve before anything is booked. ${ATTRIBUTION}`
+        ? `A guaranteed ${spec.name.toLowerCase()} at ${money(price)}, guaranteed at ${g}. The brand pays ${money(funding.total)} in advance, and the creator is paid in full only on verified delivery. The creator must approve before anything is booked. ${ATTRIBUTION}`
         : `A ${spec.name.toLowerCase()} at ${money(price)}, without a guarantee: ${why}. The brand pays ${money(funding.total)}. The creator must approve before anything is booked. ${ATTRIBUTION}`,
       structured: envelope({
         status: "draft",
@@ -590,7 +594,7 @@ export function createTools(engine        )          {
         creatorKeeps: price,
         worstCaseForCreator: { creatorPayout: floorPay.creatorPayout, brandRefund: floorPay.brandRefund, shown: `At the floor the creator is paid ${money(floorPay.creatorPayout)} and the brand gets ${money(floorPay.brandRefund)} back.` },
         approval: "A quote, not a booking. The creator approves the brand and the offer before anything is booked; an agent cannot accept for them.",
-        nextStep: "Book through the Orbe API (with the API): the creator approves, the brand funds a regulated payments partner, Orbe reads delivery at source and releases payment only on verified delivery.",
+        nextStep: "Book through the Orbe API (with the API): the creator approves, the brand pays in advance, Orbe reads delivery at source and the creator is paid only on verified delivery.",
         computedAt: at,
       }),
     };
@@ -775,6 +779,85 @@ export function createTools(engine        )          {
       ok: true,
       summary: `${words[result.verdict]} ${result.flags.length} ${result.flags.length === 1 ? "flag" : "flags"}; signals used: ${result.signalsUsed.join(", ") || "none"}. The model never accuses: each flag gives an innocent reading where there is one. ${ATTRIBUTION}`,
       structured: envelope({ ...result, verdictShown: words[result.verdict], computedAt: at }),
+    };
+  }
+
+  /* ---- Hand it off: one offer against a creator's rules */
+
+                                                        
+                      
+                                   
+                                                                                                                                                                                                                        
+                           
+                                            
+                                              
+                                           
+                               
+                         
+                          
+                 
+    
+
+  function handoffTool(a             )              {
+    let rules                                  ;
+    try {
+      rules = D.parseLimits(a.rules);
+    } catch (e) {
+      const problems = (e                          ).problems;
+      if (!problems) throw e;
+      return { ok: false, message: "Some rules are not valid.", issues: problems.map((p) => ({ path: `rules.${p.path}`, message: p.message })) };
+    }
+    const at = nowOf(a);
+    const origin = a.origin ?? "offer";
+    const o = a.offer;
+    const price = { amount: Math.round(o.price.amount), currency: o.price.currency };
+    const decision = D.decideOffer({
+      offer: {
+        brandName: o.brandName.trim(),
+        format: o.format         ,
+        quantity: o.quantity ?? 1,
+        price,
+        publishWindow: o.publishWindow,
+        product: o.product ?? "",
+        state: "sent",
+        counters: Array.from({ length: o.countersMade ?? 0 }, () => ({ price })),
+        guarantee: o.guarantee ?? null,
+      },
+      rules,
+      range: a.range ?? null,
+      expected: a.expected ?? null,
+      brandCategory: a.brandCategory ?? null,
+      settings: { excludedCategories: [], blackouts: [] },
+      bookedByMonth: a.bookedByMonth ?? {},
+      rulesVersion: a.rulesVersion ?? 1,
+      now: new Date(at),
+      origin,
+    });
+    const autonomy = D.autonomyOf(decision, rules, origin);
+    const kind = origin === "email" ? "reply" : decision.verdict === "ask" ? (decision.rule === "currency" ? "reply" : null) : decision.verdict;
+    const creatorName = a.creatorName?.trim() || "the creator";
+    const draft = kind
+      ? { kind, ...D.voiceDraft(kind, rules.tone, decision.facts, { creatorName, brandName: o.brandName.trim(), ask: decision.rule === "currency" ? "pounds_on_orbe" : "details" }) }
+      : null;
+    const VERB = { accept: "Accept", counter: "Counter", decline: "Decline", ask: "Ask the creator" }         ;
+    const when =
+      autonomy === "auto"
+        ? `Runs alone ${D.GRACE_MINUTES} minutes after deciding, unless the creator stops it first.`
+        : "Waits for the creator: nothing is agreed or sent until they approve.";
+    const priceShown = decision.price ? D.moneyText(decision.price) : null;
+    return {
+      ok: true,
+      summary: `${VERB[decision.verdict]}${priceShown && decision.verdict !== "decline" ? ` at ${priceShown}` : ""}. ${decision.why} ${when} ${ATTRIBUTION}`,
+      structured: envelope({
+        decision: { verdict: decision.verdict, rule: decision.rule, why: decision.why, reasons: decision.reasons, price: decision.price, priceShown, facts: decision.facts.map((f) => ({ id: f.id, text: f.text })), rulesVersion: decision.rulesVersion },
+        autonomy,
+        when,
+        draft,
+        rules: D.summariseRules(rules),
+        decideVersion: D.DECIDE_VERSION,
+        note: "Deterministic: the same rules, offer and now give the same answer. No model is used. Money in Orbe is held until delivery is verified.",
+        computedAt: at,
+      }),
     };
   }
 
@@ -1174,6 +1257,65 @@ export function createTools(engine        )          {
       annotations: READ_ONLY("Judge a fix"),
       example: { publishedAt: "2026-10-15T17:00:00Z", changedAt: "2026-10-18T12:00:00Z", viewsAtChange: 900, viewsNow: 2400, now: "2026-10-23T12:00:00Z" },
       run: judgeFixTool                             ,
+    },
+    {
+      name: "orbe_handoff_decide",
+      title: "Decide an offer within a creator's rules",
+      description:
+        "Hand it off: what Orbe's assistant would do with one sponsorship offer under a creator's rules: accept, counter (on a ladder: the middle of the creator's range, then its low end, never under their floor), decline, or ask the creator. The rules run in a fixed order and the first decisive one wins: brands and categories never taken, formats not offered, currency (Orbe does not guess exchange rates), dates away, notice, reads a month, a guarantee above the creator's usual delivery, no floor to judge by, counters used, then the price. Returns the deciding rule, a one-line why, numbered facts, whether it would run alone after a 30 minute grace window or wait for the creator, and a template draft in the creator's tone. Read-only and offline: nothing is sent, booked or stored, and no model is used.",
+      inputSchema: {
+        type: "object",
+        required: ["rules", "offer"],
+        additionalProperties: false,
+        properties: {
+          rules: {
+            type: "object",
+            additionalProperties: true,
+            description:
+              "The creator's rules, as PUT /v1/me/deals/handoff takes them. All optional: minimums (format to pence, the floor for one placement), formats, avoidBrands, avoidCategories, leadDays, maxReadsPerMonth, blockedDates ([{start, end}] as 2026-12-20), autoCounter, autoDecline, accept ({mode: \"ask\"} or {mode: \"auto\", above: pence, noticeShownAt: ISO time}), tone ({style: warm, brief or formal, signOff}). Floors are in pounds.",
+          },
+          offer: {
+            type: "object",
+            required: ["brandName", "format", "price", "publishWindow"],
+            additionalProperties: false,
+            description: "The offer as the brand made it.",
+            properties: {
+              brandName: { type: "string", minLength: 1, maxLength: 120, description: "The brand's name." },
+              format: { type: "string", enum: ["integration", "dedicated", "newsletter_slot", "podcast_read", "stream_segment"], description: "The sponsorship format." },
+              quantity: { type: "integer", minimum: 1, maximum: 20, description: "Placements, or hours for a stream segment. Defaults to 1." },
+              price: { ...MONEY_IN, description: "The price offered for the whole offer, in minor units." },
+              publishWindow: {
+                type: "object",
+                required: ["start", "end"],
+                additionalProperties: false,
+                description: "When the read would go live.",
+                properties: { start: { type: "string", format: "date-time", description: "The window opens, ISO 8601." }, end: { type: "string", format: "date-time", description: "The window closes, ISO 8601." } },
+              },
+              product: { type: "string", maxLength: 300, description: "What is being promoted." },
+              countersMade: { type: "integer", minimum: 0, maximum: 3, description: "Counters the creator has already made on this offer. After 2, the next answer is the creator's." },
+              guarantee: { type: "object", required: ["day", "units"], additionalProperties: false, description: "A delivery guarantee, if the offer has one.", properties: { day: { type: "integer", minimum: 1, maximum: 90, description: "The day it is read at." }, units: { type: "integer", minimum: 0, description: "Views, opens, downloads or viewer hours promised." } } },
+            },
+          },
+          brandCategory: { type: "string", maxLength: 80, description: "The brand's category, e.g. gambling, vpn, food and drink." },
+          range: { type: "object", required: ["low", "high"], additionalProperties: false, description: "The range the creator's own results support for one placement (from orbe_price_sponsorship).", properties: { low: MONEY_IN, high: MONEY_IN } },
+          expected: { type: "object", required: ["day", "units"], additionalProperties: false, description: "The creator's median delivery at a day, to judge a guarantee.", properties: { day: { type: "integer", minimum: 1, maximum: 90, description: "The day." }, units: { type: "integer", minimum: 0, description: "The median at that day." } } },
+          bookedByMonth: { type: "object", additionalProperties: { type: "integer", minimum: 0 }, description: "Reads already booked by month, keyed 2026-11." },
+          origin: { type: "string", enum: ["offer", "email"], description: "offer (made in Orbe, the default) or email (read from a brand's email: always waits for the creator)." },
+          creatorName: { type: "string", maxLength: 80, description: "The creator's name, for the draft." },
+          rulesVersion: { type: "integer", minimum: 1, description: "Which version of the rules this is, echoed on the decision." },
+          now: nowSchema,
+        },
+      },
+      annotations: READ_ONLY("Decide an offer"),
+      example: {
+        rules: { minimums: { integration: 90000 }, avoidCategories: ["gambling"], maxReadsPerMonth: 4, blockedDates: [{ start: "2026-12-20", end: "2027-01-02" }], leadDays: 7, autoCounter: true },
+        offer: { brandName: "Kettle and Seed (made up)", format: "integration", price: { amount: 60000, currency: "GBP" }, publishWindow: { start: "2026-11-10T00:00:00Z", end: "2026-11-24T00:00:00Z" } },
+        brandCategory: "food and drink",
+        range: { low: { amount: 80000, currency: "GBP" }, high: { amount: 110000, currency: "GBP" } },
+        creatorName: "Ada Seed (made up)",
+        now: "2026-10-23T12:00:00Z",
+      },
+      run: handoffTool                             ,
     },
   ];
 

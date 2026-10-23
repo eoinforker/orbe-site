@@ -14,10 +14,11 @@ import { api, can, on, seg } from "../api.js";
 import { BOOKING_STATES, guaranteeLine, OFFER_STATES, priceLines, windowLine } from "../deal.js";
 import { FORMATS, formatName, KINDS, unitOf } from "../terms.js";
 import { drawer, emptyState, pill, screenHead, section, segmented, skeleton, stat, statStrip } from "../console-ui.js";
-import { connectButton, findSource, openConnect } from "../connect-inline.js";
+import { connectButton, connectEmpty, findSource } from "../connect-inline.js";
 import { icon } from "../icons.js";
-import { action, block, bps, check, count, day, field, form, h, input, money, pounds, select, tabs, textarea, toast, when } from "../ui.js";
+import { action, block, bps, check, confirmBox, count, day, field, form, h, input, money, pounds, select, tabs, textarea, toast, when } from "../ui.js";
 import { assistantTab, finderTab } from "./deals.js";
+import { dealHandoff, dealTimeline, handoffCard } from "./handoff.js";
 
 /* ---------------------------------------------------------------- the model: offers and bookings as one list of deals */
 
@@ -70,13 +71,15 @@ function moneyStrip(deals) {
   const verified = deals.filter((d) => d.state === "verified");
   const paid = deals.filter((d) => d.state === "paid");
   const waiting = deals.filter(yours);
+  // No deal yet: no row of noughts. With some, only the stages that hold one.
+  if (!deals.length) return null;
   return statStrip([
-    stat({ label: "Waiting on you", value: count(waiting.length), line: waiting.length ? waiting.slice(0, 2).map((d) => d.brand).join(", ") : "Nothing needs you now.", tone: waiting.length ? "warn" : null }),
-    stat({ label: "Open offers", value: gbp(sum(open)), line: `${count(open.length)} ${open.length === 1 ? "offer" : "offers"}, before Orbe's fee` }),
-    stat({ label: "Booked", value: gbp(sum(progress)), line: `${count(progress.length)} in progress, money held where funded` }),
-    stat({ label: "Verified", value: gbp(sum(verified)), line: verified.length ? "Delivered and checked, payout next" : "None waiting on payout" }),
-    stat({ label: "Paid out", value: gbp(sum(paid)), line: `${count(paid.length)} settled through the payments partner` }),
-  ]);
+    stat({ label: "Waiting on you", value: count(waiting.length), line: waiting.length ? waiting.slice(0, 2).map((d) => d.brand).join(", ") : "Nothing needs you now." }),
+    open.length ? stat({ label: "Open offers", value: gbp(sum(open)), line: `${count(open.length)} ${open.length === 1 ? "offer" : "offers"}, yours in full` }) : null,
+    progress.length ? stat({ label: "Booked", value: gbp(sum(progress)), line: `${count(progress.length)} in progress, money held where funded` }) : null,
+    verified.length ? stat({ label: "Verified", value: gbp(sum(verified)), line: "Delivered and checked, payout next" }) : null,
+    paid.length ? stat({ label: "Paid out", value: gbp(sum(paid)), line: `${count(paid.length)} paid to you` }) : null,
+  ].filter(Boolean));
 }
 
 /* ---------------------------------------------------------------- the pipeline */
@@ -135,7 +138,7 @@ function pipeline(deals, ctx) {
 const AUDIT = {
   "offer.sent": "Offer sent by the brand", "offer.revised": "Offer revised", "offer.countered": "You countered", "offer.accepted": "You accepted", "offer.declined": "You declined",
   "offer.expired": "Offer lapsed unanswered", "offer.withdrawn": "Withdrawn by the brand", "offer.closed_opt_out": "Closed when you opted out",
-  "booking.opened": "Booking opened", "funding.requested": "Funds asked of the brand", "funding.held": "Money held by the payments partner", "funding.held_again": "Money held again",
+  "booking.opened": "Booking opened", "funding.requested": "Funds asked of the brand", "funding.held": "Money held until delivery is verified", "funding.held_again": "Money held again",
   "funding.frozen": "Money frozen", "funding.unfrozen": "Money released from the freeze", "funding.amount_mismatch": "Funded amount did not match", "funding.refund_instructed": "Refund instructed",
   "draft.submitted": "Draft sent for review", "draft.changes_requested": "Brand asked for changes", "draft.approved": "Draft approved", "draft.auto_approved": "Draft approved when review time ran out",
   "work.live": "Published and linked", "work.make_good_live": "Make-good published", "work.removed": "Work removed", "content.approved": "Brand approved the content",
@@ -143,7 +146,7 @@ const AUDIT = {
   "dispute.opened": "Dispute opened", "dispute.resolved": "Dispute resolved", "payout.instructed": "Payout instructed", "payout.confirmed": "Paid out",
   "booking.cancelled": "Booking cancelled", "booking.cancelled_by_brand": "Cancelled by the brand", "booking.lapsed_unfunded": "Lapsed: not funded in time", "booking.lapsed_unpublished": "Lapsed: not published in time",
 };
-const WHO = { buyer: "Brand", creator: "You", system: "Orbe", escrow_partner: "Payments partner", admin: "Orbe staff", orbe: "Orbe" };
+const WHO = { buyer: "Brand", creator: "You", system: "Orbe", escrow_partner: "Money held", admin: "Orbe staff", orbe: "Orbe", assistant: "Orbe's assistant" };
 
 function timeline(audit) {
   if (!audit?.length) return h("p", { class: "cn-label" }, "No events yet.");
@@ -151,7 +154,9 @@ function timeline(audit) {
     [...audit].reverse().map((e) =>
       h("li", { class: "dl-tl-i" },
         h("span", { class: "dl-tl-dot", "aria-hidden": "true" }),
-        h("p", { class: "dl-tl-t" }, AUDIT[e.action] ?? e.action.replace(/[._]/g, " ").replace(/^./, (c) => c.toUpperCase())),
+        h("p", { class: "dl-tl-t" }, AUDIT[e.action] ?? e.title ?? String(e.action ?? "").replace(/[._]/g, " ").replace(/^./, (c) => c.toUpperCase())),
+        // The assistant's own entries say why (Hand it off's timeline, handoff.js), timed in UTC as every entry is.
+        e.why ? h("p", { class: "dl-tl-d dl-tl-why" }, `Why: ${e.why}`) : null,
         h("p", { class: "dl-tl-d" }, `${WHO[e.actor?.role] ?? "Orbe"}, ${when(e.at)}`),
       ),
     ),
@@ -223,6 +228,7 @@ function openDeal(d, ctx) {
       x.outcome ? ["Outcome", `${x.outcome.reason} You receive ${bps(x.outcome.creatorShareBps)} of the price.`] : null,
     ]);
     return [
+      on("deals_agent") && can("read.money") ? dealHandoff(d, done) : null,
       head,
       d.kind === "offer" && x.product ? h("p", { class: "dl-product" }, x.product) : null,
       x.message ? h("blockquote", { class: "dl-quote" }, x.message) : null,
@@ -231,7 +237,7 @@ function openDeal(d, ctx) {
       can("business") ? moves(d, done) : null,
       dwSec("Terms", terms, h("p", { class: "dl-guarantee" }, guaranteeLine(x))),
       d.kind === "booking" ? dwSec("The work", x.works?.length ? x.works.map(workBlock) : h("p", { class: "cn-label" }, "Not published yet. Link it here once it is live."), readings(x), deliverySource(x, ctx)) : null,
-      dwSec("Timeline", timeline(x.audit)),
+      dwSec("Timeline", dealTimeline(d, timeline)),
     ];
   }, { wide: true });
 }
@@ -305,17 +311,20 @@ function moves(d, done) {
   const box = (...kids) => h("div", { class: "dl-moves" }, ...kids);
   if (d.kind === "offer") {
     if (x.state !== "sent") return null;
+    // Accepting is the one primary move; countering and declining sit beside it, quieter.
+    const accept = fold("Accept",
+      h("p", { class: "dl-notice" }, d.notice ?? ""),
+      form([check("I have read this and want to accept.", { name: "seen", required: true })], "Accept the offer", async () => {
+        await api.post(`/v1/me/sponsorships/offers/${seg(x.id)}/accept`, { noticeShown: true });
+        toast("Accepted. The booking is in your pipeline.");
+        done();
+      }),
+    );
+    accept.classList.add("dl-fold--primary");
     return box(
-      fold("Accept",
-        h("p", { class: "dl-notice" }, d.notice ?? ""),
-        form([check("I have read this and want to accept.", { name: "seen", required: true })], "Accept the offer", async () => {
-          await api.post(`/v1/me/sponsorships/offers/${seg(x.id)}/accept`, { noticeShown: true });
-          toast("Accepted. The booking is in your pipeline.");
-          done();
-        }),
-      ),
+      accept,
       fold("Counter",
-        form([field("Your price for the whole offer (£)", input({ name: "price", type: "number", min: "0.01", step: "0.01", required: true, inputmode: "decimal" }), "Before Orbe's fee, which the brand pays on top."), field("A note (optional)", textarea({ name: "note", maxlength: 1000 }))], "Send the counter", async (fd) => {
+        form([field("Your price for the whole offer (£)", input({ name: "price", type: "number", min: "0.01", step: "0.01", required: true, inputmode: "decimal" }), "Yours in full: Orbe's fee is paid by the brand on top."), field("A note (optional)", textarea({ name: "note", maxlength: 1000 }))], "Send the counter", async (fd) => {
           const note = String(fd.get("note") ?? "").trim();
           await api.post(`/v1/me/sponsorships/offers/${seg(x.id)}/counter`, { price: Number(fd.get("price")), ...(note ? { note } : {}) });
           toast("Counter sent.");
@@ -419,12 +428,13 @@ function pricesTab(el, status, refresh) {
     const save = form(
       [
         rowsFor.length
-          ? h("div", { class: "dl-wrap" }, h("table", { class: "dl-table dl-table--form" }, h("thead", null, h("tr", null, h("th", { scope: "col" }, "Placement"), h("th", { scope: "col" }, "Price (£, before Orbe's fee)"), h("th", { scope: "col" }, "Status"))), h("tbody", null, rowsFor)))
-          : emptyState("link", "Connect an account first: you sell placements on accounts Orbe has read.", [["Connect YouTube", () => openConnect("youtube", here), true], on("podcasts") ? ["Add a podcast feed", () => openConnect("podcast", here)] : null, ["Add your Substack", () => openConnect("substack", here)]].filter(Boolean)),
+          ? h("div", { class: "dl-wrap" }, h("table", { class: "dl-table dl-table--form" }, h("thead", null, h("tr", null, h("th", { scope: "col" }, "Placement"), h("th", { scope: "col" }, "Your price (£)"), h("th", { scope: "col" }, "Status"))), h("tbody", null, rowsFor)))
+          : connectEmpty("link", "Connect an account first: you sell placements on accounts Orbe has read.", null, here),
         h("div", { class: "cn-grid2" },
           field("Categories you will not work with", input({ name: "excluded", value: s.excludedCategories.join(", "), maxlength: 600 }), "Separated by commas, for example gambling, alcohol."),
           field("Days of notice you need", input({ name: "notice", type: "number", min: "0", max: "365", step: "1", value: String(s.minNoticeDays), required: true })),
           field("Your subject (optional)", input({ name: "vertical", value: s.vertical ?? "", maxlength: 40 }), "For matching, for example finance or cooking."),
+          field("Pounds to one US dollar (optional)", input({ name: "usdRate", type: "number", min: "0.0001", max: "1000", step: "0.0001", inputmode: "decimal", value: s.usdRate ?? "" }), "Some suggested prices start from published rates in US dollars. Give the rate to convert them at, for example 0.79; Orbe does not guess one."),
         ),
         h("fieldset", { class: "dl-fs" }, h("legend", null, "Dates you are not available"), blackouts.length ? blackouts : h("p", { class: "cn-label" }, "None."),
           h("div", { class: "cn-grid2" }, field("From", input({ name: "bFrom", type: "date" })), field("To", input({ name: "bTo", type: "date" })))),
@@ -451,6 +461,7 @@ function pricesTab(el, status, refresh) {
           minNoticeDays: Number(fd.get("notice")),
           blackouts: kept,
           ...(vertical ? { vertical } : {}),
+          ...(Number(fd.get("usdRate")) > 0 ? { usdRate: Number(fd.get("usdRate")) } : {}),
         });
         refresh();
         return "Saved.";
@@ -467,6 +478,14 @@ function windowText(w, unit) {
   return `${count(w.median)} ${unit} typical, middle half ${count(w.p25)} to ${count(w.p75)}, from ${count(w.n)} works`;
 }
 
+/* A word when a price sits far from what the creator's results support: a nudge, never a rule. */
+function priceNudge(price, sug) {
+  if (!price || sug?.status !== "suggested") return null;
+  if (price.amount > sug.high.amount * 1.5) return `Well above the ${money(sug.low)} to ${money(sug.high)} your results support; brands may pass.`;
+  if (price.amount < sug.low.amount * 0.67) return `Well below the ${money(sug.low)} to ${money(sug.high)} your results support.`;
+  return null;
+}
+
 function inventoryTab(el) {
   el.replaceChildren(skeleton(4));
   block(el, () => api.get("/v1/me/sponsorships/inventory"), ({ inventory: inv }) => [
@@ -477,12 +496,13 @@ function inventoryTab(el) {
           return section(
             { title: `${it.name} on ${it.handle}`, line: it.description, actions: it.available ? pill("live", "Taking bookings") : pill("idle", "Paused") },
             statStrip([
-              stat({ label: "Your price", value: it.listPrice ? money(it.listPrice) : "Not set" }),
+              stat({ label: "Your price", value: it.listPrice ? money(it.listPrice) : "Not set", line: priceNudge(it.listPrice, sug) }),
               sug?.status === "suggested" ? stat({ label: sug.provisional ? "Orbe suggests, provisionally" : "Orbe suggests", value: `${money(sug.low)} to ${money(sug.high)}`, line: sug.per === "hour" ? "An hour" : null }) : null,
               it.stats.consistency !== null ? stat({ label: "Steadiness", value: `${Math.round(it.stats.consistency * 100)} in 100` }) : null,
             ]),
             kv(it.stats.windows.map((w) => [`At ${w.day} ${w.day === 1 ? "day" : "days"}`, windowText(w, unit)])),
-            sug?.status === "suggested" ? h("ul", { class: "cn-points" }, sug.reasons.map((r) => h("li", null, r))) : sug ? h("p", { class: "cn-label" }, sug.reason) : null,
+            // The sources behind a suggestion are for those who ask, not the first thing a creator reads.
+            sug?.status === "suggested" && sug.reasons.length ? h("details", { class: "dl-fold" }, h("summary", null, "How this is worked out"), h("ul", { class: "cn-points" }, sug.reasons.map((r) => h("li", null, r)))) : sug && sug.status !== "suggested" ? h("p", { class: "cn-label" }, sug.reason) : null,
           );
         }))
       : emptyState("earn", "Nothing offered yet.", [], "Set a price under Prices and it appears here with what your results support."),
@@ -497,49 +517,87 @@ function inventoryTab(el) {
 
 /* ---------------------------------------------------------------- opting in and discovery */
 
+/* A quiet banner under the money: one line, and the terms and the choice behind Opt in. */
 function optInSection(reload) {
-  return section(
-    { title: "Take sponsorships through Orbe", line: "Brands in Orbe's network see what you offer, your prices and your public figures. Your private figures go to one brand only, and only when you accept its offer." },
-    h("p", null, "Money waits with a payments partner and is released when delivery is verified. Orbe's fee is paid by the brand, on top of your price. Orbe stays free for creators."),
+  return h("section", { class: "dl-optin", "aria-label": "Take sponsorships through Orbe" },
+    h("div", { class: "dl-optin-text" },
+      h("p", { class: "dl-optin-t" }, "Take sponsorships through Orbe"),
+      h("p", { class: "dl-optin-d" }, "Brands in the network see what you offer and your prices; money is held until delivery is verified.")),
     can("consent")
-      ? form([check("I want brands in the network to see my offerings.", { name: "accept", required: true })], "Opt in", async () => {
-          await api.post("/v1/me/sponsorships/opt-in", { accept: true });
-          reload();
-          return "You are in.";
-        })
+      ? h("details", { class: "dl-fold dl-fold--primary" }, h("summary", null, "Opt in"),
+          h("div", { class: "dl-optin-more" },
+            h("p", null, "Brands in Orbe's network see what you offer, your prices and your public figures. Your private figures go to one brand only, and only when you accept its offer."),
+            h("p", null, "The brand pays before you start; the money is held until delivery is verified, then paid to you. Orbe's fee is paid by the brand, on top of your price. Orbe stays free for creators."),
+            form([check("I want brands in the network to see my offerings.", { name: "accept", required: true })], "Opt in", async () => {
+              await api.post("/v1/me/sponsorships/opt-in", { accept: true });
+              reload();
+              return "You are in.";
+            })))
       : h("p", { class: "cn-label" }, "The team's owner decides whether to take sponsorships through Orbe."),
   );
 }
 
+/* A choice in the status line's menu that undoes something: asked first, in the action's own words. */
+const undoRow = (label, iconName, question, run) =>
+  h("button", { class: "cn-item cn-item--row", type: "button", onclick: async () => {
+    if (!(await confirmBox(question, { yes: label, danger: true }))) return;
+    try {
+      toast(await run());
+    } catch (err) {
+      toast(err.message);
+    }
+  } }, h("span", { class: "cn-item-ico" }, icon(iconName)), h("span", { class: "cn-item-t" }, label));
+
+/* A small menu of the choices that undo: a disclosure, closed by a choice, Escape or a click elsewhere. */
+function more(rows) {
+  const d = h("details", { class: "cn-menuwrap dl-more" }, h("summary", { class: "cn-btn cn-btn--s", "aria-label": "Sponsorship choices" }, icon("dots")), h("div", { class: "cn-menu cn-menu--end" }, rows));
+  const away = (e) => {
+    if (!d.contains(e.target)) d.open = false;
+  };
+  d.addEventListener("toggle", () => (d.open ? document.addEventListener("click", away) : document.removeEventListener("click", away)));
+  d.addEventListener("click", (e) => e.target.closest(".cn-item") && (d.open = false));
+  d.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !d.open) return;
+    e.stopPropagation();
+    d.open = false;
+    d.querySelector("summary").focus();
+  });
+  return d;
+}
+
+/* One status line: where you stand and Orbe's fee. Leaving search or opting out sit in its menu, each asked first; becoming findable stays in view. */
 function statusBar(status, reload) {
-  const discover = on("brand_data")
-    ? status.discoverable
-      ? [h("span", { class: "cn-tag cn-tag--sky" }, "Discoverable"), can("consent") ? action("Stop being discoverable", async () => {
+  const findable = on("brand_data") && status.discoverable;
+  const undo = can("consent")
+    ? [
+        findable ? undoRow("Stop being discoverable", "search", "Leave every brand search now? You can come back at any time.", async () => {
           const r = await api.del("/v1/me/sponsorships/discoverable");
           reload();
           return r.removed[0];
-        }, { danger: true, confirm: "Leave every brand search now?" }) : null]
-      : can("consent")
-        ? fold("Let brands find you",
-            h("p", { class: "dl-notice" }, status.discoverableNotice),
-            form([check("I have read this and want brands to be able to find me.", { name: "seen", required: true })], "Make me discoverable", async () => {
-              await api.post("/v1/me/sponsorships/discoverable", { noticeShown: true });
-              reload();
-              return "You are discoverable.";
-            }),
-          )
-        : null
+        }) : null,
+        undoRow("Opt out", "close", "Opt out? Open offers close; bookings you have agreed stay.", async () => {
+          await api.del("/v1/me/sponsorships/opt-in");
+          reload();
+          return "Opted out.";
+        }),
+      ]
+    : [];
+  const join = on("brand_data") && !status.discoverable && can("consent")
+    ? fold("Let brands find you",
+        h("p", { class: "dl-notice" }, status.discoverableNotice),
+        form([check("I have read this and want brands to be able to find me.", { name: "seen", required: true })], "Make me discoverable", async () => {
+          await api.post("/v1/me/sponsorships/discoverable", { noticeShown: true });
+          reload();
+          return "You are discoverable.";
+        }),
+      )
     : null;
   return h("div", { class: "dl-status" },
-    pill("live", "Opted in"),
+    pill("live", findable ? "Opted in, discoverable" : "Opted in"),
     h("p", { class: "dl-status-t" }, `Orbe's fee is ${bps(status.takeRate.networkBps)}, paid by the ${status.takeRate.payer} on top of your price.`),
     h("div", { class: "dl-status-acts" },
-      discover,
-      can("consent") ? action("Opt out", async () => {
-        await api.del("/v1/me/sponsorships/opt-in");
-        reload();
-        return "Opted out.";
-      }, { danger: true, confirm: "Opt out? Open offers close; bookings you have agreed stay." }) : null,
+      join,
+      undo.length ? more(undo) : null,
     ),
   );
 }
@@ -549,7 +607,15 @@ function statusBar(status, reload) {
 export async function render(main, ctx) {
   const body = h("div", { class: "dl" });
   screenHead(main, "sponsorships", { title: "Deals", line: "Every deal in one place: offers priced from your verified record, bookings paid in full only when delivery is verified.", tags: [["Live", "sky"], ["Paid on verified delivery"]] }).append(body);
-  const reload = () => {
+  // From the bell (?handoff=<id>): the item is brought into view once, and the address keeps no trace of it.
+  let asked = ctx.query.get("handoff");
+  if (asked) {
+    const u = new URL(location.href);
+    u.searchParams.delete("handoff");
+    history.replaceState(history.state, "", u);
+  }
+  /* opts.open: a deal to open once drawn again, by its offer (the booking an approved accept became). */
+  const reload = (opts = {}) => {
     body.replaceChildren(skeleton(6));
     return block(
       body,
@@ -557,16 +623,23 @@ export async function render(main, ctx) {
       ([status, { offers, notice }, { bookings }]) => {
         const deals = dealsOf(offers, bookings).map((d) => (d.kind === "offer" ? { ...d, notice } : d));
         const here = { reload };
+        const wanted = opts.open?.offerId ? deals.find((d) => d.x.offerId === opts.open.offerId) ?? deals.find((d) => d.id === opts.open.offerId) : null;
+        if (wanted) queueMicrotask(() => openDeal(wanted, here));
+        // Hand it off sits after the money and above the tabs; it reads after the first view, so Deals still starts in three reads.
+        const handoff = on("deals_agent") && can("read.money") ? handoffCard({ notice, reload, focus: asked }) : null;
+        asked = null;
         const goAssistant = () => document.getElementById("tab-deals-assistant")?.click();
         const extra = [
           on("sponsor_finder") ? { id: "finder", label: "Sponsors like you", render: (el) => finderTab(el, on("deals_agent") ? goAssistant : null) } : null,
           on("deals_agent") ? { id: "assistant", label: "Assistant", render: assistantTab } : null,
         ].filter(Boolean);
         // The assistant and Sponsors like you work for deals anywhere, so they show whether or not you take offers through Orbe.
-        if (!status.optedIn && !deals.length) return [optInSection(reload), extra.length ? tabs("deals", extra, ctx.query.get("tab")) : null];
+        // The money comes first; whether you take offers through Orbe follows it, quietly.
+        if (!status.optedIn && !deals.length) return [moneyStrip(deals), handoff, optInSection(reload), extra.length ? tabs("deals", extra, ctx.query.get("tab")) : null];
         return [
-          status.optedIn ? statusBar(status, reload) : optInSection(reload),
           moneyStrip(deals),
+          handoff,
+          status.optedIn ? statusBar(status, reload) : optInSection(reload),
           tabs("deals", [
             { id: "pipeline", label: "Pipeline", render: (el) => el.append(pipeline(deals, here), sharesSection(status, deals, reload) ?? "") },
             status.optedIn ? { id: "prices", label: "Prices", render: (el) => pricesTab(el, status, reload) } : null,

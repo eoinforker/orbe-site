@@ -4,8 +4,10 @@
   rating's history.
 */
 import { api, on, seg } from "../api.js";
-import { action, actions, block, chip, count, day, empty, failure, field, form, h, input, ok, panel, pct, plural, select, signed, title, when } from "../ui.js";
-import { screenHead } from "../console-ui.js";
+import { actions, block, count, day, failure, field, form, h, input, ok, pct, plural, select, when } from "../ui.js";
+import { emptyState, rating, screenHead, section, segmented, sparkline } from "../console-ui.js";
+import { KINDS } from "../terms.js";
+import { button, kv, narrow, status, table, twoLine } from "../cards.js";
 
 const HORIZONS = ["1h", "1d", "7d", "30d"];
 
@@ -15,67 +17,98 @@ export function planBox(el) {
     const e = p.entitlements;
     const pro = p.plan === "pro";
     return [
-      h("p", null, chip(pro ? "Creator Pro" : "Free", pro ? "good" : undefined), p.status && !pro ? ` ${p.status}` : ""),
-      h("ul", { class: "ap-plain" },
-        h("li", null, e.predictionsPerMonth === null ? "Unlimited sealed predictions." : `${plural(e.predictionsPerMonth, "sealed prediction")} a month; ${p.usage.predictionsLeft} left until ${day(p.usage.resetsAt)}.`),
-        h("li", null, e.historyDays === null ? "Your whole rating history, as long as Orbe keeps it." : `Rating history for the last ${plural(e.historyDays, "day")}.`),
-        h("li", null, e.refresh === "daily" ? "Your accounts read daily." : "Your accounts read on the standard schedule."),
-      ),
-      h("p", { class: "ap-notice" }, `Creator Pro: ${p.price.label}`),
+      kv([
+        ["Plan", status(pro ? "Creator Pro" : "Free", pro ? "good" : undefined)],
+        ["Sealed predictions", e.predictionsPerMonth === null ? "Unlimited" : `${count(e.predictionsPerMonth)} a month; ${p.usage.predictionsLeft} left until ${day(p.usage.resetsAt)}`],
+        ["Rating history", e.historyDays === null ? "All Orbe keeps" : `The last ${plural(e.historyDays, "day")}`],
+        ["Accounts read", e.refresh === "daily" ? "Daily" : "On the standard schedule"],
+        p.status && !pro ? ["Status", p.status] : null,
+      ]),
+      h("p", { class: "cn-label" }, `Creator Pro: ${p.price.label}`),
       pro
         ? [
-            p.cancelAt ? h("p", null, `Ends ${day(p.cancelAt)}; it will not renew.`) : p.currentPeriodEnd ? h("p", { class: "ap-note" }, `Renews ${day(p.currentPeriodEnd)}.`) : null,
-            p.cancelAt ? null : actions(action("Cancel Creator Pro", async () => {
+            p.cancelAt ? h("p", null, `Ends ${day(p.cancelAt)}; it will not renew.`) : p.currentPeriodEnd ? h("p", null, `Renews ${day(p.currentPeriodEnd)}.`) : null,
+            p.cancelAt ? null : actions(button("Cancel Creator Pro", async () => {
               const r = await api.post("/v1/me/plan/cancel", {});
               said.replaceChildren(ok(r.note));
               return r.note;
             }, { danger: true, confirm: "Cancel Creator Pro? You keep it to the end of the month you paid for." })),
           ]
         : p.checkoutUrl
-          ? h("p", null, h("a", { class: "ob-lnk ob-lnk--s", href: p.checkoutUrl, rel: "noopener" }, "Finish paying for Creator Pro"))
-          : actions(action("Start Creator Pro", async () => {
+          ? h("p", null, h("a", { class: "cn-btn cn-btn--s cn-btn--primary", href: p.checkoutUrl, rel: "noopener" }, "Finish paying for Creator Pro"))
+          : actions(button("Start Creator Pro", async () => {
               try {
                 const r = await api.post("/v1/me/plan/checkout", {});
                 window.location.assign(r.checkout.url);
               } catch (err) {
                 if (err.status === 503) {
-                  said.replaceChildren(h("p", { class: "ap-notice" }, err.message));
+                  said.replaceChildren(h("p", { class: "cn-label" }, err.message));
                   return err.message;
                 }
                 throw err;
               }
             }, { primary: true })),
-      !p.available && !pro ? h("p", { class: "ap-note" }, "Creator Pro is not open yet. Everything free keeps working.") : null,
+      !p.available && !pro ? h("p", { class: "cn-label" }, "Creator Pro is not open yet. Everything free keeps working.") : null,
       said,
     ];
   });
 }
 
-function predictionItem(p) {
+
+const HORIZON_WORDS = { "1h": "1 hour", "1d": "1 day", "7d": "7 days", "30d": "30 days" };
+
+/** Where the latest reading landed against the sealed range. */
+function verdict(p) {
   const pr = p.prediction;
   const o = p.outcome;
   const last = o ? HORIZONS.filter((k) => o.readings?.[k]).at(-1) : null;
   const reading = last ? o.readings[last] : null;
-  const where = reading && pr ? (reading.value < pr.range.p25 ? ["Under the range", "warn"] : reading.value > pr.range.p75 ? ["Above the range", "good"] : ["Inside the range", "good"]) : null;
-  return h(
-    "li",
-    { class: "ap-item ap-item--block" },
-    h("div", { class: "ap-item-main" },
-      h("p", { class: "ap-says" }, `Prediction ${p.seq}`, " ", where ? chip(where[0], where[1]) : chip(o?.done ? "Checked" : "Waiting")),
-      pr ? h("p", null, `Expected ${count(pr.range.p25)} to ${count(pr.range.p75)} ${pr.metric} by ${pr.horizonDays} days.`) : h("p", { class: "ap-note" }, "The figures are withheld under the retention rules; the seal still stands."),
-      reading ? h("p", null, `At ${last}: ${count(reading.value)}.`) : null,
-      o?.workId ? h("p", null, h("a", { href: `/orbe-site/demo/app/works/${seg(o.workId)}` }, "Open the work")) : null,
-      o?.note ? h("p", { class: "ap-note" }, o.note) : null,
-      h("p", { class: "ap-note" }, `Sealed ${when(p.madeAt)}${p.releaseAt ? ` for release ${when(p.releaseAt)}` : ""}. Seal `, h("code", { class: "ap-code" }, p.seal.slice(0, 12))),
-    ),
+  if (!reading || !pr) return { reading: null, last, pill: status(o?.done ? "Checked" : "Waiting") };
+  const where = reading.value < pr.range.p25 ? ["Under the range", "warn"] : reading.value > pr.range.p75 ? ["Above the range", "good"] : ["Inside the range", "good"];
+  return { reading, last, pill: status(...where) };
+}
+
+function predictionRow(p) {
+  const pr = p.prediction;
+  const o = p.outcome;
+  const v = verdict(p);
+  return [
+    twoLine(`Prediction ${p.seq}`, `Sealed ${when(p.madeAt)}`),
+    pr ? twoLine(`${count(pr.range.p25)} to ${count(pr.range.p75)}`, `${pr.metric} by ${pr.horizonDays} days`) : h("span", { class: "dl-quiet" }, "Withheld under the retention rules"),
+    v.reading ? twoLine(count(v.reading.value), `at ${HORIZON_WORDS[v.last] ?? v.last}`) : h("span", { class: "dl-quiet" }, p.releaseAt ? `Out ${day(p.releaseAt)}` : "Not yet"),
+    v.pill,
+    o?.workId ? h("a", { href: `/orbe-site/demo/app/works/${seg(o.workId)}` }, "Open the work") : h("code", { class: "cn-code-inline", title: "The seal" }, p.seal.slice(0, 12)),
+  ];
+}
+
+function sealCard(accounts, reload) {
+  const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 16);
+  return section(
+    { title: "Seal a prediction", line: "Before your next work goes out. The seal proves the prediction came first." },
+    narrow(form(
+      [
+        field("Account", select(accounts.map((a) => [a.id, `${a.handle || a.title} (${KINDS[a.kind] ?? a.kind})`]), { name: "accountId" })),
+        h("div", { class: "ap-pair" },
+          field("Going out", input({ name: "releaseAt", type: "datetime-local", required: true, value: tomorrow }), "In your own time zone."),
+          field("Length in minutes", input({ name: "minutes", type: "number", min: "0", max: "2880", step: "1", required: true, value: "12" }), "Under a minute counts as a Short."),
+        ),
+      ],
+      "Seal it",
+      async (d) => {
+        await api.post("/v1/me/predictions", { accountId: String(d.get("accountId")), releaseAt: new Date(String(d.get("releaseAt"))).toISOString(), durationSec: Math.round(Number(d.get("minutes")) * 60) });
+        reload();
+        return "Sealed.";
+      },
+    )),
   );
 }
 
-function linkForm(preds, uploads, reload) {
+function linkCard(preds, uploads, reload) {
   const open = preds.filter((p) => !p.outcome?.workId);
   if (!open.length || !uploads.length) return null;
-  return h("details", { class: "ap-more" }, h("summary", null, "Link a planned prediction to the work it became"),
-    form(
+  return section(
+    { title: "Link a prediction to its work", line: "A prediction sealed for a work you had not published yet is checked once it is linked." },
+    narrow(form(
       [
         field("Prediction", select(open.map((p) => [p.id, `Prediction ${p.seq}, sealed ${day(p.madeAt)}`]), { name: "id" })),
         field("Work", select(uploads.map((u) => [u.workId, `${u.title} (${day(u.publishedAt)})`]), { name: "workId" })),
@@ -87,7 +120,7 @@ function linkForm(preds, uploads, reload) {
         return "Linked.";
       },
       { primary: false },
-    ),
+    )),
   );
 }
 
@@ -98,82 +131,80 @@ function predictionsBox(el) {
       return { list, accounts: me.accounts, uploads: fixes.channels.flatMap((c) => c.uploads) };
     }, ({ list, accounts, uploads }) => {
       const checks = h("div", { class: "ap-stack", "aria-live": "polite" });
-      const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 16);
-      return [
-        h("p", { class: "ap-notice" }, list.notice),
-        h("p", { class: "ap-note" }, list.plan.predictionsLeft === null ? "Unlimited this month." : `${list.plan.predictionsLeft} left this month.`),
-        accounts.length
-          ? h("details", { class: "ap-more" }, h("summary", null, "Seal a prediction for your next work"),
-              form(
-                [
-                  field("Account", select(accounts.map((a) => [a.id, `${a.handle || a.title} (${a.kind})`]), { name: "accountId" })),
-                  field("Going out", input({ name: "releaseAt", type: "datetime-local", required: true, value: tomorrow }), "In your own time zone. The seal proves the prediction came first."),
-                  field("Length in minutes", input({ name: "minutes", type: "number", min: "0", max: "2880", step: "1", required: true, value: "12" }), "Under a minute counts as a Short."),
-                ],
-                "Seal it",
-                async (d) => {
-                  await api.post("/v1/me/predictions", { accountId: String(d.get("accountId")), releaseAt: new Date(String(d.get("releaseAt"))).toISOString(), durationSec: Math.round(Number(d.get("minutes")) * 60) });
-                  reload();
-                  return "Sealed.";
-                },
-              ),
-            )
+      const left = list.plan.predictionsLeft === null ? "Unlimited this month." : `${list.plan.predictionsLeft} left this month.`;
+      const shown = on("predictions_publishing") ? (list.published ? " Shown on your public profile." : " Not on your public profile.") : "";
+      const tools = h("div", { class: "cn-card-actions" },
+        list.predictions.length
+          ? [
+              button("Check the seals", async () => {
+                const { verification: v } = await api.get("/v1/me/predictions/verify");
+                checks.replaceChildren(v.ok ? ok(`All ${plural(v.count, "seal")} check out${v.withheld ? `, ${v.withheld} with figures withheld` : ""}.`) : failure({ message: `${plural(v.problems.length, "problem")}: ${v.problems.map((x) => `prediction ${x.seq} ${x.problem.replaceAll("_", " ")}`).join("; ")}.` }));
+                return v.ok ? "The seals check out." : "Problems found.";
+              }, { quiet: true }),
+              button("How well they held", async () => {
+                const { calibration: c } = await api.get("/v1/me/predictions/calibration");
+                checks.replaceChildren(
+                  c.mine.stats
+                    ? h("p", null, `Of ${plural(c.mine.n, "checked prediction")}, ${pct(c.mine.stats.inside)} landed inside the range (a fair range holds about ${pct(c.expectedInside)}), ${pct(c.mine.stats.above)} above and ${pct(c.mine.stats.below)} below.`)
+                    : h("p", { class: "cn-label" }, `Too few checked predictions to judge yet: it takes ${c.minCohort}.`),
+                );
+                return "Calibration shown.";
+              }, { quiet: true }),
+            ]
           : null,
-        list.predictions.length ? h("ul", { class: "ap-list" }, [...list.predictions].reverse().map(predictionItem)) : empty("No predictions yet."),
-        linkForm(list.predictions, uploads, reload),
-        h("div", { class: "ap-bar" },
-          on("predictions_publishing") ? h("p", null, list.published ? "Shown on your public profile." : "Not shown on your public profile.") : null,
-          actions(
-            on("predictions_publishing")
-              ? action(list.published ? "Stop showing them" : "Show them on my profile", async () => {
-                  await api.post("/v1/me/predictions/publish", { published: !list.published });
-                  reload();
-                  return "Saved.";
-                })
-              : null,
-            action("Check the seals", async () => {
-              const { verification: v } = await api.get("/v1/me/predictions/verify");
-              checks.replaceChildren(v.ok ? ok(`All ${plural(v.count, "seal")} check out${v.withheld ? `, ${v.withheld} with figures withheld` : ""}.`) : failure({ message: `${plural(v.problems.length, "problem")}: ${v.problems.map((x) => `prediction ${x.seq} ${x.problem.replaceAll("_", " ")}`).join("; ")}.` }));
-              return v.ok ? "The seals check out." : "Problems found.";
-            }),
-            action("How well they held", async () => {
-              const { calibration: c } = await api.get("/v1/me/predictions/calibration");
-              checks.replaceChildren(
-                c.mine.stats
-                  ? h("p", null, `Of ${plural(c.mine.n, "checked prediction")}, ${pct(c.mine.stats.inside)} landed inside the range (a fair range holds about ${pct(c.expectedInside)}), ${pct(c.mine.stats.above)} above and ${pct(c.mine.stats.below)} below.`)
-                  : h("p", { class: "ap-note" }, `Too few checked predictions to judge yet: it takes ${c.minCohort}.`),
-              );
-              return "Calibration shown.";
-            }),
-          ),
+        on("predictions_publishing") && list.predictions.length
+          ? button(list.published ? "Stop showing them" : "Show on my profile", async () => {
+              await api.post("/v1/me/predictions/publish", { published: !list.published });
+              reload();
+              return "Saved.";
+            })
+          : null,
+      );
+      return [
+        section(
+          { title: "Your predictions", line: `${left}${shown}`, actions: tools },
+          h("p", null, list.notice),
+          list.predictions.length
+            ? table([["Prediction"], ["Sealed range"], ["Reading", "num"], ["Where it landed"], [""]], [...list.predictions].reverse().map(predictionRow), { caption: "Your predictions" })
+            : emptyState("shield", "No predictions yet.", [], accounts.length ? "Seal one below before your next work goes out." : "Connect an account first, then seal a prediction before a work goes out."),
+          checks,
         ),
-        checks,
+        accounts.length ? sealCard(accounts, reload) : null,
+        linkCard(list.predictions, uploads, reload),
       ];
     });
   reload();
 }
 
 function historyBox(el) {
-  block(el, () => api.get("/v1/me/history"), (r) => [
-    h("p", { class: "ap-note" }, r.historyDays === null ? "All the history Orbe keeps." : `The last ${plural(r.historyDays, "day")}. Creator Pro shows all Orbe keeps.`),
-    r.accounts.map((a) =>
-      h("div", { class: "ap-stack" },
-        h("p", { class: "ap-says" }, a.handle || a.kind),
-        a.ratings.length
-          ? h("ul", { class: "ap-plain" }, a.ratings.slice(-8).reverse().map((x) => h("li", null, `${day(x.computedAt)}: ${signed(x.rating)}, ${x.band}`)))
-          : h("p", { class: "ap-note" }, "No ratings kept in this window."),
-      ),
-    ),
-    h("p", { class: "ap-label" }, `${r.label}. ${r.kept}`),
-  ]);
+  block(el, () => api.get("/v1/me/history"), (r) => {
+    const withRatings = r.accounts.filter((a) => a.ratings.length);
+    const kept = r.historyDays === null ? "All the history Orbe keeps." : `The last ${plural(r.historyDays, "day")}. Creator Pro shows all Orbe keeps.`;
+    if (!withRatings.length) return section({ title: "Rating history", line: kept }, emptyState("chart", "No ratings kept in this window.", []), h("p", { class: "cn-label" }, `${r.label}. ${r.kept}`));
+    const view = h("div", { class: "ap-stack" });
+    const draw = (id) => {
+      const a = withRatings.find((x) => x.accountId === id) ?? withRatings[0];
+      const newest = [...a.ratings].reverse();
+      view.replaceChildren(
+        h("div", { class: "cn-hist-spark" }, sparkline(a.ratings.map((x) => x.rating), `${a.handle || a.kind}: rating over ${plural(a.ratings.length, "reading")}`)),
+        table([["Read"], ["Rating", "num"], ["Band"], ["Size"]], newest.slice(0, 12).map((x) => [day(x.computedAt), rating(x.rating), x.band, x.sizeBand]), { caption: `Rating history, ${a.handle || a.kind}` }),
+      );
+    };
+    draw(withRatings[0].accountId);
+    return section(
+      { title: "Rating history", line: kept },
+      withRatings.length > 1 ? segmented("Account", withRatings.map((a) => [a.accountId, `${a.handle || a.kind}`]), withRatings[0].accountId, draw, { cls: "cn-seg--scroll" }) : null,
+      view,
+      h("p", { class: "cn-label" }, `${r.label}. ${r.kept}`),
+    );
+  });
 }
 
 export async function render(main) {
-  const plan = h("div", { class: "ap-stack" });
   const preds = h("div", { class: "ap-stack" });
   const hist = h("div", { class: "ap-stack" });
   screenHead(main, "plan", { line: "Seal a forecast before a work goes out; it is checked openly after. Your rating over time sits beside it.", tags: [["Sealed and chained"]] }).append(
-    h("div", { class: "ap-stack" }, panel("Predictions", preds), on("rating") ? panel("Rating history", hist) : null),
+    h("div", { class: "ap-stack" }, preds, on("rating") ? hist : null),
   );
   predictionsBox(preds);
   if (on("rating")) historyBox(hist);

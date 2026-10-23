@@ -7,6 +7,7 @@
 */
 import { api, can, currentTeam, on } from "./api.js";
 import { plural } from "./ui.js";
+import { queueItems } from "./creator/handoff.js";
 
 const CREATOR_MOVES = { in_production: "Deliver", changes_requested: "Revise the draft for", ready: "Go live for", short: "Choose a remedy for", make_good: "Make good for" };
 const BRAND_MOVES = { awaiting_funds: "Fund the booking with", draft_review: "Review the draft from" };
@@ -22,7 +23,8 @@ async function approvalItems(get) {
   const team = currentTeam();
   if (!team) return [];
   const r = await settle(get("/v1/team/approvals?state=pending"));
-  const list = r?.approvals ?? [];
+  // The assistant's own proposals are shown once, by handoffItems, where the accept notice is read before Approve.
+  const list = (r?.approvals ?? []).filter((a) => !String(a.requestedBy?.id ?? "").startsWith("assistant:"));
   if (!list.length) return [];
   const href = "/orbe-site/demo/app/settings/team?tab=approvals";
   if (team.role === "owner") {
@@ -41,16 +43,30 @@ export async function approvalsWaiting(user) {
 /** Forget the last read, so the next open of the bell asks again (after something changed). */
 export const forgetNotifications = () => (cached = { at: 0, items: [], key: "" });
 
+/**
+  Hand it off: each proposal of Orbe's assistant waiting for a person, as
+  "Approve: accept Kettle and Seed at £900", opening the item on Deals. A
+  server without the feature answers 404, and nothing is shown.
+*/
+async function handoffItems(get) {
+  if (!on("deals_agent") || !can("read.money")) return { items: [], offers: new Set() };
+  const s = await settle(get("/v1/me/deals/handoff"));
+  return { items: queueItems(s), offers: new Set((s?.queue ?? []).map((a) => a.offerId).filter(Boolean)) };
+}
+
 async function creatorItems(get) {
   if (!can("read.money")) return [];
-  const [offers, bookings, intros, rosters] = await Promise.all([
+  const [offers, bookings, intros, rosters, handoff] = await Promise.all([
     on("sponsorships") ? settle(get("/v1/me/sponsorships/offers")) : null,
     on("sponsorships") ? settle(get("/v1/me/sponsorships/bookings")) : null,
     settle(get("/v1/me/introductions")),
     on("brand_data") ? settle(get("/v1/me/rosters")) : null,
+    handoffItems(get),
   ]);
   const out = [];
-  const open = (offers?.offers ?? []).filter((o) => o.state === "sent");
+  // An offer the assistant is answering is listed once: as its proposal while it waits for a person, and not at all while its answer is due.
+  out.push(...handoff.items.slice(0, 3).map((i) => ({ ...i, total: handoff.items.length })));
+  const open = (offers?.offers ?? []).filter((o) => o.state === "sent" && !handoff.offers.has(o.id));
   if (open.length) out.push({ title: `Answer ${plural(open.length, "sponsorship offer")}`, line: `${open[0].brandName} is waiting. Offers lapse if not answered.`, href: "/orbe-site/demo/app/deals" });
   for (const b of (bookings?.bookings ?? []).filter((x) => CREATOR_MOVES[x.state]).slice(0, 4)) out.push({ title: `${CREATOR_MOVES[b.state]} ${b.brandName}`, line: "A booking is waiting on you.", href: "/orbe-site/demo/app/deals?tab=bookings" });
   const asked = (intros?.introductions ?? []).filter((i) => i.status === "requested");
@@ -77,7 +93,13 @@ export async function loadNotifications(user, opts = {}) {
   if (!opts.fresh && cached.key === key && Date.now() - cached.at < 60_000) return cached.items;
   const get = opts.fresh ? afresh : kept;
   const [approvals, own] = await Promise.all([approvalItems(get), user.type === "creator" ? creatorItems(get) : brandItems(get)]);
-  const items = [...approvals, ...own];
+  // The bell's number is everything waiting for the owner's say: the team's requests and the assistant's proposals, carried by the first of them.
+  const owner = (currentTeam()?.role ?? "owner") === "owner";
+  const proposals = own.find((i) => i.kind === "handoff")?.total ?? 0;
+  const waiting = (approvals[0]?.count ?? 0) + (owner ? proposals : 0);
+  const items = [...approvals, ...own].map((i) => (i.kind === "handoff" ? { ...i, kind: "approval", count: 0 } : i));
+  const first = items.find((i) => i.kind === "approval");
+  if (first) first.count = waiting;
   cached = { at: Date.now(), items, key };
   return items;
 }

@@ -8,7 +8,7 @@ import { api } from "./api.js";
 import { BASE } from "./routes.js";
 import { segmented } from "./console-ui.js";
 import { icon } from "./icons.js";
-import { lockup, portal } from "./shell.js";
+import { lockup } from "./shell.js";
 import { field, form, h, input } from "./ui.js";
 
 /* Google's own mark for its sign-in button, as its branding guidelines ask. */
@@ -61,7 +61,7 @@ export function render(main, ctx) {
   const setGoogle = () => (googleLink.href = `/v1/auth/google/start?as=${as}&next=${encodeURIComponent(safeNext)}`);
   const lede = h("p", { class: "cn-auth-lede" });
   const setLede = () =>
-    (lede.textContent = as === "creator" ? "Your rating, your verified record, sponsorships and selling, in one place." : "Briefs, guaranteed reads and creators found by their results.");
+    (lede.textContent = as === "creator" ? "Run content, deals and the business in one place, beside the tools you already use." : "Briefs, guaranteed reads and creators found by their results, for brands, agencies and product companies.");
   function choose(v) {
     as = v;
     setGoogle();
@@ -117,7 +117,6 @@ export function render(main, ctx) {
       h("div", { class: "cn-auth-side" },
         h("div", { class: "cn-auth-top" }, h("a", { href: "https://eoinforker.github.io/orbe-site/", "aria-label": "Orbe, the site" }, lockup()), h("a", { href: "https://eoinforker.github.io/orbe-site/products/" }, "All products")),
         h("div", { class: "cn-auth-card" },
-          portal("cn-portal"),
           h("h1", { class: "cn-auth-h", tabindex: "-1", "data-title": "" }, token ? "Sign in to join" : "Welcome to Orbe"),
           invited,
           lede,

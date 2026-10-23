@@ -69,6 +69,10 @@
     {
       "name": "orbe_judge_fix",
       "description": "Judge whether a fix lifted an upload"
+    },
+    {
+      "name": "orbe_handoff_decide",
+      "description": "Decide an offer within a creator's rules"
     }
   ],
   "paths": {
@@ -1660,6 +1664,100 @@
           }
         }
       }
+    },
+    "/v1/tools/handoff-decide": {
+      "post": {
+        "operationId": "handoffDecide",
+        "summary": "Decide an offer within a creator's rules",
+        "description": "Hand it off: what Orbe's assistant would do with one sponsorship offer under a creator's rules: accept, counter (on a ladder: the middle of the creator's range, then its low end, never under their floor), decline, or ask the creator. The rules run in a fixed order and the first decisive one wins: brands and categories never taken, formats not offered, currency (Orbe does not guess exchange rates), dates away, notice, reads a month, a guarantee above the creator's usual delivery, no floor to judge by, counters used, then the price. Returns the deciding rule, a one-line why, numbered facts, whether it would run alone after a 30 minute grace window or wait for the creator, and a template draft in the creator's tone. Read-only and offline: nothing is sent, booked or stored, and no model is used.\n\nPlanned: no route serves this yet. The same tool works today through the MCP server (node product/src/mcp/server.ts) and in the developers page's playground.",
+        "tags": [
+          "orbe_handoff_decide"
+        ],
+        "x-status": "planned",
+        "x-mcp-tool": "orbe_handoff_decide",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffDecideInput"
+              },
+              "examples": {
+                "madeUp": {
+                  "summary": "Made up",
+                  "value": {
+                    "rules": {
+                      "minimums": {
+                        "integration": 90000
+                      },
+                      "avoidCategories": [
+                        "gambling"
+                      ],
+                      "maxReadsPerMonth": 4,
+                      "blockedDates": [
+                        {
+                          "start": "2026-12-20",
+                          "end": "2027-01-02"
+                        }
+                      ],
+                      "leadDays": 7,
+                      "autoCounter": true
+                    },
+                    "offer": {
+                      "brandName": "Kettle and Seed (made up)",
+                      "format": "integration",
+                      "price": {
+                        "amount": 60000,
+                        "currency": "GBP"
+                      },
+                      "publishWindow": {
+                        "start": "2026-11-10T00:00:00Z",
+                        "end": "2026-11-24T00:00:00Z"
+                      }
+                    },
+                    "brandCategory": "food and drink",
+                    "range": {
+                      "low": {
+                        "amount": 80000,
+                        "currency": "GBP"
+                      },
+                      "high": {
+                        "amount": 110000,
+                        "currency": "GBP"
+                      }
+                    },
+                    "creatorName": "Ada Seed (made up)",
+                    "now": "2026-10-23T12:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result, labelled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2877,6 +2975,258 @@
         },
         "title": "Judge whether a fix lifted an upload",
         "description": "Orbe Fix, last step: whether a new title or thumbnail lifted a YouTube upload. The baseline is the upload's own pace at the moment of the change, carried forward on the rating's curve for YouTube views and sealed; the fix is kept and charged only if the upload then added at least 15% more views than that baseline, judged no sooner than two days after the change. Otherwise the old title and thumbnail go back and there is no fee."
+      },
+      "HandoffDecideInput": {
+        "type": "object",
+        "required": [
+          "rules",
+          "offer"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "rules": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The creator's rules, as PUT /v1/me/deals/handoff takes them. All optional: minimums (format to pence, the floor for one placement), formats, avoidBrands, avoidCategories, leadDays, maxReadsPerMonth, blockedDates ([{start, end}] as 2026-12-20), autoCounter, autoDecline, accept ({mode: \"ask\"} or {mode: \"auto\", above: pence, noticeShownAt: ISO time}), tone ({style: warm, brief or formal, signOff}). Floors are in pounds."
+          },
+          "offer": {
+            "type": "object",
+            "required": [
+              "brandName",
+              "format",
+              "price",
+              "publishWindow"
+            ],
+            "additionalProperties": false,
+            "description": "The offer as the brand made it.",
+            "properties": {
+              "brandName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "The brand's name."
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "integration",
+                  "dedicated",
+                  "newsletter_slot",
+                  "podcast_read",
+                  "stream_segment"
+                ],
+                "description": "The sponsorship format."
+              },
+              "quantity": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20,
+                "description": "Placements, or hours for a stream segment. Defaults to 1."
+              },
+              "price": {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000,
+                    "description": "Minor units: pence, cents."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "GBP",
+                      "USD",
+                      "EUR"
+                    ],
+                    "description": "The currency."
+                  }
+                },
+                "description": "The price offered for the whole offer, in minor units."
+              },
+              "publishWindow": {
+                "type": "object",
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "additionalProperties": false,
+                "description": "When the read would go live.",
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The window opens, ISO 8601."
+                  },
+                  "end": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The window closes, ISO 8601."
+                  }
+                }
+              },
+              "product": {
+                "type": "string",
+                "maxLength": 300,
+                "description": "What is being promoted."
+              },
+              "countersMade": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3,
+                "description": "Counters the creator has already made on this offer. After 2, the next answer is the creator's."
+              },
+              "guarantee": {
+                "type": "object",
+                "required": [
+                  "day",
+                  "units"
+                ],
+                "additionalProperties": false,
+                "description": "A delivery guarantee, if the offer has one.",
+                "properties": {
+                  "day": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 90,
+                    "description": "The day it is read at."
+                  },
+                  "units": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Views, opens, downloads or viewer hours promised."
+                  }
+                }
+              }
+            }
+          },
+          "brandCategory": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "The brand's category, e.g. gambling, vpn, food and drink."
+          },
+          "range": {
+            "type": "object",
+            "required": [
+              "low",
+              "high"
+            ],
+            "additionalProperties": false,
+            "description": "The range the creator's own results support for one placement (from orbe_price_sponsorship).",
+            "properties": {
+              "low": {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000,
+                    "description": "Minor units: pence, cents."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "GBP",
+                      "USD",
+                      "EUR"
+                    ],
+                    "description": "The currency."
+                  }
+                }
+              },
+              "high": {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000000,
+                    "description": "Minor units: pence, cents."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "GBP",
+                      "USD",
+                      "EUR"
+                    ],
+                    "description": "The currency."
+                  }
+                }
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "required": [
+              "day",
+              "units"
+            ],
+            "additionalProperties": false,
+            "description": "The creator's median delivery at a day, to judge a guarantee.",
+            "properties": {
+              "day": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 90,
+                "description": "The day."
+              },
+              "units": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The median at that day."
+              }
+            }
+          },
+          "bookedByMonth": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Reads already booked by month, keyed 2026-11."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "offer",
+              "email"
+            ],
+            "description": "offer (made in Orbe, the default) or email (read from a brand's email: always waits for the creator)."
+          },
+          "creatorName": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "The creator's name, for the draft."
+          },
+          "rulesVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Which version of the rules this is, echoed on the decision."
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The moment to compute at, ISO 8601. Defaults to now. Pass it to get the same answer every time."
+          }
+        },
+        "title": "Decide an offer within a creator's rules",
+        "description": "Hand it off: what Orbe's assistant would do with one sponsorship offer under a creator's rules: accept, counter (on a ladder: the middle of the creator's range, then its low end, never under their floor), decline, or ask the creator. The rules run in a fixed order and the first decisive one wins: brands and categories never taken, formats not offered, currency (Orbe does not guess exchange rates), dates away, notice, reads a month, a guarantee above the creator's usual delivery, no floor to judge by, counters used, then the price. Returns the deciding rule, a one-line why, numbered facts, whether it would run alone after a 30 minute grace window or wait for the creator, and a template draft in the creator's tone. Read-only and offline: nothing is sent, booked or stored, and no model is used."
       },
       "Error": {
         "type": "object",

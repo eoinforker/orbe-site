@@ -8,7 +8,7 @@ import { api, apiHref } from "../api.js";
 import { TOOLS, tile } from "../catalogue.js";
 import { historyList, pill, stat, statStrip, toolPage } from "../console-ui.js";
 import { action, actions, block, day, h } from "../ui.js";
-import { exportLinks, figure, keyPoints, sentence } from "./record.js";
+import { exportLinks, figure, keyPoints, sentence, STATUS_PILL } from "./record.js";
 
 const TOOL = TOOLS.find((t) => t.id === "report");
 
@@ -21,7 +21,7 @@ export async function render(main, ctx, opts = {}) {
       block(out, () => api.get("/v1/me/record"), ({ report: r }) => {
         page.status("done", "Ready", r.verdict);
         return [
-          h("div", { class: "rc-hero-top" }, pill(r.verdict.status === "verified" ? "done" : "needs", r.verdict.label), r.period ? h("span", { class: "cn-tag cn-tag--line" }, `${day(r.period.from)} to ${day(r.period.to)}`) : null),
+          h("div", { class: "rc-hero-top" }, pill(STATUS_PILL[r.verdict.status] ?? "idle", r.verdict.label), r.period ? h("span", { class: "cn-tag cn-tag--line" }, `${day(r.period.from)} to ${day(r.period.to)}`) : null),
           h("p", { class: "rc-hero-t" }, sentence(r.verdict.summary, r.currency)),
           r.headline?.length ? statStrip(r.headline.slice(0, 4).map((f) => stat({ label: f.label.replace("@@", "@"), value: figure(f, r.currency) }))) : null,
           keyPoints(r),

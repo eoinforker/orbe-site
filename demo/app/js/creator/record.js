@@ -10,8 +10,8 @@
   the bookings (the frame's own read), all in the boot call's list.
 */
 import { api, apiHref, on, seg } from "../api.js";
-import { CONSENTS, KINDS, unitOf } from "../terms.js";
-import { bars, emptyState, historyList, pill, screenHead, section, skeleton, sparkline, stat, statStrip } from "../console-ui.js";
+import { CONSENTS, handleOf, KINDS, unitOf } from "../terms.js";
+import { bars, emptyState, historyList, pill, rating, screenHead, section, skeleton, sparkline, stat, statStrip } from "../console-ui.js";
 import { icon } from "../icons.js";
 import { action, block, check, count, day, field, form, h, input, ok, signed, tabs, toast } from "../ui.js";
 
@@ -52,6 +52,8 @@ export function sentence(text, currency) {
 }
 
 const TONE_WORDS = { concern: "Concern", note: "Note", strength: "Strength", positive: "Strength" };
+/* A concern in words a creator reads without alarm: only a high one is called a concern. */
+const CONCERN_WORDS = { high: "Concern", medium: "Worth explaining", low: "Note" };
 
 /** What a buyer will ask about, one line each with its tone; shared with the diligence report. */
 export function keyPoints(r) {
@@ -59,7 +61,7 @@ export function keyPoints(r) {
   return h("ul", { class: "rc-points" },
     r.keyPoints.map((k) =>
       h("li", { class: `rc-point rc-point--${k.tone}` },
-        h("span", { class: "rc-point-cue" }, k.tone === "concern" ? `${TONE_WORDS.concern}, ${k.severity}` : TONE_WORDS[k.tone] ?? k.tone),
+        h("span", { class: "rc-point-cue" }, k.tone === "concern" ? (CONCERN_WORDS[k.severity] ?? TONE_WORDS.concern) : TONE_WORDS[k.tone] ?? k.tone),
         h("p", { class: "rc-point-t" }, sentence(k.text, r.currency)),
       ),
     ),
@@ -72,7 +74,7 @@ export const exportLinks = () => [
   h("a", { class: "cn-btn cn-btn--s", href: apiHref("/v1/me/record?format=markdown"), target: "_blank", rel: "noopener" }, icon("doc"), "Markdown"),
 ];
 
-const STATUS_PILL = { verified: "done", verified_with_exceptions: "needs", partial: "needs", unverified: "idle", insufficient: "idle" };
+export const STATUS_PILL = { verified: "done", verified_with_exceptions: "needs", partly_verified: "needs", not_checked: "idle" };
 const monthName = (m) => new Date(`${m.slice(0, 7)}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
 
 /* ---------------------------------------------------------------- the verdict and its figures */
@@ -104,18 +106,41 @@ function headline(r) {
   ));
 }
 
+/** Each bar says its month and figure on hover, focus or a tap, so a phone can read them too. */
+function tipBars(node, tips) {
+  if (!node) return node;
+  [...node.children].forEach((bar, i) => {
+    bar.dataset.tip = tips[i];
+    bar.tabIndex = 0;
+    bar.setAttribute("aria-label", tips[i]);
+    // A tap holds the figure open until another bar is tapped.
+    bar.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse") return;
+      for (const b of node.children) b.classList.toggle("is-tip", b === bar);
+    });
+  });
+  node.removeAttribute("role");
+  node.setAttribute("aria-label", "Revenue by month");
+  return node;
+}
+
+/* The coverage grid's states, in the order the key lists them. */
+const KEY = [["corr", "is-connected is-corr", "Connected, corroborated"], ["connected", "is-connected", "Connected"], ["uploaded", "is-uploaded", "Uploaded"], ["missing", "is-missing", "Not read"]];
+
 /** Revenue by month, and under it each stream's months by how they were read. */
 function revenueSection(r) {
   const months = r.revenue?.ttm?.byMonth ?? [];
   const cov = r.coverage;
   if (!months.length && !cov?.cells?.length) return null;
   const cell = (stream, month) => cov.cells.find((c) => c.stream === stream && c.month === month);
+  const stateOf = (c) => (!c || !["connected", "uploaded"].includes(c.status) ? "missing" : c.status === "connected" && c.corroborated ? "corr" : c.status);
+  const present = new Set((cov?.streams ?? []).flatMap((st) => (cov.months ?? []).map((m) => stateOf(cell(st, m)))));
   const word = (c) => (!c || c.status === "missing" ? "Not read" : `${c.status === "connected" ? "Connected" : "Uploaded"}${c.corroborated ? ", corroborated" : ""}`);
   return section(
     { title: "Revenue by month", line: cov ? `${figure(cov.connectedShare ?? { value: 0, unit: "percent" })} read from connected sources, ${figure(cov.corroboratedShare ?? { value: 0, unit: "percent" })} agreed by a second source.` : null },
     months.length
       ? h("div", { class: "rc-rev" },
-          bars(months.map((m) => m.total?.value ?? 0), "Revenue by month"),
+          tipBars(bars(months.map((m) => m.total?.value ?? 0), "Revenue by month"), months.map((m) => `${monthName(m.month)}: ${figure(m.total, r.currency)}`)),
           h("div", { class: "rc-rev-x" }, months.map((m) => h("span", { title: `${m.total?.label}: ${figure(m.total, r.currency)}` }, monthName(m.month)))),
         )
       : null,
@@ -130,7 +155,8 @@ function revenueSection(r) {
               })),
             ),
           ),
-          h("p", { class: "rc-cov-key" }, h("span", { class: "rc-cov-c is-connected is-corr" }), "Connected, corroborated", h("span", { class: "rc-cov-c is-connected" }), "Connected", h("span", { class: "rc-cov-c is-uploaded" }), "Uploaded", h("span", { class: "rc-cov-c is-missing" }), "Not read"),
+          // The key names only the states the grid shows, each swatch kept with its word.
+          h("p", { class: "rc-cov-key" }, KEY.filter(([k]) => present.has(k)).map(([, cls, label]) => h("span", { class: "rc-cov-k" }, h("span", { class: `rc-cov-c ${cls}` }), label))),
         )
       : null,
   );
@@ -149,9 +175,9 @@ function ratingsSection(hist) {
           const first = a.ratings[0];
           const moved = last.rating - first.rating;
           return h("li", { class: "rc-rating" },
-            h("div", { class: "rc-rating-who" }, h("p", { class: "rc-rating-h" }, a.handle?.startsWith("@") ? a.handle : `@${a.handle}`), h("p", { class: "dl-sub" }, `${KINDS[a.kind] ?? a.kind}, ${count(a.ratings.length)} ${a.ratings.length === 1 ? "reading" : "readings"} since ${day(first.computedAt)}`)),
-            sparkline(a.ratings.map((x) => x.rating), `Rating of ${a.handle} over time`, { tone: moved < 0 ? "warn" : null }) ?? h("span"),
-            h("div", { class: "rc-rating-now" }, h("p", { class: "rc-rating-v" }, signed(last.rating)), h("p", { class: "dl-sub" }, `${last.band}${a.ratings.length > 1 ? `, ${moved >= 0 ? "up" : "down"} ${signed(Math.abs(moved)).replace(/^\+/, "")}` : ""}`)),
+            h("div", { class: "rc-rating-who" }, h("p", { class: "rc-rating-h" }, handleOf(a.handle, a.kind)), h("p", { class: "dl-sub" }, `${KINDS[a.kind] ?? a.kind}, ${count(a.ratings.length)} ${a.ratings.length === 1 ? "reading" : "readings"} since ${day(first.computedAt)}`)),
+            sparkline(a.ratings.map((x) => x.rating), `Rating of ${a.handle} over time`) ?? h("span"),
+            h("div", { class: "rc-rating-now" }, rating(last.rating, { size: "", tag: "p", cls: "rc-rating-v" }), h("p", { class: "dl-sub" }, `${last.band}${a.ratings.length > 1 ? `, ${moved >= 0 ? "up" : "down"} ${signed(Math.abs(moved)).replace(/^\+/, "")}` : ""}`)),
           );
         }))
       : emptyState("star", "No rating kept yet.", [["Rate a channel", "/orbe-site/demo/app/rate"]], "A rating is kept while your public rating consent lasts, once an account has enough matured works."),
@@ -214,12 +240,24 @@ function checksSection(r) {
   );
 }
 
+/** No revenue read yet: one empty state, and nothing to share or judge. */
+function noRevenue(hist, bookings) {
+  const rated = (hist?.accounts ?? []).some((a) => a.ratings?.length);
+  const delivered = bookings.some((b) => DELIVERED.includes(b.state) && b.works?.length);
+  return h("div", { class: "rc" },
+    emptyState("earn", "No revenue read yet.", [["Connect a source", "/orbe-site/demo/app/settings/connections", true]],
+      "Your record starts once Orbe reads money from a source you connect, such as Stripe or AdSense. Until then there is nothing to check or share."),
+    rated ? ratingsSection(hist) : null,
+    delivered ? deliveriesSection(bookings) : null,
+  );
+}
+
 function recordTab(el, goShare) {
   el.replaceChildren(skeleton(6));
   return block(
     el,
     () => Promise.all([api.get("/v1/me/record"), api.get("/v1/me/history").catch(() => null), api.get("/v1/me/sponsorships/bookings").catch(() => ({ bookings: [] }))]),
-    ([{ report: r }, hist, { bookings }]) => h("div", { class: "rc" },
+    ([{ report: r }, hist, { bookings }]) => !(r.revenue?.ttm?.total?.value > 0) ? noRevenue(hist, bookings ?? []) : h("div", { class: "rc" },
       hero(r, goShare),
       headline(r),
       h("div", { class: "rc-cols" }, revenueSection(r), ratingsSection(hist)),
@@ -413,7 +451,7 @@ export function eraseBox() {
 }
 
 export async function render(main, ctx) {
-  const body = screenHead(main, "record", { title: "Record", line: "What Orbe read at source, what it checked, and who may see it: proof to share with a brand or a buyer.", tags: [["Verified", "sky"], ["Yours to share"]] });
+  const body = screenHead(main, "record", { title: "Record", line: "What Orbe read at source, what it checked, and who may see it: proof to share with a brand or a buyer.", tags: [["Read at source", "sky"], ["Yours to share"]] });
   const goShare = () => document.getElementById("tab-record-share")?.click();
   body.append(
     tabs("record", [

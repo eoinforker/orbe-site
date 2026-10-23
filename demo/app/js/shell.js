@@ -1,19 +1,19 @@
 /*
   The console's frame: the top bar (the Portal and wordmark, who you are,
-  the breadcrumb, search, the plan, resources, notifications and your
-  menu), the tabs with their tool menus, the phone sheet, and the command
+  the breadcrumb, search, help, notifications and your menu, which holds
+  the plan), the tabs with their tool menus, the phone sheet, and the command
   palette. It draws from catalogue.js and the screens this person may open,
   so a switched-off feature leaves no trace here.
 
   Everything here is structure and behaviour; how it looks is console.css,
   whose class names (cn-*) are the contract the screens share.
 */
-import { api, can, currentTeam, on } from "./api.js";
+import { api, can, canRateChannels, currentTeam, notHere, on } from "./api.js";
 import { RESOURCES, settingsFor, siteHref, tabsFor, tile, toolsFor } from "./catalogue.js";
 import { icon } from "./icons.js";
 import { approvalsWaiting, loadNotifications, watchNotifications } from "./notify.js";
 import { setTheme, theme } from "./theme-switch.js";
-import { h, nextId } from "./ui.js";
+import { h, nextId, refocus } from "./ui.js";
 import { PORTAL } from "../site/mark.js";
 
 const BASE = "/orbe-site/demo/app";
@@ -21,7 +21,10 @@ const href = (path) => (path ? `${BASE}/${path}` : `${BASE}/`);
 
 let state = { user: null, screens: [], tabs: [], tools: [], go: null, signOut: null };
 const top = () => document.querySelector("[data-top]");
-const tabsEl = () => document.querySelector("[data-tabs]");
+// The tabs live inside the top bar once it draws, so the bar is one row; the node is kept when the bar empties.
+let tabsNode = null;
+const tabsEl = () => (tabsNode ??= document.querySelector("[data-tabs]"));
+const crumbsEl = () => document.querySelector("[data-crumbs]");
 
 /** The Portal, drawn from the site's own path, in currentColor. */
 export function portal(cls = "cn-portal") {
@@ -101,7 +104,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && openMenu) {
     const { btn } = openMenu;
     closeMenus();
-    btn.focus();
+    refocus(btn);
   }
 });
 
@@ -130,9 +133,10 @@ function avatarMenu() {
   return menu(h("span", { class: "cn-avatar" }, initials(u)), () => [
     h("div", { class: "cn-menu-head" },
       h("span", { class: "cn-avatar cn-avatar--m", "aria-hidden": "true" }, initials(u)),
-      h("div", null, h("p", { class: "cn-item-t" }, u.displayName || (u.type === "creator" ? "Creator" : "Brand")), u.email ? h("p", { class: "cn-item-d cn-wrap" }, u.email) : null),
+      h("div", null, h("p", { class: "cn-item-t" }, u.displayName || "You"), u.email ? h("p", { class: "cn-item-d cn-wrap" }, u.email) : null),
     ),
     row("settings", "Settings", null, { href: href("settings/account") }),
+    planRow(),
     state.screens.some((r) => r.path === "connections") ? row("link", "Connections", null, { href: href("connections") }) : null,
     state.screens.some((r) => r.path === "runs") ? row("studio", "Runs", null, { href: href("runs") }) : null,
     row("shield", "Where you are signed in", null, { href: href("settings/security") }),
@@ -143,15 +147,20 @@ function avatarMenu() {
   ], { aria: "Your account", end: true, cls: "cn-menubtn--avatar", panel: "cn-menu--account" });
 }
 
-function resourcesMenu() {
-  return menu([icon("book"), icon("chevron", { cls: "cn-i--chev" })], () =>
+/** Help: the tour again, then the site's guides and references, in one quiet button. */
+function helpMenu() {
+  return menu(icon("help"), () => [
+    row("sparkle", "Take the tour", null, { "data-close": "", onclick: () => import("./tour.js").then((m) => m.startTour(state.user, { force: true })) }),
     RESOURCES.map(([group, links]) => [
       h("p", { class: "cn-menu-group" }, group),
       links.map(([name, path, ico]) => row(ico, name, null, { href: siteHref(path), target: "_blank", rel: "noopener" })),
     ]),
-  { aria: "Resources", title: "Resources", end: true, cls: "cn-menubtn--box", panel: "cn-menu--resources" });
+  ], { aria: "Help and resources", title: "Help and resources", end: true, panel: "cn-menu--resources" });
 }
 
+/* The bell's listener is added once, and marks whichever bell is drawn now. */
+let notesHeard = false;
+let markNow = () => {};
 function bell() {
   const dot = h("span", { class: "cn-dot", hidden: true });
   // A request waiting for the owner shows as a number; anything else as a dot.
@@ -167,29 +176,29 @@ function bell() {
     const head = h("div", { class: "cn-menu-title" }, h("p", null, "Notifications"), h("span", { class: "cn-count" }, String(items.length)));
     if (!items.length) return [head, h("div", { class: "cn-menu-empty" }, h("span", { class: "cn-empty-ico" }, icon("bell")), h("p", { class: "cn-item-t" }, "All caught up"), h("p", { class: "cn-item-d" }, "Offers, bookings and introductions that need you show here."))];
     return [head, items.map((n) => h("a", { class: `cn-note${n.kind === "approval" ? " cn-note--approval" : ""}`, href: n.href }, h("span", { class: "cn-note-dot", "aria-hidden": "true" }), h("span", { class: "cn-item-t" }, n.title), h("span", { class: "cn-item-d" }, n.line)))];
-  }, { aria: "Notifications", title: "Notifications", end: true, cls: "cn-menubtn--box", panel: "cn-menu--notes" });
+  }, { aria: "Notifications", title: "Notifications", end: true, panel: "cn-menu--notes" });
+  // Drawn from what this device remembers, before the boot: nothing is asked yet.
+  if (state.provisional) return wrap;
   // The first list comes with the boot; after that, when the person comes back to the tab (notify.js).
   watchNotifications(state.user, mark);
-  window.addEventListener("orbe:notes-changed", () => loadNotifications(state.user, { fresh: true }).then(mark).catch(() => {}));
+  if (!notesHeard) window.addEventListener("orbe:notes-changed", () => loadNotifications(state.user, { fresh: true }).then(markNow).catch(() => {}));
+  notesHeard = true;
+  markNow = mark;
   return wrap;
 }
 
-/** The plan chip: what this account is on, linked to where it changes. Only where there is a plan to change. */
-async function planChip() {
+/** The plan, in the account menu: what this account is on, linked to Plan and usage. Only where there is a plan to change. */
+function planRow() {
   const u = state.user;
-  const pix = h("span", { class: "cn-chip-px", "aria-hidden": "true" }, Array.from({ length: 9 }, () => h("span")));
-  if (u.type === "creator" && on("pro") && can("read.money")) {
-    const name = h("span", null, "Free");
-    const chip = h("a", { class: "cn-planchip", href: href("settings/plan") }, pix, name, icon("chevron", { cls: "cn-i--chev" }));
-    api.get("/v1/me/plan").then(({ plan }) => (name.textContent = plan.plan === "pro" ? "Creator Pro" : "Free plan")).catch(() => {});
-    return chip;
-  }
-  return null;
+  if (u.type !== "creator" || !on("pro") || !can("read.money")) return null;
+  const r = row("card", "Free plan", null, { href: href("settings/plan"), title: "Plan and usage" });
+  api.get("/v1/me/plan").then(({ plan }) => (r.querySelector(".cn-item-t").textContent = plan.plan === "pro" ? "Creator Pro" : "Free plan")).catch(() => {});
+  return r;
 }
 
 function searchButton() {
   const kbd = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘ K" : "Ctrl K";
-  return h("button", { class: "cn-search", type: "button", onclick: () => openPalette(""), "aria-keyshortcuts": "Control+K Meta+K" }, icon("search"), h("span", { class: "cn-search-t" }, "Search anything"), h("kbd", { class: "cn-kbd" }, kbd));
+  return h("button", { class: "cn-search", type: "button", onclick: () => openPalette(""), "aria-label": "Search anything", "aria-keyshortcuts": "Control+K Meta+K" }, icon("search"), h("span", { class: "cn-search-t" }, "Search anything"), h("kbd", { class: "cn-kbd" }, kbd));
 }
 
 /* ---------------------------------------------------------------- the team switcher */
@@ -208,9 +217,24 @@ let teamsCache = null;
 const loadTeams = () => (teamsCache ??= api.get("/v1/teams").catch(() => null));
 
 async function switchTo(teamId) {
-  await api.put("/v1/teams/active", { teamId });
-  // Every screen, menu and figure belongs to the team: start the console again in it.
-  location.assign(href(""));
+  // This page is leaving for the team: a call of its own refused meanwhile for the old team is not another tab's doing.
+  window.dispatchEvent(new CustomEvent("orbe:switching", { detail: true }));
+  try {
+    await api.put("/v1/teams/active", { teamId });
+  } catch (e) {
+    window.dispatchEvent(new CustomEvent("orbe:switching", { detail: false }));
+    throw e;
+  }
+  // Every other tab of this browser shares the session, so each starts again in the team too.
+  try {
+    const c = new BroadcastChannel("orbe-team");
+    c.postMessage({ team: teamId });
+    c.close();
+  } catch {
+    // The server refuses their next call for the old team instead.
+  }
+  // Every screen, menu and figure belongs to the team: start the console again in it, in place of the page that showed the old one.
+  location.replace(href(""));
 }
 
 /** The team rows of the switcher: each with its role, the one you are in ticked. */
@@ -221,7 +245,7 @@ async function teamRows() {
     h("button", { class: "cn-item cn-teamrow", type: "button", role: "menuitemradio", "aria-checked": String(t.id === r.active.id), "data-close": "", onclick: () => (t.id === r.active.id ? null : switchTo(t.id)) },
       teamTile(t.name, t.kind, "s"),
       h("span", { class: "cn-item-t" }, t.name),
-      h("span", { class: "cn-item-d" }, `${roleWord(t.role)}${t.agency ? `, through ${t.agency.org}` : ""}`),
+      h("span", { class: "cn-item-d" }, `${KIND[t.kind] ?? "Team"}, ${t.role}${t.agency ? `, through ${t.agency.org}` : ""}`),
       h("span", { class: "cn-teamrow-tick", "aria-hidden": "true" }, icon("check")),
     ),
   );
@@ -230,13 +254,21 @@ async function teamRows() {
 /** Beside the mark: the team this person works in, and every other team they are on. The person sits beneath. */
 function teamSwitcher() {
   const u = state.user;
-  const team = currentTeam();
+  // Before the boot, the team this device remembers; after it, the session's.
+  const team = state.provisional ? u.team ?? null : currentTeam();
+  // Your own account before it has a name is "Your account", never the first half of your address.
+  const me = u.person ?? u;
+  const own = !team || team.role === "owner";
+  const unnamed = own && !me.displayName && (!team || team.name === (me.email ?? "").split("@")[0]);
   const fallback = (u.displayName || u.email || "").replace(/\s*\(.*?\)\s*/g, " ").trim() || (u.type === "creator" ? "Creator" : "Brand");
-  const name = team?.name ?? fallback;
+  const name = unnamed ? "Your account" : team?.name ?? fallback;
   const kind = team?.kind ?? (u.type === "creator" ? "creator" : "brand");
   const t = h("span", { class: "cn-who-t" }, name);
   const leads = team && team.via === "member" && (team.role === "owner" || team.role === "manager");
-  return menu([teamTile(name, kind), t, h("span", { class: "cn-who-k" }, KIND[kind] ?? "Team"), icon("chevron", { cls: "cn-i--chev" })], async () => [
+  // On someone else's account, the chip says what you are there (Manager, Editor), not what the account is.
+  const role = own ? KIND[kind] ?? "Team" : team.role.charAt(0).toUpperCase() + team.role.slice(1);
+  const tile = unnamed ? h("span", { class: "cn-teamtile", "data-kind": kind, "aria-hidden": "true" }, icon("user")) : teamTile(name, kind);
+  return menu([tile, t, h("span", { class: "cn-who-k" }, role), icon("chevron", { cls: "cn-i--chev" })], async () => [
     h("div", { class: "cn-menu-head cn-menu-head--team" },
       h("span", { class: "cn-avatar cn-avatar--m", "aria-hidden": "true" }, initials(u.person ?? u)),
       h("div", null, h("p", { class: "cn-item-t" }, personName(u.person ?? u)), (u.person ?? u).email ? h("p", { class: "cn-item-d cn-wrap" }, (u.person ?? u).email) : null),
@@ -251,7 +283,7 @@ function teamSwitcher() {
 
 /** Draws the frame for a signed-in person, or nothing but the page for the sign-in screen. */
 export async function drawFrame(user, screens, opts) {
-  state = { user, screens, tabs: user ? tabsFor(user, screens) : [], tools: user ? toolsFor(user, screens) : [], go: opts.go, signOut: opts.signOut };
+  state = { user, screens, tabs: user ? tabsFor(user, screens) : [], tools: user ? toolsFor(user, screens) : [], go: opts.go, signOut: opts.signOut, provisional: opts.provisional === true };
   const bar = top();
   document.body.classList.toggle("cn--out", !user);
   if (!user) {
@@ -265,37 +297,39 @@ export async function drawFrame(user, screens, opts) {
     bar.replaceChildren();
     bar.hidden = true;
     tabsEl().hidden = true;
+    if (crumbsEl()) crumbsEl().hidden = true;
     const dock = document.querySelector("[data-dock]");
     if (dock) dock.hidden = true;
     return;
   }
   bar.hidden = false;
   const mark = h("a", { class: "cn-mark", href: href(""), "aria-label": "Orbe, home" }, lockup());
-  const crumbs = h("nav", { class: "cn-crumbs", "aria-label": "Breadcrumb", "data-crumbs": "" });
+  // The way back from a screen deep in another (a work in the Library) sits under the bar, outside main, and only when there is somewhere to go back to.
+  if (!crumbsEl()) bar.after(h("nav", { class: "cn-crumbs", "aria-label": "Breadcrumb", "data-crumbs": "", hidden: "" }));
   bar.replaceChildren(
-    h("button", { class: "cn-sheetbtn", type: "button", "aria-label": "Menu", onclick: () => openSheet() }, icon("menu")),
     mark,
     h("span", { class: "cn-slash", "aria-hidden": "true" }, "/"),
     teamSwitcher(),
-    crumbs,
-    h("div", { class: "cn-tools" }, searchButton(), await planChip(), resourcesMenu(), bell(), avatarMenu()),
+    tabsEl(),
+    h("div", { class: "cn-tools" }, searchButton(), helpMenu(), bell(), avatarMenu()),
   );
   drawTabs();
   drawDock();
 }
 
-/* On a phone the tabs sit at the foot of the screen: the first three, then More for the rest (the sheet). */
+/* On a phone the tabs sit at the foot of the screen: the first three, then More for the rest (the sheet), the phone's one menu. */
+const docked = () => state.tabs.filter((t) => !t.items).slice(0, 3);
 function drawDock() {
   let dock = document.querySelector("[data-dock]");
   if (!dock) {
     dock = h("nav", { class: "cn-navdock", "aria-label": "Orbe", "data-dock": "" });
     document.body.append(dock);
   }
-  const links = state.tabs.filter((t) => !t.items).slice(0, 3);
+  const links = docked();
   dock.hidden = false;
   dock.replaceChildren(
     ...links.map((tab) => h("a", { class: "cn-navdock-i", href: href(tab.path), "data-path": tab.path }, icon(tab.icon), h("span", null, tab.name))),
-    h("button", { class: "cn-navdock-i", type: "button", onclick: () => openSheet() }, icon("menu"), h("span", null, "More")),
+    h("button", { class: "cn-navdock-i", type: "button", "aria-haspopup": "dialog", onclick: () => openSheet() }, icon("menu"), h("span", null, "More")),
   );
 }
 
@@ -313,7 +347,7 @@ function drawTabs() {
                   h("a", { class: "cn-menu-foot", href: href("explore") }, icon("explore"), h("span", null, "Explore every tool"), icon("arrowRight")),
                 );
               }, { cls: "cn-tab", panel: `cn-menu--tools${tab.items.length > 4 ? " cn-menu--two" : ""}` })
-            : h("a", { class: "cn-tab", href: href(tab.path), "data-path": tab.path }, icon(tab.icon), h("span", null, tab.name)),
+            : h("a", { class: "cn-tab", href: href(tab.path), "data-path": tab.path, title: jumpKey(tab) ? `${tab.name} (G then ${jumpKey(tab).toUpperCase()})` : null }, icon(tab.icon), h("span", null, tab.name)),
         ),
       ),
     ),
@@ -326,8 +360,9 @@ export function markHere(route, params) {
   const settings = here === "settings";
   let tabName = settings ? "Settings" : null;
   let item = null;
+  let tabLink = null;
   for (const tab of state.tabs) {
-    if (!tab.items && tab.path === here) tabName = tab.name;
+    if (!tab.items && tab.path === here) [tabName, tabLink] = [tab.name, href(tab.path)];
     const found = tab.items?.find((i) => i.path === here);
     if (found && !tabName) [tabName, item] = [tab.name, found];
   }
@@ -340,10 +375,11 @@ export function markHere(route, params) {
     if (a.dataset.path === here) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   }
-  const crumbs = top().querySelector("[data-crumbs]");
+  const crumbs = crumbsEl();
   if (!crumbs) return;
   const parts = [];
-  if (tabName && tabName !== "Home") parts.push([tabName, null]);
+  // A menu tab has no address of its own; when its item is named like it (Campaigns in Campaigns), the item's address is the way back.
+  if (tabName && tabName !== "Home") parts.push([tabName, tabLink ?? (item && item.name === tabName && route.path !== item.path ? href(item.path) : null)]);
   // A screen that sits under another screen which is not a tab (Podcasts under Connections) names that screen first.
   const parent = route.under && !settings && !tabName ? state.screens.find((r) => r.path === route.under) : null;
   if (parent) parts.push([parent.name, href(parent.path)]);
@@ -356,27 +392,40 @@ export function markHere(route, params) {
     document.title = `${section}, Settings: Orbe`;
   }
   if (!parts.length) parts.push(["Home", null]);
+  // The tab already says where you are; the line shows only a way back up.
+  crumbs.hidden = !parts.some(([, link], i) => link && i < parts.length - 1);
   crumbs.replaceChildren(
     h("ol", null, parts.map(([name, link], i) => h("li", null, link && i < parts.length - 1 ? h("a", { href: link }, name) : h("span", { "aria-current": i === parts.length - 1 ? "page" : null }, name)))),
   );
 }
 
+/** The last crumb names what the screen shows once it knows (a work's title in place of "Work"). */
+export function nameHere(name) {
+  const last = crumbsEl()?.querySelector("[aria-current]");
+  if (last) last.textContent = name;
+}
+
 /* ---------------------------------------------------------------- the phone sheet */
 
+/*
+  More, on a phone: only what the dock and the top bar do not already hold.
+  The team (the switcher has no room in the bar), the tabs past the first
+  three, and each tool menu. Search, Settings and the account live in the
+  top bar, so they are not repeated here.
+*/
 function openSheet() {
-  const d = h("dialog", { class: "cn-sheet", "aria-label": "Orbe" });
-  // The team you work in, first: on a phone the switcher lives here.
+  const d = h("dialog", { class: "cn-sheet", "aria-label": "More" });
   const sheetTeams = h("div", { class: "cn-sheet-group cn-sheet-teams" }, h("p", { class: "cn-menu-group" }, "Team"));
   teamRows().then((rows) => (rows.length > 1 ? sheetTeams.append(...rows) : sheetTeams.append(...rows, row("people", "Team settings", null, { href: href("settings/team") }))));
   const close = () => d.close();
+  const inDock = new Set(docked().map((t) => t.path));
+  const rest = state.tabs.filter((t) => !t.items && !inDock.has(t.path));
   d.append(
     h("div", { class: "cn-sheet-bar" }, lockup(), h("button", { class: "cn-iconbtn", type: "button", onclick: close, "aria-label": "Close" }, icon("close"))),
-    h("button", { class: "cn-search cn-search--sheet", type: "button", onclick: () => { close(); openPalette(""); } }, icon("search"), h("span", { class: "cn-search-t" }, "Search anything")),
     sheetTeams,
-    h("nav", { class: "cn-sheet-nav", "aria-label": "Orbe" },
-      h("div", { class: "cn-sheet-main" }, state.tabs.filter((t) => !t.items).map((tab) => h("a", { class: "cn-sheet-link", href: href(tab.path) }, icon(tab.icon), h("span", null, tab.name)))),
+    h("nav", { class: "cn-sheet-nav", "aria-label": "More" },
+      rest.length ? h("div", { class: "cn-sheet-main" }, rest.map((tab) => h("a", { class: "cn-sheet-link", href: href(tab.path) }, icon(tab.icon), h("span", null, tab.name)))) : null,
       state.tabs.filter((t) => t.items).map((tab) => h("div", { class: "cn-sheet-group" }, h("p", { class: "cn-menu-group" }, tab.name), tab.items.map(toolLink))),
-      h("div", { class: "cn-sheet-group" }, h("p", { class: "cn-menu-group" }, "Settings"), settingsFor(state.user, on).map((s) => row(s.icon, s.name, null, { href: href(`settings/${s.id}`) }))),
     ),
   );
   d.addEventListener("click", (e) => {
@@ -389,14 +438,22 @@ function openSheet() {
 
 /* ---------------------------------------------------------------- the command palette */
 
-/** Everything the palette can open or do for this person, each with words to match on. */
+/** Everything the palette can open or do for this person, each with words to match on; a place reached two ways (Record, a tab and a tool) is offered once. */
 export function commandsFor(user, tabs, sections, extra = [], tools = []) {
   const out = [];
-  for (const tab of tabs) if (!tab.items) out.push({ group: "Go to", name: tab.name, line: "", href: href(tab.path), icon: tab.icon });
-  for (const t of tools.length ? tools : tabs.flatMap((tab) => tab.items ?? []))
-    if (t.status !== "off") out.push({ group: "Explore", name: t.name, line: t.line, href: t.status === "coming" ? siteHref(t.site ?? "products/") : href(t.path), external: t.status === "coming", tile: [t.glyph, t.k] });
-  for (const s of sections) out.push({ group: "Settings", name: s.name, line: s.line, href: href(`settings/${s.id}`), icon: s.icon });
-  out.push(...extra);
+  const seen = new Set();
+  const add = (c) => {
+    if (c.href && !c.external && seen.has(c.href)) return;
+    if (c.href) seen.add(c.href);
+    out.push(c);
+  };
+  for (const tab of tabs) if (!tab.items) add({ group: "Go to", name: tab.name, line: "", href: href(tab.path), icon: tab.icon });
+  // A tool this server cannot run comes last and says so.
+  const listed = [...(tools.length ? tools : tabs.flatMap((tab) => tab.items ?? []))].sort((a, b) => Number(notHere(a)) - Number(notHere(b)));
+  for (const t of listed)
+    if (t.status !== "off") add({ group: "Explore", name: t.name, line: notHere(t) ? "Not on this server" : t.line, href: t.status === "coming" ? siteHref(t.site ?? "products/") : href(t.path), external: t.status === "coming", tile: [t.glyph, t.k] });
+  for (const s of sections) add({ group: "Settings", name: s.name, line: s.line, href: href(`settings/${s.id}`), icon: s.icon });
+  for (const c of extra) add(c);
   return out;
 }
 
@@ -420,7 +477,8 @@ let worksCache = null;
 /** The creator's works, once per visit, for the palette to find by title. */
 async function paletteWorks() {
   if (state.user?.type !== "creator") return [];
-  if (!worksCache) worksCache = api.get("/v1/me/works?limit=200").then((r) => r.works).catch(() => []);
+  // The kinds' names come with the works, only when the palette first asks, so the frame loads nothing more.
+  if (!worksCache) worksCache = Promise.all([api.get("/v1/me/works?limit=200"), import("./terms.js")]).then(([r, { KINDS }]) => r.works.map((w) => ({ ...w, kindName: KINDS[w.kind] ?? w.kind }))).catch(() => []);
   return worksCache;
 }
 
@@ -430,13 +488,15 @@ function paletteExtras(q, works, waiting, teams) {
     ...(teams?.teams ?? []).filter((t) => t.id !== teams.active.id).map((t) => ({ group: "Actions", name: `Switch to ${t.name}`, line: `${roleWord(t.role)} on this team`, run: () => switchTo(t.id), icon: "people" })),
     { group: "Actions", name: "Run a tool", line: "Rate a work, check an offer, find a sponsor", href: href("runs"), icon: "studio" },
     { group: "Actions", name: "Take the tour", line: "A short look around the console", run: () => import("./tour.js").then((m) => m.startTour(state.user, { force: true })), icon: "sparkle" },
-    { group: "Actions", name: "Switch to Ink", line: "Dark theme", run: () => setTheme("dark"), icon: "moon" },
-    { group: "Actions", name: "Switch to Paper", line: "Light theme", run: () => setTheme("light"), icon: "sun" },
+    // Only the theme not on show: the one on show is not somewhere to switch to.
+    document.documentElement.dataset.theme === "dark"
+      ? { group: "Actions", name: "Switch to Paper", line: "Light theme", run: () => setTheme("light"), icon: "sun" }
+      : { group: "Actions", name: "Switch to Ink", line: "Dark theme", run: () => setTheme("dark"), icon: "moon" },
     { group: "Actions", name: "Sign out", line: "End this session", run: () => state.signOut(), icon: "logout" },
   ].filter((x) => x.href !== href("runs") || state.screens.some((r) => r.path === "runs"));
   const handle = q.trim().match(/^@[\w.-]{2,}$/);
-  if (handle && state.screens.some((r) => r.path === "rate")) extra.unshift({ group: "Rate", name: `Rate ${handle[0]}`, line: "A YouTube channel, against creators its size", href: `${href("rate")}?handle=${encodeURIComponent(handle[0])}`, icon: "chart" });
-  if (q.trim().length >= 2) for (const w of works.slice(0, 200)) extra.push({ group: "Works", name: w.title, line: `${w.account.handle}, ${w.kind}`, href: `${href("library")}?work=${encodeURIComponent(w.id)}`, icon: "image" });
+  if (handle && state.screens.some((r) => r.path === "rate") && canRateChannels()) extra.unshift({ group: "Rate", name: `Rate ${handle[0]}`, line: "A YouTube channel, against creators its size", href: `${href("rate")}?handle=${encodeURIComponent(handle[0])}`, icon: "chart" });
+  if (q.trim().length >= 2) for (const w of works.slice(0, 200)) extra.push({ group: "Works", name: w.title, line: `${w.account.handle}, ${w.kindName}`, href: href(`works/${encodeURIComponent(w.id)}`), icon: "image" });
   return extra;
 }
 
@@ -445,7 +505,7 @@ const ORDER = ["Rate", "Go to", "Explore", "Works", "Settings", "Actions"];
 export async function openPalette(initial = "") {
   if (!state.user || palette) return;
   const sections = settingsFor(state.user, on);
-  const input = h("input", { class: "cn-palette-input", type: "search", placeholder: "Search tools, works and settings, or type @handle", "aria-label": "Search Orbe", role: "combobox", "aria-expanded": "true", "aria-autocomplete": "list", autocomplete: "off" });
+  const input = h("input", { class: "cn-palette-input", type: "search", placeholder: canRateChannels() ? "Search tools, works and settings, or type @handle" : "Search tools, works and settings", "aria-label": "Search Orbe", role: "combobox", "aria-expanded": "true", "aria-autocomplete": "list", autocomplete: "off" });
   const list = h("div", { class: "cn-palette-list", role: "listbox", id: nextId("pl"), "aria-label": "Results" });
   input.setAttribute("aria-controls", list.id);
   const foot = h("div", { class: "cn-palette-foot" }, h("span", null, h("kbd", { class: "cn-kbd" }, "↑"), h("kbd", { class: "cn-kbd" }, "↓"), " to move"), h("span", null, h("kbd", { class: "cn-kbd" }, "Enter"), " to open"), h("span", null, h("kbd", { class: "cn-kbd" }, "Esc"), " to close"));
@@ -458,7 +518,11 @@ export async function openPalette(initial = "") {
   let works = [];
   let waiting = 0;
   let teams = null;
+  // Escape, a click outside or an action that stays here (a theme) gives focus back to where it was; a screen opened takes it to its title.
+  const back = document.activeElement;
+  let leaving = false;
   const pick = (c) => {
+    leaving = Boolean(c.href && !c.external && !c.run);
     d.close();
     if (c.run) c.run();
     else if (c.external) window.open(c.href, "_blank", "noopener");
@@ -479,13 +543,13 @@ export async function openPalette(initial = "") {
                 return h("div", { class: "cn-option", role: "option", id: `${list.id}-${n}`, "aria-selected": String(n === at), onclick: () => pick(c), onmousemove: () => { if (at !== n) { at = n; mark(); } } },
                   c.tile ? tile(c.tile[0], c.tile[1], h, "s") : h("span", { class: "cn-item-ico" }, icon(c.icon ?? "arrowRight")),
                   h("span", { class: "cn-item-t" }, c.name),
-                  h("span", { class: "cn-item-d" }, c.line || c.group),
+                  c.line ? h("span", { class: "cn-item-d" }, c.line) : null,
                   h("span", { class: "cn-option-go", "aria-hidden": "true" }, icon(c.external ? "external" : "enter")),
                 );
               }),
             ),
           )
-        : [h("div", { class: "cn-menu-empty" }, h("span", { class: "cn-empty-ico" }, icon("search")), h("p", { class: "cn-item-t" }, "Nothing matches"), h("p", { class: "cn-item-d" }, "Try a tool's name, a work's title, a setting, or @handle."))]),
+        : [h("div", { class: "cn-menu-empty" }, h("span", { class: "cn-empty-ico" }, icon("search")), h("p", { class: "cn-item-t" }, "Nothing matches"), h("p", { class: "cn-item-d" }, canRateChannels() ? "Try a tool's name, a work's title, a setting, or @handle." : "Try a tool's name, a work's title or a setting."))]),
     );
     mark();
   };
@@ -524,6 +588,7 @@ export async function openPalette(initial = "") {
     d.remove();
     scrim.remove();
     palette = null;
+    if (!leaving) refocus(back);
   });
   palette = d;
   document.body.append(scrim, d);
@@ -539,8 +604,40 @@ export async function openPalette(initial = "") {
   if (palette === d) draw();
 }
 
+/*
+  G then a letter goes to a tab, as in Linear and GitHub: the tab's first
+  letter (G then L for Library), and G then S for Settings. A letter two tabs
+  share goes to the first. Never while typing, and never with a modifier.
+*/
+function jumpKey(tab) {
+  if (tab.items) return null;
+  const k = tab.name[0].toLowerCase();
+  return k !== "s" && state.tabs.find((t) => !t.items && t.name[0].toLowerCase() === k) === tab ? k : null;
+}
+let gAt = 0;
+function jump(e) {
+  if (e.ctrlKey || e.metaKey || e.altKey || !state.user) return false;
+  const key = e.key.toLowerCase();
+  if (key === "g" && !gAt) {
+    gAt = e.timeStamp;
+    return true;
+  }
+  const armed = gAt && e.timeStamp - gAt < 900;
+  gAt = 0;
+  if (!armed) return false;
+  const tab = state.tabs.find((t) => jumpKey(t) === key);
+  if (tab) state.go(href(tab.path));
+  else if (key === "s") state.go(href("settings"));
+  else return false;
+  return true;
+}
+
 document.addEventListener("keydown", (e) => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName ?? "") || document.activeElement?.isContentEditable;
+  if (!typing && !palette && !document.querySelector("dialog[open]") && jump(e)) {
+    e.preventDefault();
+    return;
+  }
   if ((e.key === "k" || e.key === "K") && (e.ctrlKey || e.metaKey)) {
     e.preventDefault();
     if (palette) palette.close();
@@ -551,6 +648,9 @@ document.addEventListener("keydown", (e) => {
     else palette.querySelector("input").focus();
   } else if (e.key === "/" && !typing && !palette) {
     e.preventDefault();
-    openPalette();
+    // A screen with its own search (the Library's, Settings') takes "/" there; elsewhere it opens the palette.
+    const own = document.querySelector("main input[type=search]");
+    if (own?.offsetParent) own.focus();
+    else openPalette();
   }
 });

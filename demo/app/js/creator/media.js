@@ -16,7 +16,8 @@ import { api, apiHref, asks, can, on, seg } from "../api.js";
 import { TOOLS, tile } from "../catalogue.js";
 import { ago, cover, drawer, emptyState, pill, section, segmented, skeleton, toolShell } from "../console-ui.js";
 import { icon } from "../icons.js";
-import { confirmBox, failure, h, tabs, toast } from "../ui.js";
+import { confirmBox, failure, h, notThere, tabs, toast } from "../ui.js";
+import { nameHere } from "../shell.js";
 
 /* A bar's fill, its width set through the style object: the console's Content Security Policy refuses style attributes. */
 const fillTo = (cls, pct) => {
@@ -209,7 +210,11 @@ async function one(main, id, ctx) {
     try {
       st.d = await api.get(I(id));
     } catch (e) {
-      put(status, failure(e, refresh));
+      // A video that is not there is a page of its own, without the tool under it.
+      if (e.code === "video_not_found") {
+        nameHere("Not found");
+        notThere(main, "No video with that address", "It may have been deleted, or the link is mistyped.", ["Back to your videos", "/orbe-site/demo/app/media"]);
+      } else put(status, failure(e, refresh));
       return;
     }
     const d = st.d;
@@ -276,7 +281,7 @@ async function one(main, id, ctx) {
       { id: "clips", label: "Clips", render: (el) => clipsTab(el) },
       { id: "words", label: "Words", render: (el) => wordsTab(el) },
       can("consent") || asks("consent") ? { id: "send", label: "Send", render: (el) => sendTab(el) } : null,
-    ].filter(Boolean), ctx.query.get("tab")),
+    ].filter(Boolean), ctx.query.get("tab"), { address: true }),
   );
 
   /* -------- Moments */

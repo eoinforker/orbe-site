@@ -3,8 +3,8 @@
   proposal (shows and channels at the creator's own price, Orbe's fee on
   top, the guaranteed floor each creator's record supports), then one
   confirmation that sends an offer to each. Nothing is booked until a
-  creator accepts; the brand then pays each accepted read, held by the
-  payments partner until delivery is verified.
+  creator accepts; the brand then pays each accepted read, held until
+  delivery is verified.
 
   /app/reads is a new checkout; /app/reads/:id is where its reads stand.
 */
@@ -12,8 +12,8 @@ import { api, asks, can, SentToOwner, seg } from "../api.js";
 import { cover, pill, screenHead, section, segmented, skeleton, stat, statStrip } from "../console-ui.js";
 import { BOOKING_STATES, OFFER_STATES } from "../deal.js";
 import { icon } from "../icons.js";
-import { FORMATS, KINDS, unitOf } from "../terms.js";
-import { block, check, confirmBox, count, day, failure, field, h, input, money, plural, textarea, toast } from "../ui.js";
+import { FORMATS, handleOf, KINDS, unitOf } from "../terms.js";
+import { block, check, confirmBox, count, countryCodes, day, failure, field, h, input, money, plural, textarea, toast } from "../ui.js";
 
 const GOALS = [["awareness", "Awareness"], ["launch", "A launch"], ["sales", "Sales"], ["always_on", "Always on"]];
 const GOAL_WORDS = Object.fromEntries(GOALS);
@@ -60,7 +60,7 @@ function briefOf(f) {
   };
   const formats = d.getAll("formats").map(String);
   if (!formats.length) throw new Error("Choose at least one format.");
-  const countries = String(d.get("countries") ?? "").split(",").map((c) => c.trim().toUpperCase()).filter(Boolean);
+  const countries = countryCodes(d.get("countries"));
   return {
     title: String(d.get("title")).trim(),
     product: String(d.get("product")).trim(),
@@ -88,7 +88,7 @@ function readCard(r, chosen, onToggle) {
   return h("li", { class: `bi-read${chosen.has(r.creatorId) ? " is-in" : ""}` },
     h("label", { class: "bi-read-pick" }, include),
     h("div", { class: "bi-read-main" },
-      h("p", { class: "bi-read-who" }, r.handle ? `@${r.handle.replace(/^@+/, "")}` : r.displayName, h("span", { class: "bi-read-fmt" }, r.formatName)),
+      h("p", { class: "bi-read-who" }, r.handle ? handleOf(r.handle, r.kind) : r.displayName, h("span", { class: "bi-read-fmt" }, r.formatName)),
       h("p", { class: "cn-brand-line" },
         r.expectedUnits ? `About ${count(r.expectedUnits)} ${unit}${r.expectedCpm ? `, ${money(r.expectedCpm)} per 1,000` : ""}. ` : "",
         r.guarantee ? `Guaranteed floor: ${count(r.guarantee.units)} ${unit} at ${r.guarantee.day} days.` : "No floor to guarantee yet: not enough verified readings.",
@@ -142,7 +142,7 @@ function proposalView(p, brief, goal, ctx) {
       return { creatorId, accountId: r.accountId, format: r.format, guarantee: o.guarantee };
     });
     const yes = await confirmBox(
-      `Each creator gets an offer at their own price, with Orbe's fee of ${p.terms.takeRateBps / 100}% on top. Nothing is booked until they accept. You pay each read when it is accepted, and the payments partner holds the money until delivery is verified.${asks("money") ? " As a manager, this goes to the owner to approve first." : ""}`,
+      `Each creator gets an offer at their own price, with Orbe's fee of ${p.terms.takeRateBps / 100}% on top. Nothing is booked until they accept. You pay each read when it is accepted, and the money is held until delivery is verified.${asks("money") ? " As a manager, this goes to the owner to approve first." : ""}`,
       { yes: send.textContent, title: "Send these offers?" },
     );
     if (!yes) return;
@@ -217,7 +217,7 @@ function newCheckout(work, ctx) {
 
 function readRow(r) {
   const b = r.booking;
-  const label = r.handle ? `@${r.handle.replace(/^@+/, "")}` : "A creator";
+  const label = r.handle ? handleOf(r.handle, r.kind ?? r.booking?.kind) : "A creator";
   const delivery = b?.delivery?.length ? b.delivery.map((d) => `${count(d.units)} at ${d.day} days`).join(", ") : "Not read yet";
   const work = b?.works?.[0];
   return h("tr", null,
@@ -242,7 +242,7 @@ async function status(work, ctx) {
       if (title) title.textContent = c.campaign.brief.title;
       const pay = c.toFund.amount > 0 && can("money")
         ? h("button", { class: "cn-btn cn-btn--primary", type: "button", onclick: async (e) => {
-            const yes = await confirmBox(`Pay ${money(c.toFund)} for the accepted reads? The payments partner holds it until each delivery is verified.${asks("money") ? " As a manager, this goes to the owner to approve first." : ""}`, { yes: "Pay accepted reads" });
+            const yes = await confirmBox(`Pay ${money(c.toFund)} for the accepted reads? It is held until each delivery is verified.${asks("money") ? " As a manager, this goes to the owner to approve first." : ""}`, { yes: "Pay accepted reads" });
             if (!yes) return;
             e.target.disabled = true;
             try {

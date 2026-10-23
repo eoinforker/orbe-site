@@ -60,9 +60,9 @@ export const TOOLS = [
     api: { method: "GET", path: "/v1/me/sponsorships/inventory", mcp: "orbe_price_sponsorship", note: "orbe_quote_guaranteed_read quotes a read paid only on verified delivery." } }),
   tool({ id: "finder", nav: false, path: "deals?tab=finder", screen: "deals", feature: "sponsor_finder", name: "Sponsors like you", line: "Brands that sponsor channels like yours, from their public works.", group: "Earn", k: "spon", glyph: "products/sponsorships/",
     api: { method: "GET", path: "/v1/me/sponsor-finder", mcp: null, note: "Detected in public works; a price only where Orbe settled one or your own results support it." } }),
-  tool({ id: "assistant", nav: false, path: "deals?tab=assistant", screen: "deals", feature: "deals_agent", name: "Deals assistant", line: "Finds, drafts and counters inside your limits. Never accepts.", group: "Earn", k: "sell", glyph: "products/offer/",
-    api: { method: "GET", path: "/v1/me/deals", mcp: null, note: "Drafts are sent only on your tap, and say Orbe's assistant drafted them." } }),
-  tool({ id: "offer", nav: false, path: "offer", name: "Fair offer check", line: "Is this offer fair for your size?", group: "Earn", k: "spon", glyph: "products/offer/", site: "products/offer/",
+  tool({ id: "assistant", nav: false, path: "deals?tab=assistant", screen: "deals", feature: "deals_agent", name: "Hand it off", line: "Answers offers inside your rules. Agrees only where they allow.", group: "Earn", k: "sell", glyph: "products/offer/",
+    api: { method: "GET", path: "/v1/me/deals", mcp: null, note: "Emails wait for your tap. A counter goes alone only when Counter for me is on, and says your assistant sent it." } }),
+  tool({ id: "offer", nav: false, path: "offer", name: "Check an offer", line: "Is this offer fair for your size?", group: "Earn", k: "spon", glyph: "products/offer/", site: "products/offer/",
     api: { method: "GET", path: "/v1/me/sponsorships/inventory", mcp: "orbe_fair_offer", note: "The check sets an offer against the range your own results support." } }),
   tool({ id: "sell", nav: false, path: "selling", name: "Selling", line: "An indicative value; fees in full, never a cut.", group: "Earn", k: "sell", glyph: "products/selling/", site: "products/selling/",
     api: { method: "GET", path: "/v1/me/valuation?margin={margin}&faceDependence={faceDependence}", mcp: "orbe_value_business", note: "Margin and face dependence are 0 to 1." } }),
@@ -137,12 +137,12 @@ export const ADMIN_TABS = [{ name: "Desk", path: "desk", icon: "bolt" }];
 export const SETTINGS = [
   { id: "account", name: "Account", line: "Your name, email, the walkthrough, and deleting your account.", side: "both", icon: "user", group: "General" },
   { id: "brand", name: "Brand profile", line: "Who you are to creators, and the terms you accept.", side: "buyer", feature: "sponsorships", icon: "megaphone", group: "General" },
-  { id: "connections", name: "Connections", line: "Everything Orbe reads for you, and where it can post.", side: "creator", icon: "link", group: "General" },
+  { id: "connections", name: "Connections", line: "Everything Orbe reads for you, and where it can post.", side: "creator", icon: "plug", group: "General" },
   { id: "team", name: "Team", line: "The people on this account, what each may do, and what waits for the owner.", side: "both", icon: "people", group: "General" },
   { id: "sharing", name: "Sharing", line: "Your public page, shared ratings, emails and your invitation link.", side: "both", icon: "link", group: "General", anyOf: ["creator_pages", "share_cards", "habit_email", "referrals"] },
   { id: "plan", name: "Plan and usage", line: "Free for creators; the optional plan for heavy use, and what you have used.", side: "creator", feature: "pro", icon: "card", group: "Billing", needs: "read.money" },
   { id: "keys", name: "API keys", line: "Keys for the data API, and what each has used.", side: "buyer", feature: "brand_data", icon: "key", group: "Developer", needs: "read.money" },
-  { id: "mcp", name: "MCP and agents", line: "Use Orbe from Claude and other AI tools.", side: "both", icon: "plug", group: "Developer" },
+  { id: "mcp", name: "MCP and agents", line: "Use Orbe from Claude and other AI tools.", side: "both", icon: "code", group: "Developer" },
   { id: "app", name: "App and notifications", line: "Install Orbe, and choose what it tells you.", side: "both", icon: "bell", group: "General" },
   { id: "security", name: "Security", line: "Where you are signed in.", side: "both", icon: "shield", group: "Security" },
   { id: "metrics", name: "Metrics", line: "What investors ask, counted from Orbe's own records. Staff only.", side: "both", icon: "chart", group: "Staff", staff: true },
@@ -160,23 +160,36 @@ export const RESOURCES = [
 export const SITE = "/orbe-site/";
 export const siteHref = (p) => (p.startsWith("/") ? p : `${SITE}${p}`);
 
+/**
+  An agency that is not also a brand works from its roster: a brand's own
+  screens (routes.js, brand: true) are not offered to it, and its Home is
+  the Roster. Where sponsorships are on, as main.js asks; an address typed
+  in still opens and says whose screen it is.
+*/
+const agencyOnly = (user) => user.type !== "creator" && user.team?.kind === "agency" && user.team.brand === false && on("sponsorships");
+const brandScreens = (screens) => new Set(screens.filter((r) => r.brand).map((r) => r.path));
+
 /** This person's tools, each with its status: live (screen open), off (switched off here), or coming (no screen yet). */
 export function toolsFor(user, screens) {
   const open = new Set(screens.map((r) => r.path));
   const side = user.type === "creator" ? "creator" : "buyer";
+  const notOurs = agencyOnly(user) ? brandScreens(screens) : new Set();
   // A tool inside another screen (feature) is live only when its own feature is on, too.
-  return TOOLS.filter((t) => t.side === side).map((t) => ({ ...t, status: t.path === null ? "coming" : open.has(t.screen ?? t.path) && (!t.feature || on(t.feature)) ? "live" : "off" }));
+  return TOOLS.filter((t) => t.side === side && !notOurs.has(t.screen ?? t.path)).map((t) => ({ ...t, status: t.path === null ? "coming" : open.has(t.screen ?? t.path) && (!t.feature || on(t.feature)) ? "live" : "off" }));
 }
 
 /** Tabs for this person, each menu cut to the tools whose screens they may open. */
 export function tabsFor(user, screens) {
   const open = new Set(screens.map((r) => r.path));
-  const tools = toolsFor(user, screens).filter((t) => t.status === "live" && t.nav);
-  const base = user.type === "creator" ? CREATOR_TABS : BRAND_TABS;
+  const agency = agencyOnly(user) && open.has("roster");
+  const notOurs = agency ? brandScreens(screens) : new Set();
+  // An agency's Home is its Roster, so the Roster is not offered again in a menu.
+  const tools = toolsFor(user, screens).filter((t) => t.status === "live" && t.nav && !(agency && t.path === "roster"));
+  const base = user.type === "creator" ? CREATOR_TABS : agency ? BRAND_TABS.map((tab) => (tab.path === "" ? { ...tab, path: "roster", name: "Roster", icon: "people" } : tab)) : BRAND_TABS;
   const staff = (user.roles ?? []).includes("admin") ? ADMIN_TABS : [];
   return [...base, ...staff]
     .map((tab) => (tab.groups ? { ...tab, items: tools.filter((t) => tab.groups.includes(t.group)) } : tab))
-    .filter((tab) => (tab.items ? tab.items.length > 0 : open.has(tab.path)));
+    .filter((tab) => (tab.items ? tab.items.length > 0 : open.has(tab.path) && !notOurs.has(tab.path)));
 }
 
 /** Settings sections for this person. */

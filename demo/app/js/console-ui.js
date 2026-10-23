@@ -12,7 +12,7 @@
 import { api } from "./api.js";
 import { TOOLS, tile } from "./catalogue.js";
 import { icon } from "./icons.js";
-import { h, nextId } from "./ui.js";
+import { h, nextId, opener, refocus, signed } from "./ui.js";
 
 const NS = "http://www.w3.org/2000/svg";
 const svgEl = (tag, attrs = {}) => {
@@ -193,6 +193,14 @@ export function segmented(label, options, value, onChange, opts = {}) {
   return wrap;
 }
 
+/**
+  A rating, drawn one way wherever it appears: the same face, with a real
+  minus sign, in Sky above zero and in the text colour at or below it.
+  size s sits in a row of a table or list; a figure passes its own class.
+*/
+export const rating = (value, { size = "s", tag = "span", cls = "" } = {}) =>
+  h(tag, { class: `cn-rating${size ? ` cn-rating--${size}` : ""}${value > 0 ? " is-up" : ""}${cls ? ` ${cls}` : ""}` }, signed(value));
+
 /** A status pill: idle, running, done, failed, live, coming, off. */
 export const pill = (state, text) => h("span", { class: `cn-pill cn-pill--${state}` }, h("span", { class: "cn-pill-dot", "aria-hidden": "true" }), text);
 
@@ -220,7 +228,7 @@ export function codeBlock(text, label) {
   was. build(close) returns its body. Returns close.
 */
 export function drawer(label, build, opts = {}) {
-  const back = document.activeElement;
+  const back = opener();
   const d = h("dialog", { class: `cn-drawer${opts.wide ? " cn-drawer--wide" : ""}`, "aria-label": label });
   const close = () => d.open && d.close();
   const closeBtn = h("button", { class: "cn-iconbtn", type: "button", "aria-label": "Close", onclick: close }, icon("close"));
@@ -230,7 +238,7 @@ export function drawer(label, build, opts = {}) {
   d.addEventListener("close", () => {
     d.remove();
     opts.onClose?.();
-    back?.focus?.({ preventScroll: true });
+    refocus(back);
   });
   document.body.append(d);
   d.showModal();
@@ -270,15 +278,7 @@ export function toolPage({ tool, title, line, tags = [], inputs, results, histor
     apiPanel.hidden = key !== "api";
   }
   const node = h("div", { class: "cn-tp" },
-    h("header", { class: "cn-tp-head" },
-      tool ?? null,
-      h("div", { class: "cn-tp-names" },
-        h("p", { class: "cn-tp-path" }, h("span", null, "orbe"), " / ", h("b", null, title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""))),
-        h("h1", { class: "cn-tp-title", tabindex: "-1", "data-title": "" }, title),
-      ),
-    ),
-    line ? h("p", { class: "cn-tp-line" }, line) : null,
-    tags.length ? h("div", { class: "cn-tags" }, tags.map(([text, tone]) => h("span", { class: `cn-tag${tone ? ` cn-tag--${tone}` : ""}` }, text))) : null,
+    pageHead({ tileNode: tool ?? null, title, line, tags }),
     h("div", { class: "cn-tp-tabs", role: "tablist", "aria-label": "Views" }, tabs),
     play,
     apiPanel,
@@ -336,12 +336,12 @@ export function historyList(entries, emptyText, hrefOf) {
   );
 }
 
-/** "Just now", "5m", "3h", "2d", or the date. */
+/** "Now", "5m", "3h", "2d", or the date. */
 export function ago(isoText, now = Date.now()) {
   const t = Date.parse(isoText);
   if (!Number.isFinite(t)) return "";
   const s = Math.max(0, Math.round((now - t) / 1000));
-  if (s < 45) return "Just now";
+  if (s < 45) return "Now";
   if (s < 3600) return `${Math.round(s / 60)}m`;
   if (s < 86400) return `${Math.round(s / 3600)}h`;
   if (s < 86400 * 7) return `${Math.round(s / 86400)}d`;
@@ -349,6 +349,36 @@ export function ago(isoText, now = Date.now()) {
   return dayMonth.format(new Date(t));
 }
 let dayMonth = null;
+
+/**
+  A working screen's head, kept short so the work starts high: the tile, the
+  title and one quiet line on a row, with the screen's own actions at the
+  end. The tags and the whole description wait behind About.
+*/
+function pageHead({ tileNode, title, line, tags = [], actions }) {
+  const more = tags.length || (line && line.length > 96);
+  let about = null;
+  if (more) {
+    about = h("details", { class: "cn-about" },
+      h("summary", { class: "cn-btn cn-btn--s cn-btn--ghost", "aria-label": `About ${title}` }, icon("doc"), h("span", null, "About")),
+      h("div", { class: "cn-about-panel" }, line ? h("p", null, line) : null, tags.length ? h("div", { class: "cn-tags" }, tags.map(([text, tone]) => h("span", { class: `cn-tag${tone ? ` cn-tag--${tone}` : ""}` }, text))) : null),
+    );
+    const shut = (e) => {
+      if (!about.contains(e.target) || e.key === "Escape") about.open = false;
+    };
+    about.addEventListener("toggle", () => {
+      for (const [type, fn] of [["click", shut], ["keydown", shut]]) (about.open ? document.addEventListener : document.removeEventListener).call(document, type, fn);
+    });
+  }
+  return h("header", { class: "cn-tp-head cn-ph" },
+    tileNode ?? null,
+    h("div", { class: "cn-tp-names" },
+      h("h1", { class: "cn-tp-title ap-h1", tabindex: "-1", "data-title": "" }, title),
+      line ? h("p", { class: "cn-tp-line", title: more ? line : null }, line) : null,
+    ),
+    about || actions ? h("div", { class: "cn-ts-actions" }, about, actions ?? null) : null,
+  );
+}
 
 /**
   The head every working screen shares with the tool pages: its tile, its
@@ -359,23 +389,12 @@ let dayMonth = null;
 */
 export function toolShell(main, { tool, title, line, tags = [], tile: tileNode, back }) {
   const work = h("div", { class: "cn-ts-work" });
-  // The path shown above the title is the screen's own URL, so it always matches the address bar.
-  const slug = tool?.path ? tool.path.split("?")[0] : (tool?.name ?? title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   // The same thing as an API call and an MCP tool: one quiet button, opening a drawer, so a screen keeps one row of tabs.
   const apiBtn = tool?.api ? h("button", { class: "cn-btn cn-btn--s", type: "button", onclick: () => drawer(`${tool.name}: API`, () => apiTab(tool.api), { wide: true }) }, icon("code"), "API") : null;
   main.append(
     h("div", { class: "cn-tp cn-ts" },
       back ? h("p", { class: "cn-back" }, h("a", { href: back[1] }, icon("arrowRight", { cls: "cn-i--back" }), back[0])) : null,
-      h("header", { class: "cn-tp-head" },
-        tileNode ?? null,
-        h("div", { class: "cn-tp-names" },
-          h("p", { class: "cn-tp-path" }, h("span", null, "orbe"), " / ", h("b", null, slug)),
-          h("h1", { class: "cn-tp-title ap-h1", tabindex: "-1", "data-title": "" }, title),
-        ),
-        apiBtn ? h("div", { class: "cn-ts-actions" }, apiBtn) : null,
-      ),
-      line ? h("p", { class: "cn-tp-line" }, line) : null,
-      tags.length ? h("div", { class: "cn-tags" }, tags.map(([text, tone]) => h("span", { class: `cn-tag${tone ? ` cn-tag--${tone}` : ""}` }, text))) : null,
+      pageHead({ tileNode, title, line, tags, actions: apiBtn }),
       work,
     ),
   );

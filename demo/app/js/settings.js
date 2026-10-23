@@ -8,6 +8,7 @@ import { api, can, currentTeam, on, seg } from "./api.js";
 import { settingsFor } from "./catalogue.js";
 import { card, emptyState, section } from "./console-ui.js";
 import { icon } from "./icons.js";
+import { KINDS } from "./terms.js";
 import { action, actions, block, count, day, field, form, h, input, plural, when } from "./ui.js";
 
 const initials = (s) => (s || "O").replace(/\(.*?\)/g, "").trim().split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
@@ -43,6 +44,19 @@ async function keysOpen() {
 }
 
 /** Start the first-sign-in walkthrough again, and the short tour after it. */
+/** A form whose Save waits for a change: pressed with nothing changed, it would only say "Saved." of nothing. */
+function untilChanged(f) {
+  const btn = f.querySelector("[type=submit]");
+  const now = () => JSON.stringify([...new FormData(f)].map(([k, v]) => [k, String(v).trim()]));
+  let base = now();
+  const check = () => (btn.disabled = now() === base);
+  f.addEventListener("input", check);
+  // After the form puts its button back, so it stays off until the next change.
+  f.addEventListener("saved", () => ((base = now()), setTimeout(check)));
+  check();
+  return f;
+}
+
 function tourCard(ctx) {
   return section({ title: "The walkthrough", line: "The few questions from your first sign-in, and the short tour of the console after them." },
     actions(action("Start it again", async () => {
@@ -76,10 +90,11 @@ const SECTIONS = {
         section({ title: "Personal profile", line: "How you appear to brands and buyers you choose to work with." },
           h("div", { class: "cn-profile" }, h("span", { class: "cn-avatar cn-avatar--l", "aria-hidden": "true" }, initials(creator.displayName || creator.email)), h("div", null, h("p", { class: "cn-item-t" }, creator.displayName || "No name yet"), h("p", { class: "cn-item-d" }, creator.email))),
           can("business")
-            ? form([field("Name", input({ name: "displayName", required: true, maxlength: 80, autocomplete: "name", value: creator.displayName }), "Brands and buyers you agree to work with see this name.")], "Save", async (d) => {
+            ? untilChanged(form([field("Name", input({ name: "displayName", required: true, maxlength: 80, autocomplete: "name", value: creator.displayName }), "Brands and buyers you agree to work with see this name.")], "Save", async (d, f) => {
                 await api.patch("/v1/me", { displayName: String(d.get("displayName")).trim() });
+                f.dispatchEvent(new Event("saved"));
                 return "Saved.";
-              })
+              }))
             : readOnly(),
         ),
         section({ title: "Email and sign-in", line: "No password: Orbe never asks for one, or for your platform passwords." },
@@ -88,7 +103,7 @@ const SECTIONS = {
         ),
         card("Your accounts",
           accounts.length
-            ? h("ul", { class: "cn-list" }, accounts.map((a) => h("li", null, h("span", null, a.handle || a.title), h("span", { class: "cn-item-d" }, `${a.kind}${a.audience ? `, ${count(a.audience)} audience` : ""}`))))
+            ? h("ul", { class: "cn-list" }, accounts.map((a) => h("li", null, h("span", null, a.handle || a.title), h("span", { class: "cn-item-d" }, `${KINDS[a.kind] ?? a.kind}${a.audience ? `, ${count(a.audience)} audience` : ""}`))))
             : emptyState("link", "No accounts claimed yet.", [["Connect an account", "/orbe-site/demo/app/settings/connections", true]]),
         ),
         tourCard(ctx),
@@ -99,10 +114,11 @@ const SECTIONS = {
         section({ title: "Organisation", line: "Who creators see when you book them." },
           h("div", { class: "cn-profile" }, h("span", { class: "cn-avatar cn-avatar--l", "aria-hidden": "true" }, initials(buyer.org || buyer.email)), h("div", null, h("p", { class: "cn-item-t" }, buyer.org || "No organisation yet"), h("p", { class: "cn-item-d" }, buyer.email))),
           can("business")
-            ? form([field("Organisation", input({ name: "org", required: true, maxlength: 120, autocomplete: "organization", value: buyer.org }))], "Save", async (d) => {
+            ? untilChanged(form([field("Organisation", input({ name: "org", required: true, maxlength: 120, autocomplete: "organization", value: buyer.org }))], "Save", async (d, f) => {
                 await api.patch("/v1/buyer/me", { org: String(d.get("org")).trim() });
+                f.dispatchEvent(new Event("saved"));
                 return "Saved.";
-              })
+              }))
             : readOnly(),
         ),
         section({ title: "Email and sign-in", line: "No password: Orbe never asks for one." }, kv([["Email", buyer.email], ["Ways in", "Continue with Google, or an emailed link"], ["Account", "Brand"], ["Joined", day(buyer.createdAt)]])),
@@ -186,6 +202,8 @@ export async function render(main, ctx) {
   const sections = settingsFor(ctx.user, on);
   const id = sections.some((s) => s.id === ctx.params.section) ? ctx.params.section : sections[0].id;
   const here = sections.find((s) => s.id === id);
+  // A section this person does not have opens the first one, and the address says so.
+  if (ctx.params.section && ctx.params.section !== id) history.replaceState(history.state, "", `/orbe-site/demo/app/settings/${id}${location.search}`);
   const panel = h("div", { class: "cn-settings-panel" });
   const groups = [...new Set(sections.map((s) => s.group))];
   const find = h("input", { class: "cn-field-input", type: "search", placeholder: "Search settings", "aria-label": "Search settings" });
@@ -204,7 +222,7 @@ export async function render(main, ctx) {
     h("div", { class: "cn-settings" },
       nav,
       h("div", { class: "cn-settings-main" },
-        h("header", { class: "cn-pagehead" }, h("div", null, h("p", { class: "cn-eyebrow" }, "Settings"), h("h1", { class: "cn-h1", tabindex: "-1", "data-title": "" }, here.name), h("p", { class: "cn-sub" }, here.line))),
+        h("header", { class: "cn-pagehead cn-pagehead--s" }, h("div", null, h("h1", { class: "cn-h1", tabindex: "-1", "data-title": "" }, here.name), h("p", { class: "cn-sub" }, here.line))),
         panel,
       ),
     ),

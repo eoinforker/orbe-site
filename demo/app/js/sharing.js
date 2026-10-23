@@ -10,21 +10,33 @@ import { codeBlock, emptyState, pill, section } from "./console-ui.js";
 import { action, actions, block, check, day, h, plural, toast } from "./ui.js";
 
 /** A switch that saves itself, with the API's answer or error beside it. */
-function toggle(label, checked, save, hint) {
+function toggle(label, checked, save, hint, disabled = false) {
   const box = check(label, { checked });
   const input = box.querySelector("input");
+  input.disabled = disabled;
+  // The switch moves on the press and the save follows; a refusal puts it back and says why.
+  let busy = false;
   input.addEventListener("change", async () => {
-    input.disabled = true;
+    if (busy) {
+      input.checked = !input.checked;
+      return;
+    }
+    busy = true;
+    box.setAttribute("aria-busy", "true");
     try {
       toast(await save(input.checked));
     } catch (err) {
       input.checked = !input.checked;
       toast(err.message ?? "That did not save.");
     } finally {
-      input.disabled = false;
+      busy = false;
+      box.removeAttribute("aria-busy");
     }
   });
-  return h("div", { class: "cn-share-row" }, box, hint ? h("p", { class: "ap-hint" }, hint) : null);
+  // The hint says why a switch is unavailable, so it is read with the switch.
+  const id = `hint-${Math.random().toString(36).slice(2, 8)}`;
+  if (hint) input.setAttribute("aria-describedby", id);
+  return h("div", { class: "cn-share-row" }, box, hint ? h("p", { class: "ap-hint", id }, hint) : null);
 }
 
 async function publicPage(el) {
@@ -40,7 +52,12 @@ async function publicPage(el) {
           }, { primary: !p.published }))
         : null,
       owner ? toggle("Show my verified deliveries", p.settings.showDeliveries, async (v) => (await api.put("/v1/me/public-page", { showDeliveries: v }), v ? `Your ${plural(p.deliveries, "verified delivery", "verified deliveries")} will show.` : "Deliveries hidden."), "Guaranteed reads Orbe checked against your own figures.") : null,
-      owner && on("badges") ? toggle("Offer the verified badge", p.settings.badge, async (v) => (await api.put("/v1/me/public-page", { badge: v, showDeliveries: v || p.settings.showDeliveries }), v ? "Badge on." : "Badge off."), "For your media kit or site. It needs at least one verified delivery.") : null,
+      // The badge states verified deliveries, so it waits for the first one (the server refuses it too).
+      owner && on("badges")
+        ? toggle("Offer the verified badge", p.settings.badge, async (v) => (await api.put("/v1/me/public-page", { badge: v, showDeliveries: v || p.settings.showDeliveries }), v ? "Badge on." : "Badge off."),
+            p.deliveries || p.settings.badge ? "For your media kit or site." : "Available once Orbe verifies your first guaranteed read: the badge states only deliveries Orbe checked.",
+            !p.deliveries && !p.settings.badge)
+        : null,
       on("badges") && p.badge ? [h("p", null, h("img", { src: p.badge.image, alt: "Your verified badge", height: 32 })), codeBlock(p.badge.embed, "Badge embed (HTML)")] : null,
     );
   });

@@ -507,22 +507,35 @@ export function mountGiant(box, svgHost, cap, people, { reduce = false } = {}) {
   if (reduce) { frame(2400, people[0]); return; }
   frame(0, people[0]);
 
-  /* runs only while it is on screen, and picks up where it left off */
-  let raf = 0, t0 = 0, turn = 0, shown = false, at = 0;
+  /*
+    Runs only while it is on screen and the tab is visible, and picks up where
+    it left off. Frames are drawn only while something moves (the first draw,
+    then 1.2 s of the O settling each turn); between turns it sleeps on a
+    timer, and once every person has had a turn it rests on the last, so a
+    page left open does no work at all.
+  */
+  let raf = 0, nap = 0, t0 = 0, turn = 0, shown = false, at = 0, rested = false;
+  const live = () => shown && !document.hidden && !rested;
   const loop = (now) => {
+    raf = 0;
     if (!t0) t0 = now - at;
     let t = now - t0;
     if (t >= TURN) { prevBeats = people[turn % people.length].beats; turn++; t0 = now; t = 0; setPair(turn); }
     at = t;
     if (turn === 0) frame(Math.min(t, 2400), people[0]);
     else hold(t, people[turn % people.length]);
-    raf = requestAnimationFrame(loop);
+    const still = turn === 0 ? t >= 2400 : t >= 1200;
+    if (!still) { raf = requestAnimationFrame(loop); return; }
+    if (turn >= people.length - 1) { rested = true; return; }
+    nap = setTimeout(() => { nap = 0; if (live()) raf = requestAnimationFrame(loop); }, Math.max(0, TURN - t));
   };
+  const go = () => { if (live() && !raf && !nap) raf = requestAnimationFrame(loop); };
+  const halt = () => { cancelAnimationFrame(raf); clearTimeout(nap); raf = 0; nap = 0; t0 = 0; };
   new IntersectionObserver((es) => {
     const on = es.some((e) => e.isIntersecting);
     if (on === shown) return;
     shown = on;
-    if (on) raf = requestAnimationFrame(loop);
-    else { cancelAnimationFrame(raf); t0 = 0; }
+    if (on) go(); else halt();
   }, { threshold: 0.15 }).observe(box);
+  document.addEventListener("visibilitychange", () => (document.hidden ? halt() : go()));
 }

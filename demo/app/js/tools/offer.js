@@ -1,5 +1,5 @@
 /*
-  Fair offer check: is a brand's offer fair for your size? The offer is set
+  Check an offer: is a brand's offer fair for your size? The offer is set
   against the range Orbe suggests for that slot from your own results
   (GET /v1/me/sponsorships/inventory), the same suggestion the Prices tab
   shows. The check itself runs on the server (POST /v1/runs), which keeps it
@@ -30,7 +30,7 @@ export async function render(main) {
     );
     const page = toolPage({
       tool: tile(TOOL.glyph, TOOL.k, h, "l"),
-      title: "Fair offer check",
+      title: "Check an offer",
       line: "Is this offer fair for your size? Checked against the range your own results support, never a guess.",
       tags: [["Live", "sky"], ["Free"], ["Uses your verified results", "line"]],
       api: TOOL.api,

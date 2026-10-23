@@ -11,6 +11,7 @@
 import { api, seg } from "./api.js";
 import { emptyState, pill, section, segmented, skeleton } from "./console-ui.js";
 import { icon } from "./icons.js";
+import { KINDS as PLATFORMS } from "./terms.js";
 import { action, block, confirmBox, count, day, failure, h, plural, toast, when } from "./ui.js";
 
 const ROLE_LINE = {
@@ -255,7 +256,7 @@ async function channelsDialog(m, loadChannels, reload) {
   const boxes = accounts.map((a) =>
     h("label", { class: "cn-tick" },
       h("input", { type: "checkbox", checked: picked.has(a.id), onchange: (e) => (e.target.checked ? picked.add(a.id) : picked.delete(a.id)) }),
-      h("span", null, a.handle || a.title || a.id), h("span", { class: "cn-item-d" }, a.kind),
+      h("span", null, a.handle || a.title || a.id), h("span", { class: "cn-item-d" }, PLATFORMS[a.kind] ?? a.kind),
     ),
   );
   const d = h("dialog", { class: "cn-confirm cn-confirm--wide", "aria-label": `Channels for ${m.name}` },
@@ -289,7 +290,7 @@ function inviteCard(isOwner, loadChannels, reload, focus) {
   const roles = isOwner ? ["manager", "editor", "viewer"] : ["editor", "viewer"];
   let role = "editor";
   const line = h("p", { class: "cn-item-d cn-invite-line" }, ROLE_LINE[role]);
-  const email = h("input", { class: "cn-field-input", type: "email", name: "email", required: true, autocomplete: "off", placeholder: "name@example.com", "aria-label": "Email address" });
+  const email = h("input", { class: "cn-field-input", type: "email", name: "email", required: true, maxlength: 254, autocomplete: "off", placeholder: "name@example.com", "aria-label": "Email address" });
   const seg = segmented("Role", roles.map((r) => [r, roleName(r)]), role, (r) => {
     role = r;
     line.textContent = ROLE_LINE[r];
@@ -317,6 +318,8 @@ function inviteCard(isOwner, loadChannels, reload, focus) {
     scope,
     msg,
   );
+  // A message answers the last attempt only: typing again clears it.
+  email.addEventListener("input", () => msg.replaceChildren());
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.replaceChildren();
@@ -381,31 +384,51 @@ function approvals(box, isOwner, leads) {
   reload();
 }
 
+function changeList(changes) {
+  if (!changes.length) return h("p", { class: "cn-item-d" }, "It changes nothing in the rules.");
+  return h("dl", { class: "cn-changes", "aria-label": "What it changes" }, changes.map((c) =>
+    h("div", null, h("dt", null, c.label), h("dd", null, h("span", { class: "cn-change-from" }, h("span", { class: "ob-sr" }, "From "), c.from), h("span", { "aria-hidden": "true" }, " to "), h("span", { class: "ob-sr" }, " to "), h("span", { class: "cn-change-to" }, c.to)))));
+}
+
 function approvalCard(a, isOwner, reload) {
   const [tone, word] = STATE[a.state] ?? ["off", a.state];
+  // Orbe's assistant's proposals are decided in Deals, where an accept's notice is read before Approve.
+  const assistant = String(a.requestedBy?.id ?? "").startsWith("assistant:");
+  const actionId = assistant ? /\/handoff\/actions\/([^/]+)\/approve$/.exec(a.path ?? "")?.[1] ?? null : null;
   const decide = (yes) => async () => {
     const ok = await confirmBox(
       yes ? `${a.summary}. It runs now, exactly as ${a.requestedBy.name} asked.` : `${a.requestedBy.name} is told it was declined. Nothing is done.`,
       { yes: yes ? "Approve" : "Decline", danger: !yes, title: yes ? "Approve this request?" : "Decline this request?" },
     );
     if (!ok) return;
+    // Decided on the press: the card says so at once, and goes back if the server refuses.
+    const shown = card.querySelector(".cn-pill");
+    shown?.replaceWith(pill(yes ? "done" : "off", yes ? "Approved" : "Declined"));
+    card.querySelector(".cn-approval-actions")?.remove();
     try {
       const r = await api.post(`/v1/team/approvals/${seg(a.id)}/${yes ? "approve" : "decline"}`, {});
       toast(yes ? (r.approval.state === "approved" ? "Approved and done." : `Approved, but it could not be done: ${r.approval.note ?? "refused"}.`) : "Declined. Nothing was done.");
       window.dispatchEvent(new Event("orbe:notes-changed"));
       reload();
     } catch (e) {
-      card.append(failure(e));
+      // Refused: the card is drawn afresh from the request as it was, with the reason.
+      const again = approvalCard(a, isOwner, reload);
+      card.replaceWith(again);
+      again.append(failure(e));
     }
   };
   const card = h("li", { class: `cn-approval cn-approval--${a.state}` },
     h("div", { class: "cn-approval-main" },
       h("p", { class: "cn-approval-t" }, a.summary),
       h("p", { class: "cn-item-d" }, `Asked ${when(a.requestedAt)}${a.decidedAt ? `. Decided ${when(a.decidedAt)}` : ""}${a.note ? `. ${a.note}` : ""}`),
+      // A change to Hand it off's rules shows each rule it changes, as it was and as it would be.
+      a.changes ? changeList(a.changes) : null,
     ),
     a.amount !== null ? h("p", { class: "cn-approval-amt" }, pounds(a.amount)) : null,
     pill(tone, word),
-    a.state === "pending"
+    a.state === "pending" && assistant
+      ? h("div", { class: "cn-approval-actions" }, h("a", { class: "cn-btn cn-btn--primary", href: `/orbe-site/demo/app/deals${actionId ? `?handoff=${seg(actionId)}` : ""}` }, "Review in Deals"))
+      : a.state === "pending"
       ? h("div", { class: "cn-approval-actions" },
           isOwner
             ? [
@@ -542,6 +565,7 @@ function agencies(box, active, isOwner) {
                       }, { danger: true, confirm: l.state === "active" ? "End this link? Access stops at once." : "Withdraw this request?" })
                     : null,
                 ),
+                !agency && l.state === "active" && isOwner ? linkTerms(l, reload) : null,
               ),
             )),
           )
@@ -551,16 +575,67 @@ function agencies(box, active, isOwner) {
   reload();
 }
 
+/*
+  What a linked agency may do on this creator's team: its role, and, as a
+  manager, what it may do in Hand it off without asking (the Roster's "Hand
+  it off across your roster"). Each change is saved as it is made.
+*/
+const GRANTS = [["none", "Nothing alone"], ["rules", "Set rules"], ["approve", "Approve"], ["both", "Both"]];
+function linkTerms(l, reload) {
+  const g = l.handoff ?? { grant: "none", max: null };
+  const say = h("div", { class: "cn-link-say", "aria-live": "polite" });
+  const save = async (patch, done) => {
+    say.replaceChildren();
+    try {
+      await api.patch(`/v1/team/links/${seg(l.id)}`, patch);
+      toast(done);
+      reload();
+    } catch (e) {
+      say.replaceChildren(failure(e));
+    }
+  };
+  const amount = h("input", { class: "cn-field-input cn-rule-amt", type: "number", min: 1, step: 50, inputmode: "numeric", placeholder: "No limit", value: g.max ?? "", "aria-label": `${l.agency.org} may approve up to, in pounds` });
+  let grant = g.grant;
+  const approves = () => grant === "approve" || grant === "both";
+  const wrap = h("label", { class: "cn-rule-amtwrap", hidden: !approves() }, h("span", { class: "cn-item-d" }, "Up to £"), amount);
+  const sendGrant = () => {
+    const max = String(amount.value).trim();
+    save({ handoff: grant, ...(approves() && max ? { handoffMax: Number(max) } : {}) }, grant === "none" ? `${l.agency.org} changes nothing in Hand it off alone; changes come to you.` : `${l.agency.org} may now ${GRANTS.find(([v]) => v === grant)[1].toLowerCase()} in Hand it off${approves() && max ? `, up to ${pounds(max)}` : ""}.`);
+  };
+  amount.addEventListener("change", sendGrant);
+  return h("div", { class: "cn-link-terms" },
+    h("div", { class: "cn-link-row" },
+      h("span", { class: "cn-item-d" }, "Role"),
+      segmented(`${l.agency.org}'s role`, [["manager", "Manager"], ["editor", "Editor"], ["viewer", "Viewer"]], l.role, (role) => save({ role }, `${l.agency.org} is now ${an(role)} ${role} on your team.`), { small: true }),
+    ),
+    l.role === "manager"
+      ? h("div", { class: "cn-link-row" },
+          h("span", { class: "cn-item-d" }, "Hand it off"),
+          segmented(`What ${l.agency.org} may do in Hand it off without asking`, GRANTS, g.grant, (v) => {
+            grant = v;
+            wrap.hidden = !approves();
+            sendGrant();
+          }, { small: true }),
+          wrap,
+        )
+      : null,
+    l.role === "manager" ? h("p", { class: "cn-item-d" }, "Set rules saves your rules for you, except accepting for you. Approve agrees counters, declines and accepts for you. Emails in your name always wait for you.") : null,
+    say,
+  );
+}
+
 function linkAsk(reload) {
   let role = "viewer";
-  const email = h("input", { class: "cn-field-input", type: "email", required: true, placeholder: "creator@example.com", "aria-label": "Creator's email" });
+  const email = h("input", { class: "cn-field-input", type: "email", required: true, maxlength: 254, placeholder: "creator@example.com", "aria-label": "Creator's email" });
   const msg = h("div");
   const f = h("form", { class: "cn-invite" },
     h("div", { class: "cn-invite-row" }, h("label", { class: "cn-field cn-invite-email" }, icon("mail"), email), segmented("Ask for", [["manager", "Manager"], ["editor", "Editor"], ["viewer", "Viewer"]], role, (r) => (role = r), { small: true }), h("button", { class: "cn-btn cn-btn--primary", type: "submit" }, "Ask to link")),
     msg,
   );
+  email.addEventListener("input", () => msg.replaceChildren());
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
+    msg.replaceChildren();
     try {
       await api.post("/v1/team/links", { email: email.value.trim(), role });
       email.value = "";
@@ -589,13 +664,16 @@ function rules(box) {
         h("ul", { class: "cn-rules" }, RULES.map(([a, name, line, withAmount]) => {
           const rule = has(a);
           const amount = h("input", { class: "cn-field-input cn-rule-amt", type: "number", min: 0, step: 50, inputmode: "numeric", placeholder: "No limit", value: rule?.maxAmount ?? "", "aria-label": `${name}: up to, in pounds` });
+          // The switch moves on the press; a refusal puts it back.
           const save = async (on) => {
             const max = withAmount ? String(amount.value).trim() : "";
+            sw.setAttribute("aria-checked", String(on));
             try {
               await api.put("/v1/team/rules", on ? { action: a, ...(max ? { maxAmount: Number(max) } : {}) } : { action: a, on: "no" });
               toast(on ? (max ? `Managers may ${name.toLowerCase()} up to ${pounds(max)} alone.` : `Managers may ${name.toLowerCase()} alone.`) : `${name} waits for you again.`);
               reload();
             } catch (e) {
+              sw.setAttribute("aria-checked", String(Boolean(rule)));
               list.append(failure(e));
             }
           };

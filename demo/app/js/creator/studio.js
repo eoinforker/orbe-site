@@ -7,20 +7,21 @@
   the same on every device (GET /v1/runs).
 */
 import { api } from "../api.js";
-import { ago, cover, pill, serverRuns } from "../console-ui.js";
-import { composer, detect, STUDIO_TOOLS, toolsOn, WINDOWS } from "../composer.js";
-import { tile } from "../catalogue.js";
+import { ago, cover, pill, rating, serverRuns } from "../console-ui.js";
+import { composer, STUDIO_TOOLS, toolsOn, WINDOWS } from "../composer.js";
+import { TOOLS, tile } from "../catalogue.js";
 import { icon } from "../icons.js";
 import { KINDS } from "../terms.js";
 import { count, h, money, signed } from "../ui.js";
 
 const toolOf = (id) => STUDIO_TOOLS.find((t) => t.id === id) ?? STUDIO_TOOLS[0];
 const META_KEY = "studio-meta";
+// Off unless the person switched it on: the tool, account, window and timing are for checking a run, not for reading one.
 const metaOn = () => {
   try {
-    return localStorage.getItem(`orbe.tab.${META_KEY}`) !== "off";
+    return localStorage.getItem(`orbe.tab.${META_KEY}`) === "on";
   } catch {
-    return true;
+    return false;
   }
 };
 
@@ -34,20 +35,21 @@ export async function runJob(job) {
 
 /* ---------------------------------------------------------------- drawing an answer */
 
-function workAnswer({ top, others }) {
+function workAnswer({ top, others, note }) {
   const r = top.rating;
   return [
+    note ? h("p", null, note) : null,
     h("a", { class: "cn-run-work", href: `/orbe-site/demo/app/works/${encodeURIComponent(top.id)}` },
       h("span", { class: "cn-work-art" }, cover(top.id, top.kind, r ? (r.rating + 1.5) / 3 : 0.3)),
       h("span", { class: "cn-run-work-main" },
         h("span", { class: "cn-run-work-t" }, top.title),
         h("span", { class: "cn-run-work-d" }, `${top.account.handle} · ${ago(top.publishedAt)}${top.reach ? ` · ${count(top.reach.value)} ${top.reach.label}` : ""}`),
         r
-          ? h("span", { class: "cn-figure" }, h("span", { class: "cn-figure-n" }, signed(r.rating)), h("span", { class: "cn-figure-k" }, h("b", null, `${r.multiple.toFixed(2)} times your typical`), h("span", null, "Against creators the same size; zero is typical")))
+          ? h("span", { class: "cn-figure" }, rating(r.rating, { size: "", cls: "cn-figure-n" }), h("span", { class: "cn-figure-k" }, h("b", null, `${r.multiple.toFixed(2)} times your typical`), h("span", null, "Against creators the same size; zero is typical")))
           : h("span", { class: "cn-run-work-d" }, "Not rated yet: too new to compare."),
       ),
     ),
-    others.length ? h("ul", { class: "cn-run-list" }, others.map((w) => h("li", null, h("a", { href: `/orbe-site/demo/app/works/${encodeURIComponent(w.id)}` }, w.title), h("span", { class: `cn-score${w.rating?.rating > 0 ? " cn-score--up" : ""}` }, w.rating ? signed(w.rating.rating) : "New")))) : null,
+    others.length ? h("ul", { class: "cn-run-list" }, others.map((w) => h("li", null, h("a", { href: `/orbe-site/demo/app/works/${encodeURIComponent(w.id)}` }, w.title), w.rating ? rating(w.rating.rating) : h("span", { class: "cn-muted" }, "New")))) : null,
     r ? h("p", { class: "cn-label" }, r.notice) : null,
   ];
 }
@@ -57,7 +59,7 @@ function channelAnswer({ account, result: res }) {
   if (!res || res.status !== "rated") return [h("p", { class: "cn-run-say" }, `${name} is not rated yet.`), h("p", null, res?.message ?? "Not enough public works to compare yet.")];
   return [
     h("p", { class: "cn-run-who" }, name),
-    h("div", { class: "cn-figure" }, h("p", { class: "cn-figure-n" }, signed(res.rating)), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers`))),
+    h("div", { class: "cn-figure" }, rating(res.rating, { size: "", tag: "p", cls: "cn-figure-n" }), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers`))),
     h("ul", { class: "cn-parts" }, res.parts.map((p) => {
       const bar = h("span", { class: "cn-part-bar" }, h("span"));
       bar.firstChild.style.setProperty("--p", String(p.score));
@@ -94,13 +96,16 @@ function answer(out) {
         ? [h("ul", { class: "cn-run-list cn-run-list--wide" }, d.items.map((it) => h("li", null, h("span", null, h("b", null, it.name), ` on ${it.handle}`), h("span", { class: "cn-hist-d" }, it.suggestion?.status === "suggested" ? `${money(it.suggestion.low)} to ${money(it.suggestion.high)}` : it.suggestion?.reason ?? "No suggestion yet"))))]
         : [h("p", { class: "cn-run-say" }, "No slot matches.")];
     case "sponsor": {
-      const all = d.rows.flatMap((r) => r.brands);
+      // Runs kept before brands were named and grouped carry rows per account; they read the same way.
+      const brands = d.brands ?? [...new Map((d.rows ?? []).flatMap((r) => r.brands).filter((b) => b.brandName).map((b) => [b.brandName, { name: b.brandName, line: "" }])).values()];
+      const yours = (d.yours ?? []).map((y) => (y.size ? `${y.handle} (${y.size})` : y.handle));
       return [
-        all.length
-          ? h("ul", { class: "cn-run-list" }, all.slice(0, 8).map((b) => h("li", null, h("span", null, b.name ?? b.brand ?? b.brandId ?? "A brand"), h("span", { class: "cn-hist-d" }, b.creators ? `${b.creators} creators like you` : ""))))
-          : h("p", { class: "cn-run-say" }, "No brand has sponsored enough creators like you to show yet."),
-        d.rows[0]?.basis ? h("p", null, d.rows[0].basis) : null,
-        d.rows[0]?.notice ? h("p", { class: "cn-label" }, d.rows[0].notice) : null,
+        brands.length
+          ? h("ul", { class: "cn-run-list" }, brands.slice(0, 8).map((b) => h("li", null, h("span", null, b.name), h("span", { class: "cn-hist-d" }, b.line))))
+          : h("p", { class: "cn-run-say" }, "No brand has sponsored enough creators your size to show yet."),
+        yours.length ? h("p", null, `Compared with: ${yours.join(", ")}.`) : null,
+        d.basis ? h("p", null, d.basis) : null,
+        d.notice ?? d.rows?.[0]?.notice ? h("p", { class: "cn-label" }, d.notice ?? d.rows[0].notice) : null,
       ];
     }
     case "explain":
@@ -116,10 +121,10 @@ function runCard(entry) {
   const t = toolOf(entry.job.tool);
   const out = entry.out;
   const state = !out ? "running" : out.ok ? "done" : "failed";
-  return h("article", { class: "cn-runcard", "data-tool": t.id, "data-q": `${entry.job.text} ${t.name}`.toLowerCase() },
+  return h("article", { class: "cn-runcard", tabindex: "-1", "aria-label": entry.job.asked || entry.job.text || t.name, "data-tool": t.id, "data-q": `${entry.job.asked ?? ""} ${entry.job.text} ${t.name}`.toLowerCase() },
     h("header", { class: "cn-runcard-head" },
       tile(t.glyph, t.k, h),
-      h("div", { class: "cn-runcard-main" }, h("p", { class: "cn-runcard-q" }, entry.job.text || t.name), h("p", { class: "cn-runcard-tool" }, entry.job.text ? t.name : t.line)),
+      h("div", { class: "cn-runcard-main" }, h("p", { class: "cn-runcard-q" }, entry.job.asked || entry.job.text || t.name), h("p", { class: "cn-runcard-tool" }, entry.job.asked || entry.job.text ? t.name : t.line)),
       pill(state, state === "running" ? "Running" : state === "done" ? "Done" : "Failed"),
     ),
     h("div", { class: "cn-runcard-body" }, out ? answer(out) : h("span", { class: "cn-skel" }, h("span", { class: "cn-skel-line" }), h("span", { class: "cn-skel-line" }), h("span", { class: "cn-skel-line" }))),
@@ -132,6 +137,10 @@ function runCard(entry) {
     ),
   );
 }
+
+/* Suggestions that answer only from your own works, and the Connections tool that brings them in. */
+const NEEDS_WORKS = new Set(["rate-work", "sponsor", "explain"]);
+const CONNECT = TOOLS.find((t) => t.id === "connect") ?? { glyph: "products/you/", k: "rec" };
 
 /* ---------------------------------------------------------------- the screen */
 
@@ -156,7 +165,8 @@ export async function render(main, ctx) {
       // Holds for this visit only.
     }
   });
-  const clear = h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: async () => { await store.clear().catch(() => null); entries = []; draw(); } }, icon("trash"), "Clear");
+  const heading = h("h1", { class: "cn-studio-title", tabindex: "-1", "data-title": "" }, "Runs");
+  const clear = h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", "aria-label": "Clear runs", onclick: async () => { await store.clear().catch(() => null); entries = []; draw(); heading.focus({ preventScroll: true }); } }, icon("trash"), h("span", null, "Clear"));
   const applyFilter = () => {
     const words = filterInput.value.trim().toLowerCase();
     for (const card of feed.querySelectorAll(".cn-runcard")) card.hidden = Boolean((toolSel.value && card.dataset.tool !== toolSel.value) || (words && !card.dataset.q.includes(words)));
@@ -174,27 +184,33 @@ export async function render(main, ctx) {
   });
 
   function suggestions() {
+    // Each goes through Ask Orbe as worded, so the words shown are the words that work (intent.test.ts reads this list).
     const s = [
-      ["rate-work", "Rate my best work this month", ""],
-      ["offer", "Check an offer of 450", "450"],
-      ["sponsor", "Find a sponsor", ""],
-      ["explain", "Explain my rating", ""],
-    ].filter(([id]) => toolsOn().some((t) => t.id === id));
-    return h("div", { class: "cn-suggest" }, s.map(([id, label, text]) => {
+      ["rate-work", "Rate my best work this month"],
+      ["offer", "Check a £450 offer"],
+      ["sponsor", "Sponsors like you"],
+      ["explain", "Explain my rating"],
+    ].filter(([id]) => toolsOn().some((t) => t.id === id) && (accounts.length || !NEEDS_WORKS.has(id)));
+    // With nothing connected, the first step is connecting; the offer check works without it.
+    const connect = accounts.length ? null : h("a", { href: "/orbe-site/demo/app/connections" }, tile(CONNECT.glyph, CONNECT.k, h), "Connect an account");
+    return h("div", { class: "cn-suggest" }, connect, s.map(([id, label]) => {
       const t = toolOf(id);
-      return h("button", { type: "button", onclick: () => go({ tool: id, text, account: "all", window: "30" }) }, tile(t.glyph, t.k, h), label);
+      return h("button", { type: "button", onclick: () => go({ tool: "auto", text: label, account: "all", window: "30" }) }, tile(t.glyph, t.k, h), label);
     }));
   }
 
+  // Searching, filtering, metadata and clearing only mean something once there are runs.
+  const tools = [h("label", { class: "cn-field" }, icon("search"), filterInput), h("label", { class: "cn-select" }, icon("filter"), toolFace, icon("chevron"), toolSel), h("span", { class: "cn-grow" }), meta, clear];
+
   function draw() {
+    for (const el of tools) el.hidden = !entries.length;
     feed.replaceChildren(
       ...(entries.length
         ? [...entries].reverse().map(runCard)
         : [h("div", { class: "cn-studio-empty" },
             h("span", { class: "cn-empty-ico" }, icon("studio")),
-            h("h1", { tabindex: "-1", "data-title": "" }, "Runs"),
-            h("p", { class: "cn-studio-q" }, "What should Orbe run?"),
-            h("p", null, "Rate a work, check an offer, price a slot or find a sponsor. Every answer comes from your own results, against creators the same size."),
+            h("h2", { class: "cn-studio-q" }, "What should Orbe run?"),
+            h("p", null, "Rate a work, check an offer, price a slot or see sponsors like you. Every answer comes from your own results, against creators the same size."),
             suggestions(),
           )]),
     );
@@ -221,19 +237,21 @@ export async function render(main, ctx) {
     }
     box.busy(false);
     box.setText("");
+    // Typing in the composer, focus stays there for the next question; otherwise (a suggestion, a run from Home) it goes to the answer.
+    const typing = box.node.contains(document.activeElement);
     draw();
+    const newest = feed.lastElementChild;
+    if (!typing && newest?.matches(".cn-runcard")) {
+      // Marked too, so a screen still arriving (a run asked from Home) settles on the answer rather than the title.
+      newest.dataset.focusFirst = "";
+      newest.focus({ preventScroll: true });
+    }
     window.scrollTo({ top: document.body.scrollHeight, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 
   main.append(
     h("div", { class: "cn-studio" },
-      h("div", { class: "cn-studio-bar" },
-        h("label", { class: "cn-field" }, icon("search"), filterInput),
-        h("label", { class: "cn-select" }, icon("filter"), toolFace, icon("chevron"), toolSel),
-        h("span", { class: "cn-grow" }),
-        meta,
-        clear,
-      ),
+      h("div", { class: "cn-studio-bar" }, heading, ...tools),
       feed,
       h("div", { class: "cn-dock" }, box.node),
     ),
@@ -241,9 +259,10 @@ export async function render(main, ctx) {
   draw();
   if (ctx.query.get("run") === "1") {
     const job = { tool: ctx.query.get("tool") ?? "auto", text: ctx.query.get("q") ?? "", account: ctx.query.get("account") ?? "all", window: ctx.query.get("window") ?? "30" };
-    if (job.tool === "auto") job.tool = detect(job.text);
+    // Ask Orbe: the server reads the sentence for the tool, what it needs and the window.
     history.replaceState(null, "", "/orbe-site/demo/app/runs");
     box.setTool("auto");
-    await go(job);
+    // Not waited on: the screen arrives at once with the run in it, and focus moves to the answer when it comes.
+    go(job);
   } else box.focus();
 }

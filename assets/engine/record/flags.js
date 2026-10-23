@@ -104,11 +104,11 @@ export function buildFlags(prep, coverage, metrics) {
     }
     const c = metrics.concentration;
     if (c.top && c.top.share.value > RISK_RULES.topCounterpartyMedium) {
-        add("concentration", "risk", c.top.share.value > RISK_RULES.topCounterpartyHigh ? "high" : "medium", `One payer is a large share of revenue: ${c.top.name}`, say `${c.top.share} of the last year's revenue came from ${c.top.name}. Herfindahl index ${c.hhi}.`);
+        add("concentration", "risk", c.top.share.value > RISK_RULES.topCounterpartyHigh ? "high" : "medium", "One payer is a large share of revenue", say `${c.top.share} of the last year's revenue came from ${c.top.name}.`);
     }
     if (metrics.platform.dependent && metrics.platform.largestAudienceShare) {
         const top = metrics.platform.byAudience[0];
-        add("platform_dependence", "risk", "medium", `Dependent on one platform: ${top.name}`, say `${metrics.platform.largestAudienceShare} of revenue rests on the ${top.name} audience. A change in its rules or reach moves the whole business.`);
+        add("platform_dependence", "risk", "medium", `Most revenue rests on one audience: ${top.name}`, say `${metrics.platform.largestAudienceShare} of revenue depends on the ${top.name} audience, whoever pays it. A change in its rules or reach moves the whole business.`);
     }
     if (coverage.uploadedShare.value > RISK_RULES.uploadedShareMedium) {
         add("uploaded_reliance", "risk", "medium", "Much of the revenue rests on uploads alone", say `${coverage.uploadedShare} of the last year's revenue comes from uploaded documents that no connected source corroborates.`);

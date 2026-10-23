@@ -7,10 +7,11 @@
 */
 import { api, apiHref, can, on, seg } from "../api.js";
 import { retentionTab } from "./retention.js";
-import { ago, cover, emptyState, section, toolShell } from "../console-ui.js";
+import { nameHere } from "../shell.js";
+import { ago, cover, emptyState, rating, section, toolShell } from "../console-ui.js";
 import { icon } from "../icons.js";
 import { KINDS } from "../terms.js";
-import { action, actions, block, day, failure, h, plural, signed, tabs, toast } from "../ui.js";
+import { action, actions, block, day, failure, h, notThere, plural, signed, tabs, toast } from "../ui.js";
 
 const W = (id) => `/v1/me/works/${seg(id)}`;
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -33,6 +34,13 @@ export function lineDiff(a, b) {
   while (j < m) out.push(["+", y[j++]]);
   return out;
 }
+
+/* Works with footage or audio to cut clips from; a newsletter issue or a photograph has none. */
+const MEDIA_KINDS = ["youtube", "twitch", "podcast"];
+/* Drop in a video takes video only, so an episode is asked for by its video and a stream by its recording. */
+const dropIn = (kind) => (kind === "podcast" ? "Drop in the episode's video" : kind === "twitch" ? "Drop in the stream's recording" : "Drop in the video");
+/* Works with a running time. */
+const TIMED_KINDS = ["youtube", "twitch", "podcast"];
 
 const KIND_ICON = { published: "play", read: "chart", rated: "chart", fix: "sparkle", booked: "megaphone", linked: "link", measured: "pulse", outcome: "check" };
 
@@ -72,11 +80,32 @@ function notesTab(el, id) {
     run();
     return [h("div", { class: "cn-diff-pick" }, a, icon("arrowRight"), b), out];
   }
+  // The new version is in the list on the press; the server's answer replaces it, and a refusal takes it out again.
   const save = action("Save a version", async () => {
-    const r = await api.put(`${W(id)}/notes`, { body: text.value });
-    draw(r);
-    return r.saved ? `Saved as version ${r.latest.version}.` : "No change to save.";
+    const body = text.value;
+    const before = [...versions.childNodes];
+    if (body !== (latest?.body ?? "")) {
+      const pending = h("li", { class: "is-pending" }, h("span", { class: "cn-vlist-n" }, `Version ${(list[0]?.version ?? 0) + 1}`), h("span", { class: "cn-item-d" }, `${body.length.toLocaleString("en-GB")} characters`), h("time", null, "Saving"));
+      const ol = versions.querySelector(".cn-vlist");
+      if (ol) ol.prepend(pending);
+      else versions.replaceChildren(h("ol", { class: "cn-vlist" }, pending));
+    }
+    try {
+      const r = await api.put(`${W(id)}/notes`, { body });
+      draw(r);
+      return r.saved ? `Saved as version ${r.latest.version}.` : "No change to save.";
+    } catch (e) {
+      versions.replaceChildren(...before);
+      throw e;
+    }
   }, { primary: true });
+  // Ctrl S or Cmd S saves a version from the notes themselves.
+  text.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && can("content")) {
+      e.preventDefault();
+      save.click();
+    }
+  });
   el.append(
     h("div", { class: "cn-notes" },
       section({ title: "Notes and script", line: "Kept in versions: every save stays, and any two can be compared." }, text, can("content") ? actions(save) : null),
@@ -222,7 +251,9 @@ const svg = (tag, attrs = {}, ...kids) => {
   a small channel and a big one read alike.
 */
 export function versusChart(v) {
-  const W = 720, H = 220, L = 52, R = 14, T = 14, B = 30;
+  // On a phone the chart is drawn at about its own width, so its labels read at their real size.
+  const narrow = matchMedia("(max-width: 560px)").matches;
+  const W = narrow ? 360 : 720, H = narrow ? 230 : 220, L = narrow ? 40 : 52, R = 14, T = 14, B = 30;
   const days = v.curve.map((p) => p.day);
   const maxDay = Math.max(...days, v.atAge.day);
   const pts = (v.points ?? []).filter((p) => p.value > 0);
@@ -234,16 +265,51 @@ export function versusChart(v) {
   const band = [...v.curve.map((p) => `${x(p.day).toFixed(1)},${y(p.p75).toFixed(1)}`), ...[...v.curve].reverse().map((p) => `${x(p.day).toFixed(1)},${y(p.p25).toFixed(1)}`)].join(" ");
   const mid = v.curve.map((p) => `${x(p.day).toFixed(1)},${y(p.median).toFixed(1)}`).join(" ");
   const ticksY = [];
-  for (let e = Math.floor(lo); e <= Math.ceil(hi); e++) for (const m of [1, 3]) { const val = m * 10 ** e; if (Math.log10(val) >= lo && Math.log10(val) <= hi) ticksY.push(val); }
-  const ticksX = [1, 2, 7, 14, 30, 90, 180, 365].filter((d) => d <= maxDay);
+  // As many round values as read well: the finest set that gives five or fewer.
+  for (const steps of [[1, 2, 3, 5, 7], [1, 2, 5], [1, 3], [1]]) {
+    ticksY.length = 0;
+    for (let e = Math.floor(lo); e <= Math.ceil(hi); e++) for (const m of steps) { const val = m * 10 ** e; if (Math.log10(val) >= lo && Math.log10(val) <= hi) ticksY.push(val); }
+    if (ticksY.length <= 5) break;
+  }
+  const ticksX = (narrow ? [1, 7, 30, 90, 365] : [1, 2, 7, 14, 30, 90, 180, 365]).filter((d) => d <= maxDay);
   const label = `${nameOf(v.metric)} against creators the same size. At ${v.atAge.day < 1 ? "under a day" : `${Math.round(v.atAge.day)} days`}: ${v.atAge.value === null ? "no reading" : n0(v.atAge.value)}, where the middle half is ${n0(v.atAge.p25)} to ${n0(v.atAge.p75)}.`;
-  return svg("svg", { class: "cn-wp-chart", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": label },
+  const ageOf = (d) => (d < 1 ? "Under a day" : `Day ${Math.round(d)}`);
+  // One reading at a time, said on hover, focus or a tap; the hit area is wider than the dot for a finger.
+  const tipText = svg("text", { class: "cn-wp-tip-t" });
+  const tipBox = svg("rect", { class: "cn-wp-tip-b", rx: 6, height: 26 });
+  const tip = svg("g", { class: "cn-wp-tip", visibility: "hidden", "aria-hidden": "true" }, tipBox, tipText);
+  const show = (p) => {
+    const text = `${ageOf(p.day)}: ${n0(p.value)} ${nameOf(v.metric).toLowerCase()}`;
+    const w = text.length * 6.6 + 18;
+    const tx = Math.min(Math.max(x(p.day) - w / 2, 2), W - w - 2);
+    const ty = y(p.value) > T + 40 ? y(p.value) - 38 : y(p.value) + 14;
+    tipBox.setAttribute("x", tx.toFixed(1));
+    tipBox.setAttribute("y", ty.toFixed(1));
+    tipBox.setAttribute("width", w.toFixed(1));
+    tipText.setAttribute("x", (tx + 9).toFixed(1));
+    tipText.setAttribute("y", (ty + 17).toFixed(1));
+    tipText.textContent = text;
+    tip.setAttribute("visibility", "visible");
+  };
+  const hide = () => tip.setAttribute("visibility", "hidden");
+  return svg("svg", { class: `cn-wp-chart${narrow ? " cn-wp-chart--narrow" : ""}`, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": label },
     ...ticksY.map((t) => svg("g", null, svg("line", { class: "cn-wp-grid", x1: L, x2: W - R, y1: y(t), y2: y(t) }), svg("text", { class: "cn-wp-axis", x: L - 8, y: y(t) + 4, "text-anchor": "end" }, short(t)))),
-    ...ticksX.map((d) => svg("text", { class: "cn-wp-axis", x: x(d), y: H - 8, "text-anchor": "middle" }, d === 1 ? "1 day" : d >= 30 ? `${d}d` : `${d}d`)),
+    ...ticksX.map((d) => svg("text", { class: "cn-wp-axis", x: x(d) > W - R - 24 ? W - R : x(d), y: H - 8, "text-anchor": x(d) > W - R - 24 ? "end" : "middle" }, d === 1 ? "1 day" : `${d} days`)),
     svg("polygon", { class: "cn-wp-band", points: band }),
     svg("polyline", { class: "cn-wp-mid", points: mid, fill: "none" }),
     svg("line", { class: "cn-wp-today", x1: x(v.atAge.day), x2: x(v.atAge.day), y1: T, y2: H - B }),
     ...pts.map((p) => svg("circle", { class: `cn-wp-dot${p.basis === "connected" ? " is-connected" : ""}`, cx: x(p.day), cy: y(p.value), r: 5 })),
+    ...pts.map((p) => {
+      const hit = svg("circle", { class: "cn-wp-hit", cx: x(p.day), cy: y(p.value), r: narrow ? 18 : 12, tabindex: "0", "aria-label": `${ageOf(p.day)}: ${n0(p.value)}` });
+      hit.addEventListener("pointerenter", () => show(p));
+      hit.addEventListener("pointerdown", () => show(p));
+      hit.addEventListener("focus", () => show(p));
+      // A finger lifting also "leaves"; only a mouse moving away hides the reading.
+      hit.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && hide());
+      hit.addEventListener("blur", hide);
+      return hit;
+    }),
+    tip,
   );
 }
 
@@ -266,7 +332,7 @@ export function facts(f) {
   add("Published", day(w.publishedAt));
   add("Age", w.ageDays < 1 ? "Under a day" : `${w.ageDays} days`);
   add("Weekday", new Date(w.publishedAt).toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" }));
-  add("Length", mins(w.durationSec));
+  if (TIMED_KINDS.includes(w.kind) && w.durationSec) add("Length", mins(w.durationSec));
   add("Kind", KINDS[w.kind] ?? w.kind);
   add("Channel", w.account.handle);
   for (const k of Object.keys(m)) add(nameOf(k), n0(m[k]));
@@ -275,7 +341,7 @@ export function facts(f) {
     if (typeof m.comments === "number") add("Comments per 1,000 views", (m.comments / m.views * 1000).toFixed(1));
     if (w.ageDays > 0) add("Views a day, on average", n0(m.views / Math.max(1, w.ageDays)));
   }
-  add("Rating", w.rating ? signed(w.rating.rating) : "Not rated yet", w.rating ? (w.rating.rating >= 0 ? "up" : "down") : null);
+  add("Rating", w.rating ? signed(w.rating.rating) : "Not rated yet", w.rating ? (w.rating.rating > 0 ? "up" : "down") : null);
   add("Against your typical", w.rating?.multiple ? `${w.rating.multiple.toFixed(2)}×` : "None yet");
   add("Times rated", String(f.ratingHistory.length));
   add("Rank on the channel", f.channel.rank ? `${f.channel.rank.position} of ${f.channel.rank.of}` : "None yet");
@@ -292,14 +358,19 @@ export function facts(f) {
     for (const s of v.milestones) add(`Usual at ${s.label}`, `${short(s.p25)} to ${short(s.p75)}`);
     add("Format", v.format);
   }
-  add("Fixes tried", String(f.fixes.length));
-  add("Fixes kept", String(f.fixes.filter((x) => x.kept).length));
-  const lifts = f.fixes.map((x) => x.lift).filter((x) => typeof x === "number");
-  add("Best lift", lifts.length ? pct(Math.max(...lifts), 0) : "None yet");
+  // Fix and clips only where the kind of work has them.
+  if (w.kind === "youtube" || f.fixes.length) {
+    add("Fixes tried", String(f.fixes.length));
+    add("Fixes kept", String(f.fixes.filter((x) => x.kept).length));
+    const lifts = f.fixes.map((x) => x.lift).filter((x) => typeof x === "number");
+    add("Best lift", lifts.length ? pct(Math.max(...lifts), 0) : "None yet");
+  }
   add("Predictions sealed", String(f.predictions.length));
-  add("Clips made", String(f.media.clips));
-  add("Words written", String(f.media.words));
-  add("Sends", String(f.media.sends));
+  if (MEDIA_KINDS.includes(w.kind) || f.media.clips || f.media.words || f.media.sends) {
+    add("Clips made", String(f.media.clips));
+    add("Words written", String(f.media.words));
+    add("Sends", String(f.media.sends));
+  }
   add("Sponsor reads found", String(f.reads.length));
   if (can("read.money")) {
     add("Deals on it", String(f.deals.length));
@@ -314,19 +385,34 @@ export function facts(f) {
   return out;
 }
 
+/** Every figure Orbe holds on the work, the first few rows shown and the rest a press away, so the page leads with the rating and its tabs. */
+const SHOWN = 16;
+function factsSection(all) {
+  const grid = h("dl", { class: "cn-wp-facts" }, all.map(([label, value, tone]) => h("div", { class: `cn-wp-fact${tone ? ` is-${tone}` : ""}` }, h("dt", null, label), h("dd", null, value))));
+  const more = all.length > SHOWN
+    ? h("button", { class: "cn-btn cn-btn--xs", type: "button", "aria-expanded": "false", onclick: (e) => {
+        const open = grid.classList.toggle("is-all");
+        e.currentTarget.setAttribute("aria-expanded", String(open));
+        e.currentTarget.textContent = open ? "Show fewer" : `Show all ${all.length}`;
+      } }, `Show all ${all.length}`)
+    : null;
+  return section({ title: "Every figure", line: "What Orbe holds on this work and its channel.", actions: more }, grid);
+}
+
 function overviewTab(el, f) {
   const parts = f.channel.rating?.parts ?? [];
   const next = nextStep(f);
+  // The next step is one line across the top; the parts and what happened sit side by side, so neither leaves a hole beside the other.
   el.append(
+    next ? h("section", { class: "cn-wp-nextline", "aria-label": "Next step" }, h("p", null, h("b", null, "Next step. "), next[0]), next[1] ? h("a", { class: "cn-btn cn-btn--s cn-btn--primary", href: next[1] }, next[2] ?? "Open") : null) : null,
     h("div", { class: "cn-wp-cols" },
       section({ title: "The channel, part by part", line: "Each part against creators of the same kind and size, out of 100." },
         parts.length
           ? h("ul", { class: "cn-wp-parts" }, parts.map((p) => h("li", null, h("span", { class: "cn-wp-part-n" }, p.name), barOf(p.score), h("b", null, Math.round(p.score)), h("span", { class: "cn-item-d" }, p.value))))
           : emptyState("chart", "No channel rating yet.", [], "It appears after the first read of the channel."),
       ),
-      next ? section({ title: "Next step" }, h("p", null, next[0]), next[1] ? h("a", { class: "cn-btn cn-btn--s cn-btn--primary", href: next[1] }, next[2] ?? "Open") : null) : null,
+      section({ title: "What happened to it", line: "Built from what Orbe holds, newest first, each with its source." }, timelineList(f.timeline.slice(0, 12), f.work.kind)),
     ),
-    section({ title: "What happened to it", line: "Built from what Orbe holds, newest first, each with its source." }, timelineList(f.timeline.slice(0, 12))),
   );
 }
 
@@ -344,16 +430,19 @@ function predictionsTab(el, f) {
 function nextStep(f) {
   const v = f.versus;
   if (f.work.kind === "youtube" && on("fix") && v?.place !== null && v?.place < 25 && f.work.ageDays <= 60) return ["It is behind creators your size. Fix can try a new title and keep it only if it lifts.", `/orbe-site/demo/app/works/${seg(f.work.id)}?tab=fix`, "Try a fix"];
-  if (on("media") && !f.media.items) return ["Turn it into clips, an article or a newsletter issue.", `/orbe-site/demo/app/media?work=${seg(f.work.id)}`, "Drop in the video"];
+  if (on("media") && MEDIA_KINDS.includes(f.work.kind) && !f.media.items) return [f.work.kind === "podcast" ? "Filmed the episode? Turn its video into clips, an article or a newsletter issue." : "Turn it into clips, an article or a newsletter issue.", `/orbe-site/demo/app/media?work=${seg(f.work.id)}`, dropIn(f.work.kind)];
   if (!f.notes.versions) return ["Keep the script and what to try next time with it.", `/orbe-site/demo/app/works/${seg(f.work.id)}?tab=notes`, "Add notes"];
   return null;
 }
 
-function timelineList(timeline) {
+/* What "published" looks like for each kind: a newsletter is sent, a photograph shown, the rest played. */
+const PUBLISHED_ICON = { substack: "mail", photography: "image" };
+
+function timelineList(timeline, kind) {
   return timeline.length
     ? h("ol", { class: "cn-tl" }, timeline.map((e) =>
         h("li", { class: "cn-tl-item" },
-          h("span", { class: "cn-tl-ico", "aria-hidden": "true" }, icon(KIND_ICON[e.kind] ?? "dots")),
+          h("span", { class: "cn-tl-ico", "aria-hidden": "true" }, icon((e.kind === "published" && PUBLISHED_ICON[kind]) || KIND_ICON[e.kind] || "dots")),
           h("div", { class: "cn-tl-main" },
             h("p", { class: "cn-tl-t" }, e.title, h("time", { datetime: e.at }, day(e.at))),
             e.line ? h("p", { class: "cn-tl-d" }, e.line) : null,
@@ -384,7 +473,7 @@ function clipsTab(el, f) {
     section({ title: "Clips and words from this work", line: "Made in Drop in a video: every clip, article, issue and send stays linked here." },
       f.media.list.length
         ? h("ul", { class: "cn-list" }, f.media.list.map((x) => h("li", { class: "cn-item" }, h("a", { class: "cn-item-t", href: `/orbe-site/demo/app/media/${seg(x.id)}` }, x.title), h("p", { class: "cn-item-d" }, `${plural(x.clips, "clip")}, ${plural(x.words, "draft")}, ${plural(x.sends, "send")}`))))
-        : emptyState("play", "Nothing made from this work yet.", on("media") && can("content") ? [["Drop in the video", `/orbe-site/demo/app/media?work=${seg(f.work.id)}`, true]] : []),
+        : emptyState("play", "Nothing made from this work yet.", on("media") && can("content") ? [[dropIn(f.work.kind), `/orbe-site/demo/app/media?work=${seg(f.work.id)}`, true]] : []),
     ),
   );
 }
@@ -422,7 +511,7 @@ function rightsTab(el, f) {
 function recordTab(el, f) {
   el.append(
     h("div", { class: "cn-tp-actions" }, h("a", { class: "cn-btn cn-btn--s", href: apiHref(`${W(f.work.id)}/export`) }, icon("doc"), "Export everything")),
-    section({ title: "The record", line: "Everything that happened to this work, each with its source." }, timelineList(f.timeline)),
+    section({ title: "The record", line: "Everything that happened to this work, each with its source." }, timelineList(f.timeline, f.work.kind)),
   );
   if (can("consent")) {
     const share = h("div");
@@ -434,22 +523,32 @@ function recordTab(el, f) {
 export async function render(main, ctx) {
   const id = ctx.params.id;
   const body = toolShell(main, { title: "Work", back: ["Library", "/orbe-site/demo/app/library"] });
-  await block(body, () => api.get(`${W(id)}/full`), (f) => {
+  // A work that is not there (or is another creator's) is a page of its own, not a failure to try again.
+  const load = () => api.get(`${W(id)}/full`).catch((e) => {
+    if (e.code === "work_not_found") return null;
+    throw e;
+  });
+  await block(body, load, (f) => {
+    if (!f) {
+      nameHere("Not found");
+      return notThere(main, "No work with that address", "It may have been taken off its channel, or the link is mistyped.", ["Back to the Library", "/orbe-site/demo/app/library"]);
+    }
     const w = f.work;
     main.querySelector(".ap-h1").textContent = w.title;
     document.title = `${w.title}: Orbe`;
+    nameHere(w.title);
     const head = main.querySelector(".cn-tp-head");
     head.prepend(h("span", { class: "cn-work-thumb" }, w.kind === "youtube" && /^[\w-]{11}$/.test(w.sourceKey ?? "") ? h("img", { src: `https://i.ytimg.com/vi/${w.sourceKey}/mqdefault.jpg`, alt: "", width: 160, height: 90, decoding: "async", onerror: (e) => e.target.replaceWith(cover(w.id, w.kind, w.rating ? (w.rating.rating + 1.5) / 3 : 0.3)) }) : cover(w.id, w.kind, w.rating ? (w.rating.rating + 1.5) / 3 : 0.3)));
-    head.querySelector(".cn-tp-path b").textContent = w.account.handle;
     const v = f.versus;
     const all = facts(f);
     const legend = v ? h("p", { class: "cn-wp-legend" }, h("span", { class: "cn-wp-key is-band" }), "Middle half of creators your size", h("span", { class: "cn-wp-key is-mid" }), "Their middle", h("span", { class: "cn-wp-key is-dot" }), "This work") : null;
+    // The work's one line sits under its title, with the head, as on every other screen.
+    head.querySelector(".cn-tp-names").append(h("p", { class: "cn-tp-line" }, [w.account.handle, KINDS[w.kind] ?? w.kind, `published ${day(w.publishedAt)}`].join(", "), ".", w.url ? [" ", h("a", { href: w.url, target: "_blank", rel: "noopener" }, "Open the work")] : null));
     return [
-      h("p", { class: "cn-tp-line" }, [KINDS[w.kind] ?? w.kind, `published ${day(w.publishedAt)}`].join(", "), ".", w.url ? [" ", h("a", { href: w.url, target: "_blank", rel: "noopener" }, "Open the work")] : null),
       h("div", { class: "cn-wp-hero" },
         h("section", { class: "cn-wp-score", "aria-label": "Rating" },
           h("p", { class: "cn-stat-label" }, "Rated against creators the same size"),
-          h("p", { class: `cn-wp-big${w.rating ? (w.rating.rating >= 0 ? " is-up" : " is-down") : ""}` }, w.rating ? signed(w.rating.rating) : "Not rated yet"),
+          w.rating ? rating(w.rating.rating, { size: "", tag: "p", cls: "cn-wp-big" }) : h("p", { class: "cn-wp-big" }, "Not rated yet"),
           h("p", { class: "cn-stat-line" }, w.rating ? "Zero is typical for creators your size." : "A rating appears after its first read."),
           v ? h("dl", { class: "cn-wp-miles" }, v.milestones.map((s) => h("div", null, h("dt", null, s.label), h("dd", null, `${short(s.p25)} to ${short(s.p75)}`)))) : null,
           v && v.place !== null ? h("p", { class: "cn-wp-place" }, `Better than ${v.place - 1} in 100 creators your size at this age.`) : null,
@@ -458,18 +557,18 @@ export async function render(main, ctx) {
           v ? [versusChart(v), legend] : emptyState("chart", "No comparison yet.", [], "It appears once Orbe knows the channel's audience."),
         ),
       ),
-      h("dl", { class: "cn-wp-facts" }, all.map(([label, value, tone]) => h("div", { class: `cn-wp-fact${tone ? ` is-${tone}` : ""}` }, h("dt", null, label), h("dd", null, value)))),
       tabs("work", [
-        { id: "overview", label: "Overview", render: (el) => overviewTab(el, f) },
-        { id: "viewers", label: "Viewers", render: (el) => (on("retention") && w.kind === "youtube" ? retentionTab(el, id) : el.append(emptyState("pulse", w.kind === "youtube" ? "Where viewers leave needs YouTube Analytics connected." : "Where viewers leave is read from YouTube Analytics, so it covers YouTube videos.", w.kind === "youtube" ? [["Connect YouTube", "/orbe-site/demo/app/settings/connections", true]] : []))) },
-        { id: "fix", label: "Fix", render: (el) => fixTab(el, f) },
-        { id: "clips", label: "Clips and words", render: (el) => clipsTab(el, f) },
+        { id: "overview", label: "Overview", render: (el) => (overviewTab(el, f), el.append(factsSection(all))) },
+        // Only what fits the kind of work: where viewers leave and Fix are YouTube's, clips need footage or audio.
+        w.kind === "youtube" ? { id: "viewers", label: "Viewers", render: (el) => (on("retention") ? retentionTab(el, id) : el.append(emptyState("pulse", "Where viewers leave needs YouTube Analytics connected.", [["Connect YouTube", "/orbe-site/demo/app/settings/connections", true]]))) } : null,
+        w.kind === "youtube" ? { id: "fix", label: "Fix", render: (el) => fixTab(el, f) } : null,
+        MEDIA_KINDS.includes(w.kind) || f.media.list.length ? { id: "clips", label: "Clips and words", render: (el) => clipsTab(el, f) } : null,
         { id: "predictions", label: "Predictions", render: (el) => predictionsTab(el, f) },
         can("read.money") ? { id: "deals", label: "Deals", render: (el) => dealsTab(el, f) } : null,
         { id: "rights", label: "Rights", render: (el) => rightsTab(el, f) },
         { id: "notes", label: "Notes", render: (el) => (notesTab(el, id), documentsTab(el, id)) },
         { id: "record", label: "Record", render: (el) => recordTab(el, f) },
-      ].filter(Boolean), ctx.query.get("tab") === "documents" || ctx.query.get("tab") === "share" ? (ctx.query.get("tab") === "share" ? "record" : "notes") : ctx.query.get("tab") === "timeline" ? "record" : ctx.query.get("tab")),
+      ].filter(Boolean), ctx.query.get("tab"), { address: true, alias: { documents: "notes", share: "record", timeline: "record" } }),
     ];
   });
 }

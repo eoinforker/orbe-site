@@ -21,14 +21,21 @@ const key = (b64u) => {
   return Uint8Array.from(s, (c) => c.charCodeAt(0));
 };
 
+/** A switch that moves on the press; change answers false when the save failed, and the switch goes back. */
 const toggle = (label, on, change) => {
   const b = h("button", { class: "cn-toggle", type: "button", role: "switch", "aria-checked": String(on), "aria-label": label }, h("span", { class: "cn-toggle-sw", "aria-hidden": "true" }));
+  let busy = false;
   b.addEventListener("click", async () => {
-    b.disabled = true;
+    if (busy) return;
+    busy = true;
+    const next = b.getAttribute("aria-checked") !== "true";
+    b.setAttribute("aria-checked", String(next));
+    b.setAttribute("aria-busy", "true");
     try {
-      await change(b.getAttribute("aria-checked") !== "true");
+      if ((await change(next)) === false) b.setAttribute("aria-checked", String(!next));
     } finally {
-      if (b.isConnected) b.disabled = false;
+      busy = false;
+      b.removeAttribute("aria-busy");
     }
   });
   return b;
@@ -101,6 +108,7 @@ function notificationsBody(state, sub, device, redraw) {
               redraw();
             } catch (e) {
               said.replaceChildren(failure(e));
+              return false;
             }
           }),
         ))
@@ -118,6 +126,7 @@ function notificationsBody(state, sub, device, redraw) {
             redraw();
           } catch (e) {
             said.replaceChildren(failure(e));
+            return false;
           }
         }),
       ),

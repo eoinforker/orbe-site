@@ -8,7 +8,7 @@ import { JURISDICTIONS } from "./disclosure.js";
 import { FORMAT_SPECS, SPONSOR_FORMATS } from "./formats.js";
 import { assertIso, assertPence, entry, fail } from "./util.js";
 /** The terms a brand accepts before sending an offer. Kept beside the rules so the copy cannot drift from them. */
-export const BRAND_TERMS = "You pay each sponsorship in advance to Orbe's payments partner, which holds the money. Orbe never holds it. The creator is paid when delivery is verified from their own accounts, and any shortfall against an agreed guarantee is made good or refunded as the offer says. Orbe's fee is shown on every offer. You and the creator are each responsible for disclosing the sponsorship as the law requires where it is seen; Orbe checks what it can read and tells you both.";
+export const BRAND_TERMS = "You pay each sponsorship in advance, before the creator starts. The money is held until delivery is verified from the creator's own accounts; the creator is then paid, and any shortfall against an agreed guarantee is made good or refunded as the offer says. Orbe's fee is shown on every offer. You and the creator are each responsible for disclosing the sponsorship as the law requires where it is seen; Orbe checks what it can read and tells you both.";
 /** The longest publishing window a brief may ask for. PROVISIONAL product limit. */
 export const MAX_WINDOW_DAYS = 180;
 export function validateBrief(b, at) {

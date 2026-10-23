@@ -12,10 +12,11 @@ import * as sponsor from "../assets/engine/sponsor/browser.js";
 import * as market from "../assets/engine/market/browser.js";
 import * as podcast from "../assets/engine/podcast/browser.js";
 import * as fix from "../assets/engine/fix/browser.js";
+import * as deals from "../assets/engine/deals/browser.js";
 import { createTools } from "./tools.js";
 import { createProtocol, PROTOCOL_VERSION } from "./protocol.js";
 
-const tools = createTools({ rating, ratingFormat, sponsor, market, podcast, fix });
+const tools = createTools({ rating, ratingFormat, sponsor, market, podcast, fix, deals });
 const protocol = createProtocol(tools);
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -40,6 +41,7 @@ const BLURB = {
   orbe_diagnose_upload: "Orbe Fix: is a YouTube upload below creators its size at its age, and what to fix.",
   orbe_judge_fix: "Orbe Fix: did a new title or thumbnail lift the upload? Kept and charged only on lift.",
   orbe_retention_cuts: "Where viewers leave a video, from its retention curve, and what to tighten.",
+  orbe_handoff_decide: "Hand it off: accept, counter, decline or ask, within a creator's rules, and why.",
 };
 const titled = (t) => (/[.?]$/.test(t) ? t : `${t}.`);
 $("[data-tools]").innerHTML = list

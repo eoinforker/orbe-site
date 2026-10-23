@@ -5,9 +5,10 @@
 import { api, apiHref, seg } from "../api.js";
 import { guaranteeLine, OFFER_STATES, priceLines, TONE, windowLine, withFee } from "../deal.js";
 import { formatName, SHORTFALL, TAKE_RATE, unitOf } from "../terms.js";
-import { action, actions, block, bps, chip, count, day, empty, field, form, h, input, money, panel, rows, tabs, textarea, title, words } from "../ui.js";
-import { screenHead } from "../console-ui.js";
-import { CAMPAIGN_TONE } from "./campaigns.js";
+import { actions, block, bps, count, day, field, form, h, input, money, tabs, textarea, words } from "../ui.js";
+import { drawer, emptyState, screenHead, section } from "../console-ui.js";
+import { button, kv, narrow, status, table, twoLine } from "../cards.js";
+import { campaignState } from "./campaigns.js";
 
 const FIT_TONE = { strong: "good", partial: undefined, miss: "warn", unknown: "off" };
 
@@ -25,16 +26,16 @@ function quoteBox(m, campaign, onSent) {
   block(box, () => suggestedGuarantee(m), (g) => {
     const total = withFee(m.price, TAKE_RATE.networkBps);
     return [
-      rows([
+      kv([
         ["Creator's price", money(m.price)],
         [`Orbe's fee (${bps(TAKE_RATE.networkBps)})`, money({ amount: total.amount - m.price.amount, currency: total.currency })],
         ["You pay", money(total)],
         m.expectedUnits ? ["Expected", `${count(m.expectedUnits)} ${g.unit}${m.expectedCpm ? `, ${money(m.expectedCpm)} per 1,000` : ""}`] : null,
       ]),
       g.units
-        ? h("p", { class: "ap-guarantee" }, `Guaranteed floor: ${count(g.units)} ${g.unit} at ${g.day} days, what this creator's verified history reaches three times in four. Short by more than ${bps(SHORTFALL.toleranceBps)} means a make-good within ${SHORTFALL.makeGoodDays} days or a refund in proportion; the creator is never paid under ${bps(SHORTFALL.floorBps)} of the price for a disclosed read that stays up.`)
-        : h("p", { class: "ap-note" }, `No guarantee to suggest yet: ${g.note ?? "not enough verified readings"}. You can still offer one; the creator decides.`),
-      form(
+        ? h("p", { class: "cn-banner" }, `Guaranteed floor: ${count(g.units)} ${g.unit} at ${g.day} days, what this creator's verified history reaches three times in four. Short by more than ${bps(SHORTFALL.toleranceBps)} means a make-good within ${SHORTFALL.makeGoodDays} days or a refund in proportion; the creator is never paid under ${bps(SHORTFALL.floorBps)} of the price for a disclosed read that stays up.`)
+        : h("p", { class: "cn-label" }, `No guarantee to suggest yet: ${g.note ?? "not enough verified readings"}. You can still offer one; the creator decides.`),
+      narrow(form(
         [
           field("Price for the creator (£)", input({ name: "price", type: "number", min: "0.01", step: "0.01", value: String(m.price.amount / 100), required: true, inputmode: "decimal" }), "Their list price. Orbe's fee is added on top."),
           field(`Guarantee: ${g.unit} at ${g.day ?? 30} days (optional)`, input({ name: "units", type: "number", min: "1", step: "1", value: g.units ? String(g.units) : "" }), "Leave empty for no guarantee."),
@@ -56,74 +57,85 @@ function quoteBox(m, campaign, onSent) {
           onSent();
           return "Offer sent. The creator has seven days to answer.";
         },
-      ),
+      )),
     ];
   });
   return box;
 }
 
-function matchItem(m, campaign, onSent) {
-  const d = h("details", { class: "ap-more" }, h("summary", null, "Quote and offer"));
-  d.addEventListener("toggle", () => d.open && d.childElementCount === 1 && d.append(quoteBox(m, campaign, onSent)));
-  return h(
-    "li",
-    { class: "ap-item ap-item--block" },
-    h("div", { class: "ap-item-main" },
-      h("p", { class: "ap-says" }, m.displayName || "A creator", m.handle ? ` (${m.handle})` : "", " ", chip(`Fit ${m.score} in 100`)),
-      m.format ? h("p", { class: "ap-note" }, `${formatName(m.format, m.kind)}${m.price ? `, ${money(m.price)} before Orbe's fee` : ""}`) : null,
-      h("ul", { class: "ap-reasons" }, m.reasons.map((r) => h("li", null, chip(words(r.fit), FIT_TONE[r.fit]), " ", r.sentence))),
-    ),
-    !m.excluded && m.price && m.accountId ? d : null,
-  );
+const FIT_WORDS = { strong: "strong", partial: "partial", miss: "a miss", unknown: "unknown" };
+
+/** A match's reasons, one line each with how well it fits. */
+const reasonsList = (m) => h("ul", { class: "cn-reasons" }, m.reasons.map((r) => h("li", null, status(words(r.fit), FIT_TONE[r.fit]), h("span", null, r.sentence))));
+
+function openQuote(m, campaign, onSent) {
+  drawer(`Quote and offer: ${m.displayName || "A creator"}`, (close) => [
+    h("p", { class: "cn-label" }, `${formatName(m.format, m.kind)}${m.handle ? `, ${m.handle}` : ""}. Fit ${m.score} in 100.`),
+    reasonsList(m),
+    campaign.state === "open" && !m.excluded && m.price && m.accountId ? quoteBox(m, campaign, () => (close(), onSent())) : null,
+  ], { wide: true });
+}
+
+function matchRow(m, campaign, onSent) {
+  const tally = Object.entries(m.reasons.reduce((t, r) => ((t[r.fit] = (t[r.fit] ?? 0) + 1), t), {})).map(([fit, n]) => `${n} ${FIT_WORDS[fit] ?? fit}`).join(", ");
+  return [
+    twoLine(m.displayName || "A creator", m.handle),
+    m.format ? twoLine(formatName(m.format, m.kind), m.price ? `${money(m.price)} before Orbe's fee` : null) : h("span", { class: "dl-quiet" }, "No format fits"),
+    twoLine(`${m.score} in 100`, tally),
+    actions(button(!m.excluded && m.price && m.accountId && campaign.state === "open" ? "Quote and offer" : "Why", async () => void openQuote(m, campaign, onSent), { quiet: true })),
+  ];
 }
 
 function matchesTab(el, campaign) {
   block(el, () => api.get(`/v1/brand/campaigns/${seg(campaign.id)}/matches`), ({ matches, shortlist }) => {
     const fit = matches.filter((m) => !m.excluded);
     const out = matches.filter((m) => m.excluded);
-    return [
-      campaign.state !== "open" ? h("p", { class: "ap-note" }, "Offers can be sent only while the campaign is open.") : null,
-      shortlist?.picks?.length ? h("p", { class: "ap-says" }, `Orbe's shortlist: ${shortlist.picks.length} for ${money(shortlist.spend)}, leaving ${money(shortlist.left)} of the budget.`) : null,
-      fit.length ? h("ul", { class: "ap-list" }, fit.map((m) => matchItem(m, campaign, () => {
-        el.replaceChildren();
-        matchesTab(el, campaign);
-      }))) : empty("No creator in the network fits this brief yet. Only creators who opted in are ever shown."),
-      out.length ? h("details", { class: "ap-more" }, h("summary", null, `Not a fit (${out.length})`), h("ul", { class: "ap-list" }, out.map((m) => matchItem(m, campaign)))) : null,
-    ];
+    const again = () => {
+      el.replaceChildren();
+      matchesTab(el, campaign);
+    };
+    const heads = [["Creator"], ["Format"], ["Fit"], [""]];
+    return section(
+      { title: "Matches", line: shortlist?.picks?.length ? `Orbe's shortlist: ${shortlist.picks.length} for ${money(shortlist.spend)}, leaving ${money(shortlist.left)} of the budget.` : "Creators who opted in, ranked by how well they fit the brief." },
+      campaign.state !== "open" ? h("p", { class: "cn-label" }, "Offers can be sent only while the campaign is open.") : null,
+      fit.length ? table(heads, fit.map((m) => matchRow(m, campaign, again)), { caption: "Matches" }) : emptyState("people", "No creator in the network fits this brief yet.", [], "Only creators who opted in are ever shown."),
+      out.length ? h("details", { class: "ap-more" }, h("summary", null, `Not a fit (${out.length})`), table(heads, out.map((m) => matchRow(m, campaign, again)), { caption: "Not a fit" })) : null,
+    );
   });
 }
 
 function offersTab(el, campaign) {
   const reload = () =>
     block(el, () => api.get(`/v1/brand/campaigns/${seg(campaign.id)}/offers`), ({ offers }) =>
-      offers.length
-        ? h("ul", { class: "ap-list" }, offers.map((o) =>
-            h("li", { class: "ap-item ap-item--block" },
-              h("div", { class: "ap-item-main" },
-                h("p", { class: "ap-says" }, formatName(o.format, o.kind), " ", chip(OFFER_STATES[o.state] ?? o.state, TONE[o.state])),
-                rows([...priceLines(o), ["Publish between", windowLine(o.publishWindow)], ["Sent", day(o.sentAt)]]),
-                h("p", { class: "ap-guarantee" }, guaranteeLine(o)),
+      section(
+        { title: "Offers", line: "Each offer sent for this campaign and where it stands." },
+        offers.length
+          ? h("div", { class: "cn-blocks" }, offers.map((o) =>
+              h("div", { class: "cn-block" },
+                h("div", { class: "cn-block-head" }, twoLine(formatName(o.format, o.kind), `Sent ${day(o.sentAt)}`), status(OFFER_STATES[o.state] ?? o.state, TONE[o.state])),
+                kv([...priceLines(o), ["Publish between", windowLine(o.publishWindow)]]),
+                h("p", { class: "cn-label" }, guaranteeLine(o)),
                 o.counters?.length ? h("p", null, `The creator countered at ${money(o.counters.at(-1).price)}${o.counters.at(-1).note ? `: "${o.counters.at(-1).note}"` : "."}`) : null,
+                ["sent", "countered"].includes(o.state)
+                  ? actions(
+                      o.state === "countered"
+                        ? button(`Accept ${money(withFee(o.counters.at(-1).price, o.fee.bps))} with the fee`, async () => {
+                            await api.post(`/v1/brand/offers/${seg(o.id)}/accept-counter`, {});
+                            reload();
+                            return "Accepted. Fund it under Bookings.";
+                          }, { primary: true })
+                        : null,
+                      button("Withdraw", async () => {
+                        await api.post(`/v1/brand/offers/${seg(o.id)}/withdraw`, {});
+                        reload();
+                        return "Withdrawn.";
+                      }, { quiet: true, danger: true, confirm: "Withdraw this offer?" }),
+                    )
+                  : null,
               ),
-              ["sent", "countered"].includes(o.state)
-                ? actions(
-                    o.state === "countered"
-                      ? action(`Accept ${money(withFee(o.counters.at(-1).price, o.fee.bps))} with the fee`, async () => {
-                          await api.post(`/v1/brand/offers/${seg(o.id)}/accept-counter`, {});
-                          reload();
-                          return "Accepted. Fund it under Bookings.";
-                        }, { primary: true })
-                      : null,
-                    action("Withdraw", async () => {
-                      await api.post(`/v1/brand/offers/${seg(o.id)}/withdraw`, {});
-                      reload();
-                      return "Withdrawn.";
-                    }, { danger: true, confirm: "Withdraw this offer?" }),
-                  )
-                : null,
-            ),
-          ))
-        : empty("No offers yet. Send one from Matches."),
+            ))
+          : emptyState("mail", "No offers yet.", [], "Send one from Matches."),
+      ),
     );
   reload();
 }
@@ -131,35 +143,38 @@ function offersTab(el, campaign) {
 const figureText = (f) => (f.kind === "money" ? money({ amount: f.value, currency: f.currency ?? "GBP" }) : count(f.value));
 
 function reportTab(el, campaign) {
+  const href = (fmt) => apiHref(`/v1/brand/campaigns/${seg(campaign.id)}/report?format=${fmt}`);
   block(el, () => api.get(`/v1/brand/campaigns/${seg(campaign.id)}/report`), ({ report: r }) => [
     r.lines.length
       ? r.lines.map((l) =>
-          panel(
-            `${l.creatorName} ${l.handle ? `(${l.handle})` : ""}`.trim(),
-            h("p", null, l.formatName, " ", chip(l.state.replaceAll("_", " "), TONE[l.state])),
-            l.works.map((w) => h("p", null, w.url ? h("a", { href: w.url, target: "_blank", rel: "noopener" }, w.title) : w.title, `, published ${day(w.publishedAt)}${w.removedAt ? `, taken down ${day(w.removedAt)}` : ""}`)),
-            rows([...l.delivery, ...l.money].map((f) => [f.label, figureText(f)])),
-            l.guarantee ? h("p", { class: "ap-guarantee" }, `Guaranteed ${count(l.guarantee.units)} ${l.guarantee.unit} at ${l.guarantee.day} days.`) : null,
+          section(
+            { title: `${l.creatorName}${l.handle ? ` (${l.handle})` : ""}`, line: l.formatName, actions: status(words(l.state), TONE[l.state]) },
+            l.works.length ? table([["Work"], ["Published"]], l.works.map((w) => [w.url ? h("a", { href: w.url, target: "_blank", rel: "noopener" }, w.title) : w.title, `${day(w.publishedAt)}${w.removedAt ? `, taken down ${day(w.removedAt)}` : ""}`]), { caption: "Works" }) : null,
+            kv([...l.delivery, ...l.money].map((f) => [f.label, figureText(f)])),
+            l.guarantee ? h("p", { class: "cn-label" }, `Guaranteed ${count(l.guarantee.units)} ${l.guarantee.unit} at ${l.guarantee.day} days.`) : null,
             l.outcome ? h("p", null, `${l.outcome.reason} The creator receives ${bps(l.outcome.creatorShareBps)} of the price.`) : null,
           ),
         )
-      : empty("Nothing delivered yet. Each read appears here, with the source it was read from, once it is live."),
-    r.totals.length ? panel("Totals", rows(r.totals.map((f) => [f.label, figureText(f)]))) : null,
-    r.effective.length ? panel("What it cost", rows(r.effective.map((e) => [`Verified ${e.unit}`, `${count(e.units)}${e.cpm ? `, ${money(e.cpm)} per 1,000` : ""}`]))) : null,
-    r.kpis.length ? panel("Against your goals", h("ul", { class: "ap-plain" }, r.kpis.map((k) => h("li", null, chip(k.status.replaceAll("_", " "), k.status === "met" ? "good" : k.status === "missed" ? "warn" : "off"), " ", k.detail)))) : null,
-    r.withheld.length ? h("p", { class: "ap-note" }, `${r.withheld.length} private readings are withheld because the creator is not sharing them with you.`) : null,
-    panel("How it is measured", h("ul", { class: "ap-plain" }, r.method.map((m) => h("li", null, m))), h("p", { class: "ap-links" }, h("a", { class: "ob-lnk ob-lnk--s", href: apiHref(`/v1/brand/campaigns/${seg(campaign.id)}/report?format=html`), target: "_blank", rel: "noopener" }, "Open the full report"), " ", h("a", { class: "ob-lnk ob-lnk--s", href: apiHref(`/v1/brand/campaigns/${seg(campaign.id)}/report?format=markdown`), target: "_blank", rel: "noopener" }, "As Markdown"))),
+      : section({ title: "Delivery" }, emptyState("chart", "Nothing delivered yet.", [], "Each read appears here, with the source it was read from, once it is live.")),
+    r.totals.length ? section({ title: "Totals" }, kv(r.totals.map((f) => [f.label, figureText(f)]))) : null,
+    r.effective.length ? section({ title: "What it cost" }, kv(r.effective.map((e) => [`Verified ${e.unit}`, `${count(e.units)}${e.cpm ? `, ${money(e.cpm)} per 1,000` : ""}`]))) : null,
+    r.kpis.length ? section({ title: "Against your goals" }, table([["Goal"], ["Status"]], r.kpis.map((k) => [k.detail, status(words(k.status), k.status === "met" ? "good" : k.status === "missed" ? "warn" : "off")]), { caption: "Against your goals" })) : null,
+    r.withheld.length ? h("p", { class: "cn-label" }, `${r.withheld.length} private readings are withheld because the creator is not sharing them with you.`) : null,
+    section(
+      { title: "How it is measured", actions: [h("a", { class: "cn-btn cn-btn--s", href: href("html"), target: "_blank", rel: "noopener" }, "Full report"), h("a", { class: "cn-btn cn-btn--s cn-btn--ghost", href: href("markdown"), target: "_blank", rel: "noopener" }, "Markdown")] },
+      h("ul", { class: "cn-points" }, r.method.map((m) => h("li", null, m))),
+    ),
   ]);
 }
 
 function stateActions(c, reload) {
-  const move = (state, label, opts) => action(label, async () => {
+  const move = (state, label, opts) => button(label, async () => {
     await api.post(`/v1/brand/campaigns/${seg(c.id)}/state`, { state });
     reload();
     return `Campaign ${state}.`;
   }, opts);
-  if (c.state === "draft") return actions(move("open", "Open the campaign", { primary: true }), move("cancelled", "Cancel", { danger: true, confirm: "Cancel this campaign?" }));
-  if (c.state === "open") return actions(move("closed", "Close it", { confirm: "Close the campaign? No new offers can be sent; bookings carry on." }), move("cancelled", "Cancel", { danger: true, confirm: "Cancel this campaign?" }));
+  if (c.state === "draft") return actions(move("cancelled", "Cancel", { quiet: true, danger: true, confirm: "Cancel this campaign?" }), move("open", "Open the campaign", { primary: true }));
+  if (c.state === "open") return actions(move("cancelled", "Cancel", { quiet: true, danger: true, confirm: "Cancel this campaign?" }), move("closed", "Close it", { confirm: "Close the campaign? No new offers can be sent; bookings carry on." }));
   return null;
 }
 
@@ -169,29 +184,27 @@ export async function render(main, ctx) {
   const reload = () =>
     block(body, () => api.get("/v1/brand/campaigns"), ({ campaigns }) => {
       const c = campaigns.find((x) => x.id === ctx.params.id);
-      if (!c) return empty("No such campaign.");
+      if (!c) return emptyState("megaphone", "No such campaign.", [["All campaigns", "/orbe-site/demo/app/campaigns"]]);
       const b = c.brief;
       main.querySelector(".ap-h1").textContent = b.title;
       document.title = `${b.title}: Orbe`;
       return [
-        panel(
-          "Brief",
-          h("p", null, chip(c.state, CAMPAIGN_TONE[c.state])),
-          h("p", null, b.product),
-          rows([
+        section(
+          { title: "Brief", line: b.product, actions: stateActions(c, reload) },
+          kv([
+            ["State", campaignState(c.state)],
             ["Budget", `${money(b.budget)}, Orbe's fee included`],
             ["Formats", b.formats.map((f) => formatName(f)).join(", ")],
             ["Publish", windowLine(b.window)],
             ["Where", b.audience.countries.length ? b.audience.countries.join(", ") : "Anywhere"],
             ["Drafts", b.reviewDrafts ? "You review each one" : "No review"],
           ]),
-          stateActions(c, reload),
         ),
         tabs("campaign", [
           { id: "matches", label: "Matches", render: (el) => matchesTab(el, c) },
           { id: "offers", label: "Offers", render: (el) => offersTab(el, c) },
           { id: "report", label: "Report", render: (el) => reportTab(el, c) },
-        ], ctx.query.get("tab")),
+        ], new URLSearchParams(location.search).get("tab"), { address: true }),
       ];
     });
   await reload();

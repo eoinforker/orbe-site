@@ -5,7 +5,7 @@
 */
 import { api, seg } from "../api.js";
 import { TOOLS, tile } from "../catalogue.js";
-import { emptyState, historyList, serverRuns, skeleton, toolPage } from "../console-ui.js";
+import { emptyState, historyList, rating, serverRuns, skeleton, toolPage } from "../console-ui.js";
 import { failure, field, form, h, input, plural, signed } from "../ui.js";
 
 const TOOL = TOOLS.find((t) => t.id === "rate");
@@ -16,7 +16,7 @@ function resultView(r) {
   if (!res || res.status !== "rated") return [h("p", { class: "cn-run-say" }, `${name} is not rated yet.`), h("p", null, res?.message ?? "Not enough public works to compare yet.")];
   return [
     h("p", { class: "cn-run-who" }, `${name}${r.account?.handle ? `, ${r.account.handle}` : ""}`),
-    h("div", { class: "cn-figure" }, h("p", { class: "cn-figure-n", "aria-label": `Rating ${signed(res.rating)}` }, signed(res.rating)), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers, from ${plural(res.detail?.works ?? 0, "work")}. Zero is typical.`))),
+    h("div", { class: "cn-figure" }, rating(res.rating, { size: "", tag: "p", cls: "cn-figure-n" }), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against YouTube channels with ${res.sizeBand} subscribers, from ${plural(res.detail?.works ?? 0, "work")}. Zero is typical.`))),
     h("ul", { class: "cn-parts" }, res.parts.map((p) => {
       const bar = h("span", { class: "cn-part-bar" }, h("span"));
       bar.firstChild.style.setProperty("--p", String(p.score));

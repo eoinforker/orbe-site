@@ -39,7 +39,7 @@ export async function render(main, ctx) {
   const brand = ctx.user.type === "buyer";
   main.append(
     h("div", { class: "cn-tp" },
-      h("header", { class: "cn-tp-head" }, tile("developers/", "pod", h, "l"), h("div", { class: "cn-tp-names" }, h("p", { class: "cn-tp-path" }, h("span", null, "orbe"), " / ", h("b", null, "developers")), h("h1", { class: "cn-tp-title", tabindex: "-1", "data-title": "" }, brand ? "MCP and agents" : "For developers"))),
+      h("header", { class: "cn-tp-head" }, tile("developers/", "pod", h, "l"), h("div", { class: "cn-tp-names" }, h("h1", { class: "cn-tp-title", tabindex: "-1", "data-title": "" }, brand ? "MCP and agents" : "For developers"))),
       h("p", { class: "cn-tp-line" }, "Orbe for agents, over MCP" + (brand && on("brand_data") ? ", and the data API for your own systems." : ". The same maths the console runs, callable from Claude and any MCP client.")),
       h("div", { class: "cn-tags" }, h("span", { class: "cn-tag cn-tag--line" }, "11 tools"), h("span", { class: "cn-tag cn-tag--line" }, "Runs on your machine"), h("span", { class: "cn-tag" }, "Not on npm yet")),
       h("div", { class: "cn-api" },
@@ -57,7 +57,7 @@ export async function render(main, ctx) {
               )
             : section({ title: "Every tool has an API tab", line: "The same call as HTTP and as an MCP tool." },
                 h("p", null, "Open any tool and choose API beside Playground to see its route and its MCP twin."),
-                h("div", { class: "cn-links" }, [["Rate a channel", "/orbe-site/demo/app/rate", "products/rate/", "also"], ["Fair offer check", "/orbe-site/demo/app/offer", "products/offer/", "spon"], ["Diligence report", "/orbe-site/demo/app/report", "products/diligence/", "rec"]].map(([t, href, g, k]) => h("a", { class: "cn-link", href }, tile(g, k, h, "s"), h("span", { class: "cn-link-t" }, t), icon("chevronRight")))),
+                h("div", { class: "cn-links" }, [["Rate a channel", "/orbe-site/demo/app/rate", "products/rate/", "also"], ["Check an offer", "/orbe-site/demo/app/offer", "products/offer/", "spon"], ["Diligence report", "/orbe-site/demo/app/report", "products/diligence/", "rec"]].map(([t, href, g, k]) => h("a", { class: "cn-link", href }, tile(g, k, h, "s"), h("span", { class: "cn-link-t" }, t), icon("chevronRight")))),
               ),
         ),
       ),

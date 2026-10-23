@@ -15,7 +15,7 @@
   reader rather than behind.
 
   Keys, with the table focused: j or the down arrow and k or the up arrow move,
-  Enter opens, x or the space bar selects, Home and End jump. Selection is a set
+  Enter opens, x or the space bar selects (with shift, every row since the last one picked), Home and End jump. A shift-click picks rows too. Selection is a set
   of row ids owned by the caller.
 */
 import { h } from "./ui.js";
@@ -45,7 +45,7 @@ export function virtualTable(o) {
       if (!key) return h("div", { class: "cn-vt-th", role: "columnheader", "data-align": c.align ?? null }, c.label);
       const on = sort?.key === key;
       return h("div", { class: "cn-vt-th", role: "columnheader", "aria-sort": on ? (sort.dir === "asc" ? "ascending" : "descending") : "none", "data-align": c.align ?? null },
-        h("button", { class: "cn-vt-sort", type: "button", "data-on": String(on), onclick: () => o.onSort?.(key) }, c.label, h("span", { class: "cn-vt-dir", "aria-hidden": "true" }, on ? (sort.dir === "asc" ? "↑" : "↓") : "")));
+        h("button", { class: "cn-vt-sort", type: "button", "data-on": String(on), "data-key": key, onclick: () => o.onSort?.(key) }, c.label, h("span", { class: "cn-vt-dir", "aria-hidden": "true" }, on ? (sort.dir === "asc" ? "↑" : "↓") : "")));
     }),
   );
   const spacer = h("div", { class: "cn-vt-spacer" });
@@ -68,8 +68,16 @@ export function virtualTable(o) {
     r._link = link;
     r._index = -1;
     r._id = null;
+    // A shift-click picks a run of rows instead of opening one, and selects no text on the way.
+    r.addEventListener("mousedown", (e) => e.shiftKey && o.onToggle && e.preventDefault());
     r.addEventListener("click", (e) => {
       if (e.target.closest("button, input, a:not(.cn-vt-link), label")) return;
+      if (e.shiftKey && o.onToggle) {
+        e.preventDefault();
+        const row = r._id ? o.rowAt(r._index) : null;
+        if (row) o.onToggle(row, e);
+        return;
+      }
       if (r._id && e.target !== link) link.click();
     });
     return r;
@@ -210,9 +218,9 @@ export function virtualTable(o) {
     else if (k === "Enter" && active >= 0) {
       const row = o.rowAt(active);
       if (row) pool.find((r) => r._index === active)?._link.click();
-    } else if ((k === "x" || k === " ") && active >= 0) {
+    } else if ((k === "x" || k === "X" || k === " ") && active >= 0) {
       const row = o.rowAt(active);
-      if (row) o.onToggle?.(row);
+      if (row) o.onToggle?.(row, e);
     } else return;
     e.preventDefault();
   });

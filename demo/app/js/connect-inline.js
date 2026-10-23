@@ -15,7 +15,7 @@
   says about the source, and offers no button where Orbe cannot connect it.
 */
 import { api, can, on } from "./api.js";
-import { drawer, pill } from "./console-ui.js";
+import { drawer, emptyState, pill } from "./console-ui.js";
 import { icon } from "./icons.js";
 import { confirmBox, count, day, field, form, h, input, plural, toast } from "./ui.js";
 import { CONSENTS } from "./terms.js";
@@ -53,7 +53,7 @@ export async function withConsent(run) {
   } catch (e) {
     if (e.code !== "consent_required") throw e;
     const c = CONSENTS.connect;
-    if (!(await confirmBox(`${c.grants} You can withdraw it at any time: ${c.revoking}`, { title: "Allow Orbe to read what you connect?", yes: "Allow and continue" }))) throw new Error("Nothing was connected.");
+    if (!(await confirmBox(`${c.grants} You can withdraw it at any time. Withdrawing it ${c.revoking[0].toLowerCase()}${c.revoking.slice(1)}`, { title: "Allow Orbe to read what you connect?", yes: "Allow and continue" }))) throw new Error("Nothing was connected.");
     await api.post("/v1/me/consents", { scope: "connect" });
     return run();
   }
@@ -87,12 +87,19 @@ export function statePill(s) {
   return pill(...(AVAILABLE[s.availability] ?? AVAILABLE.coming));
 }
 
-const MARK = { youtube: "YT", podcast: "Po", substack: "Su", tiktok: "Tk", instagram: "Ig", stripe: "St", patreon: "Pa", adsense: "Ad", mcp: "AI" };
-/** A service's mark, drawn in Orbe's own tile style: no third-party logos. */
+/* What a service is, as one of Orbe's own line glyphs: never a third-party logo, and never letters that two services share. */
+const GLYPH = {
+  youtube: "play", podcast: "mic", transistor: "mic", buzzsprout: "mic",
+  substack: "mail", buttondown: "mail", beehiiv: "mail", kit: "mail", mailchimp: "mail", mailcheap: "mail", ghost: "doc",
+  tiktok: "phone", instagram: "camera", facebook: "megaphone", threads: "megaphone", linkedin: "megaphone", bluesky: "megaphone", x: "megaphone",
+  stripe: "card", patreon: "earn", adsense: "earn",
+  dropbox: "folder", google_drive: "folder", dropbox_sign: "doc", notion: "doc", webhooks: "bolt", exports: "grid", mcp: "sparkle",
+};
+const BY_GROUP = { work: "play", money: "card", post: "megaphone", tools: "plug", ai: "sparkle" };
+/** A service's mark, drawn in Orbe's own tile style. */
 export function mark(s) {
   const key = s.id.split(":")[0] === "post" || s.id.split(":")[0] === "tool" ? s.id.split(":")[1] : s.id.split(":")[0];
-  const letters = MARK[key] ?? s.name.replace(/[^A-Za-z]/g, "").slice(0, 2);
-  return h("span", { class: "cn-conn-mark", "data-group": s.group, "aria-hidden": "true" }, letters);
+  return h("span", { class: "cn-conn-mark", "data-group": s.group, "aria-hidden": "true" }, icon(GLYPH[key] ?? BY_GROUP[s.group] ?? "plug"));
 }
 
 /** "214 works, 2019 to 2026", for what has been read. */
@@ -259,3 +266,25 @@ export function openConnect(id, ctx, { back, done } = {}) {
 export const connectButton = (id, label, ctx, opts = {}) =>
   h("button", { class: `cn-btn${opts.ghost ? " cn-btn--ghost" : ""}`, type: "button", onclick: () => openConnect(id, ctx, opts) }, icon("plug"), label);
 
+
+/**
+  An empty state that asks to connect, offering only the work sources that
+  can connect on this server (GET /v1/me/sources), the first of them leading.
+  Until the answer arrives, and when nothing can connect, it offers All
+  connections alone, so it never leads with a door that will not open.
+*/
+export function connectEmpty(iconName, text, more, ctx) {
+  const all = ["All connections", "/orbe-site/demo/app/connections"];
+  const box = h("div", null, emptyState(iconName, text, [all], more));
+  if (!can("content")) return box;
+  api.get("/v1/me/sources").then((r) => {
+    const ready = new Set((r.groups.find((g) => g.id === "work")?.sources ?? []).filter((x) => x.availability === "ready").map((x) => x.id.split(":")[0]));
+    const ways = [
+      ready.has("youtube") ? ["Connect YouTube", () => openConnect("youtube", ctx)] : null,
+      on("podcasts") && ready.has("podcast") ? ["Add a podcast feed", () => openConnect("podcast", ctx)] : null,
+      ready.has("substack") ? ["Add your Substack", () => openConnect("substack", ctx)] : null,
+    ].filter(Boolean);
+    if (ways.length) box.replaceChildren(emptyState(iconName, text, [...ways.map(([label, go], i) => [label, go, i === 0]), all], more));
+  }, () => {});
+  return box;
+}

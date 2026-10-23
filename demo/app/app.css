@@ -88,9 +88,6 @@ html { background: var(--orbe-paper); }
 .ap-narrow { max-width: 560px; }
 .ap-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 840px) { .ap-grid { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); } }
-.ap-win { min-width: 0; }
-.ap-win .ob-win-title { font-size: var(--ob-t12); font-weight: 500; letter-spacing: 0; }
-.ap-win .ob-win-body { gap: 12px; }
 .ap-pair { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 560px) { .ap-pair { grid-template-columns: 1fr 1fr; } }
 .ap-back { margin-bottom: 12px; }

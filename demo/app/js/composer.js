@@ -2,10 +2,12 @@
   The composer: one box to ask Orbe to run a tool, as on Home and docked at
   the foot of Runs. Chips choose the tool, the account and the window;
   Run (or Ctrl Enter, Cmd Enter on a Mac) hands a job to onRun. With the
-  tool on "Ask Orbe", the words choose: an @handle rates a channel, an
-  amount checks an offer, "sponsor" finds brands, a title rates a work.
+  tool on "Ask Orbe", the job goes as tool "auto" with the sentence as
+  typed, and the server reads it (services/intent.ts): an @handle rates a
+  channel, an amount checks an offer, "sponsor" finds brands, a window
+  ("this month") sets the window, and what is left is a title.
 */
-import { can, on } from "./api.js";
+import { can, canRateChannels, on } from "./api.js";
 import { tile } from "./catalogue.js";
 import { icon } from "./icons.js";
 import { h } from "./ui.js";
@@ -17,30 +19,14 @@ export const STUDIO_TOOLS = [
   { id: "rate-channel", name: "Rate a channel", line: "Any YouTube channel, by @handle", glyph: "products/rate/", k: "also", feature: "rating", hint: "@handle, channel id or link" },
   { id: "offer", name: "Check an offer", line: "Is this offer fair for your size?", glyph: "products/offer/", k: "spon", feature: "sponsorships", needs: "read.money", hint: "The amount offered, like 450" },
   { id: "price", name: "Price a slot", line: "What your results support, per format", glyph: "products/sponsorships/", k: "spon", feature: "sponsorships", needs: "read.money", hint: "Leave empty, or name a format" },
-  { id: "sponsor", name: "Find a sponsor", line: "Brands sponsoring creators like you", glyph: "products/selling/", k: "sell", hint: "Leave empty, or a word to filter by" },
+  { id: "sponsor", name: "Sponsors like you", line: "Brands that sponsor creators like you", glyph: "products/selling/", k: "sell", hint: "Leave empty, or a word to filter by" },
   { id: "explain", name: "Explain my rating", line: "Your rating, in plain English", glyph: "products/diligence/", k: "rec", feature: "rating", hint: "Leave empty" },
 ];
 
 export const WINDOWS = [["7", "7 days"], ["30", "30 days"], ["90", "90 days"], ["all", "All time"]];
 
-export const toolsOn = () => STUDIO_TOOLS.filter((t) => (!t.feature || on(t.feature)) && can(t.needs));
-
-/** Which tool a few words ask for, when the tool chip is on Ask Orbe. */
-export function detect(text) {
-  const tool = guess(text);
-  // A tool this person's role cannot run falls back to rating the work.
-  return toolsOn().some((t) => t.id === tool) || !STUDIO_TOOLS.some((t) => t.id === tool) ? tool : "rate-work";
-}
-
-function guess(text) {
-  const q = text.trim();
-  if (/^@[\w.-]{2,}$/.test(q) || /youtube\.com\/|youtu\.be\//i.test(q) || /^UC[\w-]{20,}$/.test(q)) return "rate-channel";
-  if (/^(?:£|gbp\s*)?\s*\d[\d,]*(?:\.\d+)?\s*(?:k|pounds?|gbp)?$/i.test(q) || /\b(?:offer|offered|offering)\b.*\d/i.test(q)) return "offer";
-  if (/\bsponsor|\bbrands?\b/i.test(q)) return "sponsor";
-  if (/\bpric(?:e|ing)\b|\brate card\b|\bcharge\b/i.test(q)) return "price";
-  if (/\bexplain\b|\bwhy\b.*\brating\b|\bmy rating\b/i.test(q)) return "explain";
-  return "rate-work";
-}
+/** The tools that can answer here: switched on, allowed for this role, and (for a channel) a server that can read public YouTube. */
+export const toolsOn = () => STUDIO_TOOLS.filter((t) => (!t.feature || on(t.feature)) && can(t.needs) && (t.id !== "rate-channel" || canRateChannels()));
 
 /** A chip with a hidden native select over it, so it is a real control everywhere, phones included. */
 function chip(label, options, value, render, onChange) {
@@ -58,7 +44,7 @@ function chip(label, options, value, render, onChange) {
 /**
   composer({ accounts, onRun, initial, placeholder }) returns { node, focus,
   setTool, busy }. accounts: [{ id, handle, kind }]. onRun gets
-  { tool, text, account, window } with tool already resolved from Ask Orbe.
+  { tool, text, account, window }, tool "auto" for Ask Orbe.
 */
 export function composer({ accounts = [], onRun, initial = {}, placeholder }) {
   const tools = toolsOn();
@@ -85,12 +71,11 @@ export function composer({ accounts = [], onRun, initial = {}, placeholder }) {
   const submit = (e) => {
     e?.preventDefault();
     const words = text.value.trim();
-    const tool = job.tool === "auto" ? detect(words) : job.tool;
     if (job.tool === "auto" && !words) {
       text.focus();
       return;
     }
-    onRun({ tool, text: words, account: job.account, window: job.window });
+    onRun({ tool: job.tool, text: words, account: job.account, window: job.window });
   };
   text.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing) submit(e);

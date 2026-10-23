@@ -16,6 +16,12 @@ let csrf = null;
 export const features = new Set();
 export const on = (feature) => features.has(feature);
 
+/** Whether this server can rate a public YouTube channel (GET /v1/auth/session). */
+let ratesChannels = true;
+export const canRateChannels = () => ratesChannels;
+/** A tool this server cannot run (Rate a channel with no public YouTube reads): offered last, and says so. */
+export const notHere = (t) => t?.path === "rate" && !ratesChannels;
+
 /** The ways in this server offers (Google, email, the development stand-in), from GET /v1/auth/session. */
 let ways = { google: false, email: true, dev: false };
 export const signInWays = () => ways;
@@ -79,14 +85,19 @@ function read(path) {
   return p;
 }
 
+/* Calls that are about the session itself, not the team a page shows: they never carry the page's team. */
+const UNTEAMED = /^\/v1\/(boot(?!\?.*frame=0)|auth\/|teams\/active|teams\/invitations\/accept)/;
+
 /** A route that another change is still building answers a plain 404 here until it lands. */
 export const notBuiltYet = (e) => e instanceof ApiError && e.status === 404 && e.code === "not_found";
 
-async function send(method, path, body, retried, file) {
+async function send(method, path, body, retried, file, raw) {
   const headers = { accept: "application/json" };
   if (file) Object.assign(headers, { "content-type": file.type, "x-file-name": encodeURIComponent(file.name) }, file.range ? { "content-range": file.range } : {});
   else if (body !== undefined) headers["content-type"] = "application/json";
   if (method !== "GET" && csrf) headers["x-csrf-token"] = csrf;
+  // The team this page was drawn for: the server refuses (409 team_changed) if the session has moved to another.
+  if (team && !UNTEAMED.test(path)) headers["x-orbe-team"] = team.id;
   let res;
   try {
     res = await fetch(path, { method, headers, credentials: "same-origin", body: file ? file.blob : body === undefined ? undefined : JSON.stringify(body) });
@@ -99,6 +110,8 @@ async function send(method, path, body, retried, file) {
     forget();
     bundled.clear();
   }
+  // A file the server built (an export): the answer itself, for its bytes and headers.
+  if (raw && res.ok) return res;
   const data = res.status === 204 ? null : type.includes("application/json") ? await res.json().catch(() => null) : await res.text();
   // Asked of the owner rather than done: the screen treats it as not done, and the console says where it went.
   if (res.status === 202 && data?.waitingFor === "owner") {
@@ -111,11 +124,16 @@ async function send(method, path, body, retried, file) {
   // A stale token (a new session in another tab) is fetched again once.
   if (e.code === "csrf_failed" && !retried) {
     await session();
-    return send(method, path, body, true, file);
+    return send(method, path, body, true, file, raw);
   }
   if (e.status === 401) {
     forget();
     window.dispatchEvent(new CustomEvent("orbe:signed-out"));
+  }
+  // Another tab (or a page brought back by Back) moved the session to another team: the console starts again in it.
+  if (e.code === "team_changed") {
+    forget();
+    window.dispatchEvent(new CustomEvent("orbe:team-changed"));
   }
   throw e;
 }
@@ -159,6 +177,7 @@ function apply(s) {
   csrf = s?.csrfToken ?? null;
   features.clear();
   for (const f of s?.features ?? []) features.add(f);
+  ratesChannels = s?.ratesChannels !== false;
   if (s?.signIn) ways = s.signIn;
   team = s?.team ?? null;
   if (!s?.user) return null;
@@ -177,12 +196,21 @@ export const asks = (action) => team?.role === "manager" && ["money", "consent",
 
 export const api = {
   get: (path) => read(path),
+  /** A read asked for ahead of need (a pointer on a link to its screen): kept for a short while, so the screen finds it waiting. */
+  warm: (path) => {
+    const k = kept.get(path);
+    if (k && Date.now() - k.at < KEEP_MS) return k.promise;
+    const p = read(path);
+    keep(path, p);
+    return p;
+  },
   /** A read that skips anything kept, for a refresh the person asked for. */
   fresh: (path) => {
     kept.delete(path);
     return read(path);
   },
-  post: (path, body = {}) => send("POST", path, body),
+  /** With { file: true }, a successful answer comes back as the response itself (an export to save). */
+  post: (path, body = {}, opts) => send("POST", path, body, false, undefined, opts?.file === true),
   put: (path, body = {}) => send("PUT", path, body),
   patch: (path, body = {}) => send("PATCH", path, body),
   del: (path, body) => send("DELETE", path, body),

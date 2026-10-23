@@ -1,19 +1,19 @@
 /*
-  Home: a calm band of painted Sky with one line, the composer that runs
+  Home: a one-line greeting, the composer that runs
   any tool, quick starts (with pictures: your own latest video where Orbe
   can show it) in the order of what you asked for help with, what is waiting on you, the figures that matter with their trend,
   Getting started from what is really done, your latest works, your rating
   part by part, and recent activity. Every figure comes from the API.
 */
 import { api, bundle, can, on } from "../api.js";
-import { alerts, ago, bars, checklist, cover, emptyState, section, sparkline, stat, statStrip } from "../console-ui.js";
+import { alerts, ago, bars, checklist, cover, emptyState, rating, section, sparkline, stat, statStrip } from "../console-ui.js";
 import { composer } from "../composer.js";
-import { band } from "../band.js";
+import { firstName } from "../band.js";
 import { tile } from "../catalogue.js";
 import { quickArt, workArt } from "../sky.js";
 import { icon } from "../icons.js";
 import { loadNotifications } from "../notify.js";
-import { KINDS, SOURCES } from "../terms.js";
+import { handleOf, KINDS, SIZE_RANGES, SOURCES } from "../terms.js";
 import { block, h, plural, signed } from "../ui.js";
 
 const MONEY_SOURCES = ["stripe", "patreon", "adsense"];
@@ -76,25 +76,27 @@ const hidden = () => {
 const QUICK = [
   ["Drop in a video", "Clips, words and sends", "/orbe-site/demo/app/media", "also", "media", "grow", "content", "video"],
   ["Rate a work", "Against creators your size", "/orbe-site/demo/app/runs?tool=rate-work", "also", "rating", "grow", null, "rate"],
-  ["Find a sponsor", "Brands backing creators like you", "/orbe-site/demo/app/runs?tool=sponsor", "sell", null, "earn", "read.money", "sponsor"],
+  ["Sponsors like you", "Brands that sponsor creators like you", "/orbe-site/demo/app/runs?tool=sponsor", "sell", null, "earn", "read.money", "sponsor"],
   ["Check an offer", "Is it fair for your size?", "/orbe-site/demo/app/runs?tool=offer", "spon", "sponsorships", "earn", "read.money", "offer"],
   ["Check a copy", "Is this your work? On your device", "/orbe-site/demo/app/protect", "rec", null, "protect", null, "protect"],
-  ["Set up a podcast", "Free measurement, for good", "/orbe-site/demo/app/podcasts", "pod", "podcasts", "grow", null, "podcast"],
+  ["Set up a podcast", "Free measurement, always", "/orbe-site/demo/app/podcasts", "pod", "podcasts", "grow", null, "podcast"],
 ];
 
-/** Three quick starts, what you asked for help with first. */
-export function quickFor(help = []) {
+/** Three quick starts: for what you make (a podcast's set-up only for someone who makes one), then what you asked for help with first. */
+export function quickFor(help = [], makes = [], hasShow = false) {
   const want = new Set(help);
-  const open = QUICK.filter(([, , , , f, , needs]) => (!f || on(f)) && can(needs));
-  return [...open.filter((q) => want.has(q[5])), ...open.filter((q) => !want.has(q[5]))].slice(0, 3);
+  const podcast = makes.includes("podcast") && !hasShow;
+  const open = QUICK.filter(([, , , , f, , needs, art]) => (!f || on(f)) && can(needs) && (art !== "podcast" || podcast || (!makes.length && !hasShow)));
+  const first = (q) => (q[7] === "podcast" && podcast ? 0 : want.has(q[5]) ? 1 : 2);
+  return [...open].sort((a, b) => first(a) - first(b)).slice(0, 3);
 }
 
 /* A quick start's picture: for rating, the creator's own latest video where Orbe can show it; otherwise that task's art. */
 const pictureFor = (art, latest) => (art === "rate" && latest ? workArt(latest, art) : quickArt(art));
 
-function quickCards(help, latest) {
+function quickCards(help, latest, makes, hasShow) {
   return h("nav", { class: "cn-quick", "aria-label": "Quick starts" },
-    quickFor(help).map(([t, d, href, , , , , art]) =>
+    quickFor(help, makes, hasShow).map(([t, d, href, , , , , art]) =>
       h("a", { class: "cn-qcard", href }, pictureFor(art, latest), h("span", null, h("span", { class: "cn-qcard-t" }, t), h("span", { class: "cn-qcard-d" }, d)), icon("chevronRight")),
     ),
   );
@@ -112,8 +114,9 @@ const workRow = (w) =>
 
 function ratingCard(rated) {
   const res = rated.result;
-  return section({ title: "Your rating", line: `${rated.handle} on ${KINDS[rated.kind] ?? rated.kind}`, actions: can("read.money") ? h("a", { class: "cn-btn cn-btn--xs", href: "/orbe-site/demo/app/record" }, "Record") : null },
-    h("div", { class: "cn-figure" }, h("p", { class: "cn-figure-n", "aria-label": `Rating ${signed(res.rating)}` }, signed(res.rating)), h("div", { class: "cn-figure-k" }, h("b", null, res.band), h("span", null, `Against ${res.sizeBand}, where zero is typical`))),
+  // The figure, and the way to the Record, are in the strip at the top; here, only what it is made of.
+  const unit = SIZE_RANGES[rated.kind]?.unit;
+  return section({ title: "What the rating is made of", line: `${handleOf(rated.handle, rated.kind)} on ${KINDS[rated.kind] ?? rated.kind}, against ${res.sizeBand}${unit ? ` ${unit}` : ""}` },
     h("ul", { class: "cn-parts" }, res.parts.map((p) => {
       const bar = h("span", { class: "cn-part-bar" }, h("span"));
       bar.firstChild.style.setProperty("--p", String(p.score));
@@ -121,6 +124,14 @@ function ratingCard(rated) {
     })),
     h("p", { class: "cn-label" }, rated.notice ?? "Independently calculated by Orbe"),
   );
+}
+
+/** One line: hello, by first name when Orbe knows it. */
+function greeting(name) {
+  const hour = new Date().getHours();
+  const part = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const first = firstName(name);
+  return h("h1", { class: "cn-home-hi", tabindex: "-1", "data-title": "" }, first ? `${part}, ${first}.` : `${part}.`);
 }
 
 export async function render(main, ctx) {
@@ -132,7 +143,7 @@ export async function render(main, ctx) {
       const none = Promise.resolve(null);
       // Home's first reads come in one request (with the boot on a first visit); each read below is then kept.
       await bundle("home");
-      const [me, rating, history, offers, bookings, sponsorship, works, waitingOn, welcome] = await Promise.all([
+      const [me, own, history, offers, bookings, sponsorship, works, waitingOn, welcome] = await Promise.all([
         api.get("/v1/me"),
         on("rating") ? api.get("/v1/me/rating") : none,
         on("rating") ? settle(api.get("/v1/me/history")) : none,
@@ -145,7 +156,7 @@ export async function render(main, ctx) {
       ]);
       return {
         me,
-        ratings: rating?.ratings ?? [],
+        ratings: own?.ratings ?? [],
         history: history?.ok ? history.v.accounts : [],
         offers: offers?.ok ? offers.v.offers : [],
         bookings: bookings?.ok ? bookings.v.bookings : [],
@@ -153,11 +164,14 @@ export async function render(main, ctx) {
         works: works.ok ? works.v.works : [],
         waitingOn,
         help: welcome?.answers?.help ?? [],
+        makes: welcome?.answers?.makes ?? [],
+        welcomeDue: welcome?.due === true,
       };
     },
     (data) => {
       if (!data) return null;
-      const { me, ratings, history, offers, bookings, sponsorship, works, waitingOn, help } = data;
+      const { me, ratings, history, offers, bookings, sponsorship, works, waitingOn, help, makes, welcomeDue } = data;
+      const hasShow = me.accounts.some((a) => a.kind === "podcast");
       const rated = [...ratings].filter((r) => r.result?.status === "rated").sort((a, b) => (b.result.detail?.works ?? 0) - (a.result.detail?.works ?? 0))[0];
       const trend = history.find((a) => a.accountId === rated?.accountId)?.ratings.map((x) => x.rating) ?? [];
       const openOffers = offers.filter((o) => OPEN_OFFER.includes(o.state));
@@ -175,40 +189,74 @@ export async function render(main, ctx) {
       progress.querySelector(".cn-progress-bar span").style.setProperty("--p", String(done / steps.length));
       // Setting the account up is the owner's: someone working on another's team is not asked to.
       const showStart = steps.some((x) => !x.done) && !hidden() && can("owner");
+      // Nearly there: Getting started shrinks to one line naming the next step.
+      const nearly = done >= 5;
+      const hide = (e) => {
+        try {
+          localStorage.setItem(HIDE, "1");
+        } catch {
+          // Not remembered: it hides for this visit only.
+        }
+        const line = e.target.closest(".cn-start-line");
+        if (line) return line.remove();
+        e.target.closest(".cn-section-head").nextElementSibling.remove();
+        e.target.closest(".cn-section-head").remove();
+      };
+      const nextOne = steps.find((x) => !x.done);
+      const startLine = () => h("section", { class: "cn-card cn-start-line", "aria-label": "Getting started" },
+        h("p", null, h("b", null, "Getting started."), " Next: ", nextOne.href ? h("a", { href: nextOne.href }, nextOne.name) : nextOne.name, "."),
+        progress,
+        h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: hide }, "Don't show this"),
+      );
       const latest = () => section({ title: "Your latest works", line: plural(works.length, "work") + " in your library", actions: h("a", { class: "cn-btn cn-btn--xs", href: "/orbe-site/demo/app/library" }, "Library") },
         works.length ? h("div", { class: "cn-links" }, works.slice(0, 5).map(workRow)) : emptyState("library", "Works you publish show here, each rated against creators your size.", [["Connect an account", "/orbe-site/demo/app/settings/connections", true]]),
       );
+      // Nothing connected yet: one way in, said once, in place of figures that would all read zero.
+      const fresh = !me.accounts.length;
+      const firstConnect = fresh && !viaGoogle
+        ? h("section", { class: "cn-banner" }, h("p", null, "Your rating, your works and fair prices for offers all start from an account Orbe can read. Orbe only reads."), can("owner") ? h("a", { class: "cn-btn cn-btn--primary cn-btn--s", href: "/orbe-site/demo/app/settings/connections" }, "Connect your first account") : null)
+        : null;
       const start = () => h("div", { class: "cn-start" },
         section({ title: "Welcome to Orbe", line: "A few steps to a rating and a record brands can trust.", actions: progress }, checklist(steps)),
-        latest(),
+        fresh ? null : latest(),
       );
-      const head = band("Make something worth backing.", can("read.money") ? "Rate a work, find the brands that back creators like you, and turn one work into many." : "Rate a work, or fix one, against creators your size, and turn one work into many.");
+      // Hello to whoever is signed in, which on someone else's team is not the account's owner.
+      const head = greeting((ctx.user.person ?? me.creator).displayName);
+      // Someone who came to Orbe through another team and has not set up their own account: offered here, once, never forced.
+      const ownSetUp = welcomeDue && can("owner")
+        ? h("section", { class: "cn-banner", "aria-label": "Set up your account" },
+            h("p", null, h("b", null, "Set up your own account."), " A few questions, then your place among creators your size."),
+            h("div", { class: "cn-banner-actions" },
+              h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: async (e) => {
+                const card = e.target.closest(".cn-banner");
+                // The way in that the set-up would have given takes its place.
+                card.replaceWith(firstConnect ?? "");
+                await api.put("/v1/me/welcome", { skipped: true, tourDone: true }).catch(() => {});
+              } }, "Not now"),
+              h("a", { class: "cn-btn cn-btn--primary cn-btn--s", href: "/orbe-site/demo/app/welcome" }, "Start"),
+            ),
+          )
+        : null;
       const needs = [
+        ownSetUp,
         alerts(waitingOn),
         viaGoogle
           ? h("section", { class: "cn-banner", role: "status" }, h("p", null, "You signed in with Google. If your YouTube channel is on the same Google account, connect YouTube Analytics next to claim it."), h("a", { class: "cn-btn cn-btn--primary cn-btn--s", href: "/orbe-site/demo/app/connections?source=youtube_analytics" }, "Connect YouTube"))
           : null,
-        statStrip([
-          on("rating") ? stat({ label: "Rating", value: rated ? signed(rated.result.rating) : "Not yet", line: rated ? `${rated.result.band} for ${rated.handle}, where zero is typical` : "Connect an account to be rated.", spark: sparkline(trend, "Your rating over time"), links: can("read.money") ? [["Record", "/orbe-site/demo/app/record"]] : [] }) : null,
+        fresh ? (ownSetUp ? null : firstConnect) : statStrip([
+          on("rating") ? stat({ label: "Rating", value: rated ? rating(rated.result.rating, { size: "" }) : "Not yet", line: rated ? `${rated.result.band} for ${rated.handle}, where zero is typical` : "Connect an account to be rated.", spark: sparkline(trend, "Your rating over time"), links: can("read.money") ? [["Record", "/orbe-site/demo/app/record"]] : [] }) : null,
           stat({ label: "Works, last 30 days", value: String(month.length), line: `${plural(me.accounts.length, "account")} read`, spark: bars(perWeek(works), "Works published per week, last eight weeks"), links: [["Library", "/orbe-site/demo/app/library"]] }),
           on("sponsorships") && can("read.money") ? stat({ label: "Offers waiting", value: String(openOffers.length), line: `${openOffers.length ? `${openOffers[0].brandName} first. ` : ""}${plural(moving.length, "booking")} under way.`, links: [["Deals", "/orbe-site/demo/app/deals"]] }) : null,
         ]),
       ];
       // Below the fold, built once the top has painted: Getting started, the rating part by part and recent activity.
       const rest = () => [
-        showStart
-          ? [h("div", { class: "cn-section-head" }, h("div", null, h("h2", { class: "cn-h2" }, "Getting started"), h("p", null, "Start exploring what Orbe does for you.")), h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: (e) => {
-              try {
-                localStorage.setItem(HIDE, "1");
-              } catch {
-                // Not remembered: it hides for this visit only.
-              }
-              e.target.closest(".cn-section-head").nextElementSibling.remove();
-              e.target.closest(".cn-section-head").remove();
-            } }, "Don't show this")), start()]
+        showStart && nearly ? startLine() : null,
+        showStart && !nearly
+          ? [h("div", { class: "cn-section-head" }, h("div", null, h("h2", { class: "cn-h2" }, "Getting started"), h("p", null, "Start exploring what Orbe does for you.")), h("button", { class: "cn-btn cn-btn--s cn-btn--ghost", type: "button", onclick: hide }, "Don't show this")), start()]
           : null,
-        h("div", { class: "cn-twocol" },
-          rated ? ratingCard(rated) : showStart ? null : latest(),
+        fresh ? null : h("div", { class: "cn-twocol" },
+          rated ? ratingCard(rated) : showStart && !nearly ? null : latest(),
           section({ title: "Recent activity" },
             recent.length > 1
               ? h("ul", { class: "cn-feed" }, recent.map((a) => h("li", null, h("span", { class: "cn-item-ico" }, icon(a.icon)), h("span", null, a.text), h("time", { datetime: a.at }, ago(a.at)))))
@@ -216,12 +264,12 @@ export async function render(main, ctx) {
           ),
         ),
       ];
-      // On a phone the numbers and what needs you come first, under a shorter band; the composer follows.
+      // One width for everything. On a phone: the composer, then what is waiting on you, then the figures; the rest follows.
       if (matchMedia("(max-width: 899px)").matches) {
-        head.classList.add("cn-band--short");
-        return [head, h("div", { class: "cn-home cn-home--first" }, needs), box.node, later(() => [quickCards(help, works[0]), h("div", { class: "cn-home" }, rest())])];
+        const [own, waiting, banner, figures] = needs;
+        return h("div", { class: "cn-home cn-home--top" }, head, own, box.node, waiting, banner, figures, later(() => [quickCards(help, works[0], makes, hasShow), ...rest()]));
       }
-      return [head, box.node, quickCards(help, works[0]), h("div", { class: "cn-home" }, needs, later(rest))];
+      return h("div", { class: "cn-home cn-home--top" }, head, box.node, quickCards(help, works[0], makes, hasShow), needs, later(rest));
     },
   );
 }

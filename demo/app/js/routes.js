@@ -53,7 +53,7 @@ export const CREATOR = [
   // Every run of a tool, from the composer or a tool page, kept on the server.
   { path: "runs", name: "Runs", module: "./creator/studio.js", moved: ["studio"], under: "explore" },
   { path: "rate", name: "Rate a channel", module: "./tools/rate.js", under: "explore", feature: "rating" },
-  { path: "offer", name: "Fair offer check", module: "./tools/offer.js", under: "explore", feature: "sponsorships", needs: "read.money" },
+  { path: "offer", name: "Check an offer", module: "./tools/offer.js", under: "explore", feature: "sponsorships", needs: "read.money" },
   { path: "protect", name: "Protect", module: "./tools/protect.js", under: "explore" },
   { path: "developers", name: "For developers", module: "./tools/developers.js", under: "explore" },
   // Drop in a video: reached from the Library, a work's Clips and words tab, Explore and the composer.

@@ -55,7 +55,7 @@ function show(key) {
   const rep = r.report;
   html = textDates(tidy(renderHtml(rep)));
   $("[data-who]").textContent = c.who;
-  const tone = rep.verdict.status === "verified" ? "good" : rep.verdict.status === "partly_verified" ? "bad" : "warn";
+  const tone = rep.verdict.status === "verified" ? "good" : rep.verdict.status === "partly_verified" ? "bad" : rep.verdict.status === "not_checked" ? "" : "warn";
   const TONE = { good: ["good", "Good"], concern: ["warn", "Ask"], note: ["", "Note"] };
   $("[data-summary]").innerHTML = `
     <p class="dil-say"><strong class="verdict-word ${tone}">${esc(rep.verdict.label)}.</strong> ${esc(dates(tidy(nodash(textToString(rep.verdict.summary)))))}</p>

@@ -416,6 +416,7 @@ else {
   setTimeout(() => { if (!document.hidden) startCycle(); }, 1800);
   /* stop as soon as the instrument leaves view */
   if ("IntersectionObserver" in window) new IntersectionObserver((es) => { if (es.some((e) => !e.isIntersecting)) stopCycle(); }).observe(hero);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopCycle(); });
 }
 fadeKinds();
 document.fonts?.ready.then(() => { paint(rated(current, F(Number(views.value)))); placeArt(); fadeKinds(); });

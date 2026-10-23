@@ -27,7 +27,7 @@ export const REPORT_VERSION = "orbe-verified/2026.10";
   the first buyers.
 */
 export const VERDICT_RULES = { verifiedConnectedShare: 0.8, partlyBelow: 0.5 };
-export const DISCLAIMER = "This report describes what Orbe read from the sources listed, on the dates shown. It is not an audit, a Quality of Earnings review, a valuation, or financial or investment advice. Orbe introduces buyers and creators; it does not arrange deals or hold money.";
+export const DISCLAIMER = "This report describes what Orbe read from the sources listed, on the dates shown. It is not an audit, a Quality of Earnings review, a valuation, or financial or investment advice. When a business is for sale, Orbe introduces buyers and sellers only: it does not advise on, negotiate or arrange the sale, and it does not hold the purchase money.";
 /**
   Builds the report for one reader. The consent gate runs before anything is
   read, so a refused report computes nothing.
@@ -119,6 +119,20 @@ function verdictOf(record) {
     const share = record.coverage.connectedShare;
     const serious = record.findings.filter((f) => f.status === "contradicted" && RANK[f.severity] >= RANK.medium);
     const highFlags = record.flags.filter((f) => f.severity === "high");
+    if (record.metrics.ttm.total.value <= 0) {
+        return {
+            status: "not_checked",
+            label: "Not yet checked",
+            summary: plain("No revenue was read for the last year, so there is nothing to check yet. Connect a source that pays you, and the record fills in from there."),
+        };
+    }
+    if (!record.checks.some((c) => c.performed)) {
+        return {
+            status: "not_checked",
+            label: "Not yet checked",
+            summary: say `${share} of the last year's revenue was read from connected sources, but no cross-check could run yet: a check needs two sources that describe the same money, such as Stripe charges and Stripe payouts.`,
+        };
+    }
     if (share.value < VERDICT_RULES.partlyBelow) {
         return {
             status: "partly_verified",

@@ -7,7 +7,7 @@ export const pct = (x, decimals) => `${(x * 100).toFixed(decimals ?? (x < 0.1 ? 
 /** A signed change from a ratio: 1.12 reads "+12%", 0.8 reads "-20%". */
 export const change = (ratio) => {
     const n = Math.round((ratio - 1) * 100);
-    return `${n >= 0 ? "+" : "-"}${Math.abs(n)}%`;
+    return `${n >= 0 ? "+" : "−"}${Math.abs(n)}%`;
 };
 export function formatDisplay(d, x) {
     switch (d.as) {
@@ -48,4 +48,4 @@ export function formatMetric(unit, x) {
     }
 }
 /** The signed rating as it is shown: "+1.24", "-0.50", "0.00". */
-export const signed = (n) => `${n > 0 ? "+" : n < 0 ? "-" : ""}${Math.abs(n).toFixed(2)}`;
+export const signed = (n) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n).toFixed(2)}`;

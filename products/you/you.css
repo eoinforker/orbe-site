@@ -189,7 +189,7 @@
   border-radius: 12px; overflow: hidden; color: var(--orbe-ink);
   background-color: var(--orbe-sky);
   background-image: var(--ob-grit);
-  background-size: 180px 180px;
+  background-size: 128px 128px;
   box-shadow: 0 0 0 1px var(--rule-strong), var(--ob-lift-held);
 }
 .yo-card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: auto; }

@@ -4,21 +4,20 @@
   - Sponsors like you (sponsor_finder): brands that sponsor channels like
     yours, from their public works, with the evidence, how clearly they
     were labelled, and a price only where Orbe can stand behind one.
-  - Assistant (deals_agent): the limits you hand Orbe's assistant, the
-    pipeline it keeps (found, drafted, waiting on you, countered, agreed),
-    and each conversation. It drafts, counters only where you allow it, and
-    never accepts or sends anything without your tap.
+  - Assistant (deals_agent): the conversations Orbe's assistant keeps
+    (found, drafted, waiting on you, countered, agreed), each with its
+    drafts, and how its emails are sent. Its rules, and what it may do
+    without asking, live in Hand it off on Deals (handoff.js); a reply or
+    outreach email never goes without a person's tap.
 */
 import { api, can, on, seg } from "../api.js";
 import { emptyState, pill, section, segmented, skeleton } from "../console-ui.js";
-import { openConnect } from "../connect-inline.js";
+import { connectEmpty } from "../connect-inline.js";
 import { formatName } from "../terms.js";
-import { action, block, check, confirmBox, count, day, field, form, h, input, money, textarea, toast, when } from "../ui.js";
+import { action, block, confirmBox, count, day, field, form, h, input, money, textarea, toast, when } from "../ui.js";
 
 const STAGE_WORDS = { found: "Found", drafted: "Drafted", waiting: "Waiting on you", countered: "Countered", agreed: "Agreed", closed: "Closed" };
 const STAGE_TONE = { found: "idle", drafted: "idle", waiting: "needs", countered: "running", agreed: "done", closed: "off" };
-/* The formats the assistant prices, by the sponsor module's names. */
-const PRICED = [["integration", "youtube"], ["dedicated", "youtube"], ["newsletter_slot", "substack"], ["podcast_read", "podcast"]];
 const fmt = (f) => formatName(f).toLowerCase();
 const row = (...btns) => h("div", { class: "cn-dw-actions" }, btns);
 
@@ -31,6 +30,9 @@ function disclosureLine(d) {
   if (!d.labelled) return `No clear ad label seen in ${all === 1 ? "the read" : `${all} reads`}. Orbe may not see a spoken one.`;
   return `Labelled clearly in ${d.labelled} of ${all}${d.unclear ? `, unclearly in ${d.unclear}` : ""}. Orbe may not see a spoken label.`;
 }
+
+/* What creators like this account are called: channels, shows, newsletters (services/finder.ts PEER_WORDS). */
+const like = (acc) => `${acc.peerWord ?? "channels"} like yours`;
 
 function brandRow(b, acc, goAssistant) {
   const more = h("details", { class: "dl-fold" }, h("summary", null, `Where it was seen (${b.evidence.length})`),
@@ -56,7 +58,7 @@ function brandRow(b, acc, goAssistant) {
   return h("li", { class: "cn-brand" },
     h("div", { class: "cn-brand-main" },
       h("p", { class: "cn-brand-name" }, b.name, " ", b.confirmed ? null : h("span", { class: "cn-tag" }, "Detected name")),
-      h("p", { class: "cn-brand-line" }, `Seen with ${count(b.peers)} channels like yours, ${count(b.deals)} reads, most recently ${day(b.lastSeen)}. Usually: ${b.typicalFormat.toLowerCase()}.`),
+      h("p", { class: "cn-brand-line" }, `Seen with ${count(b.peers)} ${like(acc)}, ${count(b.deals)} reads, most recently ${day(b.lastSeen)}. Usually: ${b.typicalFormat.toLowerCase()}.`),
       disclosureLine(b.disclosure) ? h("p", { class: "cn-brand-line cn-brand-line--quiet" }, disclosureLine(b.disclosure)) : null,
       b.settled ? h("p", { class: "cn-brand-line" }, `Orbe settled ${count(b.settled.count)} bookings with them at ${money(b.settled.low)} to ${money(b.settled.high)}.`) : null,
       more,
@@ -68,65 +70,38 @@ function brandRow(b, acc, goAssistant) {
 export function finderTab(el, goAssistant) {
   el.replaceChildren(skeleton(4));
   return block(el, () => api.get("/v1/me/sponsor-finder"), ({ accounts }) => {
-    if (!accounts.length) return emptyState("search", "Connect a channel or add your show first.", [["Connect YouTube", () => openConnect("youtube", { reload: () => finderTab(el, goAssistant) }), true], ["All connections", "/orbe-site/demo/app/connections"]], "Orbe finds channels like yours from your own account.");
-    return accounts.map((acc) =>
+    if (!accounts.length) return connectEmpty("search", "Connect an account or add your show first.", "Orbe finds creators like you from your own account.", { reload: () => finderTab(el, goAssistant) });
+    // Accounts with nothing found yet share one empty state, rather than one each.
+    const found = accounts.filter((a) => a.brands.length || a.yourRange.length);
+    const bare = accounts.filter((a) => !found.includes(a));
+    const quiet = bare.length
+      ? section(
+          { title: found.length ? "Nothing found yet" : "Sponsors like you", line: `For ${bare.map((a) => a.handle).join(", ")}.` },
+          emptyState("search", bare.some((a) => a.alike ?? a.peers.length) ? "No brands seen with creators like you yet." : "No creators like you found yet.", [], bare.some((a) => a.alike ?? a.peers.length) ? "Orbe reads their public works in the background, each at most once a week. Look again in a day or two." : "As more creators your size join Orbe, this fills in."),
+          h("details", { class: "dl-fold" }, h("summary", null, "How this is worked out"),
+            h("ul", { class: "cn-points" }, [...new Set(bare.flatMap((a) => [...a.notes, a.notice]))].map((n) => h("li", null, n))),
+          ),
+          h("p", { class: "cn-label" }, bare[0].label),
+        )
+      : null;
+    return [...found.map((acc) =>
       section(
-        { title: `@${acc.handle.replace(/^@+/, "")}`, line: `${count(acc.peers.length)} channels like yours, matched on ${acc.basis === "topic" ? "the words in your titles and your size" : "your size alone"}.` },
+        { title: acc.handle, line: `${count(acc.alike ?? acc.peers.length)} ${like(acc)}, matched on ${acc.basis === "topic" ? "the words in your titles and your size" : "your size"}.` },
         acc.yourRange.length ? h("p", { class: "cn-range" }, "Your own results support ", acc.yourRange.map((r, i) => [i ? "; " : "", h("b", null, `${money(r.low)} to ${money(r.high)}`), ` for ${fmt(r.format)}`]), ".") : null,
         acc.brands.length
           ? h("ul", { class: "cn-brands" }, acc.brands.map((b) => brandRow(b, acc, goAssistant)))
-          : emptyState("search", acc.peers.length ? "No brands seen with channels like yours yet." : "No channels like yours found yet.", [], acc.peers.length ? "Orbe reads their public works in the background, each at most once a week. Look again in a day or two." : "As more creators your size join Orbe, this fills in."),
+          : emptyState("search", (acc.alike ?? acc.peers.length) ? `No brands seen with ${like(acc)} yet.` : `No ${like(acc)} found yet.`, [], (acc.alike ?? acc.peers.length) ? "Orbe reads their public works in the background, each at most once a week. Look again in a day or two." : "As more creators your size join Orbe, this fills in."),
         acc.withheld.youtube ? h("p", { class: "cn-label" }, `${count(acc.withheld.youtube)} YouTube reads withheld. ${acc.withheld.reason}`) : null,
         h("details", { class: "dl-fold" }, h("summary", null, "How this is worked out"),
           h("ul", { class: "cn-points" }, [...acc.notes, acc.notice].map((n) => h("li", null, n))),
         ),
         h("p", { class: "cn-label" }, acc.label),
       ),
-    );
+    ), quiet].filter(Boolean);
   });
 }
 
 /* ---------------------------------------------------------------- the assistant */
-
-const pence = (v) => (String(v ?? "").trim() === "" ? undefined : Math.round(Number(v) * 100));
-
-function limitsForm(a, reload) {
-  const l = a.limits;
-  const offered = PRICED.map(([f]) => f);
-  const mins = PRICED.map(([f, kind]) =>
-    field(`Least you take: ${formatName(f, kind).toLowerCase()} (£)`, input({ name: `min_${f}`, type: "number", min: "0", step: "1", inputmode: "decimal", value: l.minimums[f] ? l.minimums[f] / 100 : "" })),
-  );
-  return form(
-    [
-      check("Let the assistant work on my deals", { name: "enabled", checked: a.enabled }),
-      h("div", { class: "cn-grid2" }, mins),
-      field("Brands to avoid", input({ name: "avoidBrands", value: l.avoidBrands.join(", "), maxlength: 2000 }), "Separated by commas."),
-      field("Categories to avoid", input({ name: "avoidCategories", value: l.avoidCategories.join(", "), maxlength: 2000 }), "As brands give them: gambling, vpn, alcohol."),
-      h("div", { class: "cn-grid2" },
-        field("Least notice before a read goes live (days)", input({ name: "leadDays", type: "number", min: "0", max: "120", step: "1", value: l.leadDays })),
-        field("Longest exclusivity you accept (days)", input({ name: "exclusivityMaxDays", type: "number", min: "0", max: "365", step: "1", value: l.exclusivityMaxDays ?? "" }), "Leave empty for no rule."),
-      ),
-      check("Counter on my own when an offer in Orbe is below my minimum (at most twice; I still accept)", { name: "autoCounter", checked: l.autoCounter }),
-      check("Draft outreach to brands that sponsor creators like me", { name: "outreach", checked: l.outreach }),
-    ],
-    "Save",
-    async (d) => {
-      const minimums = {};
-      for (const f of offered) {
-        const v = pence(d.get(`min_${f}`));
-        if (v) minimums[f] = v;
-      }
-      const list = (k) => String(d.get(k) ?? "").split(",").map((x) => x.trim()).filter(Boolean);
-      const ex = String(d.get("exclusivityMaxDays") ?? "").trim();
-      await api.put("/v1/me/deals/assistant", {
-        enabled: d.get("enabled") === "on",
-        limits: { minimums, avoidBrands: list("avoidBrands"), avoidCategories: list("avoidCategories"), leadDays: Number(d.get("leadDays") || 0), exclusivityMaxDays: ex === "" ? null : Number(ex), autoCounter: d.get("autoCounter") === "on", outreach: d.get("outreach") === "on" },
-      });
-      reload();
-      return "Saved.";
-    },
-  );
-}
 
 function messageView(t, m, reload) {
   const [subjectLine, ...rest] = m.body.startsWith("Subject: ") ? m.body.split("\n\n") : [null, m.body];
@@ -257,11 +232,11 @@ export function assistantTab(el) {
       const counts = Object.fromEntries(Object.keys(STAGE_WORDS).map((s) => [s, threads.filter((t) => t.stage === s).length]));
       const shown = threads.filter((t) => (filter === "open" ? !["agreed", "closed"].includes(t.stage) : t.stage === filter));
       const list = h("div", { class: "cn-threads" });
-      const draw = () => list.replaceChildren(...(shown.length ? shown.map((t) => threadView(t, reload)) : [emptyState("mail", filter === "open" ? "Nothing open." : `Nothing ${STAGE_WORDS[filter].toLowerCase()}.`, [], a.enabled ? "Offers in Orbe, brands you write to and emails you paste in all appear here." : "Switch the assistant on below to have offers judged as they arrive.")]));
+      const draw = () => list.replaceChildren(...(shown.length ? shown.map((t) => threadView(t, reload)) : [emptyState("mail", filter === "open" ? "Nothing open." : `Nothing ${STAGE_WORDS[filter].toLowerCase()}.`, [], a.enabled ? "Offers in Orbe, brands you write to and emails you paste in all appear here." : "Switch on Hand it off, above, to have offers answered as they arrive.")]));
       draw();
       return [
         section(
-          { title: "Conversations", line: a.enabled ? "Judged as offers arrive. It counters only where you allow it, and never accepts." : "The assistant is off.", actions: a.enabled ? pill("done", "On") : pill("idle", "Off") },
+          { title: "Conversations", line: a.enabled ? "Your rules live in Hand it off, above. Replies and outreach wait for your tap." : "Hand it off, above, is off. Your rules live there.", actions: a.enabled ? pill("done", "On") : pill("idle", "Off") },
           segmented("Show", [["open", `Open ${threads.filter((t) => !["agreed", "closed"].includes(t.stage)).length}`], ["waiting", `Waiting on you ${counts.waiting}`], ["countered", `Countered ${counts.countered}`], ["agreed", `Agreed ${counts.agreed}`]], filter, (v) => {
             filter = v;
             reload();
@@ -280,7 +255,6 @@ export function assistantTab(el) {
               }),
             )
           : null,
-        section({ title: "Your limits", line: "The assistant works only inside these. Changing them is yours, or waits for the team's owner." }, can("business") ? limitsForm(a, reload) : h("p", null, "Your role on this team cannot change the limits.")),
         sendingSection(sender, reload),
       ];
     });

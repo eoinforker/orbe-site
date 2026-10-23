@@ -1,4 +1,4 @@
-/* Bookings: fund through the payments partner, review drafts, approve content, and follow delivery. */
+/* Bookings: fund each booking, review drafts, approve content, and follow delivery. */
 import { api, seg } from "../api.js";
 import { BOOKING_STATES, disclosure, guaranteeLine, measured, priceLines, TONE, windowLine } from "../deal.js";
 import { formatName } from "../terms.js";
@@ -7,13 +7,13 @@ import { screenHead } from "../console-ui.js";
 
 function moves(b, reload) {
   if (b.state === "awaiting_funds") {
-    const link = b.funding.checkoutUrl ? h("a", { class: "ob-lnk ob-lnk--s", href: b.funding.checkoutUrl, target: "_blank", rel: "noopener" }, "Pay with the payments partner") : null;
+    const link = b.funding.checkoutUrl ? h("a", { class: "ob-lnk ob-lnk--s", href: b.funding.checkoutUrl, target: "_blank", rel: "noopener" }, "Pay now") : null;
     return h("div", { class: "ap-stack" },
-      h("p", null, `Pay ${money(b.funding.total)} by ${when(b.funding.payBy)}. The payments partner holds it; Orbe never does. The creator starts once it is held.`),
+      h("p", null, `Pay ${money(b.funding.total)} by ${when(b.funding.payBy)}. It is held until delivery is verified, and the creator starts once it has arrived.`),
       link ?? actions(action("Fund this booking", async () => {
         const r = await api.post(`/v1/brand/bookings/${seg(b.id)}/fund`, {});
         reload();
-        return r.checkoutUrl ? "Ready to pay with the payments partner." : "Funding started.";
+        return r.checkoutUrl ? "Ready to pay." : "Funding started.";
       }, { primary: true })),
     );
   }
@@ -47,7 +47,7 @@ function moves(b, reload) {
 
 export async function render(main) {
   const body = h("div");
-  screenHead(main, "bookings", { line: "Every accepted offer: money held by the payments partner, released only when Orbe verifies delivery.", tags: [["Held until verified", "sky"]] }).append(body);
+  screenHead(main, "bookings", { line: "Every accepted offer: money held until Orbe verifies delivery, and only then paid to the creator.", tags: [["Held until verified", "sky"]] }).append(body);
   const reload = () =>
     block(body, async () => {
       const [{ bookings }, { campaigns }] = await Promise.all([api.get("/v1/brand/bookings"), api.get("/v1/brand/campaigns")]);

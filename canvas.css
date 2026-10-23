@@ -72,7 +72,7 @@
   padding: 0 24px 16px; gap: 0; color: var(--kfg);
   background-color: var(--kbg);
   background-image: var(--ob-grit);
-  background-size: 180px 180px;
+  background-size: 128px 128px;
   transition: background-color 450ms var(--ob-ease), color 450ms var(--ob-ease);
 }
 /*
