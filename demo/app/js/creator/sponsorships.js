@@ -13,7 +13,7 @@
 import { api, can, on, seg } from "../api.js";
 import { BOOKING_STATES, guaranteeLine, OFFER_STATES, priceLines, windowLine } from "../deal.js";
 import { FORMATS, formatName, KINDS, unitOf } from "../terms.js";
-import { drawer, emptyState, pill, screenHead, section, segmented, skeleton, stat, statStrip } from "../console-ui.js";
+import { drawer, emptyState, pill, sampleTag, screenHead, section, segmented, skeleton, stat, statStrip } from "../console-ui.js";
 import { connectButton, connectEmpty, findSource } from "../connect-inline.js";
 import { icon } from "../icons.js";
 import { action, block, bps, check, confirmBox, count, day, field, form, h, input, money, pounds, select, tabs, textarea, toast, when } from "../ui.js";
@@ -126,7 +126,7 @@ function pipeline(deals, ctx) {
   draw();
   const search = h("input", { class: "cn-field-input dl-search", type: "search", placeholder: "Find a brand", "aria-label": "Find a brand", oninput: (e) => ((q = e.target.value.trim().toLowerCase()), draw()) });
   return section(
-    { title: "Pipeline", line: "Every offer and the booking it becomes. Open one for its terms, timeline and evidence.", actions: search },
+    { title: "Pipeline", line: "Every offer and the booking it becomes. Open one for its terms, timeline and evidence.", actions: [sampleTag(), search] },
     segmented("Show", FILTERS.map(([f, label]) => [f, `${label} ${counts[f]}`]), filter, (v) => ((filter = v), draw()), { cls: "cn-seg--scroll" }),
     h("div", { class: "dl-wrap" }, table),
     empty,

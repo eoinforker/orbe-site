@@ -163,17 +163,17 @@ let notesHeard = false;
 let markNow = () => {};
 function bell() {
   const dot = h("span", { class: "cn-dot", hidden: true });
-  // A request waiting for the owner shows as a number; anything else as a dot.
+  // The badge and the panel's header are one number: everything the list holds (notify.js).
   const mark = (items) => {
-    const n = items.find((i) => i.kind === "approval")?.count ?? 0;
-    dot.hidden = items.length === 0;
+    const n = items.total ?? items.length;
+    dot.hidden = n === 0;
     dot.textContent = n ? String(n) : "";
     dot.classList.toggle("cn-dot--n", n > 0);
   };
   const wrap = menu([icon("bell"), dot], async () => {
     const items = await loadNotifications(state.user);
     mark(items);
-    const head = h("div", { class: "cn-menu-title" }, h("p", null, "Notifications"), h("span", { class: "cn-count" }, String(items.length)));
+    const head = h("div", { class: "cn-menu-title" }, h("p", null, "Notifications"), h("span", { class: "cn-count" }, String(items.total ?? items.length)));
     if (!items.length) return [head, h("div", { class: "cn-menu-empty" }, h("span", { class: "cn-empty-ico" }, icon("bell")), h("p", { class: "cn-item-t" }, "All caught up"), h("p", { class: "cn-item-d" }, "Offers, bookings and introductions that need you show here."))];
     return [head, items.map((n) => h("a", { class: `cn-note${n.kind === "approval" ? " cn-note--approval" : ""}`, href: n.href }, h("span", { class: "cn-note-dot", "aria-hidden": "true" }), h("span", { class: "cn-item-t" }, n.title), h("span", { class: "cn-item-d" }, n.line)))];
   }, { aria: "Notifications", title: "Notifications", end: true, panel: "cn-menu--notes" });

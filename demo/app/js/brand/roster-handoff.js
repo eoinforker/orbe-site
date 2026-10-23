@@ -14,12 +14,12 @@
 */
 import { api, seg } from "../api.js";
 import { button, status, twoLine } from "../cards.js";
-import { drawer, emptyState, section } from "../console-ui.js";
+import { drawer, emptyState, sampleTag, section } from "../console-ui.js";
 import { handoffCard, headline } from "../creator/handoff.js";
 import { confirmBox, form, h, check, money, toast } from "../ui.js";
 
 const GRANT_WORDS = {
-  none: "Nothing alone: changes go to them",
+  none: "They approve every change",
   rules: "You set the rules",
   approve: "You approve",
   both: "You set the rules and approve",
@@ -41,7 +41,7 @@ const hm = (iso) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit",
 function nextCell(r) {
   if (!r.shares) return h("span", { class: "dl-quiet" }, "Not shared");
   if (!r.next) return h("span", { class: "dl-quiet" }, r.enabled ? "Nothing waiting" : "Off");
-  const sub = r.next.state === "scheduled" && r.next.runAt ? `At ${hm(r.next.runAt)} unless stopped` : r.next.creatorAct ? "Waits for them" : "Waits for you";
+  const sub = r.next.state === "scheduled" && r.next.runAt ? `At ${hm(r.next.runAt)} unless stopped` : r.next.creatorAct ? `${r.creator.name} decides` : "You decide";
   return twoLine(r.next.title, sub);
 }
 
@@ -126,6 +126,15 @@ function queueItem(a, picked, onPick, open) {
   );
 }
 
+/** One group of the queue under its heading, with how many; nothing when it is empty. */
+function queueGroup(id, title, items, picked, onPick, open) {
+  if (!items.length) return null;
+  return h("section", { class: "ho-group rh-queue", "aria-labelledby": id },
+    h("h3", { class: "ho-h", id }, title, h("span", { class: "ho-n" }, String(items.length))),
+    h("ul", { class: "ho-list" }, items.map((a) => queueItem(a, picked, onPick, open))),
+  );
+}
+
 /**
   Approving the picked items together. Counters say they cannot be taken
   back; each accept shows its own notice with its own box to tick, and only
@@ -150,7 +159,7 @@ function approvePicked(items, done) {
         ...accepts.map((a) => h("fieldset", { class: "dl-fs" },
           h("legend", null, `${a.creator.name}: ${headline(a)}`),
           a.notice ? h("p", { class: "dl-notice ho-notice" }, a.notice) : null,
-          check(`I have read this and want to accept for ${a.creator.name}.`, { name: "seen", value: a.id, required: true }),
+          check(`I have read this and want to accept for ${a.creator.name}.`, { name: "seen", value: a.id }),
         )),
       ],
       `Approve ${items.length}`,
@@ -162,7 +171,13 @@ function approvePicked(items, done) {
       },
     );
     f.classList.add("cn-form");
-    f.querySelector("button[type=submit]")?.setAttribute("class", "cn-btn cn-btn--primary");
+    const submit = f.querySelector("button[type=submit]");
+    submit?.setAttribute("class", "cn-btn cn-btn--primary");
+    // Approve waits, greyed, until every accept's notice is ticked: never the browser's own bubble.
+    const boxes = [...f.querySelectorAll("input[name=seen]")];
+    const sync = () => submit && (submit.disabled = boxes.some((b) => !b.checked));
+    boxes.forEach((b) => b.addEventListener("change", sync));
+    sync();
     return [h("p", { class: "dl-notice" }, "Each accept agrees a deal for its creator. Money is held when the brand funds, and paid out on verified delivery."), f];
   });
   return null;
@@ -245,22 +260,25 @@ export function rosterHandoff() {
       slot.querySelector(`th[aria-sort]:not([aria-sort=none]) button`)?.focus();
     };
     const s = d.summary;
-    const line = `On for ${s.on} of ${s.creators}. ${s.waiting} waiting, ${s.scheduled} about to happen.${s.held.amount ? ` ${money(s.held)} held until delivery is verified.` : ""}`;
     const queue = d.queue ?? [];
+    // One queue, in three groups: what you decide, what each creator keeps for themselves, and what is about to happen.
+    const yours = queue.filter((a) => a.state === "waiting" && !a.waitsFor);
+    const theirs = queue.filter((a) => a.state === "waiting" && a.waitsFor);
+    const soon = queue.filter((a) => a.state === "scheduled");
+    const parts = [`${yours.length} waiting on you`, theirs.length ? `${theirs.length} on the creator` : null, soon.length ? `${soon.length} about to happen` : null].filter(Boolean);
+    const line = `On for ${s.on} of ${s.creators}. ${parts.join(", ")}.${s.held.amount ? ` ${money(s.held)} held until delivery is verified.` : ""}`;
     const onPick = (a, yes) => {
       if (yes) picked.set(a.id, a);
       else picked.delete(a.id);
       drawBar();
     };
     slot.replaceChildren(
-      section({ title: "Hand it off across your roster", line, cls: "rh" },
+      section({ title: "Hand it off across your roster", line, actions: sampleTag(), cls: "rh" },
         rosterTable(d.creators, (r) => (r.shares ? open(r.creator) : toast(`${r.creator.name} shares no deals with your agency.`)), sort),
-        h("section", { class: "ho-group rh-queue", "aria-labelledby": "rh-q" },
-          h("h3", { class: "ho-h", id: "rh-q" }, "Queue across your roster", queue.length ? h("span", { class: "ho-n" }, String(queue.length)) : null),
-          queue.length
-            ? h("ul", { class: "ho-list" }, queue.map((a) => queueItem(a, picked, onPick, open)))
-            : h("p", { class: "ho-empty" }, "Nothing waits. New offers are answered inside each creator's rules."),
-        ),
+        queueGroup("rh-q", "Waiting on you", yours, picked, onPick, open),
+        queueGroup("rh-t", "Waiting on the creator", theirs, picked, onPick, open),
+        queueGroup("rh-s", "About to happen", soon, picked, onPick, open),
+        queue.length ? null : h("p", { class: "ho-empty" }, "Nothing waits. New offers are answered inside each creator's rules."),
       ),
       bar,
     );

@@ -7,7 +7,7 @@
 */
 import { api, can, currentTeam, on } from "./api.js";
 import { plural } from "./ui.js";
-import { queueItems } from "./creator/handoff.js";
+import { headline, queueItems } from "./creator/handoff.js";
 
 const CREATOR_MOVES = { in_production: "Deliver", changes_requested: "Revise the draft for", ready: "Go live for", short: "Choose a remedy for", make_good: "Make good for" };
 const BRAND_MOVES = { awaiting_funds: "Fund the booking with", draft_review: "Review the draft from" };
@@ -29,9 +29,9 @@ async function approvalItems(get) {
   const href = "/orbe-site/demo/app/settings/team?tab=approvals";
   if (team.role === "owner") {
     const first = list[0];
-    return [{ title: list.length === 1 ? "A request waits for you" : `${plural(list.length, "request")} wait for you`, line: first.summary, href, kind: "approval", count: list.length }];
+    return [{ title: list.length === 1 ? "A request waits for you" : `${plural(list.length, "request")} wait for you`, line: first.summary, href, kind: "approval", count: list.length, n: list.length }];
   }
-  return [{ title: `Waiting for the owner: ${plural(list.length, "request")}`, line: list[0].summary, href, kind: "approval", count: 0 }];
+  return [{ title: `Waiting for the owner: ${plural(list.length, "request")}`, line: list[0].summary, href, kind: "approval", count: 0, n: list.length }];
 }
 
 /** How many requests wait for this person to decide, for the bell and the palette. */
@@ -45,7 +45,7 @@ export const forgetNotifications = () => (cached = { at: 0, items: [], key: "" }
 
 /**
   Hand it off: each proposal of Orbe's assistant waiting for a person, as
-  "Approve: accept Kettle and Seed at £900", opening the item on Deals. A
+  "Approve: accept Kettle & Crumb at £900", opening the item on Deals. A
   server without the feature answers 404, and nothing is shown.
 */
 async function handoffItems(get) {
@@ -65,21 +65,35 @@ async function creatorItems(get) {
   ]);
   const out = [];
   // An offer the assistant is answering is listed once: as its proposal while it waits for a person, and not at all while its answer is due.
-  out.push(...handoff.items.slice(0, 3).map((i) => ({ ...i, total: handoff.items.length })));
+  out.push(...handoff.items.slice(0, 3).map((i) => ({ ...i, total: handoff.items.length, n: 1 })));
+  if (handoff.items.length > 3) out.push({ title: `${handoff.items.length - 3} more waiting on Deals`, line: "Orbe's assistant waits for your say on each.", href: "/orbe-site/demo/app/deals", n: handoff.items.length - 3 });
   const open = (offers?.offers ?? []).filter((o) => o.state === "sent" && !handoff.offers.has(o.id));
-  if (open.length) out.push({ title: `Answer ${plural(open.length, "sponsorship offer")}`, line: `${open[0].brandName} is waiting. Offers lapse if not answered.`, href: "/orbe-site/demo/app/deals" });
+  if (open.length) out.push({ title: `Answer ${plural(open.length, "sponsorship offer")}`, line: `${open[0].brandName} is waiting. Offers lapse if not answered.`, href: "/orbe-site/demo/app/deals", n: open.length });
   for (const b of (bookings?.bookings ?? []).filter((x) => CREATOR_MOVES[x.state]).slice(0, 4)) out.push({ title: `${CREATOR_MOVES[b.state]} ${b.brandName}`, line: "A booking is waiting on you.", href: "/orbe-site/demo/app/deals?tab=bookings" });
   const asked = (intros?.introductions ?? []).filter((i) => i.status === "requested");
-  if (asked.length) out.push({ title: `${plural(asked.length, "buyer")} asked to be introduced`, line: "Approve or decline before the request lapses.", href: "/orbe-site/demo/app/selling" });
+  if (asked.length) out.push({ title: `${plural(asked.length, "buyer")} asked to be introduced`, line: "Approve or decline before the request lapses.", href: "/orbe-site/demo/app/selling", n: asked.length });
   const invited = (rosters?.rosters ?? []).filter((r) => r.state === "invited");
   for (const r of invited.slice(0, 2)) out.push({ title: `${r.org} invited you to their roster`, line: "Join or decline from your record.", href: "/orbe-site/demo/app/record" });
   return out;
 }
 
+/** An agency: what waits on it across its roster, the same list as the Roster's "Waiting on you". */
+async function rosterItems(get) {
+  if (currentTeam()?.kind !== "agency" || !on("deals_agent")) return [];
+  const r = await settle(get("/v1/roster/handoff"));
+  const mine = (r?.queue ?? []).filter((a) => a.state === "waiting" && !a.waitsFor);
+  const items = mine.slice(0, 3).map((a) => {
+    const line = headline(a).replace(/\.$/, "");
+    return { title: `${a.creator.name}: ${a.kind === "note" ? line : `approve, ${line.charAt(0).toLowerCase()}${line.slice(1)}`}`, line: a.why, href: "/orbe-site/demo/app/roster", kind: "handoff", total: mine.length, n: 1 };
+  });
+  if (mine.length > 3) items.push({ title: `${mine.length - 3} more waiting on the Roster`, line: "Each waits for your say.", href: "/orbe-site/demo/app/roster", n: mine.length - 3 });
+  return items;
+}
+
 async function brandItems(get) {
   if (!on("sponsorships") || !can("read.money")) return [];
-  const bookings = await settle(get("/v1/brand/bookings"));
-  const out = [];
+  const [bookings, roster] = await Promise.all([currentTeam()?.brand === false ? null : settle(get("/v1/brand/bookings")), rosterItems(get)]);
+  const out = [...roster];
   for (const b of (bookings?.bookings ?? []).filter((x) => BRAND_MOVES[x.state] || (x.state === "live" && !x.contentApprovedAt)).slice(0, 5)) {
     const who = `a creator (${String(b.format ?? "read").replaceAll("_", " ")})`;
     out.push({ title: BRAND_MOVES[b.state] ? `${BRAND_MOVES[b.state]} ${who}` : `Approve the content from ${who}`, line: "A booking is waiting on you.", href: "/orbe-site/demo/app/bookings" });
@@ -100,6 +114,8 @@ export async function loadNotifications(user, opts = {}) {
   const items = [...approvals, ...own].map((i) => (i.kind === "handoff" ? { ...i, kind: "approval", count: 0 } : i));
   const first = items.find((i) => i.kind === "approval");
   if (first) first.count = waiting;
+  // One number for the badge and the panel's header: everything the list stands for.
+  items.total = items.reduce((t, i) => t + (i.n ?? 1), 0);
   cached = { at: Date.now(), items, key };
   return items;
 }

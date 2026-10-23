@@ -452,10 +452,11 @@ function settle() {
   (main.querySelector("[data-focus-first]") ?? main.querySelector("[data-title]"))?.focus({ preventScroll: true });
 }
 
-/* On a demo server, a line at the very top on every screen: nothing here is real. */
+/* On a demo server, or with the seed's sample data, a line at the very top on every screen: nothing here is real. */
 function demoBanner() {
-  if (!signInWays().demo || document.querySelector(".cn-demo")) return;
-  document.body.prepend(h("p", { class: "cn-demo", role: "note" }, h("b", null, "Demo"), " Everything here is made up: no real creator, brand, figure or payment."));
+  const ways = signInWays();
+  if (!(ways.demo || ways.sample) || document.querySelector(".cn-demo")) return;
+  document.body.prepend(h("p", { class: "cn-demo", role: "note" }, h("b", null, ways.demo ? "Demo" : "Sample"), " Everything here is made up: no real creator, brand, figure or payment."));
 }
 
 /*

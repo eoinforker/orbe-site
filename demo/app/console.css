@@ -1981,6 +1981,8 @@ html[data-theme="dark"] .cn-wp-key.is-mid { border-top-color: var(--k-sky); }
 }
 /* ---------------------------------------------------------------- Deals: the money, the pipeline and one deal whole (creator/sponsorships.js, deals.js) */
 .dl { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+/* On a phone, Hand it off comes first, above the money: it is what Deals is for, and the tiles would push it below the fold. */
+@media (max-width: 720px) { .dl > .ho-slot { order: -1; } .dl > .ho-slot.is-loading { min-height: 100svh; } }
 .cn-stat--warn .cn-stat-value { color: var(--c-warn); }
 .dl-optin { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 14px 12px 16px; border: 1px solid var(--c-line-2); border-radius: var(--r-m); background: var(--c-s1); }
 .dl-optin-text { flex: 1 1 320px; min-width: 0; }
@@ -2284,6 +2286,7 @@ body:not([data-screen]) .ap-loading { position: fixed; left: 0; right: 0; top: c
 .ho-item.is-asked { padding-right: 14px; background: var(--c-hi-soft); border-radius: 0 var(--r-m) var(--r-m) 0; }
 .ho-item-t { margin: 0; font: 600 var(--fs-m)/var(--lh-snug) var(--sans); color: var(--c-text); }
 .ho-item-d { margin: 0; font-size: var(--fs-s); line-height: var(--lh-body); color: var(--c-text-2); }
+.ho-count { font-weight: 500; color: var(--c-text-2); font-variant-numeric: tabular-nums; }
 .ho-item > .dl-fold, .ho-item > .ap-form, .ho-item > .cn-dw-actions { margin-top: 6px; }
 .ho-item .ap-form { gap: 10px; }
 .ho-msg .cn-msg { max-width: 72ch; }

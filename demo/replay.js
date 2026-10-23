@@ -152,7 +152,7 @@
       var out = null;
       for (var i = 0; i < list.length; i++) if (list[i].body && !list[i].body.user) { out = clone(list[i].body); break; }
       out = out || { user: null, csrfToken: null, features: [] };
-      out.signIn = { google: true, email: true, dev: true };
+      out.signIn = { google: true, email: true, dev: true, sample: true };
       return reply(200, out);
     });
   }
@@ -192,7 +192,7 @@
       if (method === "GET" && path.indexOf("/v1/teams/invitations/") === 0) return Promise.resolve(live(404));
       return Promise.resolve(reply(401, { error: { code: "unauthenticated", message: "Sign in first." } }));
     }
-    // Rating any channel needs YouTube's key; the demo rates the pasted handle with Ada's made-up figures.
+    // Rating any channel needs YouTube's key; the demo rates the pasted handle with Ada's sample figures.
     if (method === "GET" && path.indexOf("/v1/rate/youtube/") === 0) {
       return getData("ada").then(function (ada) {
         var own = ada["GET /v1/me/rating"] && ada["GET /v1/me/rating"][0].body;
@@ -394,11 +394,11 @@
     Hand it off (GET /v1/me/deals/handoff and its writes) is kept here as a
     small model of the server's: the recorded state to start, then approve,
     Do it now, stop, Not this one, the rules, the outbound switch and the
-    made-up offer change it in this browser. Approving the recorded accept,
-    the made-up offer and its counter use the real API's own answers,
-    recorded in that order (build-demo.mjs, handoffWalk), with what each
-    changed in the deals it touched (rec.AFTER); a second made-up offer is
-    the first again under new ids.
+    three sample offers change it in this browser. Approving the waiting
+    accept, each sample offer and what its minute does use the real API's own
+    answers, recorded in that order (build-demo.mjs, handoffWalk), with what
+    each changed in the deals it touched (rec.AFTER). A countdown that runs
+    out is done here, as the assistant's pass would do it.
   */
   var HK = "GET /v1/me/deals/handoff";
   var ACTIVE = ["waiting", "scheduled"];
@@ -443,15 +443,8 @@
     })(x);
     return x;
   }
-  /* The nth made-up offer is the first under new ids: every id the first one made gets a suffix. */
-  function renamer(rec, n) {
-    var first = rec["POST /v1/me/deals/handoff/demo-offer"] && rec["POST /v1/me/deals/handoff/demo-offer"][0].body;
-    if (!first || n < 2) return function (s) { return s; };
-    var ids = [];
-    var o = first.offer || {};
-    [o.id, o.campaignId].concat((first.actions || []).map(function (a) { return a.id; })).forEach(function (x) { if (x && ids.indexOf(x) < 0) ids.push(x); });
-    return function (s) { ids.forEach(function (x) { s = s.split(x).join(x + "_" + n); }); return s; };
-  }
+  /* Ids stay as recorded: each sample offer is sent once. */
+  function renamer() { return function (t) { return t; }; }
   function fixed(x, since, off, rename) { return shiftNew(JSON.parse(rename(JSON.stringify(x))), since, off); }
 
   /* What a recorded write changed: whole answers (a deal's timeline) and lists patched item by item (offers, bookings, approvals). */
@@ -485,9 +478,9 @@
     if (!s.ho) {
       var b = current(rec, HK);
       if (!b || !Array.isArray(b.queue)) return null;
-      // Always the demo's own: the made-up offer button and the Sample data tag.
+      // Always the demo's own: the sample offer button.
       b.demo = true;
-      s.ho = { state: b, alias: {}, demos: 0 };
+      s.ho = { state: b, alias: {}, demos: 0, left0: typeof b.sampleOffersLeft === "number" ? b.sampleOffersLeft : 3 };
     }
     return s.ho;
   }
@@ -573,7 +566,7 @@
     var m;
     if (path === "/v1/me/deals/handoff" && method === "GET") return reply(200, hoView(rec, ho));
     if (path === "/v1/me/deals/handoff" && method === "PUT") {
-      if (isManager()) return askOwner("Mo Seed (made up) asks to change the Hand it off rules");
+      if (isManager()) return askOwner("Mo Haddad asks to change the Hand it off rules");
       body = body || {};
       if (typeof body.enabled === "boolean") x.enabled = body.enabled;
       if (body.rules && typeof body.rules === "object") {
@@ -587,11 +580,16 @@
       return reply(200, hoView(rec, ho));
     }
     if (path === "/v1/me/deals/handoff/outbound" && method === "PUT") {
-      if (isManager()) return askOwner("Mo Seed (made up) asks to change proposing Ada's slots to brands");
+      if (isManager()) return askOwner("Mo Haddad asks to change proposing Ada's slots to brands");
       x.outbound = Object.assign({}, x.outbound, { on: !!(body && body.on), perWeek: Number((body && body.perWeek) || (x.outbound && x.outbound.perWeek) || 3) });
       return reply(200, hoView(rec, ho));
     }
-    if (path === "/v1/me/deals/handoff/run" && method === "POST") return reply(200, { actions: [] });
+    if (path === "/v1/me/deals/handoff/run" && method === "POST") {
+      // A pass now: whatever's minute is up is done, as the assistant's job would have done it.
+      var before = x.queue.map(function (a) { return a.id; });
+      hoView(rec, ho);
+      return reply(200, { actions: clone(x.recent.filter(function (a) { return before.indexOf(a.id) >= 0; })) });
+    }
     if (path === "/v1/me/deals/handoff/actions" && method === "GET") {
       hoView(rec, ho);
       var want = url.searchParams.get("state");
@@ -599,19 +597,20 @@
     }
     if (path === "/v1/me/deals/handoff/demo-offer" && method === "POST") {
       if (!x.enabled) return reply(409, { error: { code: "handoff_off", message: "Switch Hand it off on first." } });
-      var wk = "POST /v1/me/deals/handoff/demo-offer";
+      // The three sample offers in the server's order, each once; then the server's own "all three are in".
+      var n = ho.demos + 1;
+      var wk = "POST /v1/me/deals/handoff/demo-offer#" + n;
       var w = rec[wk] && rec[wk][0];
-      if (!w || !w.body) return live(503);
-      ho.demos += 1;
-      var n = ho.demos;
-      var rename = renamer(rec, n);
+      if (!w || !w.body || !w.body.offer) {
+        var end = rec["POST /v1/me/deals/handoff/demo-offer#done"];
+        return reply(409, (end && end[0].body && end[0].body.error) ? end[0].body : { error: { code: "sample_offers_done", message: "All three sample offers are in. What Orbe did with each is on the card." } });
+      }
+      ho.demos = n;
       var at = rec.AFTER && rec.AFTER[wk] ? Date.parse(rec.AFTER[wk].at) : Date.now();
-      var out = fixed(w.body, at - 60000, Date.now() - at, rename);
-      (out.actions || []).forEach(function (a, i) {
-        ho.alias[a.id] = { orig: w.body.actions[i].id, n: n };
-        hoSettle(ho, a);
-      });
-      applyAfter(rec, wk, rename);
+      var out = fixed(w.body, at - 60000, Date.now() - at, function (t) { return t; });
+      (out.actions || []).forEach(function (a) { hoSettle(ho, a); });
+      applyAfter(rec, wk, function (t) { return t; });
+      x.sampleOffersLeft = Math.max(0, (ho.left0 === undefined ? 3 : ho.left0) - ho.demos);
       hoView(rec, ho);
       return reply(201, out);
     }
@@ -1001,20 +1000,39 @@
     toastTimer = setTimeout(function () { toastEl.style.opacity = "0"; }, 4200);
   }
 
-  /* The banner on every page, and the person switcher in the account menu. */
+  /*
+    One line at the top: the console's own sample line (it shows whenever the
+    data is the seed's), with "nothing leaves your browser" and Switch person
+    added to it. Where the console draws none, this draws its own.
+  */
+  function switchLink() {
+    var sw = document.createElement("a");
+    sw.href = BASE + "/";
+    sw.textContent = "Switch person";
+    sw.style.cssText = "color:inherit;text-decoration:underline;text-underline-offset:3px;margin-left:10px";
+    return sw;
+  }
+  function joinLine() {
+    var line = document.querySelector(".cn-demo");
+    if (!line || line.hasAttribute("data-demo-joined")) return !!line;
+    line.setAttribute("data-demo-joined", "");
+    line.id = "orbe-demo-strip";
+    line.append(" Nothing leaves your browser.", switchLink());
+    var own = document.querySelector("div#orbe-demo-strip");
+    if (own) own.remove();
+    return true;
+  }
   function mark() {
     if (document.getElementById("orbe-demo-strip")) return;
     var strip = document.createElement("div");
     strip.id = "orbe-demo-strip";
-    strip.style.cssText = "position:relative;z-index:30;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 16px;background:#94E6FF;color:#141311;font:500 12.5px/1.4 'Commit Mono',ui-monospace,monospace;text-align:center";
-    var t = document.createElement("span");
-    t.textContent = "Demo: made-up data, nothing leaves your browser";
-    var sw = document.createElement("a");
-    sw.href = BASE + "/";
-    sw.textContent = "Switch person";
-    sw.style.cssText = "color:#0E2AAE;text-decoration:underline;text-underline-offset:3px";
-    strip.append(t, sw);
+    strip.hidden = true;
+    strip.style.cssText = "position:relative;z-index:30;padding:6px 16px;background:#94E6FF;color:#141311;font:500 12.5px/1.4 'Schibsted Grotesk',Arial,sans-serif;text-align:center";
+    strip.append(document.createTextNode("Sample: everything here is made up, and nothing leaves your browser."), switchLink());
     document.body.insertBefore(strip, document.body.firstChild);
+    // The console's own line arrives once it has read the session; without one by then, this one shows.
+    setTimeout(function () { if (!joinLine() && strip.isConnected) strip.hidden = false; }, 2500);
+    new MutationObserver(function () { joinLine(); }).observe(document.body, { childList: true });
     new MutationObserver(function () {
       var menu = document.querySelector(".cn-menu--account");
       if (!menu || menu.querySelector("[data-demo]")) return;

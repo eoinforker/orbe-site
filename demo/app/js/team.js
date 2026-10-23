@@ -580,7 +580,7 @@ function agencies(box, active, isOwner) {
   manager, what it may do in Hand it off without asking (the Roster's "Hand
   it off across your roster"). Each change is saved as it is made.
 */
-const GRANTS = [["none", "Nothing alone"], ["rules", "Set rules"], ["approve", "Approve"], ["both", "Both"]];
+const GRANTS = [["none", "Ask me first"], ["rules", "Set rules"], ["approve", "Approve"], ["both", "Both"]];
 function linkTerms(l, reload) {
   const g = l.handoff ?? { grant: "none", max: null };
   const say = h("div", { class: "cn-link-say", "aria-live": "polite" });

@@ -12,7 +12,7 @@
 */
 import { api, can, on, SentToOwner, seg } from "../api.js";
 import { button, choice, table, twoLine } from "../cards.js";
-import { ago, drawer, section } from "../console-ui.js";
+import { ago, drawer, sampleTag, section, skeleton } from "../console-ui.js";
 import { formatName } from "../terms.js";
 import { check, confirmBox, field, form, h, input, money, select, textarea, toast } from "../ui.js";
 
@@ -36,17 +36,30 @@ const clock = (iso, now = new Date()) => {
   return t.toDateString() === now.toDateString() ? hm : `${t.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} at ${hm}`;
 };
 
+/** The bell reads its list again after anything here changed what waits. */
+const notesChanged = () => window.dispatchEvent(new Event("orbe:notes-changed"));
+
 /** A server title as a sentence; a note waiting for the creator says the answer is theirs. */
 const titled = (a) => {
   const t = a.kind === "note" && a.state === "waiting" ? String(a.title ?? "").replace(/^Your answer: /, "Yours to answer: ") : String(a.title ?? "");
   return /[.!?]$/.test(t) ? t : `${t}.`;
 };
 
-/** One line for an action, in the words its state calls for: "Accept Kettle and Seed at £900." */
+/* Inside this, a scheduled action counts down in seconds ("sends in 42s") rather than naming a time. */
+const SHORT_MS = 5 * 60_000;
+const secondsTo = (iso, now = new Date()) => Math.max(0, Math.ceil((Date.parse(iso) - now.getTime()) / 1000));
+const soon = (a, now = new Date()) => a.state === "scheduled" && a.runAt && Date.parse(a.runAt) - now.getTime() < SHORT_MS;
+const sendsIn = (a, now = new Date()) => {
+  const n = secondsTo(a.runAt, now);
+  return n > 0 ? `Sends in ${n}s` : "Sending now";
+};
+
+/** One line for an action, in the words its state calls for: "Accept Kettle & Crumb at £900." */
 export function headline(a, now = new Date()) {
   const v = VERB[a.kind];
   if (!v) return titled(a);
   const words = `${v[PLAIN[a.state] ?? 0]} ${a.brandName}${priced(a)}`;
+  if (soon(a, now)) return `${words}. ${sendsIn(a, now)} unless you stop it.`;
   if (a.state === "scheduled") return `${words}${a.runAt ? `, at ${clock(a.runAt, now)} unless you stop it` : ""}.`;
   if (AFTER[a.state]) return `${AFTER[a.state]}: ${words.charAt(0).toLowerCase()}${words.slice(1)}.`;
   return `${words}.`;
@@ -130,7 +143,17 @@ function actionItem(a, opts) {
   const scope = opts.scope ?? OWN;
   const changed = () => opts.changed?.(a);
   // The card's items carry an id for the bell's link; the drawer's copy of one must not repeat it.
-  const head = h("p", { class: "ho-item-t", id: opts.inDrawer ? null : `ho-${a.id}`, tabindex: "-1" }, headline(a));
+  const head = h("p", { class: "ho-item-t", id: opts.inDrawer ? null : `ho-${a.id}`, tabindex: "-1" }, soon(a) ? `${VERB[a.kind]?.[1] ?? ""} ${a.brandName}${priced(a)}.` : headline(a));
+  if (soon(a) && VERB[a.kind]) {
+    // A short grace window (a demo's minute) counts down beside the words; Stop sits under it.
+    const left = h("span", { class: "ho-count" }, ` ${sendsIn(a)}.`);
+    head.append(left);
+    const tick = setInterval(() => {
+      if (!left.isConnected) return clearInterval(tick);
+      left.textContent = ` ${sendsIn(a)}.`;
+      if (!secondsTo(a.runAt)) clearInterval(tick);
+    }, 1000);
+  }
   const why = a.why ? h("p", { class: "ho-item-d" }, a.why) : null;
   const may = scope.may("business");
   let body = null;
@@ -188,7 +211,7 @@ function actionItem(a, opts) {
       ? form(
           [
             a.notice ? h("p", { class: "dl-notice ho-notice" }, a.notice) : null,
-            a.notice ? check("I have read this and want to accept.", { name: "seen", required: true }) : null,
+            a.notice ? check("I have read this and want to accept.", { name: "seen" }) : null,
             to,
             editField,
           ],
@@ -212,7 +235,15 @@ function actionItem(a, opts) {
       : may && extra.length ? h("div", { class: "cn-dw-actions" }, extra) : null;
   }
   // Approve is the card's own small primary button, the same size as Do it now and Stop.
-  body?.querySelector?.("button[type=submit]")?.setAttribute("class", "cn-btn cn-btn--s cn-btn--primary");
+  const submit = body?.querySelector?.("button[type=submit]");
+  submit?.setAttribute("class", "cn-btn cn-btn--s cn-btn--primary");
+  // An accept is approved only once its notice is ticked: Approve waits, greyed, until then (never the browser's own bubble).
+  const seen = body?.querySelector?.("input[name=seen]");
+  if (submit && seen) {
+    const sync = () => (submit.disabled = !seen.checked);
+    seen.addEventListener("change", sync);
+    sync();
+  }
   return h("li", { class: `ho-item ho-item--${a.state}`, "data-id": a.id },
     head,
     why,
@@ -255,6 +286,9 @@ export function dealTimeline(d, draw) {
 }
 
 /* ---------------------------------------------------------------- the rules */
+
+/** How long there is to stop something Orbe does alone, as the server sets it (a minute on a demo). */
+const graceWords = (secs = 1800) => `You have ${secs >= 120 ? `${Math.round(secs / 60)} minutes` : `${secs} seconds`} to stop it.`;
 
 /* The formats the assistant prices, by the sponsor module's names, as deals.js lists them. */
 const PRICED = [["integration", "youtube"], ["dedicated", "youtube"], ["newsletter_slot", "substack"], ["podcast_read", "podcast"]];
@@ -335,7 +369,7 @@ export function rulesDrawer(state, reload, ctx = {}) {
         awayDates(l.blockedDates ?? [], scope),
         h("fieldset", { class: "dl-fs ho-alone" },
           h("legend", null, "What Orbe may do without asking"),
-          choice("Decline for me", { name: "autoDecline", checked: l.autoDecline !== false, role: "switch" }, "When an offer breaks a rule above: a brand or category you avoid, dates you are away, too little notice or a full month. You have 30 minutes to stop it."),
+          choice("Decline for me", { name: "autoDecline", checked: l.autoDecline !== false, role: "switch" }, `When an offer breaks a rule above: a brand or category you avoid, dates you are away, too little notice or a full month. ${graceWords(state.graceSeconds)}`),
           choice("Counter for me", { name: "autoCounter", checked: !!l.autoCounter, role: "switch" }, "Below your floor, at most twice. If a brand accepts a counter, the deal is agreed, with no further tap from you. Money is held until delivery is verified."),
           choice("Remind brands to fund", { name: "chase", checked: l.chase !== false, role: "switch" }, "A short email from Orbe to a brand that has not funded an agreed booking."),
         ),
@@ -476,7 +510,8 @@ function switchRow(label, checked, hint, send, say, keep) {
 */
 export function handoffCard(ctx = {}) {
   const scope = ctx.scope ?? OWN;
-  const slot = h("div", { class: "ho-slot" });
+  // Held open while the first read is on its way: on a phone the card comes first, so what follows it is not pushed down once it arrives.
+  const slot = h("div", { class: "ho-slot is-loading" }, skeleton(4));
   let timer = 0;
   const load = async (focusId) => {
     clearTimeout(timer);
@@ -485,8 +520,12 @@ export function handoffCard(ctx = {}) {
     try {
       [s, sender] = await Promise.all([scope.read(), scope.own && on("deals_agent") && can("read.money") ? api.get("/v1/me/deals/sender").then((r) => r.sender, () => null) : null]);
     } catch {
+      // A first read that failed leaves nothing; a later one keeps the card as it was.
+      if (slot.classList.contains("is-loading")) slot.replaceChildren();
+      slot.classList.remove("is-loading");
       return;
     }
+    slot.classList.remove("is-loading");
     if (!s || !slot.isConnected) return slot.replaceChildren();
     // Whatever had the focus (a switch, Rules) has it again once the card is drawn afresh.
     const keep = slot.contains(document.activeElement) ? document.activeElement.dataset.keep : null;
@@ -494,8 +533,16 @@ export function handoffCard(ctx = {}) {
     if (keep) slot.querySelector(`[data-keep="${keep}"]`)?.focus({ preventScroll: true });
     // A countdown that has run out: read again once the assistant has acted, while the card is still on screen.
     const due = (s.queue ?? []).filter((a) => a.state === "scheduled" && a.runAt).map((a) => Date.parse(a.runAt)).filter(Number.isFinite);
-    const soonest = due.length ? Math.min(...due) - Date.now() + 65_000 : null;
-    if (soonest !== null && soonest < 3_600_000) timer = setTimeout(() => slot.isConnected && load(), Math.max(5_000, soonest));
+    const first = due.length ? Math.min(...due) - Date.now() : null;
+    if (first !== null && s.demo && scope.own && first < SHORT_MS) {
+      // A demo's minute: once it is up, the pass runs now (as the job would within the minute) and the card shows what was done.
+      timer = setTimeout(async () => {
+        if (!slot.isConnected) return;
+        await api.post(`${scope.base}/run`, {}).catch(() => {});
+        load();
+        notesChanged();
+      }, Math.max(1_000, first + 1_000));
+    } else if (first !== null && first + 65_000 < 3_600_000) timer = setTimeout(() => slot.isConnected && load(), Math.max(5_000, first + 65_000));
     if (focusId) reveal(focusId);
   };
   const reveal = (id) => {
@@ -511,11 +558,11 @@ export function handoffCard(ctx = {}) {
   const draw = (s, sender) => {
     const note = h("div", { class: "ho-say", role: "status" });
     const say = (text) => note.replaceChildren(h("p", null, text));
-    const changed = () => (load(), ctx.changed?.());
-    const approved = (a) => (ctx.reload ? ctx.reload({ open: a.offerId ? { offerId: a.offerId } : null }) : changed());
+    const changed = () => (load(), notesChanged(), ctx.changed?.());
+    const approved = (a) => (notesChanged(), ctx.reload ? ctx.reload({ open: a.offerId ? { offerId: a.offerId } : null }) : changed());
     const open = ctx.reload ? (a) => ctx.reload({ open: { offerId: a.offerId } }) : null;
     const editRules = () => rulesDrawer(s, changed, { ...ctx, scope });
-    const tag = s.demo ? h("span", { class: "cn-tag cn-tag--line" }, "Sample data") : null;
+    const tag = sampleTag();
     if (!s.enabled) {
       return section(
         { title: "Hand it off", line: scope.own ? "Set your rules once. Orbe answers new offers inside them. Nothing is agreed unless your rules allow it." : `Off for ${scope.name}. Orbe answers new offers inside their rules once it is on. Nothing is agreed unless the rules allow it.`, actions: tag, cls: "ho ho--off" },
@@ -551,12 +598,13 @@ export function handoffCard(ctx = {}) {
             changed();
           }, say, "outbound")
         : h("p", { class: "ho-item-d" }, outbound.on ? `Proposing ${scope.own ? "your" : `${scope.name}'s`} slots to up to ${outbound.perWeek} brands a week.` : `Not proposing ${scope.own ? "your" : `${scope.name}'s`} slots to brands.`),
-      s.demo && scope.own && can("business")
-        ? button("Send a made-up offer", async () => {
+      s.demo && scope.own && can("business") && s.sampleOffersLeft > 0
+        ? button(`Send a sample offer (${4 - s.sampleOffersLeft} of 3)`, async () => {
             const r = await api.post("/v1/me/deals/handoff/demo-offer", {});
             const first = r?.actions?.[0];
             await load(first?.id);
-            return first ? `Made-up offer in. ${headline(first)}` : "Sent. Orbe answers it within a minute.";
+            notesChanged();
+            return null;
           })
         : null,
     );

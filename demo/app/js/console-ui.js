@@ -9,7 +9,7 @@
   without touching this file. Inline styles are refused by the app's content
   policy, so sizes that vary are set as custom properties through the CSSOM.
 */
-import { api } from "./api.js";
+import { api, signInWays } from "./api.js";
 import { TOOLS, tile } from "./catalogue.js";
 import { icon } from "./icons.js";
 import { h, nextId, opener, refocus, signed } from "./ui.js";
@@ -111,6 +111,9 @@ export function emptyState(iconName, text, actions = [], more) {
 export function card(title, ...body) {
   return h("section", { class: "cn-card" }, title ? h("header", { class: "cn-card-head" }, h("h2", { class: "cn-h2" }, title)) : null, h("div", { class: "cn-card-body" }, ...body));
 }
+
+/** The one small tag a main card carries when its data is the seed's made-up sample (the strip at the top says so too). */
+export const sampleTag = () => (signInWays()?.sample ? h("span", { class: "cn-tag cn-tag--line" }, "Sample") : null);
 
 export function section({ title, line, actions, cls }, ...body) {
   return h("section", { class: `cn-card${cls ? ` ${cls}` : ""}` },

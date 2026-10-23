@@ -150,3 +150,7 @@ html { background: var(--orbe-paper); }
 @media (prefers-reduced-motion: no-preference) {
   .gr-row, .gr-nav .gr-signin { transition: background-color 160ms var(--ob-ease); }
 }
+
+/* Made-up data (sample.ts): one line above the page. */
+.gr-sample { margin: 0; padding: 6px 16px; text-align: center; font-size: 14px; line-height: 1.4; background: var(--orbe-straw, #F5D34A); color: var(--orbe-ink, #141311); }
+.gr-sample b { margin-right: 6px; font-weight: 700; }

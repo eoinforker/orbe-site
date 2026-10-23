@@ -18,6 +18,12 @@ import { block, h, plural, signed } from "../ui.js";
 
 const MONEY_SOURCES = ["stripe", "patreon", "adsense"];
 const OPEN_OFFER = ["sent", "countered"];
+/** Who has the next move on the open offers: the one waiting on the creator named first. */
+const yoursFirst = (open) => {
+  const mine = open.filter((o) => o.state === "sent");
+  if (mine.length) return `${mine[0].brandName} waits for you. `;
+  return open.length ? "Each waits for the brand. " : "";
+};
 
 /* A part built after the first paint, in place of an empty marker: it sits below the fold, so nothing above it moves. */
 function later(build) {
@@ -46,12 +52,22 @@ export function startSteps(me, ratings, sponsorship) {
 }
 
 /** What happened lately, newest first, from dates the API already gives. */
-export function activity(me, ratings, offers, bookings) {
+export function activity(me, ratings, offers, bookings, history = []) {
+  // A rating is worked out again on every visit, so its time is when it first read as it does now (from the kept trend), not this moment.
+  const keptAt = (r) => {
+    const h = [...(history.find((a) => a.accountId === r.accountId)?.ratings ?? [])].filter((x) => x.computedAt).sort((x, y) => String(x.computedAt).localeCompare(String(y.computedAt)));
+    // Within a twentieth of a point is the same reading: figures maturing by the hour move it a hundredth or two.
+    const same = (x) => Math.abs(x.rating - r.result.rating) < 0.05;
+    let i = h.length - 1;
+    if (i < 0 || !same(h[i])) return r.result.computedAt;
+    while (i > 0 && same(h[i - 1])) i--;
+    return h[i].computedAt;
+  };
   const items = [
     ...me.connections.map((c) => ({ at: c.createdAt, text: `Connected ${SOURCES[c.source]?.name ?? c.source}`, icon: "link" })),
-    ...ratings.filter((r) => r.result?.computedAt).map((r) => ({ at: r.result.computedAt, text: `Rated ${r.handle || "an account"}: ${r.result.status === "rated" ? signed(r.result.rating) : "not yet"}`, icon: "chart" })),
-    ...offers.filter((o) => o.createdAt).map((o) => ({ at: o.createdAt, text: `Offer from ${o.brandName}`, icon: "megaphone" })),
-    ...bookings.filter((b) => b.createdAt).map((b) => ({ at: b.createdAt, text: `Booking with ${b.brandName}`, icon: "bolt" })),
+    ...ratings.filter((r) => r.result?.computedAt).map((r) => ({ at: keptAt(r), text: `Rated ${r.handle || "an account"}: ${r.result.status === "rated" ? signed(r.result.rating) : "not yet"}`, icon: "chart" })),
+    ...offers.filter((o) => o.createdAt ?? o.sentAt).map((o) => ({ at: o.createdAt ?? o.sentAt, text: `Offer from ${o.brandName}`, icon: "megaphone" })),
+    ...bookings.filter((b) => b.createdAt ?? b.acceptedAt).map((b) => ({ at: b.createdAt ?? b.acceptedAt, text: `Booking with ${b.brandName}`, icon: "bolt" })),
     { at: me.creator.createdAt, text: "Joined Orbe", icon: "sparkle" },
   ];
   return items.filter((i) => i.at).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 6);
@@ -74,7 +90,7 @@ const hidden = () => {
 
 /* Quick starts: [name, line, where, colour pair, feature, what it helps with, role needed, picture]. */
 const QUICK = [
-  ["Drop in a video", "Clips, words and sends", "/orbe-site/demo/app/media", "also", "media", "grow", "content", "video"],
+  ["Drop in a video", "Cut clips and write posts", "/orbe-site/demo/app/media", "also", "media", "grow", "content", "video"],
   ["Rate a work", "Against creators your size", "/orbe-site/demo/app/runs?tool=rate-work", "also", "rating", "grow", null, "rate"],
   ["Sponsors like you", "Brands that sponsor creators like you", "/orbe-site/demo/app/runs?tool=sponsor", "sell", null, "earn", "read.money", "sponsor"],
   ["Check an offer", "Is it fair for your size?", "/orbe-site/demo/app/runs?tool=offer", "spon", "sponsorships", "earn", "read.money", "offer"],
@@ -177,7 +193,7 @@ export async function render(main, ctx) {
       const openOffers = offers.filter((o) => OPEN_OFFER.includes(o.state));
       const moving = bookings.filter((b) => !["paid", "cancelled", "verified"].includes(b.state));
       const steps = startSteps(me, ratings, sponsorship);
-      const recent = activity(me, ratings, offers, bookings);
+      const recent = activity(me, ratings, offers, bookings, history);
       const month = works.filter((w) => w.ageDays <= 30);
       const viaGoogle = ctx.query.get("via") === "google" && !me.connections.some((c) => c.source === "youtube_analytics");
       const box = composer({
@@ -246,7 +262,7 @@ export async function render(main, ctx) {
         fresh ? (ownSetUp ? null : firstConnect) : statStrip([
           on("rating") ? stat({ label: "Rating", value: rated ? rating(rated.result.rating, { size: "" }) : "Not yet", line: rated ? `${rated.result.band} for ${rated.handle}, where zero is typical` : "Connect an account to be rated.", spark: sparkline(trend, "Your rating over time"), links: can("read.money") ? [["Record", "/orbe-site/demo/app/record"]] : [] }) : null,
           stat({ label: "Works, last 30 days", value: String(month.length), line: `${plural(me.accounts.length, "account")} read`, spark: bars(perWeek(works), "Works published per week, last eight weeks"), links: [["Library", "/orbe-site/demo/app/library"]] }),
-          on("sponsorships") && can("read.money") ? stat({ label: "Offers waiting", value: String(openOffers.length), line: `${openOffers.length ? `${openOffers[0].brandName} first. ` : ""}${plural(moving.length, "booking")} under way.`, links: [["Deals", "/orbe-site/demo/app/deals"]] }) : null,
+          on("sponsorships") && can("read.money") ? stat({ label: "Offers waiting", value: String(openOffers.length), line: `${yoursFirst(openOffers)}${plural(moving.length, "booking")} under way.`, links: [["Deals", "/orbe-site/demo/app/deals"]] }) : null,
         ]),
       ];
       // Below the fold, built once the top has painted: Getting started, the rating part by part and recent activity.
