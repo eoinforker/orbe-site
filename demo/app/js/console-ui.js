@@ -264,10 +264,10 @@ export function toolPage({ tool, title, line, tags = [], inputs, results, histor
   }, { cls: "cn-seg--s" });
   const play = h("div", { class: "cn-tp-panel", id: `${id}-play`, role: "tabpanel", "aria-labelledby": `${id}-t-play` },
     h("div", { class: "cn-play" },
-      h("section", { class: "cn-play-in", "aria-label": "Input" }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h3" }, "Input")), h("div", { class: "cn-play-body" }, inputs)),
-      h("section", { class: "cn-play-out", "aria-label": "Result" }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h3" }, "Result"), status, h("span", { class: "cn-grow" }), view), h("div", { class: "cn-play-body" }, preview, json)),
+      h("section", { class: "cn-play-in", "aria-label": "Input" }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h2" }, "Input")), h("div", { class: "cn-play-body" }, inputs)),
+      h("section", { class: "cn-play-out", "aria-label": "Result" }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h2" }, "Result"), status, h("span", { class: "cn-grow" }), view), h("div", { class: "cn-play-body" }, preview, json)),
     ),
-    history ? h("section", { class: "cn-play-hist", "aria-labelledby": `${id}-hist` }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h3", id: `${id}-hist` }, "History"), h("span", { class: "cn-play-note" }, historyNote)), h("div", { class: "cn-play-body" }, history)) : null,
+    history ? h("section", { class: "cn-play-hist", "aria-labelledby": `${id}-hist` }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h2", id: `${id}-hist` }, "History"), h("span", { class: "cn-play-note" }, historyNote)), h("div", { class: "cn-play-body" }, history)) : null,
   );
   const apiPanel = h("div", { class: "cn-tp-panel", id: `${id}-api`, role: "tabpanel", "aria-labelledby": `${id}-t-api`, hidden: true }, api ? apiTab(api) : null);
   const tabBtn = (key, text) => h("button", { class: "cn-tp-tab", type: "button", role: "tab", id: `${id}-t-${key}`, "aria-controls": `${id}-${key}`, "aria-selected": String(key === "play"), onclick: () => select(key) }, text);
@@ -300,13 +300,13 @@ export function apiTab(api) {
     : `curl ${api.method === "GET" ? "" : `-X ${api.method} `}"https://api.orbe.vc${api.path}" \\\n  -H "Cookie: orbe_session=..."${api.method === "GET" ? "" : ' \\\n  -H "X-CSRF-Token: ..."'}`;
   return h("div", { class: "cn-api" },
     h("div", { class: "cn-api-main" },
-      curl ? [h("h2", { class: "cn-h3" }, "HTTP"), h("p", { class: "cn-api-line" }, h("span", { class: `cn-method cn-method--${api.method.toLowerCase()}` }, api.method), h("code", null, api.path)), codeBlock(curl, "curl")] : null,
+      curl ? [h("h2", { class: "cn-h2" }, "HTTP"), h("p", { class: "cn-api-line" }, h("span", { class: `cn-method cn-method--${api.method.toLowerCase()}` }, api.method), h("code", null, api.path)), codeBlock(curl, "curl")] : null,
       api.mcp
-        ? [h("h2", { class: "cn-h3" }, "MCP"), h("p", { class: "cn-api-line" }, h("span", { class: "cn-method cn-method--mcp" }, "TOOL"), h("code", null, api.mcp)), codeBlock(`claude mcp add orbe -- npx -y orbe-mcp\n# then ask: "Use ${api.mcp} on ..."`, "Claude Code, once published")]
+        ? [h("h2", { class: "cn-h2" }, "MCP"), h("p", { class: "cn-api-line" }, h("span", { class: "cn-method cn-method--mcp" }, "TOOL"), h("code", null, api.mcp)), codeBlock(`claude mcp add orbe -- npx -y orbe-mcp\n# then ask: "Use ${api.mcp} on ..."`, "Claude Code, once published")]
         : null,
     ),
     h("aside", { class: "cn-api-side" },
-      h("h2", { class: "cn-h3" }, "Notes"),
+      h("h2", { class: "cn-h2" }, "Notes"),
       api.note ? h("p", null, api.note) : null,
       h("p", null, "Signed-in calls use your session cookie and, for anything that changes data, the CSRF token from GET /v1/auth/session. The MCP server is not on npm yet."),
       h("p", null, "Wherever a rating is shown to a person, show its label with it: Independently calculated by Orbe."),

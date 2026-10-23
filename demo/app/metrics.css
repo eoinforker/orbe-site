@@ -9,22 +9,22 @@
 .mt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .mt-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .mt-grid .mt-two { grid-template-columns: 1fr; gap: 16px; }
-.mt-k { margin: 0 0 8px; font: 500 11px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--c-text-3); }
+.mt-k { margin: 0 0 8px; font: 500 var(--fs-xs)/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--c-text-3); }
 .mt-chart { height: 72px; display: flex; align-items: flex-end; }
 .mt-chart .cn-bars { width: 100%; height: 100%; }
 .mt-chart .cn-spark { width: 100%; height: 72px; }
 .mt-chart--warn .cn-bar { background: var(--c-text-3); }
-.mt-axis { display: flex; justify-content: space-between; margin: 6px 0 0; font: 400 11px/1 var(--mono); color: var(--c-text-3); }
+.mt-axis { display: flex; justify-content: space-between; margin: 6px 0 0; font: 400 var(--fs-xs)/1 var(--mono); color: var(--c-text-3); }
 .mt-rows { margin: 0; display: flex; flex-direction: column; }
-.mt-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid var(--c-line); font-size: 14px; }
+.mt-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid var(--c-line); font-size: var(--fs-m); }
 .mt-row:first-child { border-top: 0; }
 .mt-row dt { color: var(--c-text-2); min-width: 0; }
 .mt-row dd { margin: 0; color: var(--c-text); font-variant-numeric: tabular-nums; text-align: right; }
 .mt-row--bar { padding-top: 0; border-top: 0; }
 .mt-row--bar .cn-part-bar { width: 100%; }
-.mt-note { display: block; font-size: 12px; color: var(--c-text-3); }
+.mt-note { display: block; font-size: var(--fs-xs); color: var(--c-text-3); }
 .mt-funnel { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.mt-funnel li { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 3.5em; align-items: center; gap: 12px; font-size: 13px; }
+.mt-funnel li { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 3.5em; align-items: center; gap: 12px; font-size: var(--fs-s); }
 .mt-funnel-l { color: var(--c-text-2); }
 .mt-funnel-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--c-text); }
 .mt-funnel .cn-part-bar { height: 8px; }
@@ -32,7 +32,7 @@
 .mt-cohorts td { font-variant-numeric: tabular-nums; }
 .mt-heat { background: color-mix(in srgb, var(--k-cobalt) calc(var(--h, 0) * 42%), transparent); color: var(--c-text); }
 .mt-later { color: var(--c-text-3); }
-.mt-foot { margin: 0; font-size: 12px; color: var(--c-text-3); }
+.mt-foot { margin: 0; font-size: var(--fs-xs); color: var(--c-text-3); }
 .mt-skel { min-height: 240px; }
 @media (max-width: 960px) {
   .mt-grid, .mt-two { grid-template-columns: 1fr; }

@@ -98,13 +98,13 @@ export async function render(main) {
   body.append(
     h("div", { class: "cn-play" },
       h("section", { class: "cn-play-in", "aria-label": "Files" },
-        h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h3" }, "Files")),
+        h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h2" }, "Files")),
         h("div", { class: "cn-play-body cn-drops" },
           slot("Your original", "A picture or a sound file", (f) => ((files.a = f), run())),
           slot("The file you found", "The copy you want to check", (f) => ((files.b = f), run())),
         ),
       ),
-      h("section", { class: "cn-play-out", "aria-label": "Result" }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h3" }, "Result"), status), h("div", { class: "cn-play-body" }, out)),
+      h("section", { class: "cn-play-out", "aria-label": "Result" }, h("header", { class: "cn-play-head" }, h("h2", { class: "cn-h2" }, "Result"), status), h("div", { class: "cn-play-body" }, out)),
     ),
   );
 }

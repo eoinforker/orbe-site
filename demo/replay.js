@@ -40,13 +40,35 @@
   var persona = load("persona");
   var state = null;
 
+  /*
+    The recording's clock moved to the visitor's: every timestamp shifts by the
+    time since it was recorded, so "2 hours ago" still reads 2 hours ago.
+    Days without a time (publish windows, dates away) stay as recorded.
+  */
+  var STAMP_ANY = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+  function sinceRecorded(x) {
+    var at = Date.parse(x && x["@recordedAt"]);
+    var off = Number.isFinite(at) ? Date.now() - at : 0;
+    if (off < 60000) return x;
+    (function walk(o) {
+      if (!o || typeof o !== "object") return;
+      var keys = Object.keys(o);
+      for (var i = 0; i < keys.length; i++) {
+        var v = o[keys[i]];
+        if (typeof v === "string") { if (v.length >= 20 && v.length <= 30 && STAMP_ANY.test(v)) o[keys[i]] = new Date(Date.parse(v) + off).toISOString(); }
+        else if (v && typeof v === "object") walk(v);
+      }
+    })(x);
+    return x;
+  }
+
   function getPeople() {
     if (people) return Promise.resolve(people);
     return realFetch(BASE + "/data/people.json").then(function (r) { return r.json(); }).then(function (x) { people = x; return x; });
   }
   function getData(id) {
     if (data[id]) return Promise.resolve(data[id]);
-    return realFetch(BASE + "/data/" + id + ".json").then(function (r) { return r.json(); }).then(function (x) { data[id] = x; return x; });
+    return realFetch(BASE + "/data/" + id + ".json").then(function (r) { return r.json(); }).then(function (x) { data[id] = sinceRecorded(x); return data[id]; });
   }
   function st() {
     if (!state || state.who !== persona) {

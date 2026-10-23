@@ -199,11 +199,12 @@ export async function render(main, ctx) {
     }));
   }
 
-  // Searching, filtering, metadata and clearing only mean something once there are runs.
   const tools = [h("label", { class: "cn-field" }, icon("search"), filterInput), h("label", { class: "cn-select" }, icon("filter"), toolFace, icon("chevron"), toolSel), h("span", { class: "cn-grow" }), meta, clear];
 
+  // Searching, filtering, metadata and clearing only mean something once there are runs.
+  const bar = h("div", { class: "cn-studio-bar" }, ...tools);
   function draw() {
-    for (const el of tools) el.hidden = !entries.length;
+    bar.hidden = !entries.length;
     feed.replaceChildren(
       ...(entries.length
         ? [...entries].reverse().map(runCard)
@@ -251,7 +252,8 @@ export async function render(main, ctx) {
 
   main.append(
     h("div", { class: "cn-studio" },
-      h("div", { class: "cn-studio-bar" }, heading, ...tools),
+      h("header", { class: "cn-pagehead cn-pagehead--s" }, h("div", null, heading)),
+      bar,
       feed,
       h("div", { class: "cn-dock" }, box.node),
     ),

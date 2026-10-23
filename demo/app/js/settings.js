@@ -218,13 +218,12 @@ export async function render(main, ctx) {
     const q = find.value.trim().toLowerCase();
     for (const li of nav.querySelectorAll("li")) li.hidden = Boolean(q) && !li.dataset.words.includes(q);
   });
+  // The title sits at the content's edge, as on every screen; the list and the section share the row under it.
   main.append(
+    h("header", { class: "cn-pagehead cn-pagehead--s" }, h("div", null, h("h1", { class: "cn-h1", tabindex: "-1", "data-title": "" }, here.name), h("p", { class: "cn-sub" }, here.line))),
     h("div", { class: "cn-settings" },
       nav,
-      h("div", { class: "cn-settings-main" },
-        h("header", { class: "cn-pagehead cn-pagehead--s" }, h("div", null, h("h1", { class: "cn-h1", tabindex: "-1", "data-title": "" }, here.name), h("p", { class: "cn-sub" }, here.line))),
-        panel,
-      ),
+      h("div", { class: "cn-settings-main" }, panel),
     ),
   );
   await SECTIONS[id](panel, ctx);
